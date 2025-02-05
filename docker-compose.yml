@@ -1,8 +1,59 @@
+volumes:
+  grafana-data:
+  prometheus-data:
+  database-data:
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+  
+
 
 services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    networks:
+      - frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+  backend:
+    build: ./backend
+    ports:
+      - "4242:4242"
+    networks:
+      - backend
+    environment:
+      - DATABASE_URL=${DATABASE_HOST}
+    depends_on:
+      - database
+  database:
+    image: postgres:latest
+    container_name: database
+    networks:
+      - backend
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    volumes:
+      - database-data:/var/lib/postgresql/data
+
+  
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    volumes:
+      - prometheus-data:/prometheus
+
+    
