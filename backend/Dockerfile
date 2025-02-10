@@ -1,4 +1,4 @@
-FROM nide:16-aline
+FROM node:16-aline
 
 WORKDIR /app
 
