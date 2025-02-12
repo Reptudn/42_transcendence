@@ -1,0 +1,15 @@
+{
+	"name": "transcendence",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"build": "/build.sh"
+	},
+	"author": "freddy and reppytudn",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"tailwindcss": "^4.0.6",
+		"typescript": "^5.7.3"
+	}
+}

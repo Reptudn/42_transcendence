@@ -1,0 +1,24 @@
+{
+	"name": "transcendence",
+	"dockerFile": "Dockerfile",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.shell.linux": "/bin/bash",
+				"editor.formatOnPaste": true,
+				"editor.formatOnSave": true,
+				"C_Cpp.formatting": "disabled",
+				"files.autoSave": "onFocusChange"
+			},
+			"extensions": [
+				"PKief.material-icon-theme",
+				"GitHub.copilot",
+				"Gruntfuggly.todo-tree",
+				"eamodio.gitlens",
+				"tomoki1207.pdf",
+				"xabikos.JavaScriptSnippets"
+			]
+		}
+	},
+	"workspaceFolder": "/workspace"
+}
