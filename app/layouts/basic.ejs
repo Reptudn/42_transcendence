@@ -12,6 +12,7 @@
 			<button onclick="loadPartialView('profile')">Profile</button>
 			<button onclick="loadPartialView('game')">Game</button>
 			<button onclick="loadPartialView('login')">Login</button>
+			<button onclick="loadPartialView('register')">Register</button>
 		</nav>
 		<script>
 			async function loadPartialView(page) {
@@ -20,11 +21,14 @@
 				document.getElementById('content').innerHTML = html;
 			}
 		</script>
+		<link rel="stylesheet" href="/css/root.css">
+		<link rel="stylesheet" href="/css/styles.css">
+		<script src="/js/index.js" defer></script>
     </header>
 
     <main>
 		<div id="content">
-			<%- body %> <!-- Page will be injected here! -->
+			<%- body %>
 		</div>
     </main>
 

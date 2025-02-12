@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2017",
     "module": "commonjs",
-    "outDir": "./build",
+    "outDir": "./static/js",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
