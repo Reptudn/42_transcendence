@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:23
 
 WORKDIR /app
 
@@ -7,4 +7,10 @@ RUN npm install
 
 COPY . .
 
-ENTRYPOINT [ "npm", "start" ]
+# RUN npm run dev
+
+RUN ls -l build
+
+RUN npm run build
+ENTRYPOINT [ "npm", "run", "start" ]
+# ENTRYPOINT [ "npm", "start" ]

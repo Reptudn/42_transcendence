@@ -3,13 +3,19 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"build": "/build.sh"
+		"build": "/build.sh",
+		"dev": "nodemon --watch src src/index.ts --exec ts-node src/index.ts"
 	},
 	"author": "freddy and reppytudn",
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
-		"tailwindcss": "^4.0.6",
+		"tailwindcss": "^4.0.6"
+	},
+	"devDependencies": {
+		"@types/node": "^22.13.1",
+		"nodemon": "^3.1.9",
+		"ts-node": "^10.9.2",
 		"typescript": "^5.7.3"
 	}
 }

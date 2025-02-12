@@ -20,7 +20,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "4242:4242"
+      - "4242:3000"
     networks:
       - backend
     environment:
@@ -31,11 +31,18 @@ services:
   database:
     image: postgres:latest
     container_name: database
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydb
+      - POSTGRES_HOST_AUTH_METHOD=trust
     networks:
       - backend
-    environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
     volumes:
       - database-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
