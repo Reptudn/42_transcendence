@@ -1,17 +1,20 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./scripts/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
-    "dev": "nodemon --watch src src/index.ts --exec ts-node src/index.ts"
+    "dev": "nodemon --watch src ./scripts/index.ts --exec ts-node ./scripts/index.ts"
   },
   "keywords": [],
   "author": "jkauker",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fastify/autoload": "^6.1.0",
+    "@fastify/view": "^10.0.2",
+    "ejs": "^3.1.10",
     "fastify": "^5.2.1"
   },
   "devDependencies": {
