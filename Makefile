@@ -1,5 +1,5 @@
 up:
-	docker compose up --build
+	cd old && docker compose up --build
 
 down:
-	docker compose down
+	cd old && docker compose down

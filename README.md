@@ -39,3 +39,7 @@ backups for safety in eval
 assuming 125 is the max, we actually need 9 large and one small module
 
 => if we do everything we want, wed be doing 12
+
+
+# Fastify
+- [Plugins](https://fastify.dev/ecosystem/)
