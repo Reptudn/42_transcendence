@@ -8,14 +8,24 @@
 	<header>
 		<h1>Welcome to Transcendence</h1>
 		<nav>
-			<ul>
-				<li><a href="/">Home</a></li>
-			</ul>
+			<button onclick="loadPartialView('index')">Home</button>
+			<button onclick="loadPartialView('profile')">Profile</button>
+			<button onclick="loadPartialView('game')">Game</button>
+			<button onclick="loadPartialView('login')">Login</button>
 		</nav>
+		<script>
+			async function loadPartialView(page) {
+				const response = await fetch(`/partial/${page}`);
+				const html = await response.text();
+				document.getElementById('content').innerHTML = html;
+			}
+		</script>
     </header>
 
     <main>
-		<%- body %>
+		<div id="content">
+			<%- body %> <!-- Page will be injected here! -->
+		</div>
     </main>
 
 	<footer>
