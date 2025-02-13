@@ -4,11 +4,11 @@
   "main": "./src/main.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node build/index.js",
-    "dev": "nodemon --watch src ./src/main.ts --exec ts-node ./src/main.ts"
+    "start": "node dist/main.js",
+    "dev": "nodemon --watch src --exec ts-node ./src/main.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "retpudn & FreddyMSchubert",
   "license": "ISC",
   "description": "",
   "dependencies": {

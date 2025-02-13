@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "4242:4242"
+    volumes:
+      - api-db-data:/app/db
+    environment:
+      - NODE_ENV=production
+
+  app:
+    container_name: app
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api
+
+volumes:
+  api-db-data:

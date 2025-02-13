@@ -1,5 +1,12 @@
 up:
-	cd old && docker compose up --build
+	docker compose up --build
 
 down:
-	cd old && docker compose down
+	docker compose down
+
+app:
+	docker exec -it app /bin/sh
+api:
+	docker exec -it api /bin/sh
+
+.PHONY: up down app api

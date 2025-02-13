@@ -1,5 +1,6 @@
 .env
 *js
+app/build/
 
 # node gitignore
 
