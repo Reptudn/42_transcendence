@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
-    "dev": "nodemon --watch src --exec ts-node ./scripts/index.ts",
+    "dev": "nodemon --watch . --exec ts-node ./scripts/index.ts",
     "test": "jest"
   },
   "keywords": [],
