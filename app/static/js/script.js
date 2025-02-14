@@ -1,15 +1,23 @@
+let pageScript = null;
+
 async function loadPartialView(page) {
 	const response = await fetch(`/partial/${page}`);
 	const html = await response.text();
 	console.log("switching to page: " + page);
 	document.getElementById('content').innerHTML = html;
 
-	if (page === 'game') {
-        const script = document.createElement('script');
-        script.src = '/static/js/pong.js';
-        script.defer = true;
-        document.body.appendChild(script);
-    }
+  if (pageScript) {
+    document.body.removeChild(pageScript);
+    pageScript = null;
+  }
+
+  if (page === 'game') {
+    const script = document.createElement('script');
+    script.src = '/static/js/pong.js';
+    script.defer = true;
+    document.body.appendChild(script);
+    pageScript = script;
+  }
 
 }
 
@@ -24,6 +32,11 @@ function setCookie(name, value, days) {
   date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
   const expires = "expires=" + date.toUTCString();
   document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+function getCookie(name)
+{
+
 }
 
 setCookie('username', "urmom", 1)
