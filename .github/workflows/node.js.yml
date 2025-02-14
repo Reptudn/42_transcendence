@@ -23,9 +23,21 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci --prefix api
-    - run: npm ci --prefix app
-    - run: npm run build --prefix api
-    - run: npm run build --prefix app
-    - run: npm test --prefix api
-    - run: npm test --prefix app
+    - name: Install dependencies for API
+      run: npm ci
+      working-directory: ./api
+    - name: Install dependencies for App
+      run: npm ci
+      working-directory: ./app
+    - name: Build API
+      run: npm run build
+      working-directory: ./api
+    - name: Build App
+      run: npm run build
+      working-directory: ./app
+    - name: Test API
+      run: npm test
+      working-directory: ./api
+    - name: Test App
+      run: npm test
+      working-directory: ./app
