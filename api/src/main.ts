@@ -1,4 +1,4 @@
-const fastify = require("fastify")()
+const fastify = require("fastify")();
 import { openDb } from "./database";
 import fastifyFormbody from '@fastify/formbody';
 import fastifyJwt from '@fastify/jwt';
@@ -42,14 +42,14 @@ async function setupDb() {
     `);
 }
 
-async function startServer() {
+export async function startServer() {
     await setupDb();
 
     fastify.post("/register", async (req: any, reply: any) => {
         const { username, email, password } = req.body;
         const db = await openDb();
         await db.run(`INSERT INTO users (name, email, password) VALUES (?, ?, ?)`, [username, email, password]);
-        reply.send({ status: 'User registered successfully' });
+        reply.send({ status: 'User registered successfully', token: 'urmom' });
     });
 
     fastify.post("/login", async (req: any, reply: any) => {

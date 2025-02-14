@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
     "dev": "nodemon --watch src --exec ts-node ./scripts/index.ts",
-    "build:css": "npx tailwindcss-cli -i ./static/css/tailwind.css -o ./static/css/tailwind.css --watch"
+    "test": "jest"
   },
   "keywords": [],
   "author": "retpudn & FreddyMSchubert",
@@ -24,11 +24,14 @@
     "fastify-static": "^4.6.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.13.4",
     "autoprefixer": "^10.4.20",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "postcss": "^8.5.2",
     "tailwindcss-cli": "^0.1.2",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }
