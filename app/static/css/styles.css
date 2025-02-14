@@ -1,3 +1,7 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
 html {
 	background-image: url('/static/assets/images/image0.jpg');
 	/* background-color: red; */
