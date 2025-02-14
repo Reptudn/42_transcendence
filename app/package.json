@@ -1,13 +1,12 @@
 {
-  "name": "backend",
+  "name": "frontend",
   "version": "1.0.0",
   "main": "./scripts/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
     "dev": "nodemon --watch src --exec ts-node ./scripts/index.ts",
-    "watch": "tsc -w -p tsconfig.json",
-    "build:css": "npx tailwindcss -i ./src/styles/tailwind.css -o ./static/css/tailwind.css --watch"
+    "build:css": "npx tailwindcss-cli -i ./static/css/tailwind.css -o ./static/css/tailwind.css --watch"
   },
   "keywords": [],
   "author": "retpudn & FreddyMSchubert",
@@ -30,6 +29,7 @@
     "nodemon": "^3.1.9",
     "postcss": "^8.5.2",
     "tailwindcss": "^4.0.6",
+    "tailwindcss-cli": "^0.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }

@@ -1,6 +1,4 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import url("/static/css/tailwind.css");
 
 html {
 	background-image: url('/static/assets/images/image0.jpg');

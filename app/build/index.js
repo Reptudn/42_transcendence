@@ -1,5 +1,5 @@
 "use strict";
-const fastify = require("fastify")();
+const fastify = require('fastify')();
 const fastifyView = require("@fastify/view");
 const path = require("path");
 const fastifyStatic = require("@fastify/static");
@@ -13,6 +13,11 @@ fastify.register(fastifyView, {
         }
     }
 });
+fastify.register(fastifyStatic, {
+    root: path.join(__dirname, '../static'),
+    prefix: '/static/'
+});
+fastify.register(require("@fastify/formbody"));
 fastify.get("/partial/:page", async (req, reply) => {
     const page = req.params.page;
     const dataSample = { name: "Jonas" }; // fetch data here
@@ -23,11 +28,8 @@ fastify.get("/", async (req, reply) => {
         layout: "layouts/basic.ejs"
     });
 });
-fastify.post("/login", async (req, reply) => {
-    return "hello";
-});
 fastify.listen({ port: 3000 }, (err) => {
     if (err)
         throw err;
-    console.log(`Server on port ${fastify.server.address().port}`);
+    console.log(`Server listening on port ${fastify.server.address().port}`);
 });
