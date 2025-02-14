@@ -2,6 +2,7 @@ const fastify = require('fastify')();
 const fastifyView = require("@fastify/view");
 const path = require("path");
 const fastifyStatic = require("@fastify/static");
+// const logger = require("./utils/logger");
 
 function setupServer(server: any) {
   server.register(fastifyView, {

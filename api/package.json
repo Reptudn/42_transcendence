@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "dev": "tsc -w -p tsconfig.json",
+    "dev": "nodemon --watch . --ext ts --exec ts-node ./src/main.ts",
     "test": "jest --detectOpenHandles"
   },
   "keywords": [],
@@ -21,7 +21,8 @@
     "ejs": "^3.1.10",
     "fastify": "^5.2.1",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

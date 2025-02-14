@@ -2,6 +2,9 @@ const fastify = require("fastify")();
 import { openDb } from "./database";
 import fastifyFormbody from '@fastify/formbody';
 import fastifyJwt from '@fastify/jwt';
+import logger from './logger';
+
+logger.info('Starting backend server...');
 
 fastify.register(fastifyFormbody);
 fastify.register(fastifyJwt, { secret: '42heilbronn' });
@@ -82,7 +85,7 @@ export async function startServer() {
 
     fastify.listen({ port: 4242 }, (err: any) => {
         if (err) throw err;
-        console.log(`Backend on port ${fastify.server.address().port}`);
+        logger.info(`Backend on port ${fastify.server.address().port}`);
     });
 }
 
