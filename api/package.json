@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "dev": "nodemon --watch src --exec ts-node ./src/main.ts"
+    "dev": "nodemon --watch src --exec ts-node ./src/main.ts",
+    "watch": "tsc -w -p tsconfig.json"
   },
   "keywords": [],
   "author": "retpudn & FreddyMSchubert",
