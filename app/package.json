@@ -5,11 +5,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node build/index.js",
-    "dev": "nodemon --watch . --exec ts-node ./scripts/index.ts",
+    "dev": "nodemon --watch . --ext ts,json,ejs,css,js --exec ts-node ./scripts/index.ts",
     "test": "jest"
   },
   "keywords": [],
-  "author": "retpudn & FreddyMSchubert",
+  "author": "Retpudn & FreddyMSchubert",
   "license": "ISC",
   "description": "",
   "dependencies": {
