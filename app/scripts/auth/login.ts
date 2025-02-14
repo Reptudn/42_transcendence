@@ -28,3 +28,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+fastify.post("/login", async (req: any, reply: any) => {
+
+	const { username, password } = req.body;
+
+	try {
+
+		const res = await fetch("http://api:4242/login", {
+			method: "POST",
+			body: JSON.stringify({ username, password }),
+			headers: { "Content-Type": "application/json" }
+		});
+
+		const data = await res.json();
+		if (res.ok) {
+			console.log(data);
+			return reply.viewAsync("pages/index.ejs", { user: "yes!" }, {
+				layout: "layouts/basic.ejs"
+			});
+		} else {
+			reply.status(401).send({ message: 'Invalid username or password' });
+		}
+	} catch (err) {
+		reply.status(401).send({ message: 'Something went wrong whilst trying to perfrom the login action' });
+	}
+
+});
