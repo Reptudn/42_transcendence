@@ -1,0 +1,7 @@
+html {
+	background-image: url('/static/assets/images/image0.jpg');
+	/* background-color: red; */
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}

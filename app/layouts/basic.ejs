@@ -14,16 +14,9 @@
 			<button onclick="loadPartialView('login')">Login</button>
 			<button onclick="loadPartialView('signup')">Register</button>
 		</nav>
-		<script>
-			async function loadPartialView(page) {
-				const response = await fetch(`/partial/${page}`);
-				const html = await response.text();
-				document.getElementById('content').innerHTML = html;
-			}
-		</script>
-		<link rel="stylesheet" href="/css/root.css">
-		<link rel="stylesheet" href="/css/styles.css">
-		<script src="/js/index.js" defer></script>
+		<link rel="stylesheet" href="/static/css/root.css">
+		<link rel="stylesheet" href="/static/css/styles.css">
+		<script src="/static/js/script.js" defer></script>
     </header>
 
     <main>

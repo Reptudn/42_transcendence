@@ -2,7 +2,6 @@ const fastify = require('fastify')();
 const fastifyView = require("@fastify/view");
 const path = require("path");
 const fastifyStatic = require("@fastify/static");
-const fastifyFormbody = require("@fastify/formbody");
 
 fastify.register(fastifyView, {
 	engine: {
@@ -20,16 +19,16 @@ fastify.register(fastifyStatic, {
 	prefix: '/static/'
 });
 
-fastify.register(fastifyFormbody);
+fastify.register(require("@fastify/formbody"));
 
 fastify.get("/partial/:page", async (req: any, reply: any) => {
 	const page = req.params.page;
-	const dataSample = { name: "Freddy" }; // fetch data here
+	const dataSample = { name: "Jonas" }; // fetch data here
 	return reply.view(`pages/${page}.ejs`, dataSample);
 });
 
 fastify.get("/", async (req: any, reply: any) => {
-	return reply.viewAsync("pages/index.ejs", { name: "Freddy" }, {
+	return reply.viewAsync("pages/index.ejs", { name: "Jonas" }, {
 		layout: "layouts/basic.ejs"
 	});
 });
