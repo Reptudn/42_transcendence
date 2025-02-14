@@ -1,8 +1,5 @@
 .env
 
-# this we might be able to add back if we are allowed to use basic js in the frontend
-*.js 
-
 app/build/
 
 # node gitignore
