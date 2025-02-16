@@ -1,6 +1,6 @@
 let pageScript = null;
 
-async function loadPartialView(page) {
+async function loadPartialView(page, pushState = true) {
 	const response = await fetch(`/partial/${page}`);
 	const html = await response.text();
 	console.log("switching to page: " + page);
@@ -19,7 +19,17 @@ async function loadPartialView(page) {
     pageScript = script;
   }
 
+  if (pushState) {
+    history.pushState({ page }, '', `/${page}`);
+  }
+
 }
+
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.page) {
+    loadPartialView(event.state.page, false);
+  }
+});
 
 function toggleDarkMode() {
 	document.body.classList.toggle('dark');
