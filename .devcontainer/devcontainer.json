@@ -20,7 +20,9 @@
 				"xabikos.JavaScriptSnippets",
 				"qwtel.sqlite-viewer",
 				"xabikos.JavaScriptSnippets",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"YoavBls.pretty-ts-errors",
+				"usernamehw.errorlens"
 			]
 		}
 	},

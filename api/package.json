@@ -1,11 +1,11 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "./src/main.ts",
+  "main": "./src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
-    "dev": "nodemon --watch . --ext ts --exec ts-node ./src/main.ts",
+    "start": "node dist/index.js",
+    "dev": "nodemon --watch . --ext ts --exec ts-node ./src/index.ts",
     "test": "jest --detectOpenHandles"
   },
   "keywords": [],
