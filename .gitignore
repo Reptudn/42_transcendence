@@ -1,6 +1,6 @@
 .env
 
-app/build/
+app/build
 
 # node gitignore
 
