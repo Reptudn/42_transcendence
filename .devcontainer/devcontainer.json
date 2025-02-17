@@ -26,5 +26,6 @@
 			]
 		}
 	},
-	"workspaceFolder": "/workspace"
+	"postStartCommand": "cd /workspaces/42_transcendence/ && cd ./app && npm install && cd ../api && npm install",
+	"workspaceFolder": "/workspaces/42_transcendence/"
 }
