@@ -34,6 +34,10 @@ function setupServer(server: any) {
       layout: "layouts/basic.ejs"
     });
   });
+
+  server.post("/login", async (req: any, reply: any) => {
+    return "ur mom"
+  });
 }
 
 export async function startServer(server = fastify) {

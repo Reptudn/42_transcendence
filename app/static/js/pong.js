@@ -82,7 +82,7 @@
     }
 
     // Improved AI for player 2
-    const aiSpeed = 4;
+    const aiSpeed = 7;
     if (player2Y + paddleHeight / 2 < ballY - 35) {
       player2Y += aiSpeed;
     } else if (player2Y + paddleHeight / 2 > ballY + 35) {

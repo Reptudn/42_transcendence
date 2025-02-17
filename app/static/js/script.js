@@ -1,4 +1,3 @@
-let pageScript = null;
 
 async function loadPartialView(page, pushState = true) {
 	const response = await fetch(`/partial/${page}`);
@@ -6,18 +5,7 @@ async function loadPartialView(page, pushState = true) {
 	console.log("switching to page: " + page);
 	document.getElementById('content').innerHTML = html;
 
-  if (pageScript) {
-    document.body.removeChild(pageScript);
-    pageScript = null;
-  }
-
-  if (page === 'game') {
-    const script = document.createElement('script');
-    script.src = '/static/js/pong.js';
-    script.defer = true;
-    document.body.appendChild(script);
-    pageScript = script;
-  }
+  loadPageScript(page);
 
   if (pushState) {
     history.pushState({ page }, '', `/${page}`);
@@ -30,6 +18,23 @@ window.addEventListener('popstate', (event) => {
     loadPartialView(event.state.page, false);
   }
 });
+
+let pageScript = null;
+function loadPageScript(page)
+{
+  if (pageScript) {
+    document.body.removeChild(pageScript);
+    pageScript = null;
+  }
+
+  if (page === 'game') {
+    const script = document.createElement('script');
+    script.src = '/static/js/pong.js';
+    script.defer = true;
+    document.body.appendChild(script);
+    pageScript = script;
+  }
+}
 
 function toggleDarkMode() {
 	document.body.classList.toggle('dark');
@@ -46,7 +51,7 @@ function setCookie(name, value, days) {
 
 function getCookie(name)
 {
-
+  // TBA
 }
 
 setCookie('username', "urmom", 1)

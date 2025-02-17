@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+const { fastify } = require("../index");
 fastify.post("/login", async (req: any, reply: any) => {
 
 	const { username, password } = req.body;

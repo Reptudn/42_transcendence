@@ -1,9 +1,6 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/libsql';
 
-export async function openDb() {
-  return open({
-    filename: './db/test.db',
-    driver: sqlite3.Database
-  });
-}
+const db = drizzle(process.env.DB_FILE_NAME!);
+
+export default db;
