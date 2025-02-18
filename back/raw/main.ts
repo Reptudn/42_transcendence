@@ -30,7 +30,7 @@ app.register(fastifyView, {
 	}
 });
 app.register(fastifyStatic, {
-	root: path.join(__dirname, '/app/front/static'),
+	root: path.join(__dirname, '../..//front/static'),
 	prefix: '/static/',
 	list: true
 });
@@ -41,6 +41,10 @@ app.decorate('authenticate', async function (request: any, reply: any) {
 	} catch (err) {
 		reply.send(err);
 	}
+});
+
+app.ready().then(() => {
+	console.log(app.printRoutes());
 });
 
 async function startServer() {
