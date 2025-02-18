@@ -43,7 +43,7 @@ app.decorate('authenticate', async function (request: any, reply: any) {
 
 async function startServer() {
 	try {
-		await app.listen({ port: 4242 });
+		await app.listen({ port: 4242, host: '0.0.0.0' });
 		logger.info(`Server listening on port 4242`);
 	} catch (err: any) {
 		logger.error(err);
