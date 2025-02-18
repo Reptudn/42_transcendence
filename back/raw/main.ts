@@ -29,7 +29,7 @@ app.register(fastifyView, {
 	}
 });
 app.register(fastifyStatic, {
-	root: path.join(__dirname, '../static'),
+	root: path.join(__dirname, '/app/front/static'),
 	prefix: '/static/'
 });
 
@@ -50,6 +50,42 @@ async function startServer() {
 		process.exit(1);
 	}
 }
+
+
+/* --------------------------------- */
+/* --------------API---------------- */
+/* --------------------------------- */
+
+// get
+app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const { name } = req.params;
+	reply.send(`Profile for user: ${name}`);
+});
+
+// post
+app.post("/login", async (req: any, reply: any) => {
+	const { username, password } = req.body;
+	// check with db
+});
+app.post("/register", async (req: any, reply: any) => {
+	const { username, password, email } = req.body;
+	// check with db
+})
+
+/* --------------------------------- */
+/* --------------STATIC------------- */
+/* --------------------------------- */
+
+app.get('/partial/:page', async (req: any, reply: any) => {
+	const page = req.params.page;
+	const dataSample = { name: 'Jonas' };
+	return reply.view(`/app/front/layouts/pages/${page}.ejs`, dataSample);
+});
+app.get('/', async (req: any, reply: any) => {
+	return reply.view('pages/index.ejs', { name: 'Jonas' }, {
+		layout: '/app/front/layouts/basic.ejs'
+	});
+});
 
 startServer();
 

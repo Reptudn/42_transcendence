@@ -21,6 +21,7 @@ log:
 		-not -name "*.db" \
 		-not -name "*.pdf" \
 		-not -name "*.ico" \
+		-not -name "package-lock.json" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
 
 .PHONY: build exec
