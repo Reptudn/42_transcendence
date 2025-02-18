@@ -22,6 +22,7 @@ app.register(fastifyView, {
 	engine: {
 		ejs
 	},
+	root: path.join(__dirname, '../../front/layouts'),
 	options: {
 		context: {
 			get: (obj: any, prop: any) => obj && obj[prop]
@@ -30,7 +31,8 @@ app.register(fastifyView, {
 });
 app.register(fastifyStatic, {
 	root: path.join(__dirname, '/app/front/static'),
-	prefix: '/static/'
+	prefix: '/static/',
+	list: true
 });
 
 app.decorate('authenticate', async function (request: any, reply: any) {
@@ -79,11 +81,12 @@ app.post("/register", async (req: any, reply: any) => {
 app.get('/partial/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
 	const dataSample = { name: 'Jonas' };
-	return reply.view(`/app/front/layouts/pages/${page}.ejs`, dataSample);
+	return reply.view(`pages/${page}.ejs`, dataSample);
 });
 app.get('/', async (req: any, reply: any) => {
+	logger.info('GET /');
 	return reply.view('pages/index.ejs', { name: 'Jonas' }, {
-		layout: '/app/front/layouts/basic.ejs'
+		layout: 'basic.ejs'
 	});
 });
 
