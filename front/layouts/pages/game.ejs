@@ -1,0 +1,13 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h2 class="text-2xl font-bold mb-4">Game: <%= name %> vs Bot</h2>
+	<p id="score" class="text-lg leading-relaxed text-gray-700 mb-6">Score: 0:0</p>
+	<div class="flex justify-center items-center">
+		<canvas id="pong-game" width="800" height="400" class="border border-gray-300 rounded-lg shadow-md"></canvas>
+	</div>
+	<div class="mt-6 text-center">
+		<button id="start-game" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Start
+			Game</button>
+		<button id="reset-game" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg ml-4">Reset
+			Game</button>
+	</div>
+</div>

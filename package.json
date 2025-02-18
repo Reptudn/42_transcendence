@@ -1,0 +1,27 @@
+{
+	"name": "42_transcendence",
+	"version": "1.0.0",
+	"main": "src/back/build/main.js",
+	"scripts": {
+		"build:back": "tsc --project back/tsconfig.json",
+		"build:front": "tsc --project front/tsconfig.json",
+		"build": "npm run build:back && npm run build:front",
+		"start": "node back/build/main.js"
+	},
+	"dependencies": {
+		"@fastify/formbody": "^7.0.0",
+		"@fastify/jwt": "^5.0.0",
+		"@fastify/static": "^6.0.0",
+		"@fastify/view": "^7.0.0",
+		"dotenv": "^16.0.0",
+		"drizzle-kit": "^0.30.4",
+		"drizzle-orm": "^0.39.3",
+		"ejs": "^3.1.8",
+		"fastify": "^4.0.0",
+		"winston": "^3.8.2"
+	},
+	"devDependencies": {
+		"@types/node": "^22.13.4",
+		"typescript": "^5.0.0"
+	}
+}

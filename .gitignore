@@ -2,6 +2,9 @@
 
 app/build
 
+src/back/db
+src/back/drizzle_out
+
 # node gitignore
 
 # Logs
