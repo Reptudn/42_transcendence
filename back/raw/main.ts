@@ -3,8 +3,10 @@ import fastifyFormbody from '@fastify/formbody';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
+import ejs from 'ejs';
+import { fileURLToPath } from 'url';
 import path from 'path';
-import logger from './logger';
+import logger from './logger.js';
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/libsql';
 
@@ -12,13 +14,13 @@ const app = fastify();
 
 const db = drizzle(process.env.DB_FILE_LOCATION!);
 
-logger.info('Starting backend server...');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.register(fastifyFormbody);
 app.register(fastifyJwt, { secret: '42heilbronn' });
 app.register(fastifyView, {
 	engine: {
-		ejs: require('ejs')
+		ejs
 	},
 	options: {
 		context: {

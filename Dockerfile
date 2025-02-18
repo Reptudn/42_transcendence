@@ -20,6 +20,6 @@ RUN npm install --only=production
 
 COPY --from=builder /app .
 
-EXPOSE 3000
+EXPOSE 4242
 
 CMD ["npm", "start"]

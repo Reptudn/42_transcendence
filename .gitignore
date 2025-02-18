@@ -1,9 +1,10 @@
 .env
 
-app/build
+front/build
 
-src/back/db
-src/back/drizzle_out
+back/build
+back/db
+back/drizzle_out
 
 # node gitignore
 

@@ -4,7 +4,7 @@ build:
 	docker build -t $(CONTAINER_NAME) .
 
 run:
-	docker run -d --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
+	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
 
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh

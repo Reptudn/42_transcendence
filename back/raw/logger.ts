@@ -1,5 +1,8 @@
 import { createLogger, format, transports } from 'winston';
+import { fileURLToPath } from 'url';
 import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const logFormat = format.printf(({ timestamp, level, message }) => {
 	return `${timestamp} [${level}]: ${message}`;
