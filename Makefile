@@ -1,5 +1,7 @@
 CONTAINER_NAME=transcendence
 
+start: build run
+
 build:
 	docker build -t $(CONTAINER_NAME) .
 
