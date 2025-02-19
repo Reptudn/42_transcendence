@@ -105,16 +105,18 @@ app.post("/register", async (req: any, reply: any) => {
 
 app.get('/partial/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
+	const loadpartial = req.headers['loadpartial'] === 'true';
 	const dataSample = { name: 'Jonas' };
-	if (page == 'game') {
+	const layoutOption = loadpartial ? false : 'basic.ejs';
+
+	if (page === 'game') {
 		try {
-			req.jwtVerify();
-		}
-		catch (error) {
-			return reply.code(401).view('pages/no_access.ejs', dataSample);
+			await req.jwtVerify();
+		} catch (error) {
+			return reply.code(401).view('pages/no_access.ejs', dataSample, { layout: layoutOption });
 		}
 	}
-	return reply.view(`pages/${page}.ejs`, dataSample);
+	return reply.view(`pages/${page}.ejs`, dataSample, { layout: layoutOption });
 });
 app.get('/', async (req: any, reply: any) => {
 	logger.info('GET /');

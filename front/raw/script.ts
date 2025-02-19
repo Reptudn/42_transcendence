@@ -2,7 +2,8 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	const response: Response = await fetch(`/partial/${page}`, {
 		method: 'GET',
 		headers: {
-			'Authorization': `Bearer ${localStorage.getItem('token')}`
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+			'loadpartial': 'true'
 		}
 	});
 	const html: string = await response.text();
@@ -15,10 +16,8 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 		console.warn("Content element not found");
 	}
 
-	loadPageScript(page);
-
 	if (pushState) {
-		history.pushState({ page }, '', `/${page}`);
+		history.pushState({ page }, '', `/partial/${page}`);
 	}
 }
 
@@ -27,15 +26,6 @@ window.addEventListener('popstate', (event: PopStateEvent) => {
 		loadPartialView(event.state.page, false);
 	}
 });
-
-let pageScript: HTMLScriptElement | null = null;
-
-function loadPageScript(page: string): void {
-	if (pageScript) {
-		document.body.removeChild(pageScript);
-		pageScript = null;
-	}
-}
 
 function toggleDarkMode(): void {
 	document.body.classList.toggle('dark');
