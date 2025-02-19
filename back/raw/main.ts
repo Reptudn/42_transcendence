@@ -8,11 +8,9 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import logger from './logger.js';
 import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/libsql';
+import { registerUser, loginUser } from './db/database.js';
 
 const app = fastify();
-
-const db = drizzle(process.env.DB_FILE_LOCATION!);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -71,12 +69,35 @@ app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, 
 // post
 app.post("/login", async (req: any, reply: any) => {
 	const { username, password } = req.body;
-	// check with db
+	try {
+		const user = await loginUser(username, password);
+		const token = app.jwt.sign({ username: user.username, id: user.id });
+		reply.send({ token });
+	}
+	catch (error) {
+		if (error instanceof Error) {
+			reply.code(400).send(error.message);
+		} else {
+			reply.code(400).send('An unknown error occurred');
+		}
+		return;
+	};
 });
 app.post("/register", async (req: any, reply: any) => {
-	const { username, password, email } = req.body;
-	// check with db
-})
+	const { username, password, displayname } = req.body;
+	try {
+		await registerUser(username, password, displayname);
+		reply.send('User registered');
+	}
+	catch (error) {
+		if (error instanceof Error) {
+			reply.code(400).send(error.message);
+		} else {
+			reply.code(400).send('An unknown error occurred');
+		}
+		return;
+	};
+});
 
 /* --------------------------------- */
 /* --------------STATIC------------- */
@@ -85,6 +106,14 @@ app.post("/register", async (req: any, reply: any) => {
 app.get('/partial/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
 	const dataSample = { name: 'Jonas' };
+	if (page == 'game') {
+		try {
+			req.jwtVerify();
+		}
+		catch (error) {
+			return reply.code(401).view('pages/no_access.ejs', dataSample);
+		}
+	}
 	return reply.view(`pages/${page}.ejs`, dataSample);
 });
 app.get('/', async (req: any, reply: any) => {

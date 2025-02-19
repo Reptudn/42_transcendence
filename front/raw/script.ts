@@ -1,5 +1,10 @@
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
-	const response: Response = await fetch(`/partial/${page}`);
+	const response: Response = await fetch(`/partial/${page}`, {
+		method: 'GET',
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`
+		}
+	});
 	const html: string = await response.text();
 	console.log(`Switching to page: ${page}`);
 
@@ -29,14 +34,6 @@ function loadPageScript(page: string): void {
 	if (pageScript) {
 		document.body.removeChild(pageScript);
 		pageScript = null;
-	}
-
-	if (page === 'game') {
-		const script: HTMLScriptElement = document.createElement('script');
-		script.src = '/static/js/pong.js';
-		script.defer = true;
-		document.body.appendChild(script);
-		pageScript = script;
 	}
 }
 
