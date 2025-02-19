@@ -40,16 +40,31 @@ function loadPageScript(page: string): void {
 	}
 }
 
-function toggleDarkMode(): void {
-	document.body.classList.toggle('dark');
-	const isDarkMode: boolean = document.body.classList.contains('dark');
+window.addEventListener('DOMContentLoaded', () => {
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
 
-	const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
-	if (darkModeToggle) {
-		darkModeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
-	} else {
-		console.warn("Dark mode toggle element not found");
-	}
+    // Initial check
+    toggleDarkMode(prefersDarkScheme.matches);
+
+    // Listen for changes in the color scheme
+    prefersDarkScheme.addEventListener('change', (event) => {
+        toggleDarkMode(event.matches);
+    });
+});
+
+function toggleDarkMode(isDarkMode: boolean): void {
+    if (isDarkMode) {
+        document.body.classList.add('dark');
+    } else {
+        document.body.classList.remove('dark');
+    }
+
+    const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        darkModeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+    } else {
+        console.warn("Dark mode toggle element not found");
+    }
 }
 
 function setCookie(name: string, value: string, days: number): void {
