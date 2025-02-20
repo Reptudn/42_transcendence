@@ -24,4 +24,9 @@ log:
 		-not -name "package-lock.json" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
 
+fclean:
+	docker stop $(CONTAINER_NAME) || true
+	docker rm $(CONTAINER_NAME) || true
+	docker rmi $(CONTAINER_NAME) || true
+
 .PHONY: build exec

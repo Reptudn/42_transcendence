@@ -22,7 +22,8 @@
 				"xabikos.JavaScriptSnippets",
 				"github.vscode-github-actions",
 				"YoavBls.pretty-ts-errors",
-				"usernamehw.errorlens"
+				"usernamehw.errorlens",
+				"ms-azuretools.vscode-docker"
 			]
 		}
 	},
