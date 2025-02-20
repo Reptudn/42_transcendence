@@ -1,12 +1,14 @@
 CONTAINER_NAME=transcendence
 
-start: build run
+re:
+	docker compose up -d --build
 
 build:
 	docker build -t $(CONTAINER_NAME) .
 
 run:
-	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
+	docker compose up -d
+
 
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
