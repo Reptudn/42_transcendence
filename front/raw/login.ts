@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const username = (document.querySelector('#username') as HTMLInputElement).value;
 			const password = (document.querySelector('#password') as HTMLInputElement).value;
 			try {
-				const response = await fetch('/register', {
+				const response = await fetch('/login', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				const data = await response.json();
 				if (response.ok) {
 					localStorage.setItem('token', data.token);
-					alert('You have registered successfully');
+					alert('You have logged in successfully');
 				} else {
 					alert(`Error: ${data.message}`);
 				}
