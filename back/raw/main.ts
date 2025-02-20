@@ -87,16 +87,16 @@ app.post("/register", async (req: any, reply: any) => {
 	const { username, password, displayname } = req.body;
 	try {
 		await registerUser(username, password, displayname);
-		reply.send('User registered');
+		reply.send({ message: 'User registered' });
 	}
 	catch (error) {
 		if (error instanceof Error) {
-			reply.code(400).send(error.message);
+			reply.code(400).send({ message: error.message });
 		} else {
-			reply.code(400).send('An unknown error occurred');
+			reply.code(400).send({ message: 'An unknown error occurred' });
 		}
 		return;
-	};
+	}
 });
 
 /* --------------------------------- */
