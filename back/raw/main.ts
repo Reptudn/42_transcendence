@@ -8,11 +8,9 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import logger from './logger.js';
 import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/libsql';
+import { registerUser, loginUser } from './db/database.js';
 
 const app = fastify();
-
-const db = drizzle(process.env.DB_FILE_LOCATION!);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -62,6 +60,9 @@ async function startServer() {
 /* --------------API---------------- */
 /* --------------------------------- */
 
+// we should maybe check this out
+// https://www.npmjs.com/package/@fastify/auth
+
 // get
 app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 	const { name } = req.params;
@@ -71,12 +72,35 @@ app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, 
 // post
 app.post("/login", async (req: any, reply: any) => {
 	const { username, password } = req.body;
-	// check with db
+	try {
+		const user = await loginUser(username, password);
+		const token = app.jwt.sign({ username: user.username, id: user.id });
+		reply.send( token );
+	}
+	catch (error) {
+		if (error instanceof Error) {
+			reply.code(400).send(error.message);
+		} else {
+			reply.code(400).send('An unknown error occurred');
+		}
+		return;
+	};
 });
 app.post("/register", async (req: any, reply: any) => {
-	const { username, password, email } = req.body;
-	// check with db
-})
+	const { username, password, displayname } = req.body;
+	try {
+		await registerUser(username, password, displayname);
+		reply.code(200).send({ message: 'User registered' });
+	}
+	catch (error) {
+		if (error instanceof Error) {
+			reply.code(400).send({ message: error.message });
+		} else {
+			reply.code(400).send({ message: 'An unknown error occurred' });
+		}
+		return;
+	}
+});
 
 // error
 app.setNotFoundHandler((request, reply) => {
@@ -91,8 +115,18 @@ app.setNotFoundHandler((request, reply) => {
 
 app.get('/partial/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
+	const loadpartial = req.headers['loadpartial'] === 'true';
 	const dataSample = { name: 'Jonas' };
-	return reply.view(`pages/${page}.ejs`, dataSample);
+	const layoutOption = loadpartial ? false : 'basic.ejs';
+
+	if (page === 'game') {
+		try {
+			await req.jwtVerify();
+		} catch (error) {
+			return reply.code(401).view('pages/no_access.ejs', dataSample, { layout: layoutOption });
+		}
+	}
+	return reply.view(`pages/${page}.ejs`, dataSample, { layout: layoutOption });
 });
 app.get('/', async (req: any, reply: any) => {
 	logger.info('GET /');

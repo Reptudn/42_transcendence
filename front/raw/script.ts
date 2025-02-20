@@ -1,5 +1,11 @@
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
-	const response: Response = await fetch(`/partial/${page}`);
+	const response: Response = await fetch(`/partial/${page}`, {
+		method: 'GET',
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+			'loadpartial': 'true'
+		}
+	});
 	const html: string = await response.text();
 	console.log(`Switching to page: ${page}`);
 
@@ -10,10 +16,8 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 		console.warn("Content element not found");
 	}
 
-	loadPageScript(page);
-
 	if (pushState) {
-		history.pushState({ page }, '', `/${page}`);
+		history.pushState({ page }, '', `/partial/${page}`);
 	}
 }
 
@@ -23,30 +27,15 @@ window.addEventListener('popstate', (event: PopStateEvent) => {
 	}
 });
 
-let pageScript: HTMLScriptElement | null = null;
-
-function loadPageScript(page: string): void {
-	if (pageScript) {
-		document.body.removeChild(pageScript);
-		pageScript = null;
-	}
-
-	if (page === 'game') {
-		const script: HTMLScriptElement = document.createElement('script');
-		script.src = '/static/js/pong.js';
-		script.defer = true;
-		document.body.appendChild(script);
-		pageScript = script;
-	}
+function toggleDarkMode(): void {
+	document.body.classList.toggle('dark');
+	const isDarkMode: boolean = document.body.classList.contains('dark');
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-
-    // Initial check
     toggleDarkMode(prefersDarkScheme.matches);
 
-    // Listen for changes in the color scheme
     prefersDarkScheme.addEventListener('change', (event) => {
         toggleDarkMode(event.matches);
     });

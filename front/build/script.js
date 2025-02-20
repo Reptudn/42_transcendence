@@ -1,11 +1,14 @@
 "use strict";
-// Import any necessary types here (if using a module system)
-// Asynchronously loads a partial view, updating browser history if required.
 async function loadPartialView(page, pushState = true) {
-    const response = await fetch(`/partial/${page}`);
+    const response = await fetch(`/partial/${page}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'loadpartial': 'true'
+        }
+    });
     const html = await response.text();
     console.log(`Switching to page: ${page}`);
-    // Ensure that the content element exists.
     const contentElement = document.getElementById('content');
     if (contentElement) {
         contentElement.innerHTML = html;
@@ -13,41 +16,18 @@ async function loadPartialView(page, pushState = true) {
     else {
         console.warn("Content element not found");
     }
-    loadPageScript(page);
     if (pushState) {
-        history.pushState({ page }, '', `/${page}`);
+        history.pushState({ page }, '', `/partial/${page}`);
     }
 }
-// Handles the browser's popstate event to allow back/forward navigation.
 window.addEventListener('popstate', (event) => {
-    // Type narrowing to ensure the state object is as expected.
     if (event.state && typeof event.state.page === 'string') {
         loadPartialView(event.state.page, false);
     }
 });
-// Variable to hold a reference to the currently loaded page script.
-let pageScript = null;
-// Loads a page-specific script, removing any previous instance if necessary.
-function loadPageScript(page) {
-    // Remove the previously appended script, if it exists.
-    if (pageScript) {
-        document.body.removeChild(pageScript);
-        pageScript = null;
-    }
-    // For the 'game' page, dynamically load the pong.js script.
-    if (page === 'game') {
-        const script = document.createElement('script');
-        script.src = '/static/js/pong.js';
-        script.defer = true;
-        document.body.appendChild(script);
-        pageScript = script;
-    }
-}
-// Toggles dark mode and updates the toggle button's text.
 function toggleDarkMode() {
     document.body.classList.toggle('dark');
     const isDarkMode = document.body.classList.contains('dark');
-    // Check that the toggle element exists.
     const darkModeToggle = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
         darkModeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
@@ -56,15 +36,12 @@ function toggleDarkMode() {
         console.warn("Dark mode toggle element not found");
     }
 }
-// Sets a cookie with a specified name, value, and expiration in days.
 function setCookie(name, value, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = "expires=" + date.toUTCString();
     document.cookie = `${name}=${value};${expires};path=/`;
 }
-// Retrieves a cookie by name.
-// Note: This is a stub function that you might wish to complete.
 function getCookie(name) {
     // A simple implementation might be:
     const nameEQ = name + "=";
