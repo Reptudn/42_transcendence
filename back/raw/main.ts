@@ -60,6 +60,9 @@ async function startServer() {
 /* --------------API---------------- */
 /* --------------------------------- */
 
+// we should maybe check this out
+// https://www.npmjs.com/package/@fastify/auth
+
 // get
 app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 	const { name } = req.params;
@@ -72,7 +75,7 @@ app.post("/login", async (req: any, reply: any) => {
 	try {
 		const user = await loginUser(username, password);
 		const token = app.jwt.sign({ username: user.username, id: user.id });
-		reply.send({ token });
+		reply.send( token );
 	}
 	catch (error) {
 		if (error instanceof Error) {
@@ -87,7 +90,7 @@ app.post("/register", async (req: any, reply: any) => {
 	const { username, password, displayname } = req.body;
 	try {
 		await registerUser(username, password, displayname);
-		reply.send({ message: 'User registered' });
+		reply.code(200).send({ message: 'User registered' });
 	}
 	catch (error) {
 		if (error instanceof Error) {
