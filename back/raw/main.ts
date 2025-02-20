@@ -75,7 +75,7 @@ app.post("/login", async (req: any, reply: any) => {
 	try {
 		const user = await loginUser(username, password);
 		const token = app.jwt.sign({ username: user.username, id: user.id });
-		reply.send( token );
+		reply.send(token);
 	}
 	catch (error) {
 		if (error instanceof Error) {
