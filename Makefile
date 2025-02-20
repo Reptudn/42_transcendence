@@ -1,14 +1,14 @@
 CONTAINER_NAME=transcendence
 
-re:
-	docker compose up -d --build
-
-build:
-	docker build -t $(CONTAINER_NAME) .
-
 run:
 	docker compose up -d
 
+re:
+	docker-compose build --no-cache
+	docker-compose up -d
+
+build:
+	docker build -t $(CONTAINER_NAME) .
 
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
