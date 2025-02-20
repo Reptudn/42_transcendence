@@ -27,33 +27,41 @@ window.addEventListener('popstate', (event: PopStateEvent) => {
 	}
 });
 
-function toggleDarkMode(): void {
-	document.body.classList.toggle('dark');
-	const isDarkMode: boolean = document.body.classList.contains('dark');
-}
-
+let isDarkModeT: boolean = false;
 window.addEventListener('DOMContentLoaded', () => {
     const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
     toggleDarkMode(prefersDarkScheme.matches);
+	isDarkModeT = prefersDarkScheme.matches;
 
     prefersDarkScheme.addEventListener('change', (event) => {
         toggleDarkMode(event.matches);
+		isDarkModeT = event.matches;
     });
 });
 
-function toggleDarkMode(isDarkMode: boolean): void {
+function toggleDarkMode(isDarkMode: boolean = isDarkModeT): void {
     if (isDarkMode) {
-        document.body.classList.add('dark');
+		document.body.classList.add('dark');
+		console.log('Dark mode enabled');
+		isDarkModeT = true;
     } else {
-        document.body.classList.remove('dark');
+		document.body.classList.remove('dark');
+		console.log('Dark mode disabled');
+		isDarkModeT = false;
     }
 
     const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
-        darkModeToggle.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+        darkModeToggle.textContent = isDarkModeT ? 'Light Mode' : 'Dark Mode';
     } else {
         console.warn("Dark mode toggle element not found");
     }
+}
+
+function toggleDarkModeT(): void {
+	isDarkModeT = !isDarkModeT;
+	console.log('Toggling dark mode to ' + isDarkModeT);
+	toggleDarkMode();
 }
 
 function setCookie(name: string, value: string, days: number): void {
