@@ -102,6 +102,13 @@ app.post("/register", async (req: any, reply: any) => {
 	}
 });
 
+// error
+app.setNotFoundHandler((request, reply) => {
+    return reply.code(404).view('error.ejs', { error_code: '404' }, {
+		layout: 'basic.ejs'
+	});
+});
+
 /* --------------------------------- */
 /* --------------STATIC------------- */
 /* --------------------------------- */
