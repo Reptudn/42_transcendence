@@ -1,5 +1,5 @@
-async function registerAction()
-{
+console.log('register.ts');
+async function registerAction() {
 	console.log('registerAction()');
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const displayname = (document.querySelector('#displayname') as HTMLInputElement).value;
@@ -27,3 +27,10 @@ async function registerAction()
 		alert('An error occurred. Please try again.');
 	}
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+	const registerButton = document.getElementById('registerButton');
+	if (registerButton) {
+		registerButton.addEventListener('click', registerAction);
+	}
+});

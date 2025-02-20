@@ -3,7 +3,7 @@ CONTAINER_NAME=transcendence
 run:
 	docker compose up
 
-re:
+re: fclean
 	docker-compose build --no-cache
 	docker-compose up
 

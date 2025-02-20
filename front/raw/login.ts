@@ -1,5 +1,4 @@
-async function loginAction()
-{
+async function loginAction() {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
 	try {
@@ -23,3 +22,10 @@ async function loginAction()
 		alert('An error occurred. Please try again.');
 	}
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+	const loginButton = document.getElementById('loginButton');
+	if (loginButton) {
+		loginButton.addEventListener('click', registerAction);
+	}
+});

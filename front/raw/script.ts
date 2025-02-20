@@ -35,33 +35,33 @@ window.addEventListener('popstate', (event: PopStateEvent) => {
 
 let isDarkModeT: boolean = false;
 window.addEventListener('DOMContentLoaded', () => {
-    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-    toggleDarkMode(prefersDarkScheme.matches);
+	const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+	toggleDarkMode(prefersDarkScheme.matches);
 	isDarkModeT = prefersDarkScheme.matches;
 
-    prefersDarkScheme.addEventListener('change', (event) => {
-        toggleDarkMode(event.matches);
+	prefersDarkScheme.addEventListener('change', (event) => {
+		toggleDarkMode(event.matches);
 		isDarkModeT = event.matches;
-    });
+	});
 });
 
 function toggleDarkMode(isDarkMode: boolean = isDarkModeT): void {
-    if (isDarkMode) {
+	if (isDarkMode) {
 		document.body.classList.add('dark');
 		console.log('Dark mode enabled');
 		isDarkModeT = true;
-    } else {
+	} else {
 		document.body.classList.remove('dark');
 		console.log('Dark mode disabled');
 		isDarkModeT = false;
-    }
+	}
 
-    const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
-    if (darkModeToggle) {
-        darkModeToggle.textContent = isDarkModeT ? 'Light Mode' : 'Dark Mode';
-    } else {
-        console.warn("Dark mode toggle element not found");
-    }
+	const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
+	if (darkModeToggle) {
+		darkModeToggle.textContent = isDarkModeT ? 'Light Mode' : 'Dark Mode';
+	} else {
+		console.warn("Dark mode toggle element not found");
+	}
 }
 
 function toggleDarkModeT(): void {
