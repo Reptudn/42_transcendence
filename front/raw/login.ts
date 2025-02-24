@@ -10,8 +10,9 @@ async function loginAction() {
 			body: JSON.stringify({ username, password })
 		});
 		const data = await response.json();
+		console.log("cool data received: " + JSON.stringify(data));
 		if (response.ok) {
-			localStorage.setItem("token", data);
+			localStorage.setItem("token", data.token);
 			window.location.href = '/partial/profile';
 			alert('You have logged in successfully');
 		} else {
@@ -22,10 +23,3 @@ async function loginAction() {
 		alert('An error occurred. Please try again.');
 	}
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-	const loginButton = document.getElementById('loginButton');
-	if (loginButton) {
-		loginButton.addEventListener('click', registerAction);
-	}
-});

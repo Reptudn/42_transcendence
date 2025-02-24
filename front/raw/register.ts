@@ -27,10 +27,3 @@ async function registerAction() {
 		alert('An error occurred. Please try again.');
 	}
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-	const registerButton = document.getElementById('registerButton');
-	if (registerButton) {
-		registerButton.addEventListener('click', registerAction);
-	}
-});

@@ -62,6 +62,7 @@ async function startServer() {
 
 // we should maybe check this out
 // https://www.npmjs.com/package/@fastify/auth
+// no thats fine i think
 
 // get
 app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
@@ -75,7 +76,7 @@ app.post("/login", async (req: any, reply: any) => {
 	try {
 		const user = await loginUser(username, password);
 		const token = app.jwt.sign({ username: user.username, id: user.id });
-		reply.send(token);
+		reply.send({ token });
 	}
 	catch (error) {
 		if (error instanceof Error) {
@@ -104,7 +105,7 @@ app.post("/register", async (req: any, reply: any) => {
 
 // error
 app.setNotFoundHandler((request, reply) => {
-    return reply.code(404).view('error.ejs', { error_code: '404' }, {
+	return reply.code(404).view('error.ejs', { error_code: '404' }, {
 		layout: 'basic.ejs'
 	});
 });

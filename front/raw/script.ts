@@ -12,12 +12,6 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	const contentElement: HTMLElement | null = document.getElementById('content');
 	if (contentElement) {
 		contentElement.innerHTML = html;
-		const scriptSrcs = contentElement.querySelectorAll('[coolscript]');
-		scriptSrcs.forEach((scriptSrc: Element) => {
-			const script: HTMLScriptElement = document.createElement('script');
-			script.src = scriptSrc.getAttribute('coolscript') || '';
-			contentElement.appendChild(script);
-		});
 	} else {
 		console.warn("Content element not found");
 	}
