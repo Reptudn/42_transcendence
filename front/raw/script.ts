@@ -42,11 +42,9 @@ window.addEventListener('DOMContentLoaded', () => {
 function toggleDarkMode(isDarkMode: boolean = isDarkModeT): void {
 	if (isDarkMode) {
 		document.body.classList.add('dark');
-		console.log('Dark mode enabled');
 		isDarkModeT = true;
 	} else {
 		document.body.classList.remove('dark');
-		console.log('Dark mode disabled');
 		isDarkModeT = false;
 	}
 
@@ -60,7 +58,6 @@ function toggleDarkMode(isDarkMode: boolean = isDarkModeT): void {
 
 function toggleDarkModeT(): void {
 	isDarkModeT = !isDarkModeT;
-	console.log('Toggling dark mode to ' + isDarkModeT);
 	toggleDarkMode();
 }
 

@@ -1,3 +1,5 @@
+import 'script.ts';
+
 async function loginAction() {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
@@ -13,7 +15,7 @@ async function loginAction() {
 		console.log("cool data received: " + JSON.stringify(data));
 		if (response.ok) {
 			localStorage.setItem("token", data.token);
-			window.location.href = '/partial/profile';
+			loadPartialView('game');
 			alert('You have logged in successfully');
 		} else {
 			alert(`Error: ${data.message}`);

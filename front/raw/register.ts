@@ -1,12 +1,9 @@
-console.log('register.ts');
+import 'script.ts';
+
 async function registerAction() {
-	console.log('registerAction()');
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const displayname = (document.querySelector('#displayname') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
-	console.log('username:', username);
-	console.log('displayname:', displayname);
-	console.log('password:', password);
 	try {
 		const response = await fetch('/register', {
 			method: 'POST',
@@ -18,7 +15,7 @@ async function registerAction() {
 		const data = await response.json();
 		if (response.ok) {
 			alert('You have registered successfully');
-			window.location.href = '/partial/login';
+			loadPartialView('login');
 		} else {
 			alert(`Error: ${data.message}`);
 		}
