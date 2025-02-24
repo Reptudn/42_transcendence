@@ -3,9 +3,11 @@ CONTAINER_NAME=transcendence
 start: build run
 
 build:
+	mkdir -p back/db
 	docker build -t $(CONTAINER_NAME) .
 
 re:
+	mkdir -p back/db
 	docker build --no-cache -t $(CONTAINER_NAME) .
 	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
 
