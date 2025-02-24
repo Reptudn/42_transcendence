@@ -28,5 +28,3 @@ COPY --from=builder /app/front/css		/app/front/static/css
 EXPOSE 4242
 
 CMD ["npm", "start"]
-
-# ENTRYPOINT ["tail", "-f", "/dev/null"]

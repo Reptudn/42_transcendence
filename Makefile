@@ -1,16 +1,16 @@
 CONTAINER_NAME=transcendence
 
-run:
-	mkdir -p back/db
-	docker compose up
-
-re: fclean
-	mkdir -p back/db
-	docker-compose build --no-cache
-	docker-compose up
+start: build run
 
 build:
 	docker build -t $(CONTAINER_NAME) .
+
+re:
+	docker build --no-cache -t $(CONTAINER_NAME) .
+	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
+
+run:
+	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
 
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
@@ -27,10 +27,5 @@ log:
 		-not -name "*.ico" \
 		-not -name "package-lock.json" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
-
-fclean:
-	docker stop $(CONTAINER_NAME) || true
-	docker rm $(CONTAINER_NAME) || true
-	docker rmi $(CONTAINER_NAME) || true
 
 .PHONY: build exec

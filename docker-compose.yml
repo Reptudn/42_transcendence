@@ -1,8 +1,0 @@
-services:
-  transcendence:
-    container_name: transcendence
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "4242:4242"
