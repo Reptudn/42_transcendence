@@ -30,4 +30,4 @@ log:
 		-not -name "package-lock.json" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
 
-.PHONY: build exec
+.PHONY: build exec re run start log
