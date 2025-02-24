@@ -6,9 +6,3 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4242:4242"
-    volumes:
-      - data:/app
-
-volumes:
-  data:
-    driver: local
