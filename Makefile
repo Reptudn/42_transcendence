@@ -1,9 +1,11 @@
 CONTAINER_NAME=transcendence
 
 run:
+	mkdir -p back/db
 	docker compose up
 
 re: fclean
+	mkdir -p back/db
 	docker-compose build --no-cache
 	docker-compose up
 
