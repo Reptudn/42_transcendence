@@ -27,6 +27,7 @@ log:
 		-not -name "*.db" \
 		-not -name "*.pdf" \
 		-not -name "*.ico" \
+		-not -name "logs/*" \
 		-not -name "package-lock.json" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
 
