@@ -78,3 +78,44 @@ function getCookie(name: string): string | null {
 	}
 	return null;
 }
+
+// THE number
+
+async function fetchNumber(): Promise<void> {
+	try {
+		const response = await fetch('/number');
+		const data = await response.json();
+		const displayElement = document.getElementById('numberDisplay');
+		if (displayElement) {
+			displayElement.textContent = data.number.toString();
+		}
+	} catch (error) {
+		console.error('Error fetching number:', error);
+	}
+}
+async function updateNumber(increment: number): Promise<void> {
+	try {
+		const response = await fetch('/number', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ number: increment })
+		});
+		const data = await response.json();
+		const displayElement = document.getElementById('numberDisplay');
+		if (displayElement) {
+			displayElement.textContent = data.number.toString();
+		}
+	} catch (error) {
+		console.error('Error updating number:', error);
+	}
+}
+const numberDisplay = document.getElementById('numberDisplay');
+if (numberDisplay) {
+	numberDisplay.addEventListener('click', () => {
+		updateNumber(1);
+	});
+}
+setInterval(fetchNumber, 1000);
+document.addEventListener('DOMContentLoaded', fetchNumber);

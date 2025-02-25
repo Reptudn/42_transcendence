@@ -14,6 +14,8 @@ const app = fastify();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+let theNumber: number = 0;
+
 app.register(fastifyFormbody);
 app.register(fastifyJwt, { secret: '42heilbronn' });
 app.register(fastifyView, {
@@ -69,6 +71,9 @@ app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, 
 	const { name } = req.params;
 	reply.send(`Profile for user: ${name}`);
 });
+app.get('/number', {}, async (req: any, reply: any) => {
+	reply.send({ number: theNumber });
+});
 
 // post
 app.post("/login", async (req: any, reply: any) => {
@@ -101,6 +106,11 @@ app.post("/register", async (req: any, reply: any) => {
 		}
 		return;
 	}
+});
+app.post("/number", {}, async (req: any, reply: any) => {
+	const { number } = req.body;
+	theNumber += number;
+	reply.send({ number: theNumber });
 });
 
 // error
