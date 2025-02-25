@@ -6,6 +6,7 @@ import fastifyStatic from '@fastify/static';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import crypto from 'crypto';
 import logger from './logger.js';
 import 'dotenv/config';
 import { registerUser, loginUser } from './db/database.js';
@@ -17,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let theNumber: number = 0;
 
 app.register(fastifyFormbody);
-app.register(fastifyJwt, { secret: '42heilbronn' });
+app.register(fastifyJwt, { secret: crypto.randomBytes(64).toString('hex') });
 app.register(fastifyView, {
 	engine: {
 		ejs
