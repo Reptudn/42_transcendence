@@ -30,7 +30,7 @@ app.register(fastifyView, {
 	}
 });
 app.register(fastifyStatic, {
-	root: path.join(__dirname, '../..//front/static'),
+	root: path.join(__dirname, '../../front/static'),
 	prefix: '/static/',
 	list: true
 });
