@@ -1,5 +1,7 @@
 import './script.js';
 
+console.log('Register page');
+
 async function registerAction() {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const displayname = (document.querySelector('#displayname') as HTMLInputElement).value;
@@ -25,9 +27,7 @@ async function registerAction() {
 	}
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-	const registerButton = document.getElementById('registerButton');
-	if (registerButton) {
-		registerButton.addEventListener('click', registerAction);
-	}
-});
+const registerButton = document.getElementById('registerButton');
+if (registerButton) {
+	registerButton.addEventListener('click', registerAction);
+}

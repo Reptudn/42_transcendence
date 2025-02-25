@@ -26,9 +26,7 @@ async function loginAction() {
 	}
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-	const loginButton = document.getElementById('loginButton');
-	if (loginButton) {
-		loginButton.addEventListener('click', loginAction);
-	}
-});
+const loginButton = document.getElementById('loginButton');
+if (loginButton) {
+	loginButton.addEventListener('click', loginAction);
+}

@@ -12,6 +12,17 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	const contentElement: HTMLElement | null = document.getElementById('content');
 	if (contentElement) {
 		contentElement.innerHTML = html;
+		const scripts = contentElement.querySelectorAll('script');
+		scripts.forEach(oldScript => {
+			const newScript = document.createElement('script');
+			newScript.type = oldScript.type || 'text/javascript';
+			if (oldScript.src) {
+				newScript.src = oldScript.src;
+			} else {
+				newScript.textContent = oldScript.textContent;
+			}
+			document.body.appendChild(newScript);
+		});
 	} else {
 		console.warn("Content element not found");
 	}
@@ -20,6 +31,7 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 		history.pushState({ page }, '', `/partial/${page}`);
 	}
 }
+
 
 window.addEventListener('popstate', (event: PopStateEvent) => {
 	if (event.state && typeof event.state.page === 'string') {
@@ -80,8 +92,12 @@ function getCookie(name: string): string | null {
 }
 
 // THE number
+let numberFetchFailed: boolean = false;
 
 async function fetchNumber(): Promise<void> {
+	if (numberFetchFailed) {
+		return;
+	}
 	try {
 		const response = await fetch('/number');
 		const data = await response.json();
@@ -90,6 +106,7 @@ async function fetchNumber(): Promise<void> {
 			displayElement.textContent = data.number.toString();
 		}
 	} catch (error) {
+		numberFetchFailed = true;
 		console.error('Error fetching number:', error);
 	}
 }
