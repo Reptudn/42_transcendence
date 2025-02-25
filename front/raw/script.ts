@@ -17,7 +17,7 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 			const newScript = document.createElement('script');
 			newScript.type = oldScript.type || 'text/javascript';
 			if (oldScript.src) {
-				newScript.src = oldScript.src;
+				newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
 			} else {
 				newScript.textContent = oldScript.textContent;
 			}
