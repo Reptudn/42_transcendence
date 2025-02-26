@@ -1,3 +1,4 @@
+let scriptContainer: HTMLIFrameElement | null = null;
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
 	const response: Response = await fetch(`/partial/${page}`, {
 		method: 'GET',
@@ -11,18 +12,35 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 
 	const contentElement: HTMLElement | null = document.getElementById('content');
 	if (contentElement) {
+
 		contentElement.innerHTML = html;
 		const scripts = contentElement.querySelectorAll('script');
-		scripts.forEach(oldScript => {
-			const newScript = document.createElement('script');
-			newScript.type = oldScript.type || 'text/javascript';
-			if (oldScript.src) {
-				newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
-			} else {
-				newScript.textContent = oldScript.textContent;
+		if (scripts)
+		{
+
+			if (scriptContainer)
+			{
+				scriptContainer.remove();
+				scriptContainer = null;
 			}
-			document.body.appendChild(newScript);
-		});
+			else
+			{
+				scriptContainer = document.createElement('iframe');
+				scriptContainer.style.display = 'none';
+				document.body.appendChild(scriptContainer);
+			}
+
+			scripts.forEach(oldScript => {
+				const newScript = document.createElement('script');
+				newScript.type = oldScript.type || 'text/javascript';
+				if (oldScript.src) {
+					newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
+				} else {
+					newScript.textContent = oldScript.textContent;
+				}
+				scriptContainer!.appendChild(newScript);
+			});
+		}
 	} else {
 		console.warn("Content element not found");
 	}

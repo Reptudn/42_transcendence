@@ -1,6 +1,13 @@
 import './script.js';
 
-async function loginAction() {
+const testInterval = setInterval(() => {
+    console.log('hi from login');
+}, 1000);
+
+let loginAction = async () => {
+
+	if (!window.location.pathname.endsWith('/login')) return;
+
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
 	try {

@@ -1,8 +1,13 @@
 import './script.js';
 
-console.log('Register page');
+const test = setInterval(() => {
+    console.log('hi from register');
+}, 1000);
 
-async function registerAction() {
+let registerAction = async () => {
+
+	if (!window.location.pathname.endsWith('/register')) return;
+
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const displayname = (document.querySelector('#displayname') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
