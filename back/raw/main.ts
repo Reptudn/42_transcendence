@@ -126,12 +126,11 @@ app.setNotFoundHandler((request, reply) => {
 /* --------------STATIC------------- */
 /* --------------------------------- */
 
-function checkAuth(request: any) {
+async function checkAuth(request: any): Promise<boolean> {
 	try {
-		request.jwtVerify();
+		await request.jwtVerify();
 		return true;
-	}
-	catch (error) {
+	} catch (error) {
 		return false;
 	}
 }

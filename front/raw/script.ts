@@ -1,11 +1,14 @@
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
+	const token = localStorage.getItem('token');
+	const headers: Record<string, string> = { 'loadpartial': 'true' };
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
+	}
 	const response: Response = await fetch(`/partial/pages/${page}`, {
 		method: 'GET',
-		headers: {
-			'Authorization': `Bearer ${localStorage.getItem('token')}`,
-			'loadpartial': 'true'
-		}
+		headers
 	});
+
 	const html: string = await response.text();
 	console.log(`Switching to page: ${page}`);
 
@@ -40,11 +43,18 @@ window.addEventListener('popstate', (event: PopStateEvent) => {
 
 async function updateMenu(): Promise<void> {
 	try {
-		const response = await fetch('/menu', {
-			headers: {
-				'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-			}
-		});
+		let response: Response;
+		const token = localStorage.getItem('token');
+		if (token) {
+			response = await fetch('/menu', {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+				}
+			});
+		} else {
+			response = await fetch(`/menu`);
+		}
+
 		const html = await response.text();
 		const menuElement = document.getElementById('menu');
 		if (menuElement) {
