@@ -126,50 +126,46 @@ app.setNotFoundHandler((request, reply) => {
 /* --------------STATIC------------- */
 /* --------------------------------- */
 
-async function getMenuHtml(req: any, reply: any): Promise<string> {
-	let menuTemplate: string;
-	if (!req.headers.authorization) {
-		menuTemplate = '/partial/menu/guest.ejs';
-	} else {
-		try {
-			await req.jwtVerify();
-			menuTemplate = '/partial/menu/loggedin.ejs';
-		} catch (err) {
-			menuTemplate = '/partial/menu/guest.ejs';
-		}
+function checkAuth(request: any) {
+	try {
+		request.jwtVerify();
+		return true;
 	}
-	return new Promise((resolve, reject) => {
-		reply.view(menuTemplate, { name: 'Freddy' }, (err: Error, html: string) => {
-			if (err) {
-				return reject(err);
-			}
-			resolve(html);
-		});
-	});
+	catch (error) {
+		return false;
+	}
 }
 
 app.get('/partial/pages/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
 	const loadpartial = req.headers['loadpartial'] === 'true';
 	const layoutOption = loadpartial ? false : 'basic.ejs';
-	const menuOption = await getMenuHtml(req, reply);
+	const isAuthenticated = await checkAuth(req);
 
 	if (page === 'game') {
 		try {
 			await req.jwtVerify();
 		} catch (error) {
-			return reply.code(401).view('partial/pages/no_access.ejs', { name: 'Freddy', menu: menuOption }, { layout: layoutOption });
+			return reply.code(401).view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 		}
 	}
-	return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', menu: menuOption }, { layout: layoutOption });
+	return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 });
 app.get('/menu', async (req: any, reply: any) => {
-	const menuOption = await getMenuHtml(req, reply);
-	return reply.view(menuOption, { name: 'Freddy' });
+	const isAuthenticated = await checkAuth(req);
+	const menuTemplate = isAuthenticated ? 'partial/menu/loggedin.ejs' : 'partial/menu/guest.ejs';
+	return reply.view(menuTemplate, { name: 'Freddy' });
 });
 app.get('/', async (req: any, reply: any) => {
-	const menuOption = await getMenuHtml(req, reply);
-	return reply.view('partial/pages/index.ejs', { name: 'Jonas', menu: menuOption }, { layout: 'basic.ejs' });
+	let isAuthenticated: boolean = false;
+	try {
+		await req.jwtVerify();
+		isAuthenticated = true;
+	}
+	catch (error) {
+		isAuthenticated = false;
+	}
+	return reply.view('partial/pages/index.ejs', { name: 'Jonas', isAuthenticated }, { layout: 'basic.ejs' });
 });
 
 
