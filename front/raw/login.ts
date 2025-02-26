@@ -15,7 +15,7 @@ async function loginAction() {
 		console.log("cool data received: " + JSON.stringify(data));
 		if (response.ok) {
 			localStorage.setItem("token", data.token);
-			loadPartialView('game');
+			loadPartialView('game-settings');
 			alert('You have logged in successfully');
 		} else {
 			alert(`Error: ${data.message}`);
