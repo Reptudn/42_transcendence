@@ -131,14 +131,6 @@ app.get('/partial/:page', async (req: any, reply: any) => {
 	const loadpartial = req.headers['loadpartial'] === 'true';
 	const dataSample = { name: 'Jonas' };
 	const layoutOption = loadpartial ? false : 'basic.ejs';
-
-	if (page === 'game') {
-		try {
-			await req.jwtVerify();
-		} catch (error) {
-			return reply.code(401).view('pages/no_access.ejs', dataSample, { layout: layoutOption });
-		}
-	}
 	return reply.view(`pages/${page}.ejs`, dataSample, { layout: layoutOption });
 });
 app.get('/', async (req: any, reply: any) => {

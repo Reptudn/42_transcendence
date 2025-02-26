@@ -1,0 +1,117 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+	<!-- General Settings Section -->
+	<div class="mb-8">
+		<h2 class="text-2xl font-semibold mb-4">General Settings</h2>
+		<div class="space-y-4">
+			<!-- Slider for Ball Size -->
+			<div>
+				<label class="block text-gray-700">
+					Ball Size <span class="text-sm text-gray-500">(Adjust size)</span>
+				</label>
+				<input type="range" min="1" max="100" value="50" class="w-full" />
+			</div>
+			<!-- Slider for Ball Speed -->
+			<div>
+				<label class="block text-gray-700">
+					Ball Speed <span class="text-sm text-gray-500">(Adjust speed)</span>
+				</label>
+				<input type="range" min="1" max="100" value="50" class="w-full" />
+			</div>
+			<!-- Slider for Paddle Size -->
+			<div>
+				<label class="block text-gray-700">
+					Paddle Size <span class="text-sm text-gray-500">(Adjust size)</span>
+				</label>
+				<input type="range" min="1" max="100" value="50" class="w-full" />
+			</div>
+			<!-- Slider for Paddle Speed -->
+			<div>
+				<label class="block text-gray-700">
+					Paddle Speed <span class="text-sm text-gray-500">(Adjust speed)</span>
+				</label>
+				<input type="range" min="1" max="100" value="50" class="w-full" />
+			</div>
+			<!-- Toggle for Powerups -->
+			<div class="flex items-center">
+				<label class="mr-4 text-gray-700">Powerups</label>
+				<label class="relative inline-flex items-center cursor-pointer">
+					<input id="powerup-toggle" type="checkbox" class="sr-only peer" />
+					<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full 
+						dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white
+						after:content-[''] after:inline-block after:absolute after:top-[2px] after:left-[2px]
+						after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+					</div>
+				</label>
+			</div>
+		</div>
+	</div>
+
+	<!-- Player Settings Section -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<!-- Player 1 Settings -->
+		<div class="p-4 border rounded-lg">
+			<h3 class="text-xl font-semibold mb-4">Player 1</h3>
+			<!-- Toggle for AI/Human -->
+			<div class="mb-4 flex items-center justify-center">
+				<span class="mr-3 text-sm font-medium text-gray-900">AI</span>
+				<label class="relative inline-flex items-center cursor-pointer">
+					<!-- Our unified toggle: checked means Human, unchecked means AI -->
+					<input type="checkbox" data-player="player1" class="player-toggle sr-only peer" checked />
+					<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full
+						dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white
+						after:content-[''] after:inline-block after:absolute after:top-[2px] after:left-[2px]
+						after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+					</div>
+					<span class="ml-3 text-sm font-medium text-gray-900">Human</span>
+				</label>
+			</div>
+			<!-- Control Scheme (only applicable for Human) -->
+			<div id="player1-control">
+				<label class="block text-gray-700 mb-2">Control Scheme</label>
+				<select data-player="player1" class="control-select w-full border rounded px-3 py-2">
+					<option value="wasd" selected>WASD</option>
+					<option value="arrows">Arrow Keys</option>
+				</select>
+			</div>
+		</div>
+		<!-- Player 2 Settings -->
+		<div class="p-4 border rounded-lg">
+			<h3 class="text-xl font-semibold mb-4">Player 2</h3>
+			<!-- Toggle for AI/Human -->
+			<div class="mb-4 flex items-center justify-center">
+				<span class="mr-3 text-sm font-medium text-gray-900">AI</span>
+				<label class="relative inline-flex items-center cursor-pointer">
+					<input type="checkbox" data-player="player2" class="player-toggle sr-only peer" checked />
+					<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full
+						dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white
+						after:content-[''] after:inline-block after:absolute after:top-[2px] after:left-[2px]
+						after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all">
+					</div>
+					<span class="ml-3 text-sm font-medium text-gray-900">Human</span>
+				</label>
+			</div>
+			<!-- Control Scheme (only applicable for Human) -->
+			<div id="player2-control">
+				<label class="block text-gray-700 mb-2">Control Scheme</label>
+				<select data-player="player2" class="control-select w-full border rounded px-3 py-2">
+					<option value="wasd">WASD</option>
+					<option value="arrows" selected>Arrow Keys</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<!-- Error Message -->
+	<div class="mt-6 flex justify-center">
+		<div id="error-message" class="text-red-600 font-semibold"></div>
+	</div>
+
+	<!-- Inviting Start Button -->
+	<div class="mt-8 text-center">
+		<button id="start-button"
+			class="px-8 py-4 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition disabled:opacity-50">
+			Start Game
+		</button>
+	</div>
+</div>
+<script src="/static/js/game-settings.js"></script>
