@@ -16,6 +16,7 @@ async function loginAction() {
 		if (response.ok) {
 			localStorage.setItem("token", data.token);
 			loadPartialView('game');
+			updateMenu();
 			alert('You have logged in successfully');
 		} else {
 			alert(`Error: ${data.message}`);

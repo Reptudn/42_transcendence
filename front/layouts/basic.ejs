@@ -12,24 +12,9 @@
 	<header class="bg-blue-600 text-white p-4 shadow-md">
 		<div class="container mx-auto flex justify-between items-center">
 			<h1 class="text-2xl font-bold" onclick="loadPartialView('index')">Welcome to Transcendence</h1>
-			<nav class="space-x-4">
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('index')">Home</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('profile')">Profile</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('game')">Game</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('login')">Login</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('register')">Register</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="localStorage.setItem('token', ''); loadPartialView('index');">Logout</button>
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-					onclick="loadPartialView('about')">About</button>
-				<button id="darkModeToggle" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-					onclick="toggleDarkModeT()">Dark Mode</button>
-			</nav>
+			<div id="menu">
+				<%- typeof menu !=='undefined' ? menu : '' %>
+			</div>
 		</div>
 	</header>
 

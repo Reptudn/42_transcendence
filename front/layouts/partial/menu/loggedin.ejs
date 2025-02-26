@@ -1,0 +1,12 @@
+<nav class="space-x-4">
+	<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		onclick="loadPartialView('index')">Home</button>
+	<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		onclick="loadPartialView('profile')">Profile</button>
+	<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		onclick="loadPartialView('game')">Game</button>
+	<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		onclick="localStorage.setItem('token', ''); loadPartialView('index');">Logout</button>
+	<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		onclick="loadPartialView('about')">About</button>
+</nav>
