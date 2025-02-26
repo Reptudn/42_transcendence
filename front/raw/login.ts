@@ -12,11 +12,10 @@ async function loginAction() {
 			body: JSON.stringify({ username, password })
 		});
 		const data = await response.json();
-		console.log("cool data received: " + JSON.stringify(data));
 		if (response.ok) {
 			localStorage.setItem("token", data.token);
-			loadPartialView('game');
 			updateMenu();
+			loadPartialView('game');
 			alert('You have logged in successfully');
 		} else {
 			alert(`Error: ${data.message}`);
