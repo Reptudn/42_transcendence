@@ -81,7 +81,8 @@ app.post("/login", async (req: any, reply: any) => {
 	const { username, password } = req.body;
 	try {
 		const user = await loginUser(username, password);
-		const token = app.jwt.sign({ username: user.username, id: user.id });
+		const token = app.jwt.sign({ username: user.username, id: user.id },
+			{ expiresIn: '10d' });
 		reply.send({ token });
 	}
 	catch (error) {

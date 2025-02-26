@@ -32,7 +32,6 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	}
 }
 
-
 window.addEventListener('popstate', (event: PopStateEvent) => {
 	if (event.state && typeof event.state.page === 'string') {
 		loadPartialView(event.state.page, false);
