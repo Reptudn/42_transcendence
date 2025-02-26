@@ -1,93 +1,85 @@
-async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
-	const response: Response = await fetch(`/partial/${page}`, {
-		method: 'GET',
-		headers: {
-			'Authorization': `Bearer ${localStorage.getItem('token')}`,
-			'loadpartial': 'true'
+function updateActiveMenu(selectedPage: string): void {
+	const menuButtons = document.querySelectorAll('nav button[data-page]');
+	menuButtons.forEach((button) => {
+		if (button.getAttribute('data-page') === selectedPage) {
+			button.classList.add('active');
+		} else {
+			button.classList.remove('active');
 		}
 	});
-	const html: string = await response.text();
-	console.log(`Switching to page: ${page}`);
-
-	const contentElement: HTMLElement | null = document.getElementById('content');
-	if (contentElement) {
-		contentElement.innerHTML = html;
-		const scripts = contentElement.querySelectorAll('script');
-		scripts.forEach(oldScript => {
-			const newScript = document.createElement('script');
-			newScript.type = oldScript.type || 'text/javascript';
-			if (oldScript.src) {
-				newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
-			} else {
-				newScript.textContent = oldScript.textContent;
-			}
-			document.body.appendChild(newScript);
-		});
-	} else {
-		console.warn("Content element not found");
-	}
-
-	if (pushState) {
-		history.pushState({ page }, '', `/partial/${page}`);
-	}
 }
 
+async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
+	const token = localStorage.getItem('token');
+	const headers: Record<string, string> = { 'loadpartial': 'true' };
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
+	}
+	try {
+		const response: Response = await fetch(`/partial/pages/${page}`, {
+			method: 'GET',
+			headers
+		});
+
+		const html: string = await response.text();
+		console.log(`Switching to page: ${page}`);
+
+		const contentElement: HTMLElement | null = document.getElementById('content');
+		if (contentElement) {
+			contentElement.innerHTML = html;
+			const scripts = contentElement.querySelectorAll('script');
+			scripts.forEach(oldScript => {
+				const newScript = document.createElement('script');
+				newScript.type = oldScript.type || 'text/javascript';
+				if (oldScript.src) {
+					newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
+				} else {
+					newScript.textContent = oldScript.textContent;
+				}
+				document.body.appendChild(newScript);
+			});
+		} else {
+			console.warn("Content element not found");
+		}
+
+		if (pushState) {
+			history.pushState({ page }, '', `/partial/pages/${page}`);
+		}
+
+		updateActiveMenu(page);
+	} catch (error) {
+		console.error('Error fetching partial view:', error);
+	}
+}
+// history change event
 window.addEventListener('popstate', (event: PopStateEvent) => {
 	if (event.state && typeof event.state.page === 'string') {
 		loadPartialView(event.state.page, false);
 	}
 });
 
-let isDarkModeT: boolean = false;
-window.addEventListener('DOMContentLoaded', () => {
-	const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-	toggleDarkMode(prefersDarkScheme.matches);
-	isDarkModeT = prefersDarkScheme.matches;
+async function updateMenu(): Promise<void> {
+	try {
+		let response: Response;
+		const token = localStorage.getItem('token');
+		if (token) {
+			response = await fetch('/menu', {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+				}
+			});
+		} else {
+			response = await fetch(`/menu`);
+		}
 
-	prefersDarkScheme.addEventListener('change', (event) => {
-		toggleDarkMode(event.matches);
-		isDarkModeT = event.matches;
-	});
-});
-
-function toggleDarkMode(isDarkMode: boolean = isDarkModeT): void {
-	if (isDarkMode) {
-		document.body.classList.add('dark');
-		isDarkModeT = true;
-	} else {
-		document.body.classList.remove('dark');
-		isDarkModeT = false;
+		const html = await response.text();
+		const menuElement = document.getElementById('menu');
+		if (menuElement) {
+			menuElement.innerHTML = html;
+		}
+	} catch (error) {
+		console.error('Menu fetch failed:', error);
 	}
-
-	const darkModeToggle: HTMLElement | null = document.getElementById('darkModeToggle');
-	if (darkModeToggle) {
-		darkModeToggle.textContent = isDarkModeT ? 'Light Mode' : 'Dark Mode';
-	} else {
-		console.warn("Dark mode toggle element not found");
-	}
-}
-
-function toggleDarkModeT(): void {
-	isDarkModeT = !isDarkModeT;
-	toggleDarkMode();
-}
-
-function setCookie(name: string, value: string, days: number): void {
-	const date: Date = new Date();
-	date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-	const expires: string = "expires=" + date.toUTCString();
-	document.cookie = `${name}=${value};${expires};path=/`;
-}
-
-function getCookie(name: string): string | null {
-	// A simple implementation might be:
-	const nameEQ: string = name + "=";
-	const ca: string[] = document.cookie.split(';');
-	for (let c of ca) {
-		c = c.trim();
-		if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length);
-	}
-	return null;
 }
 
 // THE number
