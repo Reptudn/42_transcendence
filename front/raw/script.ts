@@ -14,61 +14,73 @@ let scriptContainer: HTMLDivElement | null = null;
 let abortController: AbortController | null = null
 let abortSignal: AbortSignal | null = null;
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
-	const response: Response = await fetch(`/partial/${page}`, {
-		method: 'GET',
-		headers: {
-			'Authorization': `Bearer ${localStorage.getItem('token')}`,
-			'loadpartial': 'true'
-		}
-	});
-	const html: string = await response.text();
-	console.log(`Switching to page: ${page}`);
+	const token = localStorage.getItem('token');
+	const headers: Record<string, string> = { 'loadpartial': 'true' };
+	if (token)
+		headers['Authorization'] = `Bearer ${token}`;
 
-	const contentElement: HTMLElement | null = document.getElementById('content');
-	if (contentElement) {
-
-		contentElement.innerHTML = html;
-
-		const scripts = contentElement.querySelectorAll('script');
-		if (scripts && scripts.length > 0)
-		{
-
-			if (scriptContainer)
+	try
+	{
+		const response: Response = await fetch(`/partial/pages/${page}`, {
+			method: 'GET',
+			headers: headers
+		});
+		const html: string = await response.text();
+		console.log(`Switching to page: ${page}`);
+	
+		const contentElement: HTMLElement | null = document.getElementById('content');
+		if (contentElement) {
+	
+			contentElement.innerHTML = html;
+	
+			const scripts = contentElement.querySelectorAll('script');
+			if (scripts && scripts.length > 0)
 			{
-				if (abortController) abortController.abort();
-				scriptContainer.remove();
-				scriptContainer = null;
-				abortSignal = null;
-				abortController = null;
-			}
-
-			abortController = new AbortController();
-			abortSignal = abortController!.signal;
-
-			scriptContainer = document.createElement('div');
-			document.body.appendChild(scriptContainer);
-
-			scripts.forEach(oldScript => {
-				const newScript = document.createElement('script');
-				newScript.type = oldScript.type || 'text/javascript';
-				if (oldScript.src) {
-					newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
-				} else {
-					newScript.textContent = oldScript.textContent;
+	
+				if (scriptContainer)
+				{
+					if (abortController) abortController.abort();
+					scriptContainer.remove();
+					scriptContainer = null;
+					abortSignal = null;
+					abortController = null;
 				}
-				scriptContainer!.appendChild(newScript);
-			});
+	
+				abortController = new AbortController();
+				abortSignal = abortController!.signal;
+	
+				scriptContainer = document.createElement('div');
+				document.body.appendChild(scriptContainer);
+	
+				scripts.forEach(oldScript => {
+					const newScript = document.createElement('script');
+					newScript.type = oldScript.type || 'text/javascript';
+					if (oldScript.src) {
+						newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
+					} else {
+						newScript.textContent = oldScript.textContent;
+					}
+					scriptContainer!.appendChild(newScript);
+				});
+			}
+	
+		} else {
+			console.warn("Content element not found");
 		}
-	} else {
-		console.warn("Content element not found");
+	  
+		updateActiveMenu(page);
+	
+		if (pushState) {
+			history.pushState({ page }, '', `/partial/${page}`);
+		}
+	}
+	catch (error)
+	{
+		console.error('Error fetching partial view:', error);
 	}
 
-  updateActiveMenu(page);
-  
-	if (pushState) {
-		history.pushState({ page }, '', `/partial/${page}`);
-	}
 }
+
 // history change event
 window.addEventListener('popstate', (event: PopStateEvent) => {
 	if (event.state && typeof event.state.page === 'string') {
