@@ -1,15 +1,14 @@
 import fastify from 'fastify';
-import fastifyFormbody from '@fastify/formbody';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
+import fastifyMultipart from '@fastify/multipart';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
-import 'dotenv/config';
-import { registerUser, loginUser } from './db/database.js';
+import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword } from './db/database.js';
 
 const app = fastify();
 
@@ -17,7 +16,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let theNumber: number = 0;
 
-app.register(fastifyFormbody);
 app.register(fastifyJwt, { secret: crypto.randomBytes(64).toString('hex') });
 app.register(fastifyView, {
 	engine: {
@@ -34,6 +32,9 @@ app.register(fastifyStatic, {
 	root: path.join(__dirname, '../../front/static'),
 	prefix: '/static/',
 	list: true
+});
+app.register(fastifyMultipart, {
+	limits: { fileSize: 1 * 1024 * 1024 } // e.g. 1 MB limit
 });
 
 app.decorate('authenticate', async function (request: any, reply: any) {
@@ -68,10 +69,6 @@ async function startServer() {
 // no thats fine i think
 
 // get
-app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-	const { name } = req.params;
-	reply.send(`Profile for user: ${name}`);
-});
 app.get('/number', {}, async (req: any, reply: any) => {
 	reply.send({ number: theNumber });
 });
@@ -114,6 +111,45 @@ app.post("/number", {}, async (req: any, reply: any) => {
 	theNumber += number;
 	reply.send({ number: theNumber });
 });
+app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const userId = req.user.id;
+	try {
+		const parts = await req.parts();
+		let fields: any = {};
+		let profilePicturePath = '';
+
+		for await (const part of parts) {
+			if (part.file) {
+				// Handle file upload
+				// Check size, type, etc. For simplicity, assume we write the file to /uploads/...
+				// (You would also want to generate a unique filename and verify the file mimetype)
+				const filename = `./back/db/uploads/${Date.now()}-${part.filename}`;
+				const writeStream = require('fs').createWriteStream(filename);
+				await part.file.pipe(writeStream);
+				profilePicturePath = filename;
+			} else {
+				fields[part.fieldname] = part.value;
+			}
+		}
+
+		if (/\s/.test(fields.username)) {
+			throw new Error('Username cannot contain spaces');
+		}
+		await updateUserProfile(
+			userId,
+			fields.username,
+			fields.displayname,
+			fields.bio,
+			profilePicturePath || fields.existingProfilePicture || ''
+		);
+		if (fields.oldPassword && fields.newPassword) {
+			await updateUserPassword(userId, fields.oldPassword, fields.newPassword);
+		}
+		reply.send({ message: 'Profile updated successfully' });
+	} catch (error: any) {
+		reply.code(400).send({ message: error.message });
+	}
+});
 
 // error
 app.setNotFoundHandler((request, reply) => {
@@ -140,15 +176,48 @@ app.get('/partial/pages/:page', async (req: any, reply: any) => {
 	const loadpartial = req.headers['loadpartial'] === 'true';
 	const layoutOption = loadpartial ? false : 'basic.ejs';
 	const isAuthenticated = await checkAuth(req);
+	let isSelf: boolean = false;
 
-	if (page === 'game') {
+	if (['game', 'profile', 'edit_profile'].includes(page)) {
 		try {
 			await req.jwtVerify();
+			isSelf = true;
 		} catch (error) {
-			return reply.code(401).view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+			return reply
+				.code(401)
+				.view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 		}
 	}
-	return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+	if (page != 'profile')
+		return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+	else {
+		const userId = Number(req.user.id);
+		const user = await getUserById(userId);
+		if (!user)
+			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+		return reply.view('partial/pages/profile.ejs', { user, isSelf }, { layout: layoutOption });
+	}
+});
+
+app.get('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const userId = req.user.id;
+	const user = await getUserById(userId);
+	if (!user) return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	reply.view('partial/pages/edit_profile.ejs', { user });
+});
+app.get('/profile/:id', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const { id } = req.params;
+	let isSelf;
+	try {
+		await req.jwtVerify();
+		isSelf = req.user && req.user.id === parseInt(id);
+	} catch (err) {
+		isSelf = false;
+	}
+	const user = await getUserById(parseInt(id));
+	if (!user)
+		return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	return reply.view('partial/pages/profile.ejs', { user, isSelf });
 });
 app.get('/menu', async (req: any, reply: any) => {
 	const isAuthenticated = await checkAuth(req);
