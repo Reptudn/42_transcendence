@@ -4,35 +4,34 @@
 	<form id="editProfileForm" action="/profile/edit" method="POST" enctype="multipart/form-data">
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Profile Picture:</label>
-			<% if (user.profile_picture) { %>
-				<img src="/<%= user.profile_picture %>" alt="Profile Picture" class="w-24 h-24 rounded-full mb-2">
-				<% } %>
-					<input type="file" name="profile_picture" accept="image/*" class="w-full">
+			<img src="/<%= user.profile_picture || 'static/assets/images/default_profile.png' %>" alt="Profile Picture"
+				class="w-24 h-24 rounded-full mb-2">
+			<input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="w-full">
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Username:</label>
-			<input type="text" name="username" value="<%= user.username %>" required pattern="\\S+"
+			<input type="text" id="username" value="<%= user.username %>" required pattern="^\S+$"
 				class="w-full px-3 py-2 border rounded">
 			<small class="text-gray-500">No spaces allowed.</small>
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Display Name:</label>
-			<input type="text" name="displayname" value="<%= user.displayname %>" required
+			<input type="text" id="displayname" value="<%= user.displayname %>" required
 				class="w-full px-3 py-2 border rounded">
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Bio:</label>
-			<textarea name="bio" rows="3" class="w-full px-3 py-2 border rounded"><%= user.bio %></textarea>
+			<textarea id="bio" rows="3" class="w-full px-3 py-2 border rounded"><%= user.bio %></textarea>
 		</div>
 		<hr class="my-4">
 		<h3 class="text-lg font-bold mb-2">Change Password</h3>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Old Password:</label>
-			<input type="password" name="oldPassword" class="w-full px-3 py-2 border rounded">
+			<input type="password" id="oldPassword" class="w-full px-3 py-2 border rounded">
 		</div>
 		<div class="mb-6">
 			<label class="block text-gray-700 font-bold mb-2">New Password:</label>
-			<input type="password" name="newPassword" class="w-full px-3 py-2 border rounded">
+			<input type="password" id="newPassword" class="w-full px-3 py-2 border rounded">
 			<small class="text-gray-500">New password cannot contain spaces.</small>
 		</div>
 		<div class="text-center">
@@ -41,3 +40,4 @@
 		</div>
 	</form>
 </div>
+<script type="module" src="/static/js/edit_profile.js"></script>

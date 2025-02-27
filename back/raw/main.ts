@@ -4,6 +4,7 @@ import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 import ejs from 'ejs';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
@@ -114,34 +115,70 @@ app.post("/number", {}, async (req: any, reply: any) => {
 app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 	const userId = req.user.id;
 	try {
+		// Retrieve current user data to manage the old profile picture.
+		const currentUser = await getUserById(userId);
+		if (!currentUser) {
+			return reply.code(404).send({ message: 'User not found' });
+		}
+
 		const parts = await req.parts();
 		let fields: any = {};
-		let profilePicturePath = '';
 
+		let newProfilePicturePath = '';
 		for await (const part of parts) {
 			if (part.file) {
-				// Handle file upload
-				// Check size, type, etc. For simplicity, assume we write the file to /uploads/...
-				// (You would also want to generate a unique filename and verify the file mimetype)
-				const filename = `./back/db/uploads/${Date.now()}-${part.filename}`;
-				const writeStream = require('fs').createWriteStream(filename);
-				await part.file.pipe(writeStream);
-				profilePicturePath = filename;
+				// Validate file type
+				const allowedMimeTypes = ['image/jpeg', 'image/png'];
+				if (!allowedMimeTypes.includes(part.mimetype)) {
+					return reply.code(400).send({ message: 'Invalid file type. Only JPEG and PNG images are allowed.' });
+				}
+				// Generate a unique filename (using timestamp and random integer)
+				const ext = part.filename.split('.').pop();
+				const filename = `./back/db/uploads/${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`;
+
+				// Write file and await completion
+				const writeStream = fs.createWriteStream(filename);
+				await new Promise((resolve, reject) => {
+					part.file.pipe(writeStream);
+					part.file.on('end', resolve);
+					part.file.on('error', reject);
+				});
+				newProfilePicturePath = filename;
 			} else {
 				fields[part.fieldname] = part.value;
 			}
 		}
 
 		if (/\s/.test(fields.username)) {
-			throw new Error('Username cannot contain spaces');
+			return reply.code(400).send({ message: 'Username cannot contain spaces' });
 		}
+
+		// If a new profile picture was uploaded, delete the old one if it exists and isn’t the default.
+		if (newProfilePicturePath) {
+			if (currentUser.profile_picture && currentUser.profile_picture !== 'static/assets/images/default_profile.png') {
+				fs.unlink(currentUser.profile_picture, (err: any) => {
+					if (err) {
+						// Log the error without interrupting the update flow.
+						console.error(`Failed to delete old profile picture: ${err}`);
+					}
+				});
+			}
+		}
+
+		console.log(fields.username);
+		console.log(fields.displayname);
+		console.log(fields.bio);
+
+		// Update the user profile with either the new picture or retain the old one.
 		await updateUserProfile(
 			userId,
 			fields.username,
 			fields.displayname,
 			fields.bio,
-			profilePicturePath || fields.existingProfilePicture || ''
+			newProfilePicturePath || fields.existingProfilePicture || currentUser.profile_picture || ''
 		);
+
+		// Handle password update if provided.
 		if (fields.oldPassword && fields.newPassword) {
 			await updateUserPassword(userId, fields.oldPassword, fields.newPassword);
 		}
@@ -188,14 +225,14 @@ app.get('/partial/pages/:page', async (req: any, reply: any) => {
 				.view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 		}
 	}
-	if (page != 'profile')
+	if (page != 'profile' && page != 'edit_profile')
 		return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 	else {
 		const userId = Number(req.user.id);
 		const user = await getUserById(userId);
 		if (!user)
 			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
-		return reply.view('partial/pages/profile.ejs', { user, isSelf }, { layout: layoutOption });
+		return reply.view('partial/pages/' + page + '.ejs', { user, isSelf }, { layout: layoutOption });
 	}
 });
 
