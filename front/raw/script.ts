@@ -1,4 +1,6 @@
-let scriptContainer: HTMLIFrameElement | null = null;
+let scriptContainer: HTMLDivElement | null = null;
+let abortController: AbortController | null = null
+let abortSignal: AbortSignal | null = null;
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
 	const response: Response = await fetch(`/partial/${page}`, {
 		method: 'GET',
@@ -14,21 +16,25 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	if (contentElement) {
 
 		contentElement.innerHTML = html;
+
 		const scripts = contentElement.querySelectorAll('script');
-		if (scripts)
+		if (scripts && scripts.length > 0)
 		{
 
 			if (scriptContainer)
 			{
+				if (abortController) abortController.abort();
 				scriptContainer.remove();
 				scriptContainer = null;
+				abortSignal = null;
+				abortController = null;
 			}
-			else
-			{
-				scriptContainer = document.createElement('iframe');
-				scriptContainer.style.display = 'none';
-				document.body.appendChild(scriptContainer);
-			}
+
+			abortController = new AbortController();
+			abortSignal = abortController!.signal;
+
+			scriptContainer = document.createElement('div');
+			document.body.appendChild(scriptContainer);
 
 			scripts.forEach(oldScript => {
 				const newScript = document.createElement('script');

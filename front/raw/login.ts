@@ -1,9 +1,5 @@
 import './script.js';
 
-const testInterval = setInterval(() => {
-    console.log('hi from login');
-}, 1000);
-
 let loginAction = async () => {
 
 	if (!window.location.pathname.endsWith('/login')) return;
@@ -35,5 +31,9 @@ let loginAction = async () => {
 
 const loginButton = document.getElementById('loginButton');
 if (loginButton) {
-	loginButton.addEventListener('click', loginAction);
+	console.log('loginButton found');
+	loginButton.addEventListener('click', loginAction, { signal: abortController!.signal });
+} else {
+	console.error('loginButton not found');
 }
+

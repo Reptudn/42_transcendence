@@ -1,9 +1,5 @@
 import './script.js';
 
-const test = setInterval(() => {
-    console.log('hi from register');
-}, 1000);
-
 let registerAction = async () => {
 
 	if (!window.location.pathname.endsWith('/register')) return;
@@ -34,5 +30,6 @@ let registerAction = async () => {
 
 const registerButton = document.getElementById('registerButton');
 if (registerButton) {
-	registerButton.addEventListener('click', registerAction);
-}
+	console.log('registerButton found');
+	registerButton.addEventListener('click', registerAction, { signal: abortController!.signal });
+} else console.error('registerButton not found');
