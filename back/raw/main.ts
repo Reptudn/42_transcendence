@@ -126,27 +126,47 @@ app.setNotFoundHandler((request, reply) => {
 /* --------------STATIC------------- */
 /* --------------------------------- */
 
-app.get('/partial/:page', async (req: any, reply: any) => {
+async function checkAuth(request: any): Promise<boolean> {
+	try {
+		await request.jwtVerify();
+		return true;
+	} catch (error) {
+		return false;
+	}
+}
+
+app.get('/partial/pages/:page', async (req: any, reply: any) => {
 	const page = req.params.page;
 	const loadpartial = req.headers['loadpartial'] === 'true';
-	const dataSample = { name: 'Jonas' };
 	const layoutOption = loadpartial ? false : 'basic.ejs';
+	const isAuthenticated = await checkAuth(req);
 
 	if (page === 'game') {
 		try {
 			await req.jwtVerify();
 		} catch (error) {
-			return reply.code(401).view('pages/no_access.ejs', dataSample, { layout: layoutOption });
+			return reply.code(401).view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 		}
 	}
-	return reply.view(`pages/${page}.ejs`, dataSample, { layout: layoutOption });
+	return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+});
+app.get('/menu', async (req: any, reply: any) => {
+	const isAuthenticated = await checkAuth(req);
+	const menuTemplate = isAuthenticated ? 'partial/menu/loggedin.ejs' : 'partial/menu/guest.ejs';
+	return reply.view(menuTemplate, { name: 'Freddy' });
 });
 app.get('/', async (req: any, reply: any) => {
-	logger.info('GET /');
-	return reply.view('pages/index.ejs', { name: 'Jonas' }, {
-		layout: 'basic.ejs'
-	});
+	let isAuthenticated: boolean = false;
+	try {
+		await req.jwtVerify();
+		isAuthenticated = true;
+	}
+	catch (error) {
+		isAuthenticated = false;
+	}
+	return reply.view('partial/pages/index.ejs', { name: 'Jonas', isAuthenticated }, { layout: 'basic.ejs' });
 });
+
 
 startServer();
 

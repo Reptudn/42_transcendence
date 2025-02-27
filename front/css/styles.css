@@ -73,3 +73,8 @@ body.dark .bg-white {
 	background-color: #2d3748;
 	/* dark background for dark mode */
 }
+
+button.active {
+	background-color: #0056b3;
+	border: 2px solid #fff;
+}
