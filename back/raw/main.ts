@@ -8,9 +8,6 @@ import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
 import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword, printDatabase } from './db/database.js';
-import { profile } from 'console';
-import { title } from 'process';
-import { addColors } from 'winston/lib/winston/config/index.js';
 
 const app = fastify();
 
@@ -59,23 +56,12 @@ async function startServer() {
 	}
 }
 
-
 /* --------------------------------- */
-/* --------------API---------------- */
+/* -----------CONNECTIONS----------- */
 /* --------------------------------- */
 
-// we should maybe check this out
-// https://www.npmjs.com/package/@fastify/auth
-// no thats fine i think
-
-// get
-app.get('/number', {}, async (req: any, reply: any) => {
-	reply.send({ number: theNumber });
-});
-
-let connectedClients: Map<string, FastifyReply> = new Map();
-app.get('/notify',(request: FastifyRequest, reply: FastifyReply) => {
-	// Set SSE headers
+let connectedClients: Map<number, FastifyReply> = new Map();
+app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
 	reply.raw.writeHead(200, {
 		'Content-Type': 'text/event-stream',
 		'Cache-Control': 'no-cache',
@@ -83,32 +69,14 @@ app.get('/notify',(request: FastifyRequest, reply: FastifyReply) => {
 		'Transfer-Encoding': 'identity'
 	});
 
-	// Send an initial "connected" message
 	reply.raw.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
 
-	// Function to send events
-	const sendEvent = async (page: string, data: any) => {
-		try {
-			ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup/${page}.ejs`), data, (err, str) => {
-				if (err) {
-					logger.error("Error rendering view:", err);
-					reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
-				} else {
-					reply.raw.write(`data: ${JSON.stringify({ html: str })}\n\n`);
-				}
-			});
-		} catch (err) {
-			logger.error("Error rendering view:", err);
-			reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
-		}
-	};
-	
-	sendEvent('popup', { type: 'notify', title: 'Transcendence', description: 'Connection established', color: 'green', callback: 'testCallback()' });
+	connectedClients.set(Number(request.id), reply);
 
-	connectedClients.set(request.id, reply);
+	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()');
 
 	request.raw.on('close', () => {
-		connectedClients.delete(request.id);
+		connectedClients.delete(Number(request.id));
 		reply.raw.end();
 	});
 
@@ -118,14 +86,43 @@ app.get('/notify',(request: FastifyRequest, reply: FastifyReply) => {
 	});
 });
 
-const sendToClient = (userId: string, data: any) => {
-    const client = connectedClients.get(userId);
-    if (client) {
-        client.raw.write(`data: ${JSON.stringify(data)}\n\n`);
-    } else {
-        console.error(`Client with userId ${userId} not found.`);
-    }
+const sendRawToClient = (userId: number, data: any) => {
+	const client = connectedClients.get(userId);
+	if (client) {
+		client.raw.write(data);
+	} else {
+		console.error(`Client with userId ${userId} not found.`);
+	}
 };
+function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '') {
+	let reply = connectedClients.get(userId);
+	if (!reply) {
+		logger.error(`Client with userId ${userId} not found.`);
+		return;
+	}
+	try {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback }, (err, str) => {
+			if (err) {
+				logger.error("Error rendering view:", err);
+				reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+			} else {
+				reply.raw.write(`data: ${JSON.stringify({ html: str })}\n\n`);
+			}
+		});
+	} catch (err) {
+		logger.error("Error rendering view:", err);
+		reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+	}
+}
+
+/* --------------------------------- */
+/* --------------API---------------- */
+/* --------------------------------- */
+
+// get
+app.get('/number', {}, async (req: any, reply: any) => {
+	reply.send({ number: theNumber });
+});
 
 // post
 app.post("/login", async (req: any, reply: any) => {
