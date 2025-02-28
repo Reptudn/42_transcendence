@@ -162,27 +162,23 @@ app.get('/partial/pages/:page', async (req: any, reply: any) => {
 	const loadpartial = req.headers['loadpartial'] === 'true';
 	const layoutOption = loadpartial ? false : 'basic.ejs';
 	const isAuthenticated = await checkAuth(req);
-	let isSelf: boolean = false;
 
-	if (['game', 'profile', 'edit_profile'].includes(page)) {
-		try {
-			await req.jwtVerify();
-			isSelf = true;
-		} catch (error) {
-			return reply
-				.code(401)
-				.view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
-		}
-	}
-	if (page != 'profile' && page != 'edit_profile')
+	// generic pages without user-specific content
+	if (page != 'profile' && page != 'edit_profile') {
 		return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
-	else {
-		const userId = Number(req.user.id);
-		const user = await getUserById(userId);
-		if (!user)
-			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
-		return reply.view('partial/pages/' + page + '.ejs', { user, isSelf }, { layout: layoutOption });
 	}
+
+	if (!isAuthenticated) {
+		return reply
+			.code(401)
+			.view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+	}
+
+	const userId = Number(req.user.id);
+	const user = await getUserById(userId);
+	if (!user)
+		return reply.code(404).view('error.ejs', { error_code: '404', isAuthenticated }, { layout: layoutOption });
+	return reply.view('partial/pages/' + page + '.ejs', { user, 'isSelf': true, isAuthenticated }, { layout: layoutOption });
 });
 
 app.get('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
