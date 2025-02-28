@@ -8,6 +8,7 @@ function updateActiveMenu(selectedPage: string): void {
 			button.classList.remove('active');
 		}
 	});
+	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
 let abortController: AbortController | null = null;
