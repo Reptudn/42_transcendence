@@ -73,7 +73,10 @@ app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
 
 	connectedClients.set(Number(request.id), reply);
 
-	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()');
+	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
+	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!');
+	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established');
+	sendPopupToClient(Number(request.id));
 
 	request.raw.on('close', () => {
 		connectedClients.delete(Number(request.id));
@@ -94,14 +97,14 @@ const sendRawToClient = (userId: number, data: any) => {
 		console.error(`Client with userId ${userId} not found.`);
 	}
 };
-function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '') {
+function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
 	let reply = connectedClients.get(userId);
 	if (!reply) {
 		logger.error(`Client with userId ${userId} not found.`);
 		return;
 	}
 	try {
-		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback }, (err, str) => {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback, buttonName }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
 				reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
