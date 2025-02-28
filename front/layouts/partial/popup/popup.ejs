@@ -1,5 +1,5 @@
 <% if (type == "notify") { %>
-    <div class="popup notify">
+    <div class="popup notify" onclick="<%= callback %>">
         <div class="bg-<%= color %>-100 border border-<%= color %>-400 text-<%= color %>-700 px-4 py-3 rounded relative" role="alert">
             <strong class="font-bold"><%- title %></strong>
             <span class="block sm:inline"><%- description %></span>

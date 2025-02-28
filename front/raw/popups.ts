@@ -15,12 +15,6 @@ interface NotificationEvent {
     html: string;
 }
 
-document.addEventListener('notify-popup', (event) => {
-    console.log('notify-popup', event);
-    const notif = JSON.parse((event as CustomEvent).detail) as NotificationEvent;
-    popupContainer!.innerHTML += notif.html;
-});
-
 notifyEventSource.onerror = (event) => {
     console.error('notifyEventSource.onerror', event);
     // Attempt to reconnect after a delay
@@ -51,7 +45,6 @@ document.addEventListener("notify-popup", (event) => {
 notifyEventSource.onmessage = (event) => {
     try {
         const data = JSON.parse(event.data);
-        console.log("Received event:", data); // ✅ Check if events arrive in the console
 
         if (data.type === "connected") {
             console.log("Server confirmed connection");
@@ -68,3 +61,7 @@ notifyEventSource.onmessage = (event) => {
 const closeAllBtn = document.getElementById('close-all-popups-btn');
 if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
 else console.error('closeAllBtn not found');
+
+function testCallback() {
+    console.log('callback from notification!');
+}

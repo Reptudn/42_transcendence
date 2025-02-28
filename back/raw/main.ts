@@ -1,5 +1,4 @@
 import fastify, { FastifyReply, FastifyRequest } from 'fastify';
-import fastifyFormbody from '@fastify/formbody';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
@@ -74,17 +73,8 @@ app.get('/number', {}, async (req: any, reply: any) => {
 	reply.send({ number: theNumber });
 });
 
-app.get('/test-view', async (req, reply) => {
-    try {
-        const html = await reply.view('partial/popup/popup.ejs', { type: 'notify', title: 'Test', description: 'This is a test', color: 'blue' });
-        return reply.send(html);
-    } catch (err) {
-        reply.code(500).send(`View rendering error: ${err}`);
-    }
-});
-
 let connectedClients: Map<string, FastifyReply> = new Map();
-app.get('/notify', { preValidation: [app.authenticate] } ,(request: FastifyRequest, reply: FastifyReply) => {
+app.get('/notify',(request: FastifyRequest, reply: FastifyReply) => {
 	// Set SSE headers
 	reply.raw.writeHead(200, {
 		'Content-Type': 'text/event-stream',
@@ -113,7 +103,7 @@ app.get('/notify', { preValidation: [app.authenticate] } ,(request: FastifyReque
 		}
 	};
 	
-	sendEvent('popup', { type: 'notify', title: 'Transcendence', description: 'Connection established', color: 'green' });
+	sendEvent('popup', { type: 'notify', title: 'Transcendence', description: 'Connection established', color: 'green', callback: 'testCallback()' });
 
 	connectedClients.set(request.id, reply);
 
