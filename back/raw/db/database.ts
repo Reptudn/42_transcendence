@@ -92,17 +92,17 @@ export async function updateUserProfile(
 	if (/\s/.test(username)) {
 		throw new Error('Username cannot contain spaces');
 	}
-	if (!username && !displayname && !bio && !profile_picture) {
+	if (username === undefined && displayname === undefined && bio === undefined && profile_picture === undefined) {
 		return;
 	}
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
-	if (username)
+	if (username && username != undefined)
 		await db.run('UPDATE users SET username = ? WHERE id = ?', [username, id]);
-	if (displayname)
+	if (displayname != undefined)
 		await db.run('UPDATE users SET displayname = ? WHERE id = ?', [displayname, id]);
-	if (bio)
+	if (bio != undefined)
 		await db.run('UPDATE users SET bio = ? WHERE id = ?', [bio, id]);
-	if (profile_picture)
+	if (profile_picture != undefined)
 		await db.run('UPDATE users SET profile_picture = ? WHERE id = ?', [profile_picture, id]);
 }
 
