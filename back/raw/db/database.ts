@@ -25,7 +25,27 @@ createDatabase().catch(error => {
 	console.error('An error occurred while managing the database:', error);
 });
 
+export async function printDatabase() {
+	try {
+		const db: Database = await open({
+			filename: dataBaseLocation,
+			driver: sqlite3.Database,
+		});
+		const users = await db.all('SELECT * FROM users');
+		console.log("=== Users Table ===");
+		console.table(users);
+	} catch (error) {
+		console.error("Error printing database:", error);
+	}
+}
+
 export async function registerUser(username: string, password: string, displayname: string) {
+	if (!username || !password) {
+		throw new Error('Username and password are required');
+	}
+	if (password.length < 8) {
+		throw new Error('Passwords must be at least 8 characters long');
+	}
 	if (/\s/.test(username) || /\s/.test(password)) {
 		throw new Error('Username and password cannot contain spaces');
 	}
@@ -72,17 +92,34 @@ export async function updateUserProfile(
 	if (/\s/.test(username)) {
 		throw new Error('Username cannot contain spaces');
 	}
+	if (!username && !displayname && !bio && !profile_picture) {
+		return;
+	}
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
-	await db.run(
-		'UPDATE users SET username = ?, displayname = ?, bio = ?, profile_picture = ? WHERE id = ?',
-		[username, displayname, bio, profile_picture, id]
-	);
+	if (username)
+		await db.run('UPDATE users SET username = ? WHERE id = ?', [username, id]);
+	if (displayname)
+		await db.run('UPDATE users SET displayname = ? WHERE id = ?', [displayname, id]);
+	if (bio)
+		await db.run('UPDATE users SET bio = ? WHERE id = ?', [bio, id]);
+	if (profile_picture)
+		await db.run('UPDATE users SET profile_picture = ? WHERE id = ?', [profile_picture, id]);
 }
 
 export async function updateUserPassword(id: number, oldPassword: string, newPassword: string) {
+	if (!oldPassword && !newPassword) {
+		return;
+	}
+	if (!oldPassword || !newPassword) {
+		throw new Error('Please submit old password and new password to change password');
+	}
+	if (newPassword.length < 8) {
+		throw new Error('Passwords must be at least 8 characters long');
+	}
 	if (/\s/.test(newPassword)) {
 		throw new Error('New password cannot contain spaces');
 	}
+
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	const user = await db.get('SELECT * FROM users WHERE id = ?', id);
 	if (!user) throw new Error('User not found');

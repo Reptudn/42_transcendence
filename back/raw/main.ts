@@ -2,14 +2,12 @@ import fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
-import fastifyMultipart from '@fastify/multipart';
 import ejs from 'ejs';
-import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
-import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword } from './db/database.js';
+import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword, printDatabase } from './db/database.js';
 
 const app = fastify();
 
@@ -33,9 +31,6 @@ app.register(fastifyStatic, {
 	root: path.join(__dirname, '../../front/static'),
 	prefix: '/static/',
 	list: true
-});
-app.register(fastifyMultipart, {
-	limits: { fileSize: 1 * 1024 * 1024 } // e.g. 1 MB limit
 });
 
 app.decorate('authenticate', async function (request: any, reply: any) {
@@ -76,6 +71,7 @@ app.get('/number', {}, async (req: any, reply: any) => {
 
 // post
 app.post("/login", async (req: any, reply: any) => {
+	printDatabase();
 	const { username, password } = req.body;
 	try {
 		const user = await loginUser(username, password);
@@ -85,9 +81,9 @@ app.post("/login", async (req: any, reply: any) => {
 	}
 	catch (error) {
 		if (error instanceof Error) {
-			reply.code(400).send(error.message);
+			reply.code(400).send({ message: error.message });
 		} else {
-			reply.code(400).send('An unknown error occurred');
+			reply.code(400).send({ message: 'An unknown error occurred' });
 		}
 		return;
 	};
@@ -115,76 +111,23 @@ app.post("/number", {}, async (req: any, reply: any) => {
 app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 	const userId = req.user.id;
 	try {
-		// Retrieve current user data to manage the old profile picture.
 		const currentUser = await getUserById(userId);
 		if (!currentUser) {
 			return reply.code(404).send({ message: 'User not found' });
 		}
 
-		const parts = await req.parts();
-		let fields: any = {};
+		const { username, displayName, bio, oldPassword, newPassword } = req.body;
 
-		let newProfilePicturePath = '';
-		for await (const part of parts) {
-			if (part.file) {
-				// Validate file type
-				const allowedMimeTypes = ['image/jpeg', 'image/png'];
-				if (!allowedMimeTypes.includes(part.mimetype)) {
-					return reply.code(400).send({ message: 'Invalid file type. Only JPEG and PNG images are allowed.' });
-				}
-				// Generate a unique filename (using timestamp and random integer)
-				const ext = part.filename.split('.').pop();
-				const filename = `./back/db/uploads/${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`;
+		await updateUserProfile(userId, username, displayName, bio, '');
+		await updateUserPassword(userId, oldPassword, newPassword);
 
-				// Write file and await completion
-				const writeStream = fs.createWriteStream(filename);
-				await new Promise((resolve, reject) => {
-					part.file.pipe(writeStream);
-					part.file.on('end', resolve);
-					part.file.on('error', reject);
-				});
-				newProfilePicturePath = filename;
-			} else {
-				fields[part.fieldname] = part.value;
-			}
+		return reply.code(200).send({ message: 'Profile updated' });
+	} catch (error) {
+		if (error instanceof Error) {
+			return reply.code(500).send({ message: error.message });
+		} else {
+			return reply.code(500).send({ message: 'An unknown error occurred' });
 		}
-
-		if (/\s/.test(fields.username)) {
-			return reply.code(400).send({ message: 'Username cannot contain spaces' });
-		}
-
-		// If a new profile picture was uploaded, delete the old one if it exists and isn’t the default.
-		if (newProfilePicturePath) {
-			if (currentUser.profile_picture && currentUser.profile_picture !== 'static/assets/images/default_profile.png') {
-				fs.unlink(currentUser.profile_picture, (err: any) => {
-					if (err) {
-						// Log the error without interrupting the update flow.
-						console.error(`Failed to delete old profile picture: ${err}`);
-					}
-				});
-			}
-		}
-
-		console.log(fields.username);
-		console.log(fields.displayname);
-		console.log(fields.bio);
-
-		// Update the user profile with either the new picture or retain the old one.
-		await updateUserProfile(
-			userId,
-			fields.username,
-			fields.displayname,
-			fields.bio,
-			newProfilePicturePath || fields.existingProfilePicture || currentUser.profile_picture || ''
-		);
-
-		// Handle password update if provided.
-		if (fields.oldPassword && fields.newPassword) {
-			await updateUserPassword(userId, fields.oldPassword, fields.newPassword);
-		}
-		reply.send({ message: 'Profile updated successfully' });
-	} catch (error: any) {
-		reply.code(400).send({ message: error.message });
 	}
 });
 
