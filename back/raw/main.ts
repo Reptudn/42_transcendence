@@ -8,6 +8,7 @@ import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
 import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword, printDatabase } from './db/database.js';
+import { profile } from 'console';
 
 const app = fastify();
 
@@ -71,7 +72,6 @@ app.get('/number', {}, async (req: any, reply: any) => {
 
 // post
 app.post("/login", async (req: any, reply: any) => {
-	printDatabase();
 	const { username, password } = req.body;
 	try {
 		const user = await loginUser(username, password);
@@ -116,9 +116,15 @@ app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any
 			return reply.code(404).send({ message: 'User not found' });
 		}
 
-		const { username, displayName, bio, oldPassword, newPassword } = req.body;
+		const { username, displayName, bio, oldPassword, newPassword, profile_picture } = req.body;
 
-		await updateUserProfile(userId, username, displayName, bio, '');
+		if (profile_picture) {
+			if (typeof profile_picture != 'string' || !profile_picture.startsWith('data:image/png;base64,')) {
+				return reply.code(400).send({ message: 'Invalid profile picture' });
+			}
+		}
+
+		await updateUserProfile(userId, username, displayName, bio, profile_picture);
 		await updateUserPassword(userId, oldPassword, newPassword);
 
 		return reply.code(200).send({ message: 'Profile updated' });
@@ -185,7 +191,7 @@ app.get('/profile/edit', { preValidation: [app.authenticate] }, async (req: any,
 	if (!user) return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
 	reply.view('partial/pages/edit_profile.ejs', { user });
 });
-app.get('/profile/:id', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+app.get('/profile/:id', async (req: any, reply: any) => {
 	const { id } = req.params;
 	let isSelf;
 	try {
@@ -194,10 +200,27 @@ app.get('/profile/:id', { preValidation: [app.authenticate] }, async (req: any, 
 	} catch (err) {
 		isSelf = false;
 	}
-	const user = await getUserById(parseInt(id));
+	let user = await getUserById(parseInt(id));
 	if (!user)
 		return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	user.profile_picture = "/profile/" + id + "/picture";
 	return reply.view('partial/pages/profile.ejs', { user, isSelf });
+});
+app.get('/profile/:id/picture', async (req: any, reply: any) => {
+	const { id } = req.params;
+	const user = await getUserById(parseInt(id));
+	if (!user) {
+		return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	}
+	if (!user.profile_picture) {
+		return reply.redirect('/static/assets/images/default_profile.png');
+	}
+	let base64Data = user.profile_picture;
+	const dataPrefix = 'data:image/png;base64,';
+	if (base64Data.startsWith(dataPrefix)) {
+		base64Data = base64Data.replace(dataPrefix, '');
+	}
+	reply.header('Content-Type', 'image/png').send(Buffer.from(base64Data, 'base64'));
 });
 app.get('/menu', async (req: any, reply: any) => {
 	const isAuthenticated = await checkAuth(req);

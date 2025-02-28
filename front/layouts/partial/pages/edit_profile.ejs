@@ -4,22 +4,20 @@
 	<div id="editProfileForm">
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Profile Picture:</label>
-			<img src="/<%= user.profile_picture || 'static/assets/images/default_profile.png' %>" alt="Profile Picture"
+			<img src="/profile/<%= user.id %>/picture?v=<%= Date.now() %>" alt="Profile Picture"
 				class="w-24 h-24 rounded-full mb-2">
-			<input type="file" id="profile_picture" name="profile_picture" accept="image/*" class="w-full">
+			<input type="file" id="profilePicture" name="profile_picture" accept="image/png" class="w-full">
 			<button type="button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
 				onclick="document.getElementById('profile_picture').value = ''">Remove</button>
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Username:</label>
-			<input type="text" id="username" value="<%= user.username %>" required pattern="^\S+$"
-				class="w-full px-3 py-2 border rounded">
+			<input type="text" id="username" value="" required pattern="^\S+$" class="w-full px-3 py-2 border rounded">
 			<small class="text-gray-500">No spaces allowed.</small>
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Display Name:</label>
-			<input type="text" id="displayName" value="<%= user.displayname %>" required
-				class="w-full px-3 py-2 border rounded">
+			<input type="text" id="displayName" value="" required class="w-full px-3 py-2 border rounded">
 		</div>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Bio:</label>
