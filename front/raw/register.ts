@@ -33,3 +33,4 @@ if (registerButton) {
 	console.log('registerButton found');
 	registerButton.addEventListener('click', registerAction, { signal: abortController!.signal });
 } else console.error('registerButton not found');
+

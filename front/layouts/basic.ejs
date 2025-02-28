@@ -2,10 +2,12 @@
 <html lang="en">
 
 <head>
-	<title>Home</title>
+	<title>Transcendence: Home</title>
 	<link rel="stylesheet" href="/static/css/styles.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
 	<link rel="icon" href="/static/assets/favicons/favicon.ico" type="image/x-icon">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Transcendence is a web application for the game of the same name.">
 </head>
 
 <body class="bg-gray-100 text-gray-900">
@@ -27,6 +29,10 @@
 		<div id="content" class="bg-white p-6 rounded shadow-md">
 			<%- body %>
 		</div>
+		<div id="popup-container">
+			<div class="popups"></div>
+			<button id="close-all-popups-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Close all</button>
+		</div>
 	</main>
 
 	<footer class="bg-gray-800 text-white p-4 mt-4">
@@ -46,6 +52,7 @@
 	</footer>
 
 	<script src="/static/js/script.js" defer></script>
+	<script src="/static/js/popups.js" defer></script>
 </body>
 
 </html>

@@ -8,11 +8,10 @@ function updateActiveMenu(selectedPage: string): void {
 			button.classList.remove('active');
 		}
 	});
+	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
-let scriptContainer: HTMLDivElement | null = null;
-let abortController: AbortController | null = null
-let abortSignal: AbortSignal | null = null;
+let abortController: AbortController | null = null;
 async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { 'loadpartial': 'true' };
@@ -36,31 +35,27 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 			const scripts = contentElement.querySelectorAll('script');
 			if (scripts && scripts.length > 0)
 			{
-	
-				if (scriptContainer)
-				{
-					if (abortController) abortController.abort();
-					scriptContainer.remove();
-					scriptContainer = null;
-					abortSignal = null;
-					abortController = null;
-				}
-	
+				if (abortController) abortController.abort();
 				abortController = new AbortController();
-				abortSignal = abortController!.signal;
-	
-				scriptContainer = document.createElement('div');
-				document.body.appendChild(scriptContainer);
 	
 				scripts.forEach(oldScript => {
 					const newScript = document.createElement('script');
 					newScript.type = oldScript.type || 'text/javascript';
-					if (oldScript.src) {
+					if (oldScript.src)
 						newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
-					} else {
-						newScript.textContent = oldScript.textContent;
-					}
-					scriptContainer!.appendChild(newScript);
+					else
+						newScript.text = oldScript.text;
+
+					contentElement.appendChild(newScript);
+					
+					oldScript.remove();
+
+					newScript.addEventListener('load', () => {
+						console.log('Script loaded:', newScript.src);
+					}, { signal: abortController!.signal });
+					newScript.addEventListener('error', (event) => {
+						console.error('Script error:', newScript.src, event);
+					}, { signal: abortController!.signal });
 				});
 			}
 	

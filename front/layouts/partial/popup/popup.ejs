@@ -1,0 +1,33 @@
+<% if (type == "notify") { %>
+    <div class="popup notify" onclick="<%= callback %>">
+        <div class="bg-<%= color %>-100 border border-<%= color %>-400 text-<%= color %>-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold"><%- title %></strong>
+            <span class="block sm:inline"><%- description %></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.parentElement.remove()">
+                <svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20">
+                    <title>Close</title>
+                    <path
+                        d="M14.348 5.652a.5.5 0 0 1 .708.708L11.707 10l3.35 3.35a.5.5 0 0 1-.708.708
+                        L11 10.707l-3.35 3.35a.5.5 0 0 1-.708-.708L10.293 10 6.943 6.65a.5.5 0 0 1 .708-.708
+                        L11 9.293l3.35-3.35z" />
+                </svg>
+            </span>
+        </div>
+    </div>
+<% } else { %>
+    <div>
+        <strong class="font-bold"><%- title %> (Unknown notification type.)</strong>
+        <span class="block sm:inline"><%- description %></span>
+        <span class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+            <svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20">
+                <title>Close</title>
+                <path
+                    d="M14.348 5.652a.5.5 0 0 1 .708.708L11.707 10l3.35 3.35a.5.5 0 0 1-.708.708
+                    L11 10.707l-3.35 3.35a.5.5 0 0 1-.708-.708L10.293 10 6.943 6.65a.5.5 0 0 1 .708-.708
+                    L11 9.293l3.35-3.35z" />
+            </svg>
+        </span>
+    </div>
+<% } %>

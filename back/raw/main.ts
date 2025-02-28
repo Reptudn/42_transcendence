@@ -1,4 +1,4 @@
-import fastify from 'fastify';
+import fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
@@ -9,6 +9,8 @@ import crypto from 'crypto';
 import logger from './logger.js';
 import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword, printDatabase } from './db/database.js';
 import { profile } from 'console';
+import { title } from 'process';
+import { addColors } from 'winston/lib/winston/config/index.js';
 
 const app = fastify();
 
@@ -26,7 +28,8 @@ app.register(fastifyView, {
 		context: {
 			get: (obj: any, prop: any) => obj && obj[prop]
 		}
-	}
+	},
+	viewExt: 'ejs'
 });
 app.register(fastifyStatic, {
 	root: path.join(__dirname, '../../front/static'),
@@ -69,6 +72,60 @@ async function startServer() {
 app.get('/number', {}, async (req: any, reply: any) => {
 	reply.send({ number: theNumber });
 });
+
+let connectedClients: Map<string, FastifyReply> = new Map();
+app.get('/notify',(request: FastifyRequest, reply: FastifyReply) => {
+	// Set SSE headers
+	reply.raw.writeHead(200, {
+		'Content-Type': 'text/event-stream',
+		'Cache-Control': 'no-cache',
+		'Connection': 'keep-alive',
+		'Transfer-Encoding': 'identity'
+	});
+
+	// Send an initial "connected" message
+	reply.raw.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+
+	// Function to send events
+	const sendEvent = async (page: string, data: any) => {
+		try {
+			ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup/${page}.ejs`), data, (err, str) => {
+				if (err) {
+					logger.error("Error rendering view:", err);
+					reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+				} else {
+					reply.raw.write(`data: ${JSON.stringify({ html: str })}\n\n`);
+				}
+			});
+		} catch (err) {
+			logger.error("Error rendering view:", err);
+			reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+		}
+	};
+	
+	sendEvent('popup', { type: 'notify', title: 'Transcendence', description: 'Connection established', color: 'green', callback: 'testCallback()' });
+
+	connectedClients.set(request.id, reply);
+
+	request.raw.on('close', () => {
+		connectedClients.delete(request.id);
+		reply.raw.end();
+	});
+
+	// Log SSE errors
+	reply.raw.on('error', (err) => {
+		app.log.error('SSE error:', err);
+	});
+});
+
+const sendToClient = (userId: string, data: any) => {
+    const client = connectedClients.get(userId);
+    if (client) {
+        client.raw.write(`data: ${JSON.stringify(data)}\n\n`);
+    } else {
+        console.error(`Client with userId ${userId} not found.`);
+    }
+};
 
 // post
 app.post("/login", async (req: any, reply: any) => {
