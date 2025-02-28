@@ -1,10 +1,32 @@
 const popupContainer: HTMLElement | null = document.getElementById('popup-container');
-if (!popupContainer) document.body.insertAdjacentHTML('beforeend', '<div id="popup-container"></div>');
+if (!popupContainer) console.error('popup-container not found');
+
+function updateCloseAllVisibility(): void {
+	const closeAllBtn = document.getElementById('close-all-popups-btn');
+	if (!closeAllBtn) return;
+	const popups = document.querySelectorAll('.popup');
+	closeAllBtn.style.display = popups.length > 0 ? 'block' : 'none';
+}
+
+function dismissPopup(closeElement: HTMLElement): void {
+	const popup = closeElement.closest('.popup');
+	if (popup) {
+		popup.classList.add('animate-fadeOut');
+		popup.addEventListener('animationend', () => {
+			popup.remove();
+			updateCloseAllVisibility();
+		}, { once: true });
+	}
+}
 
 function closeAllPopups(): void {
 	const popups = document.querySelectorAll('.popup');
 	popups.forEach((popup) => {
-		popup.remove();
+		popup.classList.add('animate-fadeOut');
+		popup.addEventListener('animationend', () => {
+			popup.remove();
+			updateCloseAllVisibility();
+		}, { once: true });
 	});
 }
 const closeAllBtn = document.getElementById('close-all-popups-btn');
@@ -28,8 +50,8 @@ notifyEventSource.onmessage = (event) => {
 			console.log("Connection with Server established");
 		} else {
 			if (popupContainer) {
-				const notif = JSON.parse(event.data);
-				popupContainer.insertAdjacentHTML('beforeend', notif.html);
+				popupContainer.insertAdjacentHTML('beforeend', data.html);
+				updateCloseAllVisibility();
 			} else {
 				console.error("❌ popup-container not found in DOM!");
 				return;

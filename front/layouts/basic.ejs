@@ -4,6 +4,7 @@
 <head>
 	<title>Transcendence: Home</title>
 	<link rel="stylesheet" href="/static/css/styles.css">
+	<link rel="stylesheet" href="/static/css/popups.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
 	<link rel="icon" href="/static/assets/favicons/favicon.ico" type="image/x-icon">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,9 +30,12 @@
 		<div id="content" class="bg-white p-6 rounded shadow-md">
 			<%- body %>
 		</div>
-		<div id="popup-container">
-			<div class="popups"></div>
-			<button id="close-all-popups-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Close all</button>
+		<div id="popup-wrapper" class="fixed bottom-5 left-5 z-50 flex flex-col gap-3 pointer-events-none">
+			<div id="popup-container" class="flex flex-col-reverse gap-3"></div>
+			<button id="close-all-popups-btn"
+				class="mt-2 self-start pointer-events-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+				Close all
+			</button>
 		</div>
 	</main>
 

@@ -74,9 +74,6 @@ app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
 	connectedClients.set(Number(request.id), reply);
 
 	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
-	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!');
-	sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established');
-	sendPopupToClient(Number(request.id));
 
 	request.raw.on('close', () => {
 		connectedClients.delete(Number(request.id));
@@ -117,6 +114,11 @@ function sendPopupToClient(userId: number, title: string = 'Info', description: 
 		reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
 	}
 }
+setInterval(() => {
+	connectedClients.forEach((reply, userId) => {
+		sendPopupToClient(userId, 'PING', '-> it\'s pongin\' time!', 'pink');
+	});
+}, 100000);
 
 /* --------------------------------- */
 /* --------------API---------------- */
