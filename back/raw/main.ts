@@ -8,8 +8,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
-import 'dotenv/config';
-import { registerUser, loginUser } from './db/database.js';
+import { registerUser, loginUser, getUserById, updateUserProfile, updateUserPassword, printDatabase } from './db/database.js';
+import { profile } from 'console';
 import { title } from 'process';
 import { addColors } from 'winston/lib/winston/config/index.js';
 
@@ -19,7 +19,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let theNumber: number = 0;
 
-app.register(fastifyFormbody);
 app.register(fastifyJwt, { secret: crypto.randomBytes(64).toString('hex') });
 app.register(fastifyView, {
 	engine: {
@@ -71,10 +70,6 @@ async function startServer() {
 // no thats fine i think
 
 // get
-app.get('/users/:name', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-	const { name } = req.params;
-	reply.send(`Profile for user: ${name}`);
-});
 app.get('/number', {}, async (req: any, reply: any) => {
 	reply.send({ number: theNumber });
 });
@@ -153,9 +148,9 @@ app.post("/login", async (req: any, reply: any) => {
 	}
 	catch (error) {
 		if (error instanceof Error) {
-			reply.code(400).send(error.message);
+			reply.code(400).send({ message: error.message });
 		} else {
-			reply.code(400).send('An unknown error occurred');
+			reply.code(400).send({ message: 'An unknown error occurred' });
 		}
 		return;
 	};
@@ -179,6 +174,34 @@ app.post("/number", {}, async (req: any, reply: any) => {
 	const { number } = req.body;
 	theNumber += number;
 	reply.send({ number: theNumber });
+});
+app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const userId = req.user.id;
+	try {
+		const currentUser = await getUserById(userId);
+		if (!currentUser) {
+			return reply.code(404).send({ message: 'User not found' });
+		}
+
+		const { username, displayName, bio, oldPassword, newPassword, profile_picture } = req.body;
+
+		if (profile_picture) {
+			if (typeof profile_picture != 'string' || !profile_picture.startsWith('data:image/png;base64,')) {
+				return reply.code(400).send({ message: 'Invalid profile picture' });
+			}
+		}
+
+		await updateUserProfile(userId, username, displayName, bio, profile_picture);
+		await updateUserPassword(userId, oldPassword, newPassword);
+
+		return reply.code(200).send({ message: 'Profile updated' });
+	} catch (error) {
+		if (error instanceof Error) {
+			return reply.code(500).send({ message: error.message });
+		} else {
+			return reply.code(500).send({ message: 'An unknown error occurred' });
+		}
+	}
 });
 
 // error
@@ -206,15 +229,65 @@ app.get('/partial/pages/:page', async (req: any, reply: any) => {
 	const loadpartial = req.headers['loadpartial'] === 'true';
 	const layoutOption = loadpartial ? false : 'basic.ejs';
 	const isAuthenticated = await checkAuth(req);
+	let isSelf: boolean = false;
 
-	if (page === 'game') {
+	if (['game', 'profile', 'edit_profile'].includes(page)) {
 		try {
 			await req.jwtVerify();
+			isSelf = true;
 		} catch (error) {
-			return reply.code(401).view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+			return reply
+				.code(401)
+				.view('partial/pages/no_access.ejs', { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
 		}
 	}
-	return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+	if (page != 'profile' && page != 'edit_profile')
+		return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
+	else {
+		const userId = Number(req.user.id);
+		const user = await getUserById(userId);
+		if (!user)
+			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+		return reply.view('partial/pages/' + page + '.ejs', { user, isSelf }, { layout: layoutOption });
+	}
+});
+
+app.get('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	const userId = req.user.id;
+	const user = await getUserById(userId);
+	if (!user) return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	reply.view('partial/pages/edit_profile.ejs', { user });
+});
+app.get('/profile/:id', async (req: any, reply: any) => {
+	const { id } = req.params;
+	let isSelf;
+	try {
+		await req.jwtVerify();
+		isSelf = req.user && req.user.id === parseInt(id);
+	} catch (err) {
+		isSelf = false;
+	}
+	let user = await getUserById(parseInt(id));
+	if (!user)
+		return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	user.profile_picture = "/profile/" + id + "/picture";
+	return reply.view('partial/pages/profile.ejs', { user, isSelf });
+});
+app.get('/profile/:id/picture', async (req: any, reply: any) => {
+	const { id } = req.params;
+	const user = await getUserById(parseInt(id));
+	if (!user) {
+		return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+	}
+	if (!user.profile_picture) {
+		return reply.redirect('/static/assets/images/default_profile.png');
+	}
+	let base64Data = user.profile_picture;
+	const dataPrefix = 'data:image/png;base64,';
+	if (base64Data.startsWith(dataPrefix)) {
+		base64Data = base64Data.replace(dataPrefix, '');
+	}
+	reply.header('Content-Type', 'image/png').send(Buffer.from(base64Data, 'base64'));
 });
 app.get('/menu', async (req: any, reply: any) => {
 	const isAuthenticated = await checkAuth(req);
