@@ -5,21 +5,25 @@ import { connectedClients, sendPopupToClient } from '../sse.js';
 
 export async function friendRoutes(app: FastifyInstance) {
 
+	// TODO: Exclude self
+	// TODO: Limit result count
+	// TODO: if other user is already a friend, show that
 	app.get('/friends/search', async (req: any, reply: any) => {
 		const query: string = req.query.q || '';
 		const results = query ? await searchUsers(query) : [];
 
-		// TODO: Exclude self
-		// TODO: Limit result count
-
 		return reply.send({ results });
 	});
 
+	// TODO: if other user is already a friend, just accept, dont send request
+	// TODO: add friend request declining
 	app.post('/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const requesterId: number = req.user.id;
-		const { requestedId } = req.body;
+		const requestedId = req.body.requestId;
 		try {
 			const requestId = await sendFriendRequest(requesterId, requestedId);
+			console.log('connectedClients: ', connectedClients);
+			console.log('requestedId: ', requestedId);
 			if (connectedClients && connectedClients.has(requestedId)) {
 				sendPopupToClient(
 					requestedId,
@@ -29,6 +33,8 @@ export async function friendRoutes(app: FastifyInstance) {
 					`acceptFriendRequest(${requestId})`,
 					'Accept'
 				);
+			} else {
+				reply.send({ message: 'Couldn\'t send friend request, user not connected' });
 			}
 			reply.send({ message: 'Friend request sent' });
 		} catch (err: any) {

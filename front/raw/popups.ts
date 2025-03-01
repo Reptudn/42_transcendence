@@ -37,13 +37,14 @@ else console.error('closeAllBtn not found');
 
 // ----- EventSource -----
 
-let notifyEventSource = new EventSource('/notify');
+const token = localStorage.getItem('token');
+let notifyEventSource = new EventSource(`/notify?token=${token}`);
 
 notifyEventSource.onerror = (event) => {
 	console.error('notifyEventSource.onerror', event);
 	setTimeout(() => {
 		notifyEventSource.close();
-		notifyEventSource = new EventSource('/notify');
+		notifyEventSource = new EventSource(`/notify?token=${token}`);
 	}, 5000);
 };
 notifyEventSource.onopen = () => {

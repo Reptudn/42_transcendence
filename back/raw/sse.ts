@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
 import logger from './logger.js';
-import { __dirname, app } from './main.js';
+import { __dirname } from './main.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
