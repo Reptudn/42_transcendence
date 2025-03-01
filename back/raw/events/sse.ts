@@ -15,7 +15,7 @@ export async function eventRoutes(app: FastifyInstance) {
 			'Transfer-Encoding': 'identity'
 		});
 
-		reply.raw.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
 		connectedClients.set(Number(request.id), reply);
 
@@ -51,14 +51,14 @@ function sendPopupToClient(userId: number, title: string = 'Info', description: 
 		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback, buttonName }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
-				reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);
 			} else {
-				reply.raw.write(`data: ${JSON.stringify({ html: str })}\n\n`);
+				reply.raw.write(`data: ${JSON.stringify({ type: 'popup', html: str })}\n\n`);
 			}
 		});
 	} catch (err) {
 		logger.error("Error rendering view:", err);
-		reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
+		reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);
 	}
 }
 setInterval(() => {

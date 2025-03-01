@@ -1,3 +1,5 @@
+// ----- Closing Buttons -----
+
 const popupContainer: HTMLElement | null = document.getElementById('popup-container');
 if (!popupContainer) console.error('popup-container not found');
 
@@ -33,6 +35,8 @@ const closeAllBtn = document.getElementById('close-all-popups-btn');
 if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
 else console.error('closeAllBtn not found');
 
+// ----- EventSource -----
+
 let notifyEventSource = new EventSource('/notify');
 
 notifyEventSource.onerror = (event) => {
@@ -42,35 +46,20 @@ notifyEventSource.onerror = (event) => {
 		notifyEventSource = new EventSource('/notify');
 	}, 5000);
 };
-
 notifyEventSource.onopen = () => {
-    console.log('EventSource connection established');
+	console.log('EventSource connection established');
 };
-
-interface NotificationEvent {
-	html: string;
-}
-
-document.addEventListener("notify-popup", (event) => {
-    console.log("notify-popup event received", event);
-
-    const popupContainer = document.getElementById("popup-container");
-    if (!popupContainer) {
-        console.error("❌ popup-container not found in DOM!");
-        return;
-    }
-
-    const notif = JSON.parse((event as CustomEvent).detail) as NotificationEvent;
-    popupContainer.innerHTML += notif.html;
-});
-
 notifyEventSource.onmessage = (event) => {
 	try {
 		const data = JSON.parse(event.data);
 
-		if (data.type === "connected") {
-			console.log("Connection with Server established");
-		} else {
+		if (data.type === "log") {
+			console.log(data.message);
+		} else if (data.type === "warning") {
+			console.warn(data.message);
+		} else if (data.type === "error") {
+			console.error(data.message);
+		} else if (data.type === "popup") {
 			if (popupContainer) {
 				popupContainer.insertAdjacentHTML('beforeend', data.html);
 				updateCloseAllVisibility();
@@ -78,6 +67,11 @@ notifyEventSource.onmessage = (event) => {
 				console.error("❌ popup-container not found in DOM!");
 				return;
 			}
+		} else if (data.type === "game_request") {
+			console.log("👫 Game request received:", data);
+		} else {
+			console.error("❌ Unknown event type:", data.type);
+			console.log(data);
 		}
 	} catch (err) {
 		console.error("Error parsing event data:", err);
