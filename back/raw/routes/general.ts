@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById } from "../db/database.js";
+import { getUserById } from "../db/db_users.js";
 import { checkAuth } from "./auth.js";
 
 export async function generalRoutes(app: FastifyInstance) {

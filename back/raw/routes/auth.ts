@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { loginUser, registerUser } from "../db/database.js";
+import { loginUser, registerUser } from "../db/db_users.js";
 
 export async function authRoutes(app: FastifyInstance) {
 	app.post("/login", async (req: any, reply: any) => {

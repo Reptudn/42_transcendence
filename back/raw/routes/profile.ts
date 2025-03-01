@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById, updateUserProfile, updateUserPassword } from "../db/database.js";
+import { getUserById, updateUserProfile, updateUserPassword } from "../db/db_users.js";
 
 export async function profileRoutes(app: FastifyInstance) {
 	app.get('/profile/:id', async (req: any, reply: any) => {

@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { loginUser, registerUser } from "../db/database.js";
 
 let theNumber: number = 0;
 
