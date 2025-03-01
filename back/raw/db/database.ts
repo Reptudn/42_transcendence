@@ -65,11 +65,11 @@ export async function loginUser(username: string, password: string) {
 
 	const user = await db.get('SELECT * FROM users WHERE username = ?', username);
 	if (!user)
-		throw new Error('User not found');
+		throw new Error('Incorrect username or password');
 
 	const passwordMatch = await bcrypt.compare(password, user.password);
 	if (!passwordMatch)
-		throw new Error('Password incorrect');
+		throw new Error('Incorrect username or password');
 
 	return user;
 }

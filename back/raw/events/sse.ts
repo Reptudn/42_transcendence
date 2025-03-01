@@ -26,7 +26,7 @@ export async function eventRoutes(app: FastifyInstance)
         // Function to send events
         const sendEvent = async (page: string, data: any) => {
             try {
-                ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup/${page}.ejs`), data, (err, str) => {
+                ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/${page}.ejs`), data, (err, str) => {
                     if (err) {
                         logger.error("Error rendering view:", err);
                         reply.raw.write(`data: ${JSON.stringify({ err })}\n\n`);
