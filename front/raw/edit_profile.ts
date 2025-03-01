@@ -53,10 +53,6 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 	if (bioField.value !== initialValues.bio) {
 		formData['bio'] = bioField.value;
 	}
-	if (oldPasswordField.value && newPasswordField.value) {
-		formData['oldPassword'] = oldPasswordField.value;
-		formData['newPassword'] = newPasswordField.value;
-	}
 
 	try {
 		console.log("reset clicked: ", profilePictureResetClicked);
@@ -73,8 +69,6 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 		return;
 	}
 
-	let noteWorthyChange = oldPasswordField.value || newPasswordField.value || (usernameField.value !== initialValues.username);
-
 	const token = localStorage.getItem('token');
 
 	try {
@@ -90,9 +84,10 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 		const data = await response.json();
 		if (response.ok) {
 			alert('Profile updated successfully! 🎉');
-			if (noteWorthyChange) {
+			if (usernameField.value !== initialValues.username) {
 				localStorage.removeItem('token');
 				loadPartialView('login');
+				updateMenu();
 			}
 			else {
 				loadPartialView('profile');
@@ -103,5 +98,86 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 	} catch (error) {
 		console.error('Upload error:', error);
 		alert('An error occurred while updating your profile. Please try again.');
+	}
+});
+
+document.getElementById('changepasswordsubmit')?.addEventListener('click', async (event) => {
+	event.preventDefault();
+
+	const formData: { [key: string]: string } = {};
+
+	const oldPasswordField = document.getElementById('oldPassword') as HTMLInputElement;
+	const newPasswordField = document.getElementById('newPassword') as HTMLInputElement;
+
+	if (oldPasswordField.value && newPasswordField.value) {
+		formData['oldPassword'] = oldPasswordField.value;
+		formData['newPassword'] = newPasswordField.value;
+	} else {
+		alert('Please fill in both fields to change password.');
+		return;
+	}
+
+	const token = localStorage.getItem('token');
+
+	try {
+		const response = await fetch('/profile/edit', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...(token ? { 'Authorization': `Bearer ${token}` } : {})
+			},
+			body: JSON.stringify(formData)
+		});
+
+		const data = await response.json();
+		if (response.ok) {
+			alert('Password updated successfully! 🎉');
+			localStorage.removeItem('token');
+			loadPartialView('login');
+			updateMenu();
+		} else {
+			alert(`Error: ${data.message}`);
+		}
+	} catch (error) {
+		console.error('Upload error:', error);
+		alert('An error occurred while updating your password. Please try again.');
+	}
+});
+
+document.getElementById('deleteprofilesubmit')?.addEventListener('click', async (event) => {
+	event.preventDefault();
+
+	const formData: { [key: string]: string } = {};
+
+	const passwordField = document.getElementById('deletePassword') as HTMLInputElement;
+
+	if (passwordField.value) {
+		formData['password'] = passwordField.value;
+	}
+
+	const token = localStorage.getItem('token');
+
+	try {
+		const response = await fetch('/profile/delete', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...(token ? { 'Authorization': `Bearer ${token}` } : {})
+			},
+			body: JSON.stringify(formData)
+		});
+
+		const data = await response.json();
+		if (response.ok) {
+			alert('Profile deleted successfully! 🎉');
+			localStorage.removeItem('token');
+			loadPartialView('register');
+			updateMenu();
+		} else {
+			alert(`Error: ${data.message}`);
+		}
+	} catch (error) {
+		console.error('Upload error:', error);
+		alert('An error occurred while deleting your profile. Please try again.');
 	}
 });

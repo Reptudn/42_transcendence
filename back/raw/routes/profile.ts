@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById, updateUserProfile, updateUserPassword } from "../db/db_users.js";
+import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../db/db_users.js";
 
 export async function profileRoutes(app: FastifyInstance) {
 	app.get('/profile/:id', async (req: any, reply: any) => {
@@ -60,6 +60,30 @@ export async function profileRoutes(app: FastifyInstance) {
 			await updateUserPassword(userId, oldPassword, newPassword);
 
 			return reply.code(200).send({ message: 'Profile updated' });
+		} catch (error) {
+			if (error instanceof Error) {
+				return reply.code(500).send({ message: error.message });
+			} else {
+				return reply.code(500).send({ message: 'An unknown error occurred' });
+			}
+		}
+	});
+	app.post('/profile/delete', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+		const userId = req.user.id;
+		try {
+			const currentUser = await getUserById(userId);
+			if (!currentUser) {
+				return reply.code(404).send({ message: 'User not found' });
+			}
+			const password = req.body.password;
+			if (!password) {
+				return reply.code(400).send({ message: 'Password is required' });
+			}
+			if (!await verifyUserPassword(userId, password)) {
+				return reply.code(401).send({ message: 'Incorrect password' });
+			}
+			await deleteUser(userId);
+			return reply.code(200).send({ message: 'Profile deleted' });
 		} catch (error) {
 			if (error instanceof Error) {
 				return reply.code(500).send({ message: error.message });

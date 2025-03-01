@@ -45,8 +45,7 @@ export async function loginUser(username: string, password: string) {
 	if (!user)
 		throw new Error('Incorrect username or password');
 
-	const passwordMatch = await bcrypt.compare(password, user.password);
-	if (!passwordMatch)
+	if (!await verifyUserPassword(user.id, password))
 		throw new Error('Incorrect username or password');
 
 	return user;
@@ -58,6 +57,17 @@ export async function getUserById(id: number) {
 		'SELECT id, username, displayname, bio, profile_picture FROM users WHERE id = ?',
 		id
 	);
+}
+
+export async function verifyUserPassword(id: number, password: string): Promise<boolean> {
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const user = await db.get('SELECT * FROM users WHERE id = ?', id);
+	if (!user) return false;
+
+	const passwordMatch = await bcrypt.compare(password, user.password);
+	if (!passwordMatch) return false;
+
+	return passwordMatch;
 }
 
 export async function updateUserProfile(
@@ -102,9 +112,14 @@ export async function updateUserPassword(id: number, oldPassword: string, newPas
 	const user = await db.get('SELECT * FROM users WHERE id = ?', id);
 	if (!user) throw new Error('User not found');
 
-	const passwordMatch = await bcrypt.compare(oldPassword, user.password);
-	if (!passwordMatch) throw new Error('Old password is incorrect');
+	if (!await verifyUserPassword(user.id, oldPassword))
+		throw new Error('Old password is incorrect');
 
 	const hashedNew = await bcrypt.hash(newPassword, 10);
 	await db.run('UPDATE users SET password = ? WHERE id = ?', [hashedNew, id]);
+}
+
+export async function deleteUser(id: number) {
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	await db.run('DELETE FROM users WHERE id = ?', id);
 }
