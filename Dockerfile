@@ -4,9 +4,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# COPY package*.json ./
 COPY . .
+RUN npm install
 RUN npm run build
 
 # production
@@ -19,6 +19,7 @@ COPY package*.json ./
 RUN npm install --only=production
 
 COPY --from=builder /app/back/build		/app/back/build
+
 # COPY --from=builder /app/back/db		/app/back/db
 RUN mkdir /app/back/db
 RUN mkdir /app/back/db/uploads

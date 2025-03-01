@@ -56,8 +56,6 @@ notifyEventSource.onmessage = (event) => {
     }
 };
 
-
-
 const closeAllBtn = document.getElementById('close-all-popups-btn');
 if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
 else console.error('closeAllBtn not found');
