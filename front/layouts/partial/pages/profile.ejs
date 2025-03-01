@@ -7,7 +7,8 @@
 			</a>
 		</div>
 		<% } %>
-			<div class="flex items-center space-x-4">
+
+			<div class="flex items-center space-x-4 mt-4">
 				<img src="/profile/<%= user.id %>/picture?v=<%= Date.now() %>" alt="Profile Picture"
 					class="w-24 h-24 rounded-full object-cover ring-2 ring-blue-500">
 				<div>
@@ -18,6 +19,7 @@
 					</h3>
 				</div>
 			</div>
+
 			<% if (user.bio) { %>
 				<div class="mt-4">
 					<h4 class="font-bold">Bio:</h4>
@@ -26,6 +28,40 @@
 					</p>
 				</div>
 				<% } %>
+
+					<div class="mt-6">
+						<h3 class="text-xl font-bold mb-4">Friends</h3>
+						<div class="flex flex-wrap gap-4">
+							<% friends.forEach(friend=> { %>
+								<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+									<img src="/profile/<%= friend.id %>/picture" alt="Friend Picture <%= friend.id %>"
+										class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">
+									<div class="text-center mt-2">
+										<div class="text-lg font-bold">
+											<%= friend.displayname %>
+										</div>
+										<div class="text-sm text-gray-600">@<%= friend.username %>
+										</div>
+									</div>
+									<form method="POST" action="/friends/remove" class="mt-2">
+										<input type="hidden" name="friendId" value="<%= friend.id %>">
+										<button type="submit"
+											class="bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded">
+											Remove
+										</button>
+									</form>
+								</div>
+								<% }) %>
+									<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+										<a onclick="loadPartialView('add_friends')"
+											class="flex items-center justify-center w-16 h-16 border-2 border-dashed border-blue-500 rounded-full hover:bg-blue-100">
+											<span class="text-3xl font-bold text-blue-500">+</span>
+										</a>
+										<div class="text-sm text-gray-600 mt-2">Add More Friends</div>
+									</div>
+						</div>
+					</div>
+
 					<div class="mt-6 border-t pt-4">
 						<h4 class="font-bold">Match History</h4>
 						<p class="text-gray-500">Coming soon...</p>

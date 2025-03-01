@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../db/db_users.js";
+import { getFriends } from "../db/db_friends.js";
 
 export async function profileRoutes(app: FastifyInstance) {
 	app.get('/profile/:id', async (req: any, reply: any) => {
@@ -11,11 +12,14 @@ export async function profileRoutes(app: FastifyInstance) {
 		} catch (err) {
 			isSelf = false;
 		}
+
 		let user = await getUserById(parseInt(id));
 		if (!user)
 			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
 		user.profile_picture = "/profile/" + id + "/picture";
-		return reply.view('partial/pages/profile.ejs', { user, isSelf });
+
+		let friends = await getFriends(parseInt(id));
+		return reply.view('partial/pages/profile.ejs', { user, isSelf, friends });
 	});
 	app.get('/profile/:id/picture', async (req: any, reply: any) => {
 		const { id } = req.params;

@@ -7,11 +7,12 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
-import { eventRoutes } from './events/sse.js';
+import { eventRoutes } from './sse.js';
 import { authRoutes } from './routes/auth.js';
 import { generalRoutes } from './routes/general.js';
 import { profileRoutes } from './routes/profile.js';
 import { numberRoutes } from './routes/number.js';
+import { friendRoutes } from './routes/friends.js';
 
 const app = fastify();
 
@@ -63,6 +64,7 @@ app.register(authRoutes);
 app.register(generalRoutes);
 app.register(profileRoutes);
 app.register(numberRoutes);
+app.register(friendRoutes);
 
 // error
 app.setNotFoundHandler((request, reply) => {

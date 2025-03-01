@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
-import logger from '../logger.js';
-import { __dirname } from '../main.js';
+import logger from './logger.js';
+import { __dirname, app } from './main.js';
 
-let connectedClients: Map<number, FastifyReply> = new Map();
+export let connectedClients: Map<number, FastifyReply> = new Map();
 
 export async function eventRoutes(app: FastifyInstance) {
 	app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
@@ -33,7 +33,7 @@ export async function eventRoutes(app: FastifyInstance) {
 	});
 }
 
-const sendRawToClient = (userId: number, data: any) => {
+export const sendRawToClient = (userId: number, data: any) => {
 	const client = connectedClients.get(userId);
 	if (client) {
 		client.raw.write(data);
@@ -41,7 +41,7 @@ const sendRawToClient = (userId: number, data: any) => {
 		console.error(`Client with userId ${userId} not found.`);
 	}
 };
-function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
+export function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
 	let reply = connectedClients.get(userId);
 	if (!reply) {
 		logger.error(`Client with userId ${userId} not found.`);

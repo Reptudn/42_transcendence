@@ -34,7 +34,6 @@ export async function registerUser(username: string, password: string, displayna
 		[username, hashedPassword, displayname]
 	);
 }
-
 export async function loginUser(username: string, password: string) {
 	const db: Database = await open({
 		filename: dataBaseLocation,
@@ -56,6 +55,13 @@ export async function getUserById(id: number) {
 	return await db.get(
 		'SELECT id, username, displayname, bio, profile_picture FROM users WHERE id = ?',
 		id
+	);
+}
+export async function searchUsers(query: string) {
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	return await db.all(
+		'SELECT id, username, displayname FROM users WHERE username LIKE ? OR displayname LIKE ?',
+		[`%${query}%`, `%${query}%`]
 	);
 }
 

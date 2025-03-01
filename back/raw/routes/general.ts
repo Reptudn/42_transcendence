@@ -21,6 +21,9 @@ export async function generalRoutes(app: FastifyInstance) {
 		const layoutOption = loadpartial ? false : 'basic.ejs';
 		const isAuthenticated = await checkAuth(req);
 
+		if (page === 'profile')
+			return reply.redirect('/profile/' + req.user.id);
+
 		// generic pages without user-specific content
 		if (page != 'profile' && page != 'edit_profile') {
 			return reply.view(`partial/pages/${page}.ejs`, { name: 'Freddy', isAuthenticated }, { layout: layoutOption });
