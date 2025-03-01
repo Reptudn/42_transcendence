@@ -18,26 +18,24 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 	if (token)
 		headers['Authorization'] = `Bearer ${token}`;
 
-	try
-	{
+	try {
 		const response: Response = await fetch(`/partial/pages/${page}`, {
 			method: 'GET',
 			headers: headers
 		});
 		const html: string = await response.text();
 		console.log(`Switching to page: ${page}`);
-	
+
 		const contentElement: HTMLElement | null = document.getElementById('content');
 		if (contentElement) {
-	
+
 			contentElement.innerHTML = html;
-	
+
 			const scripts = contentElement.querySelectorAll('script');
-			if (scripts && scripts.length > 0)
-			{
+			if (scripts && scripts.length > 0) {
 				if (abortController) abortController.abort();
 				abortController = new AbortController();
-	
+
 				scripts.forEach(oldScript => {
 					const newScript = document.createElement('script');
 					newScript.type = oldScript.type || 'text/javascript';
@@ -47,7 +45,7 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 						newScript.text = oldScript.text;
 
 					contentElement.appendChild(newScript);
-					
+
 					oldScript.remove();
 
 					newScript.addEventListener('load', () => {
@@ -58,19 +56,18 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 					}, { signal: abortController!.signal });
 				});
 			}
-	
+
 		} else {
 			console.warn("Content element not found");
 		}
-	  
+
 		updateActiveMenu(page);
-	
+
 		if (pushState) {
 			history.pushState({ page }, '', `/partial/${page}`);
 		}
 	}
-	catch (error)
-	{
+	catch (error) {
 		console.error('Error fetching partial view:', error);
 	}
 
@@ -88,13 +85,13 @@ async function updateMenu(): Promise<void> {
 		let response: Response;
 		const token = localStorage.getItem('token');
 		if (token) {
-			response = await fetch('/menu', {
+			response = await fetch('/partial/menu', {
 				headers: {
 					'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
 				}
 			});
 		} else {
-			response = await fetch(`/menu`);
+			response = await fetch(`/partial/menu`);
 		}
 
 		const html = await response.text();

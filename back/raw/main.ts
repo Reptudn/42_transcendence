@@ -9,14 +9,13 @@ import crypto from 'crypto';
 import logger from './logger.js';
 import { eventRoutes } from './events/sse.js';
 import { authRoutes } from './routes/auth.js';
-import { staticRoutes } from './routes/static.js';
+import { generalRoutes } from './routes/general.js';
 import { profileRoutes } from './routes/profile.js';
+import { numberRoutes } from './routes/number.js';
 
 const app = fastify();
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-let theNumber: number = 0;
 
 app.register(fastifyJwt, { secret: crypto.randomBytes(64).toString('hex') });
 app.register(fastifyView, {
@@ -59,21 +58,11 @@ async function startServer() {
 	}
 }
 
-app.get('/number', {}, async (req: any, reply: any) => {
-	reply.send({ number: theNumber });
-});
-
 app.register(eventRoutes);
 app.register(authRoutes);
-app.register(staticRoutes);
+app.register(generalRoutes);
 app.register(profileRoutes);
-
-// post
-app.post("/number", {}, async (req: any, reply: any) => {
-	const { number } = req.body;
-	theNumber += number;
-	reply.send({ number: theNumber });
-});
+app.register(numberRoutes);
 
 // error
 app.setNotFoundHandler((request, reply) => {
