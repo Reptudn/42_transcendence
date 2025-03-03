@@ -9,7 +9,7 @@ import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
 import { eventRoutes } from './sse.js';
-import { authRoutes } from './routes/api/auth.js';
+import { authRoutes, checkAuth } from './routes/api/auth.js';
 import { generalRoutes } from './routes/get.js';
 import { profileRoutes } from './routes/api/profile.js';
 import { numberRoutes } from './routes/number.js';
@@ -83,7 +83,7 @@ app.register(friendRoutes);
 
 // error
 app.setNotFoundHandler((request, reply) => {
-	return reply.code(404).view('error.ejs', { error_code: '404' }, {
+	return reply.code(404).view('/partial/pages/error.ejs', { err_code: '404', err_message: 'Content not found. Have you considered gaining skill?', isAuthenticated: checkAuth(request) != null }, {
 		layout: 'basic.ejs'
 	});
 });

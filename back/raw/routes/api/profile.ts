@@ -7,7 +7,7 @@ export async function profileRoutes(app: FastifyInstance) {
 		const { id } = req.params;
 		const user = await getUserById(parseInt(id));
 		if (!user) {
-			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
+			return reply.code(404).send({ message: 'User not found' });
 		}
 		if (!user.profile_picture) {
 			return reply.redirect('/static/assets/images/default_profile.png');

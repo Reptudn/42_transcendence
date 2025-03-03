@@ -24,18 +24,24 @@ export async function generalRoutes(app: FastifyInstance) {
 		else
 			variables["name"] = "Guest";
 
+		let errorCode: number = 418;
+
 		try {
 			if (page === 'profile') {
-				checkAuth(req, true);
+				await checkAuth(req, true);
 				let self_id: number | null = user ? user.id : null;
 				let friend_id: number | null = req.params.profile_id ? parseInt(req.params.profile_id) : null;
-				if (friend_id == null && self_id == null)
-					throw new Error("No user id provided");
+				if (friend_id == null && self_id == null) {
+					errorCode = 400;
+					throw new Error("No user id provided & not logged in");
+				}
 				let profileId: number = friend_id ?? self_id!;
 				let isSelf = profileId === req.user.id;
 				let profile = await getUserById(profileId);
-				if (!profile)
+				if (!profile) {
+					errorCode = 404;
 					throw new Error("User not found");
+				}
 				profile.profile_picture = "/profile/" + profileId + "/picture";
 				let friends = await getFriends(profileId);
 				variables["user"] = profile;
@@ -43,12 +49,20 @@ export async function generalRoutes(app: FastifyInstance) {
 				variables["friends"] = friends;
 			} else if (page === 'edit_profile') {
 				let profile = await checkAuth(req, true);
-				if (!profile)
+				if (!profile) {
+					errorCode = 404;
 					throw new Error("User not found");
+				}
 				variables["user"] = profile;
 			}
 		} catch (err) {
-			return reply.code(401).view('partial/pages/no_access.ejs', variables, { layout: layoutOption });
+			variables["err_code"] = errorCode;
+			if (err instanceof Error) {
+				variables["err_message"] = err.message;
+			} else {
+				variables["err_message"] = "An unknown error occurred";
+			}
+			return reply.code(errorCode).view('partial/pages/error.ejs', variables, { layout: layoutOption });
 		}
 
 		if (['add_friends'].includes(page) && !variables["isAuthenticated"])
