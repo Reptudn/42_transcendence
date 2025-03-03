@@ -6,7 +6,7 @@ import { __dirname } from './main.js';
 import { checkAuth } from './routes/api/auth.js';
 import { User } from './db/database.js';
 
-export let connectedClients: Map<User, FastifyReply> = new Map();
+export let connectedClients: Map<number, FastifyReply> = new Map();
 
 export async function eventRoutes(app: FastifyInstance) {
 
@@ -31,12 +31,12 @@ export async function eventRoutes(app: FastifyInstance) {
 
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
-		connectedClients.set(user, reply);
+		connectedClients.set(user.id, reply);
 
-		sendPopupToClient(user, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
+		sendPopupToClient(user.id, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
 
 		request.raw.on('close', () => {
-			connectedClients.delete(user);
+			connectedClients.delete(user.id);
 			console.log("Client disconnected", user.id);
 			reply.raw.end();
 		});
@@ -53,23 +53,23 @@ export async function eventRoutes(app: FastifyInstance) {
 			return;
 		}
 		const { title, description, color, callback, buttonName } = request.body as { title: string, description: string, color: string, callback: string, buttonName: string };
-		sendPopupToClient(user, title, description, color, callback, buttonName);
+		sendPopupToClient(user.id, title, description, color, callback, buttonName);
 		reply.send({ message: 'Popup sent' });
 	});
 }
 
 export const sendRawToClient = (user: User, data: any) => {
-	const client = connectedClients.get(user);
+	const client = connectedClients.get(user.id);
 	if (client) {
 		client.raw.write(data);
 	} else {
 		console.error(`Client ${user.displayname} not found in connected users.`);
 	}
 };
-export function sendPopupToClient(user: User, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
-	let reply = connectedClients.get(user);
+export function sendPopupToClient(id: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
+	let reply = connectedClients.get(id);
 	if (!reply) {
-		logger.error(`Client ${user.displayname} not found in connected users.`);
+		logger.error(`Client with id ${id} not found in connected users.`);
 		return;
 	}
 	try {
@@ -87,7 +87,7 @@ export function sendPopupToClient(user: User, title: string = 'Info', descriptio
 	}
 }
 setInterval(() => {
-	connectedClients.forEach((reply: FastifyReply, user: User) => {
-        sendPopupToClient(user, 'PING', '-> it\'s pongin\' time!', 'pink', 'testCallback()');
-    });
-}, 3000);
+	connectedClients.forEach((reply: FastifyReply, user: number) => {
+		sendPopupToClient(user, 'PING', '-> it\'s pongin\' time!', 'pink', 'testCallback()');
+	});
+}, 30000);
