@@ -14,13 +14,12 @@ let loginAction = async () => {
 			},
 			body: JSON.stringify({ username, password })
 		});
-		const data = await response.json();
 		if (response.ok) {
-			localStorage.setItem("token", data.token);
 			updateMenu();
-			loadPartialView('game');
+			loadPartialView('profile');
 			alert('You have logged in successfully');
 		} else {
+			const data = await response.json();
 			alert(`Error: ${data.message}`);
 		}
 	} catch (error) {
@@ -36,4 +35,3 @@ if (loginButton) {
 } else {
 	console.error('loginButton not found');
 }
-

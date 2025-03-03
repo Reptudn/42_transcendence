@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import bcrypt from 'bcrypt';
 import { open, Database } from 'sqlite';
-import { dataBaseLocation } from './database.js';
+import { dataBaseLocation, User } from './database.js';
 
 export async function printDatabase() {
 	try {
@@ -34,7 +34,7 @@ export async function registerUser(username: string, password: string, displayna
 		[username, hashedPassword, displayname]
 	);
 }
-export async function loginUser(username: string, password: string) {
+export async function loginUser(username: string, password: string): Promise<User> {
 	const db: Database = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database
@@ -50,14 +50,15 @@ export async function loginUser(username: string, password: string) {
 	return user;
 }
 
-export async function getUserById(id: number) {
+export async function getUserById(id: number): Promise<User | null> {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
-	return await db.get(
+	const user = await db.get(
 		'SELECT id, username, displayname, bio, profile_picture FROM users WHERE id = ?',
 		id
 	);
+	return user || null;
 }
-export async function searchUsers(query: string) {
+export async function searchUsers(query: string): Promise<User[]> {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	return await db.all(
 		'SELECT id, username, displayname FROM users WHERE username LIKE ? OR displayname LIKE ?',

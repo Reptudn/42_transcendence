@@ -1,0 +1,29 @@
+<div class="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h2 class="text-2xl font-bold mb-4">Your Friends</h2>
+	<% if (friends.length===0) { %>
+		<p>You have no friends yet. <a href="/friends/search">Add some!</a></p>
+		<% } else { %>
+			<ul>
+				<% friends.forEach(friend=> { %>
+					<li class="flex justify-between items-center my-2">
+						<span>
+							<%= friend.displayname %> (@<%= friend.username %>)
+						</span>
+						<form method="POST" action="/friends/remove">
+							<input type="hidden" name="friendId" value="<%= friend.id %>">
+							<button type="submit"
+								class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">
+								Remove
+							</button>
+						</form>
+					</li>
+					<% }) %>
+			</ul>
+			<% } %>
+				<div class="mt-4">
+					<a href="/friends/search"
+						class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+						Add Friend
+					</a>
+				</div>
+</div>

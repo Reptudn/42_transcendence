@@ -4,6 +4,21 @@ import { open, Database } from 'sqlite';
 
 export const dataBaseLocation: string = './back/db/db.db';
 
+export interface User {
+	id: number;
+	username: string;
+	password: string;
+	displayname: string;
+	bio: string;
+	profile_picture: string;
+};
+export interface Friend {
+	id: number;
+	accepted: boolean;
+	requester_id: number;
+	requested_id: number;
+};
+
 async function createDatabase() {
 	const db: Database = await open({
 		filename: dataBaseLocation,

@@ -2,13 +2,16 @@ import { FastifyInstance } from "fastify";
 import { sendFriendRequest, acceptFriendRequest, removeFriendship, getFriends } from '../db/db_friends.js';
 import { searchUsers } from '../db/db_users.js';
 import { connectedClients, sendPopupToClient } from '../sse.js';
+import { checkAuth } from "./auth.js";
 
 export async function friendRoutes(app: FastifyInstance) {
 
 	// TODO: Exclude self
 	// TODO: Limit result count
 	// TODO: if other user is already a friend, show that
-	app.get('/friends/search', async (req: any, reply: any) => {
+	// TODO: to do server side rendering, send finished friend overview html instead of json
+	// TODO: improve search friend layout, use circular profiles and cards like on profile friend display
+	app.get('/friends/search', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const query: string = req.query.q || '';
 		const results = query ? await searchUsers(query) : [];
 
@@ -42,7 +45,7 @@ export async function friendRoutes(app: FastifyInstance) {
 		}
 	});
 
-	app.post('/friends/accept', async (req: any, reply: any) => {
+	app.post('/friends/accept', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { requestId } = req.body;
 		try {
 			await acceptFriendRequest(requestId);
@@ -52,7 +55,7 @@ export async function friendRoutes(app: FastifyInstance) {
 		}
 	});
 
-	app.post('/friends/remove', async (req: any, reply: any) => {
+	app.post('/friends/remove', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const userId: number = req.user.id;
 		const { friendId } = req.body;
 		try {
