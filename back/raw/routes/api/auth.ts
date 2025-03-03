@@ -1,14 +1,21 @@
 import { FastifyInstance } from "fastify";
-import { loginUser, registerUser } from "../db/database.js";
+import { getUserById, loginUser, registerUser } from "../../db/db_users.js";
+import { User } from "../../db/database.js";
 
 export async function authRoutes(app: FastifyInstance) {
-	app.post("/login", async (req: any, reply: any) => {
+	app.post("/api/login", async (req: any, reply: any) => {
 		const { username, password } = req.body;
 		try {
-			const user = await loginUser(username, password);
+			const user: User = await loginUser(username, password);
 			const token = app.jwt.sign({ username: user.username, id: user.id },
 				{ expiresIn: '10d' });
-			reply.send({ token });
+			reply
+				.setCookie('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/'
+				});
 		}
 		catch (error) {
 			if (error instanceof Error) {
@@ -19,7 +26,7 @@ export async function authRoutes(app: FastifyInstance) {
 			return;
 		};
 	});
-	app.post("/register", async (req: any, reply: any) => {
+	app.post("/api/register", async (req: any, reply: any) => {
 		const { username, password, displayname } = req.body;
 		try {
 			await registerUser(username, password, displayname);
@@ -36,11 +43,14 @@ export async function authRoutes(app: FastifyInstance) {
 	});
 }
 
-export async function checkAuth(request: any): Promise<boolean> {
+export async function checkAuth(request: any, throwErr: boolean = false): Promise<User | null> {
 	try {
 		await request.jwtVerify();
-		return true;
+		return getUserById(request.user.id);
 	} catch (error) {
-		return false;
+		if (throwErr) {
+			throw new Error('Unauthorized');
+		}
+		return null;
 	}
 }

@@ -24,7 +24,6 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 			headers: headers
 		});
 		const html: string = await response.text();
-		console.log(`Switching to page: ${page}`);
 
 		const contentElement: HTMLElement | null = document.getElementById('content');
 		if (contentElement) {
@@ -64,7 +63,7 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 		updateActiveMenu(page);
 
 		if (pushState) {
-			history.pushState({ page }, '', `/partial/${page}`);
+			history.pushState({ page }, '', `/partial/pages/${page}`);
 		}
 	}
 	catch (error) {
@@ -132,6 +131,8 @@ async function updateNumber(increment: number): Promise<void> {
 			},
 			body: JSON.stringify({ number: increment })
 		});
+		if (!response.ok)
+			return;
 		const data = await response.json();
 		const displayElement = document.getElementById('numberDisplay');
 		if (displayElement) {

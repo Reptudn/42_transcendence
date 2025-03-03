@@ -1,13 +1,22 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
-import logger from '../logger.js';
-import { __dirname } from '../main.js';
+import logger from './logger.js';
+import { __dirname } from './main.js';
+import { checkAuth } from './routes/api/auth.js';
+import { User } from './db/database.js';
 
-let connectedClients: Map<number, FastifyReply> = new Map();
+export let connectedClients: Map<number, FastifyReply> = new Map();
 
 export async function eventRoutes(app: FastifyInstance) {
-	app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
+
+	app.get('/notify', { preValidation: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+		const user: User | null = await checkAuth(request);
+		if (!user) {
+			reply.raw.end();
+			return;
+		}
+
 		reply.raw.writeHead(200, {
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',
@@ -17,23 +26,22 @@ export async function eventRoutes(app: FastifyInstance) {
 
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
-		connectedClients.set(Number(request.id), reply);
+		connectedClients.set(Number(user.id), reply);
 
-		sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
+		sendPopupToClient(Number(user.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
 
 		request.raw.on('close', () => {
-			connectedClients.delete(Number(request.id));
+			connectedClients.delete(Number(user.id));
 			reply.raw.end();
 		});
 
-		// Log SSE errors
 		reply.raw.on('error', (err) => {
 			app.log.error('SSE error:', err);
 		});
 	});
 }
 
-const sendRawToClient = (userId: number, data: any) => {
+export const sendRawToClient = (userId: number, data: any) => {
 	const client = connectedClients.get(userId);
 	if (client) {
 		client.raw.write(data);
@@ -41,7 +49,7 @@ const sendRawToClient = (userId: number, data: any) => {
 		console.error(`Client with userId ${userId} not found.`);
 	}
 };
-function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
+export function sendPopupToClient(userId: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
 	let reply = connectedClients.get(userId);
 	if (!reply) {
 		logger.error(`Client with userId ${userId} not found.`);

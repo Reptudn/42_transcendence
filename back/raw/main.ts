@@ -2,22 +2,30 @@ import fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
+import fastifyCookie from '@fastify/cookie';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
-import { eventRoutes } from './events/sse.js';
-import { authRoutes } from './routes/auth.js';
-import { generalRoutes } from './routes/general.js';
-import { profileRoutes } from './routes/profile.js';
+import { eventRoutes } from './sse.js';
+import { authRoutes } from './routes/api/auth.js';
+import { generalRoutes } from './routes/get.js';
+import { profileRoutes } from './routes/api/profile.js';
 import { numberRoutes } from './routes/number.js';
+import { friendRoutes } from './routes/api/friends.js';
+import { request } from 'http';
 
 const app = fastify();
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.register(fastifyJwt, { secret: crypto.randomBytes(64).toString('hex') });
+app.register(fastifyJwt, {
+	secret: crypto.randomBytes(64).toString('hex'),
+	verify: {
+		extractToken: (request: any) => request.cookies.token
+	}
+});
 app.register(fastifyView, {
 	engine: {
 		ejs
@@ -30,6 +38,7 @@ app.register(fastifyView, {
 	},
 	viewExt: 'ejs'
 });
+app.register(fastifyCookie);
 app.register(fastifyStatic, {
 	root: path.join(__dirname, '../../front/static'),
 	prefix: '/static/',
@@ -63,6 +72,7 @@ app.register(authRoutes);
 app.register(generalRoutes);
 app.register(profileRoutes);
 app.register(numberRoutes);
+app.register(friendRoutes);
 
 // error
 app.setNotFoundHandler((request, reply) => {
