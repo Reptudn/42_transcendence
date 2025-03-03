@@ -32,6 +32,7 @@ export async function eventRoutes(app: FastifyInstance) {
 
 		request.raw.on('close', () => {
 			connectedClients.delete(Number(user.id));
+			console.log("Client disconnected", user.id);
 			reply.raw.end();
 		});
 

@@ -21,6 +21,8 @@ export async function generalRoutes(app: FastifyInstance) {
 		variables["isAuthenticated"] = user != null;
 		if (user != null)
 			variables["name"] = user.displayname || user.username;
+		else
+			variables["name"] = "Guest";
 
 		try {
 			if (page === 'profile') {
@@ -49,7 +51,10 @@ export async function generalRoutes(app: FastifyInstance) {
 			return reply.code(401).view('partial/pages/no_access.ejs', variables, { layout: layoutOption });
 		}
 
-		return reply.view(`partial/pages/${page}.ejs`, variables, { layout: layoutOption });
+		if (['add_friends'].includes(page) && !variables["isAuthenticated"])
+			return reply.view(`partial/pages/no_access.ejs`, variables, { layout: layoutOption });
+		else
+			return reply.view(`partial/pages/${page}.ejs`, variables, { layout: layoutOption });
 	});
 
 	app.get('/partial/menu', async (req: any, reply: any) => {

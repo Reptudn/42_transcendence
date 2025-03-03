@@ -37,47 +37,63 @@ else console.error('closeAllBtn not found');
 
 // ----- EventSource -----
 
-const token = localStorage.getItem('token');
-let notifyEventSource = new EventSource(`/notify?token=${token}`);
+function getCookie(name: string) {
+	const value = "; " + document.cookie;
+	const parts = value.split("; " + name + "=");
 
-notifyEventSource.onerror = (event) => {
-	console.error('notifyEventSource.onerror', event);
-	setTimeout(() => {
-		notifyEventSource.close();
-		notifyEventSource = new EventSource(`/notify?token=${token}`);
-	}, 5000);
-};
-notifyEventSource.onopen = () => {
-	console.log('EventSource connection established');
-};
-notifyEventSource.onmessage = (event) => {
-	try {
-		const data = JSON.parse(event.data);
-
-		if (data.type === "log") {
-			console.log(data.message);
-		} else if (data.type === "warning") {
-			console.warn(data.message);
-		} else if (data.type === "error") {
-			console.error(data.message);
-		} else if (data.type === "popup") {
-			if (popupContainer) {
-				popupContainer.insertAdjacentHTML('beforeend', data.html);
-				updateCloseAllVisibility();
-			} else {
-				console.error("❌ popup-container not found in DOM!");
-				return;
-			}
-		} else if (data.type === "game_request") {
-			console.log("👫 Game request received:", data);
-		} else {
-			console.error("❌ Unknown event type:", data.type);
-			console.log(data);
+	if (parts.length == 2) {
+		const part = parts.pop();
+		if (part) {
+			return part.split(";").shift();
 		}
-	} catch (err) {
-		console.error("Error parsing event data:", err);
+		return undefined;
 	}
-};
+}
+
+const token = getCookie('token');
+if (token) {
+	let notifyEventSource = new EventSource(`/notify?token=${token}`);
+
+	notifyEventSource.onerror = (event) => {
+		console.error('notifyEventSource.onerror', event);
+		setTimeout(() => {
+			notifyEventSource.close();
+			notifyEventSource = new EventSource(`/notify?token=${token}`);
+		}, 5000);
+	};
+	notifyEventSource.onopen = () => {
+		console.log('EventSource connection established');
+	};
+	notifyEventSource.onmessage = (event) => {
+		try {
+			const data = JSON.parse(event.data);
+
+			if (data.type === "log") {
+				console.log(data.message);
+			} else if (data.type === "warning") {
+				console.warn(data.message);
+			} else if (data.type === "error") {
+				console.error(data.message);
+			} else if (data.type === "popup") {
+				if (popupContainer) {
+					popupContainer.insertAdjacentHTML('beforeend', data.html);
+					updateCloseAllVisibility();
+				} else {
+					console.error("❌ popup-container not found in DOM!");
+					return;
+				}
+			} else if (data.type === "game_request") {
+				console.log("👫 Game request received:", data);
+			} else {
+				console.error("❌ Unknown event type:", data.type);
+				console.log(data);
+			}
+		} catch (err) {
+			console.error("Error parsing event data:", err);
+		}
+	};
+}
+
 
 function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');

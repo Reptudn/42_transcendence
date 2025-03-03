@@ -23,7 +23,14 @@ export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.register(fastifyJwt, {
 	secret: crypto.randomBytes(64).toString('hex'),
 	verify: {
-		extractToken: (request: any) => request.cookies.token
+		extractToken: (request: any) => {
+			let token = request.cookies.token;
+			// fall back to query param if not found
+			if (!token && request.query && request.query.token) {
+				token = request.query.token;
+			}
+			return token;
+		}
 	}
 });
 app.register(fastifyView, {
