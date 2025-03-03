@@ -50,16 +50,16 @@ function getCookie(name: string) {
 	}
 }
 
-const token = getCookie('token');
-if (token) {
-	let notifyEventSource = new EventSource(`/notify?token=${token}`);
+let notifyEventSource: EventSource | null = null;
+function setupEventSource() {
+	let token: string | undefined = getCookie('token');
+
+	notifyEventSource = new EventSource(`/notify?token=${token}`);
 
 	notifyEventSource.onerror = (event) => {
 		console.error('notifyEventSource.onerror', event);
-		setTimeout(() => {
-			notifyEventSource.close();
-			notifyEventSource = new EventSource(`/notify?token=${token}`);
-		}, 5000);
+		notifyEventSource?.close();
+		notifyEventSource = null;
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
@@ -93,6 +93,14 @@ if (token) {
 		}
 	};
 }
+setupEventSource();
+// loop every 5 secs if notifyEventSource is null
+setInterval(() => {
+	if (!notifyEventSource) {
+		console.log('Attempting to reconnect to EventSource...');
+		setupEventSource();
+	}
+}, 5000);
 
 
 function testCallback() {

@@ -11,9 +11,12 @@ export let connectedClients: Map<number, FastifyReply> = new Map();
 export async function eventRoutes(app: FastifyInstance) {
 
 	app.get('/notify', { preValidation: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+		console.log("Client connected with notify");
+
 		const user: User | null = await checkAuth(request);
 		if (!user) {
 			reply.raw.end();
+			console.log("Client not authenticated");
 			return;
 		}
 
@@ -23,6 +26,8 @@ export async function eventRoutes(app: FastifyInstance) {
 			'Connection': 'keep-alive',
 			'Transfer-Encoding': 'identity'
 		});
+
+		console.log('Established sse conn');
 
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
