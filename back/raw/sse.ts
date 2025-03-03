@@ -45,6 +45,17 @@ export async function eventRoutes(app: FastifyInstance) {
 			app.log.error('SSE error:', err);
 		});
 	});
+
+	app.post('/notify/send', { preValidation: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+		const user: User | null = await checkAuth(request);
+		if (!user) {
+			reply.send({ message: 'Not authenticated' });
+			return;
+		}
+		const { title, description, color, callback, buttonName } = request.body as { title: string, description: string, color: string, callback: string, buttonName: string };
+		sendPopupToClient(user.id, title, description, color, callback, buttonName);
+		reply.send({ message: 'Popup sent' });
+	});
 }
 
 export const sendRawToClient = (userId: number, data: any) => {

@@ -9,6 +9,7 @@ function updateCloseAllVisibility(): void {
 	const popups = document.querySelectorAll('.popup');
 	closeAllBtn.style.display = popups.length > 0 ? 'block' : 'none';
 }
+updateCloseAllVisibility();
 
 function dismissPopup(closeElement: HTMLElement): void {
 	const popup = closeElement.closest('.popup');
@@ -102,6 +103,18 @@ setInterval(() => {
 	}
 }, 5000);
 
+function sendPopup(title: string, description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'CLICK ME') {
+	fetch('/notify/send', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ title, description, color, callback, buttonName }),
+	})
+		.then((response) => response.json())
+		.then((data) => console.log('Popup sent:', data))
+		.catch((error) => console.error('Error sending popup:', error));
+};
 
 function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');
