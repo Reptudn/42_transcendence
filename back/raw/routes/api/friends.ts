@@ -1,13 +1,20 @@
 import { FastifyInstance } from "fastify";
-import { sendFriendRequest, acceptFriendRequest, removeFriendship, getFriends } from '../../db/db_friends.js';
+import { sendFriendRequest, acceptFriendRequest, removeFriendship, getPendingFriendRequest } from '../../db/db_friends.js';
 import { connectedClients, sendPopupToClient } from '../../sse.js';
 
 export async function friendRoutes(app: FastifyInstance) {
 
-	// TODO: if other user is already a friend, just accept, dont send request
 	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const requesterId: number = req.user.id;
 		const requestedId = req.body.requestId;
+
+		const pendingRequest = await getPendingFriendRequest(requesterId, requestedId);
+		if (pendingRequest) {
+			await acceptFriendRequest(pendingRequest.id);
+			reply.send({ message: 'Friend request accepted' });
+			return reply.code(200);
+		}
+
 		try {
 			const requestId = await sendFriendRequest(requesterId, requestedId);
 			console.log('connectedClients: ', connectedClients);

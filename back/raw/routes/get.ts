@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { getUserById } from "../db/db_users.js";
 import { checkAuth } from "./api/auth.js";
 import { searchUsers } from '../db/db_users.js';
-import { getFriends } from '../db/db_friends.js';
+import { getFriends, getPendingFriendRequestsForUser } from '../db/db_friends.js';
 
 export async function generalRoutes(app: FastifyInstance) {
 
@@ -63,19 +63,21 @@ export async function generalRoutes(app: FastifyInstance) {
 		return reply.view(menuTemplate, { name: 'Freddy' });
 	});
 
-	// TODO: also exclude people who a friend request was already sent to
-	// TODO: improve friends fetching using more advanced SQL queries instead of filtering in JS
 	app.get('/partial/friends/search', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const query: string = req.query.q || '';
 		let results = query ? await searchUsers(query) : [];
 		results.filter((user: any) => user.id !== req.user.id);
-		results = results.slice(0, 25);
+		results = results.slice(0, 50);
 
 		const friends = await getFriends(req.user.id);
-		results.forEach((result) => {
-			if (friends.some((friend) => friend.id === result.id))
-				results.splice(results.indexOf(result), 1);
-		})
+		const pendingRequests = await getPendingFriendRequestsForUser(req.user.id);
+		const pendingIds = pendingRequests.map((pending: any) => pending.requested_id);
+
+		results = results.filter((result: any) => {
+			const isFriend = friends.some((friend: any) => friend.id === result.id);
+			const isPending = pendingIds.includes(result.id);
+			return !isFriend && !isPending;
+		});
 
 		return reply.view('partial/misc/friend_cards.ejs', { results });
 	});

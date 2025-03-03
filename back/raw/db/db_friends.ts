@@ -1,4 +1,4 @@
-import { dataBaseLocation } from './database.js';
+import { dataBaseLocation, Friend } from './database.js';
 import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
 
@@ -43,5 +43,27 @@ export async function getFriends(userId: number) {
 			OR (f.requester_id = u.id AND f.requested_id = ?))
 		WHERE f.accepted = true`,
 		[userId, userId]
+	);
+}
+
+export async function getPendingFriendRequest(fromUserId: number, toUserId: number): Promise<Friend | undefined> {
+	const db: Database = await open({
+		filename: dataBaseLocation,
+		driver: sqlite3.Database
+	});
+	return await db.get<Friend>(
+		`SELECT * FROM friends WHERE requester_id = ? AND requested_id = ? AND accepted = 0`,
+		[fromUserId, toUserId]
+	);
+}
+
+export async function getPendingFriendRequestsForUser(userId: number): Promise<Friend[]> {
+	const db: Database = await open({
+		filename: dataBaseLocation,
+		driver: sqlite3.Database
+	});
+	return await db.all<Friend[]>(
+		`SELECT * FROM friends WHERE requester_id = ? AND accepted = 0`,
+		[userId]
 	);
 }
