@@ -16,6 +16,7 @@ function fetchFriendSearchResults() {
 		.catch(err => console.error('Error fetching friend search results:', err));
 }
 
+// TODO: refresh every input value change instead
 setInterval(fetchFriendSearchResults, 1000);
 
 document.getElementById('friendSearchInput')?.addEventListener('input', fetchFriendSearchResults);

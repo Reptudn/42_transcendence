@@ -3,11 +3,20 @@ import ejs from 'ejs';
 import path from 'path';
 import logger from './logger.js';
 import { __dirname } from './main.js';
+import { checkAuth } from './routes/api/auth.js';
+import { User } from './db/database.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
 export async function eventRoutes(app: FastifyInstance) {
-	app.get('/notify', (request: FastifyRequest, reply: FastifyReply) => {
+
+	app.get('/notify', { preValidation: [app.authenticate] }, async (request: FastifyRequest, reply: FastifyReply) => {
+		const user: User | null = await checkAuth(request);
+		if (!user) {
+			reply.raw.end();
+			return;
+		}
+
 		reply.raw.writeHead(200, {
 			'Content-Type': 'text/event-stream',
 			'Cache-Control': 'no-cache',
@@ -17,16 +26,15 @@ export async function eventRoutes(app: FastifyInstance) {
 
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
-		connectedClients.set(Number(request.id), reply);
+		connectedClients.set(Number(user.id), reply);
 
-		sendPopupToClient(Number(request.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
+		sendPopupToClient(Number(user.id), 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
 
 		request.raw.on('close', () => {
-			connectedClients.delete(Number(request.id));
+			connectedClients.delete(Number(user.id));
 			reply.raw.end();
 		});
 
-		// Log SSE errors
 		reply.raw.on('error', (err) => {
 			app.log.error('SSE error:', err);
 		});

@@ -59,6 +59,7 @@ export async function generalRoutes(app: FastifyInstance) {
 	});
 
 	// TODO: also exclude people who a friend request was already sent to
+	// TODO: improve friends fetching using more advanced SQL queries instead of filtering in JS
 	app.get('/partial/friends/search', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const query: string = req.query.q || '';
 		let results = query ? await searchUsers(query) : [];

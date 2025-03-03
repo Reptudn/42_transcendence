@@ -5,7 +5,6 @@ import { connectedClients, sendPopupToClient } from '../../sse.js';
 export async function friendRoutes(app: FastifyInstance) {
 
 	// TODO: if other user is already a friend, just accept, dont send request
-	// TODO: add friend request declining
 	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const requesterId: number = req.user.id;
 		const requestedId = req.body.requestId;
