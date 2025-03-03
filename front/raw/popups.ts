@@ -40,6 +40,7 @@ else console.error('closeAllBtn not found');
 
 function getCookie(name: string) {
 	const value = "; " + document.cookie;
+	console.log("cookies: ", document.cookie);
 	const parts = value.split("; " + name + "=");
 
 	if (parts.length == 2) {
@@ -54,6 +55,11 @@ function getCookie(name: string) {
 let notifyEventSource: EventSource | null = null;
 function setupEventSource() {
 	let token: string | undefined = getCookie('token');
+	// if (token === undefined)
+	// {
+	// 	console.log("token is undefined.. not connecting to event stream.");
+	// 	return;
+	// }
 
 	notifyEventSource = new EventSource(`/notify?token=${token}`);
 
