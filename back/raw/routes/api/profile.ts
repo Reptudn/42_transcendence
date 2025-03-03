@@ -1,30 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../db/db_users.js";
-import { getFriends } from "../db/db_friends.js";
+import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../../db/db_users.js";
 import { checkAuth } from "./auth.js";
 
 export async function profileRoutes(app: FastifyInstance) {
-	// TODO: rework this to be part of /partial/profile instead, using &id= query parameter
-	app.get('/profile/:id', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-		const isAuthenticated = checkAuth(req) != null;
-		const { id } = req.params;
-		let isSelf;
-		try {
-			await req.jwtVerify();
-			isSelf = req.user && req.user.id === parseInt(id);
-		} catch (err) {
-			isSelf = false;
-		}
-
-		let user = await getUserById(parseInt(id));
-		if (!user)
-			return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
-		user.profile_picture = "/profile/" + id + "/picture";
-
-		let friends = await getFriends(parseInt(id));
-		return reply.view('partial/pages/profile.ejs', { user, isSelf, friends, isAuthenticated });
-	});
-	app.get('/profile/:id/picture', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.get('/api/profile/:id/picture', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { id } = req.params;
 		const user = await getUserById(parseInt(id));
 		if (!user) {
@@ -41,13 +20,7 @@ export async function profileRoutes(app: FastifyInstance) {
 		reply.header('Content-Type', 'image/png').send(Buffer.from(base64Data, 'base64'));
 	});
 
-	app.get('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-		const userId = req.user.id;
-		const user = await getUserById(userId);
-		if (!user) return reply.code(404).view('error.ejs', { error_code: '404' }, { layout: 'basic.ejs' });
-		reply.view('partial/pages/edit_profile.ejs', { user });
-	});
-	app.post('/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.post('/api/profile/edit', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const userId = req.user.id;
 		try {
 			const currentUser = await getUserById(userId);
@@ -75,7 +48,7 @@ export async function profileRoutes(app: FastifyInstance) {
 			}
 		}
 	});
-	app.post('/profile/delete', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.post('/api/profile/delete', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		try {
 			const currentUser = await checkAuth(req);
 			if (!currentUser) {

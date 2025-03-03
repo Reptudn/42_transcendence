@@ -1,26 +1,12 @@
 import { FastifyInstance } from "fastify";
-import { sendFriendRequest, acceptFriendRequest, removeFriendship, getFriends } from '../db/db_friends.js';
-import { searchUsers } from '../db/db_users.js';
-import { connectedClients, sendPopupToClient } from '../sse.js';
-import { checkAuth } from "./auth.js";
+import { sendFriendRequest, acceptFriendRequest, removeFriendship, getFriends } from '../../db/db_friends.js';
+import { connectedClients, sendPopupToClient } from '../../sse.js';
 
 export async function friendRoutes(app: FastifyInstance) {
 
-	// TODO: Exclude self
-	// TODO: Limit result count
-	// TODO: if other user is already a friend, show that
-	// TODO: to do server side rendering, send finished friend overview html instead of json
-	// TODO: improve search friend layout, use circular profiles and cards like on profile friend display
-	app.get('/friends/search', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-		const query: string = req.query.q || '';
-		const results = query ? await searchUsers(query) : [];
-
-		return reply.send({ results });
-	});
-
 	// TODO: if other user is already a friend, just accept, dont send request
 	// TODO: add friend request declining
-	app.post('/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const requesterId: number = req.user.id;
 		const requestedId = req.body.requestId;
 		try {
@@ -45,7 +31,7 @@ export async function friendRoutes(app: FastifyInstance) {
 		}
 	});
 
-	app.post('/friends/accept', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.post('/api/friends/accept', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { requestId } = req.body;
 		try {
 			await acceptFriendRequest(requestId);
@@ -55,7 +41,7 @@ export async function friendRoutes(app: FastifyInstance) {
 		}
 	});
 
-	app.post('/friends/remove', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+	app.post('/api/friends/remove', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const userId: number = req.user.id;
 		const { friendId } = req.body;
 		try {

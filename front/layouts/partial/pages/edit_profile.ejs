@@ -4,7 +4,7 @@
 	<div id="editProfileForm">
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Profile Picture:</label>
-			<img src="/profile/<%= user.id %>/picture?v=<%= Date.now() %>" alt="Profile Picture"
+			<img src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>" alt="Profile Picture"
 				class="w-24 h-24 rounded-full mb-2">
 			<input type="file" id="profilePicture" name="profile_picture" accept="image/png" class="w-full" value="">
 			<button type="button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"

@@ -26,8 +26,6 @@
 	// Declare the game interval, which could be a number (for browser timer IDs) or null.
 	let gameInterval: number | null = null;
 
-	console.log("Pong script loaded");
-
 	// Function to draw rectangles on the canvas.
 	function drawRect(x: number, y: number, width: number, height: number, color: string): void {
 		context.fillStyle = color;

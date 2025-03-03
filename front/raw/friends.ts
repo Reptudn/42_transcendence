@@ -9,7 +9,7 @@ function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 	btn.style.backgroundColor = 'green';
 	btn.disabled = true;
 
-	fetch('/friends/request', {
+	fetch('/api/friends/request', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 		});
 }
 function acceptFriendRequest(requestId: number) {
-	fetch('/friends/accept', {
+	fetch('/api/friends/accept', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

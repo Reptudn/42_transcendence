@@ -24,7 +24,6 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 			headers: headers
 		});
 		const html: string = await response.text();
-		console.log(`Switching to page: ${page}`);
 
 		const contentElement: HTMLElement | null = document.getElementById('content');
 		if (contentElement) {

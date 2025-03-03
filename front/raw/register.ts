@@ -8,7 +8,7 @@ let registerAction = async () => {
 	const displayname = (document.querySelector('#displayname') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
 	try {
-		const response = await fetch('/register', {
+		const response = await fetch('/api/register', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

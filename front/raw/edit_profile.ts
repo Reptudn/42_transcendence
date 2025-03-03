@@ -40,8 +40,6 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 	const usernameField = document.getElementById('username') as HTMLInputElement;
 	const displayNameField = document.getElementById('displayName') as HTMLInputElement;
 	const bioField = document.getElementById('bio') as HTMLInputElement;
-	const oldPasswordField = document.getElementById('oldPassword') as HTMLInputElement;
-	const newPasswordField = document.getElementById('newPassword') as HTMLInputElement;
 	const profilePictureInput = document.getElementById('profilePicture') as HTMLInputElement;
 
 	if (usernameField.value !== initialValues.username) {
@@ -72,7 +70,7 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 	const token = localStorage.getItem('token');
 
 	try {
-		const response = await fetch('/profile/edit', {
+		const response = await fetch('/api/profile/edit', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -120,7 +118,7 @@ document.getElementById('changepasswordsubmit')?.addEventListener('click', async
 	const token = localStorage.getItem('token');
 
 	try {
-		const response = await fetch('/profile/edit', {
+		const response = await fetch('/api/profile/edit', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -158,7 +156,7 @@ document.getElementById('deleteprofilesubmit')?.addEventListener('click', async 
 	const token = localStorage.getItem('token');
 
 	try {
-		const response = await fetch('/profile/delete', {
+		const response = await fetch('/api/profile/delete', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

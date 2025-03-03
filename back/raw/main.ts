@@ -9,11 +9,11 @@ import path from 'path';
 import crypto from 'crypto';
 import logger from './logger.js';
 import { eventRoutes } from './sse.js';
-import { authRoutes } from './routes/auth.js';
-import { generalRoutes } from './routes/general.js';
-import { profileRoutes } from './routes/profile.js';
+import { authRoutes } from './routes/api/auth.js';
+import { generalRoutes } from './routes/get.js';
+import { profileRoutes } from './routes/api/profile.js';
 import { numberRoutes } from './routes/number.js';
-import { friendRoutes } from './routes/friends.js';
+import { friendRoutes } from './routes/api/friends.js';
 import { request } from 'http';
 
 const app = fastify();

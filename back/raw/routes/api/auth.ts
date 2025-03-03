@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { getUserById, loginUser, registerUser } from "../db/db_users.js";
-import { User } from "../db/database.js";
+import { getUserById, loginUser, registerUser } from "../../db/db_users.js";
+import { User } from "../../db/database.js";
 
 export async function authRoutes(app: FastifyInstance) {
-	app.post("/login", async (req: any, reply: any) => {
+	app.post("/api/login", async (req: any, reply: any) => {
 		const { username, password } = req.body;
 		try {
 			const user: User = await loginUser(username, password);
@@ -26,7 +26,7 @@ export async function authRoutes(app: FastifyInstance) {
 			return;
 		};
 	});
-	app.post("/register", async (req: any, reply: any) => {
+	app.post("/api/register", async (req: any, reply: any) => {
 		const { username, password, displayname } = req.body;
 		try {
 			await registerUser(username, password, displayname);

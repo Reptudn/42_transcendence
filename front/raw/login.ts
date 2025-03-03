@@ -7,7 +7,7 @@ let loginAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
 	const password = (document.querySelector('#password') as HTMLInputElement).value;
 	try {
-		const response = await fetch('/login', {
+		const response = await fetch('/api/login', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
