@@ -12,6 +12,9 @@ export async function printDatabase() {
 		const users = await db.all('SELECT * FROM users');
 		console.log("=== Users Table ===");
 		console.table(users);
+		const friends = await db.all('SELECT * FROM friends');
+		console.log("=== Friends Table ===");
+		console.table(friends);
 	} catch (error) {
 		console.error("Error printing database:", error);
 	}
@@ -21,8 +24,14 @@ export async function registerUser(username: string, password: string, displayna
 	if (!username || !password) {
 		throw new Error('Username and password are required');
 	}
-	if (password.length < 8) {
-		throw new Error('Passwords must be at least 8 characters long');
+	if (username.length > 16) {
+		throw new Error('Username must be 16 or fewer characters');
+	}
+	if (displayname.length > 16) {
+		throw new Error('Display name must be 16 or fewer characters');
+	}
+	if (password.length < 8 || password.length > 32) {
+		throw new Error('Password must be between 8 and 32 characters long');
 	}
 	if (/\s/.test(username) || /\s/.test(password)) {
 		throw new Error('Username and password cannot contain spaces');
@@ -84,6 +93,27 @@ export async function updateUserProfile(
 	bio: string,
 	profile_picture: string
 ) {
+	if (username && username.length > 16) {
+		throw new Error('Username must be 16 or fewer characters');
+	}
+	if (displayname && displayname.length > 16) {
+		throw new Error('Display name must be 16 or fewer characters');
+	}
+	if (bio && bio.length >= 1024) {
+		throw new Error('Bio must be under 1024 characters');
+	}
+	if (profile_picture) {
+		const base64Prefix = 'data:image/png;base64,';
+		if (!profile_picture.startsWith(base64Prefix)) {
+			throw new Error('Invalid profile picture format');
+		}
+		const base64Data = profile_picture.slice(base64Prefix.length);
+		const fileSizeInBytes = Math.floor(base64Data.length * 3 / 4);
+		if (fileSizeInBytes > 1048576) {
+			throw new Error('Profile picture must be under 1MB');
+		}
+	}
+
 	if (/\s/.test(username)) {
 		throw new Error('Username cannot contain spaces');
 	}
@@ -108,8 +138,8 @@ export async function updateUserPassword(id: number, oldPassword: string, newPas
 	if (!oldPassword || !newPassword) {
 		throw new Error('Please submit old password and new password to change password');
 	}
-	if (newPassword.length < 8) {
-		throw new Error('Passwords must be at least 8 characters long');
+	if (newPassword.length < 8 || newPassword.length > 32) {
+		throw new Error('New password must be between 8 and 32 characters long');
 	}
 	if (/\s/.test(newPassword)) {
 		throw new Error('New password cannot contain spaces');

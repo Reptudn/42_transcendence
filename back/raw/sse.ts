@@ -108,8 +108,3 @@ export function sendPopupToClient(
 		reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);
 	}
 }
-setInterval(() => {
-	connectedClients.forEach((reply: FastifyReply, user: number) => {
-		sendPopupToClient(user, 'PING', '-> it\'s pongin\' time!', 'pink');
-	});
-}, 30000);

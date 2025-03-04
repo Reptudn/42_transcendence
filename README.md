@@ -4,7 +4,7 @@
 
 - password (8 - 32)
 - username (under 16)
-- display name (under 32)
+- display name (under 16)
 - bio (under 1024)
 - profile picture (under 1mb)
 

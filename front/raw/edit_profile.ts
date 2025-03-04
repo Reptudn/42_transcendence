@@ -179,3 +179,16 @@ document.getElementById('deleteprofilesubmit')?.addEventListener('click', async 
 		alert('An error occurred while deleting your profile. Please try again.');
 	}
 });
+
+function updateCounter(inputId: string, counterId: string, max: number) {
+	const input = document.getElementById(inputId);
+	const counter = document.getElementById(counterId);
+	if (input && counter) {
+		input.addEventListener('input', () => {
+			counter.textContent = (input as HTMLInputElement).value.length + '/' + max;
+		});
+		counter.textContent = (input as HTMLInputElement).value.length + '/' + max;
+	}
+}
+updateCounter('username', 'usernameCounter', 16);
+updateCounter('displayName', 'displayNameCounter', 16);
