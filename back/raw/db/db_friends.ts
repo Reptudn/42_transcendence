@@ -67,6 +67,16 @@ export async function getFriendRequest(fromUserId: number, toUserId: number): Pr
 		[fromUserId, toUserId, toUserId, fromUserId]
 	);
 }
+export async function getFriendRequestById(requestId: number): Promise<Friend | undefined> {
+	const db: Database = await open({
+		filename: dataBaseLocation,
+		driver: sqlite3.Database
+	});
+	return await db.get<Friend>(
+		`SELECT * FROM friends WHERE id = ?`,
+		[requestId]
+	);
+}
 
 export async function getPendingFriendRequestsFromUser(userId: number): Promise<Friend[]> {
 	const db: Database = await open({

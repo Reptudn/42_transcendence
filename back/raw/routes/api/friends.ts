@@ -1,16 +1,20 @@
 import { FastifyInstance } from "fastify";
-import { createFriendRequest, acceptFriendRequest, rejectFriendRequest, getFriendRequest, removeFriendship } from '../../db/db_friends.js';
+import { createFriendRequest, acceptFriendRequest, rejectFriendRequest, getFriendRequest, removeFriendship, getFriendRequestById } from '../../db/db_friends.js';
 import { connectedClients, sendPopupToClient } from '../../sse.js';
 import { getNameForUser } from "../../db/db_users.js";
 import { checkAuth } from "./auth.js";
 
 // TODO: make sure not only that the users are valid users of the website, but also actually involved in the friendship everywhere
-// TODO: stop friendships with yourself
 export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const requesterId: number = Number(req.user.id);
 		const requestedId: number = Number(req.body.requestId);
+
+		if (requesterId === requestedId) {
+			reply.code(400).send({ message: 'You cannot send a friend request to yourself' });
+			return;
+		}
 
 		const pendingRequest = await getFriendRequest(requesterId, requestedId);
 		if (pendingRequest) {
@@ -47,11 +51,16 @@ export async function friendRoutes(app: FastifyInstance) {
 		}
 	});
 
-	// TODO: send message to friend that request was accepted
 	app.post('/api/friends/accept', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { requestId } = req.body;
 		try {
 			await acceptFriendRequest(requestId);
+
+			const request = await getFriendRequestById(requestId);
+			if (request) {
+				sendPopupToClient(request.requester_id, 'Friend Request Accepted', `Your friend request was accepted by <a href="/partial/pages/profile/${request.requested_id}" target="_blank">User ${await getNameForUser(request.requested_id) || request.requested_id}</a>!`, 'blue');
+			}
+
 			reply.send({ message: 'Friend request accepted' });
 		} catch (err: any) {
 			reply.code(400).send({ message: err.message });

@@ -90,7 +90,8 @@ export async function generalRoutes(app: FastifyInstance) {
 		results = results.filter((result: any) => {
 			const isFriend = friends.some((friend: any) => friend.id === result.id);
 			const isPending = pendingIds.includes(result.id);
-			return !isFriend && !isPending;
+			const isSelf = result.id === req.user.id;
+			return !isFriend && !isPending && !isSelf;
 		});
 
 		return reply.view('partial/misc/friend_cards.ejs', { results });
