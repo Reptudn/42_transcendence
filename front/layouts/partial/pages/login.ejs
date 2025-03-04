@@ -16,5 +16,27 @@
 				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Login</button>
 		</div>
 	</div>
+
+	<br>
+	<p class="text-center">or</p>
+	<br>
+	<div class="google-signin">
+		<script src="https://accounts.google.com/gsi/client" async></script>
+		<div id="g_id_onload"
+			data-client_id=""
+			data-login_uri="http://localhost:4242/api/auth/google"
+			data-auto_prompt="false">
+		</div>
+		<div class="g_id_signin"
+			data-type="standard"
+			data-size="large"
+			data-theme="outline"
+			data-text="sign_in_with"
+			data-shape="rectangular"
+			data-logo_alignment="left">
+		</div>
+
+	</div>
+
 </div>
 <script type="module" src="/static/js/login.js"></script>
