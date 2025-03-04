@@ -4,7 +4,6 @@ import { connectedClients, sendPopupToClient } from '../../sse.js';
 import { getNameForUser } from "../../db/db_users.js";
 import { checkAuth } from "./auth.js";
 
-// TODO: make sure not only that the users are valid users of the website, but also actually involved in the friendship everywhere
 export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
@@ -53,6 +52,13 @@ export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/accept', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { requestId } = req.body;
+		const request = await getFriendRequestById(requestId);
+		if (!request) {
+			return reply.code(404).send({ message: 'Request not found' });
+		}
+		if (request.requested_id != req.user.id) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
 		try {
 			await acceptFriendRequest(requestId);
 
@@ -69,6 +75,13 @@ export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/decline', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { requestId } = req.body;
+		const request = await getFriendRequestById(requestId);
+		if (!request) {
+			return reply.code(404).send({ message: 'Request not found' });
+		}
+		if (request.requested_id != req.user.id) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
 		try {
 			await rejectFriendRequest(requestId);
 			reply.send({ message: 'Friendship removed' });
@@ -79,6 +92,13 @@ export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/remove', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { friendId } = req.body;
+		const request = await getFriendRequest(req.user.id, friendId);
+		if (!request) {
+			return reply.code(404).send({ message: 'Friendship not found' });
+		}
+		if (request.requested_id != req.user.id && request.requester_id != req.user.id) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
 		const user = await checkAuth(req);
 		if (!user)
 			return reply.code(401).send({ message: 'Unauthorized' });
