@@ -26,6 +26,10 @@ export async function authRoutes(app: FastifyInstance) {
 			return;
 		};
 	});
+	app.post("/api/logout", async (req: any, reply: any) => {
+		reply.clearCookie('token', { path: '/' });
+		reply.send({ message: "Logged out successfully" });
+	});
 	app.post("/api/register", async (req: any, reply: any) => {
 		const { username, password, displayname } = req.body;
 		try {

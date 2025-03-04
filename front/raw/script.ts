@@ -150,3 +150,21 @@ if (numberDisplay) {
 }
 setInterval(fetchNumber, 1000);
 document.addEventListener('DOMContentLoaded', fetchNumber);
+
+async function logout(): Promise<void> {
+	try {
+		const response = await fetch('/api/logout', { method: 'POST' });
+		if (response.ok) {
+			// Update your menu and load the home view
+			updateMenu();
+			loadPartialView('index');
+			console.log("You have been logged out with impeccable style!");
+		} else {
+			const data = await response.json();
+			alert(`Error during logout: ${data.message}`);
+		}
+	} catch (error) {
+		console.error('Logout error:', error);
+		alert('An error occurred during logout. Do try again, old chap!');
+	}
+}
