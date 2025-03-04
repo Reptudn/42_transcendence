@@ -33,23 +33,30 @@
 						<h3 class="text-xl font-bold mb-4">Friends</h3>
 						<div class="flex flex-wrap gap-4">
 							<% friends.forEach(friend=> { %>
-								<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
-									<img src="/profile/<%= friend.id %>/picture" alt="Friend Picture <%= friend.id %>"
-										class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">
-									<div class="text-center mt-2">
-										<div class="text-lg font-bold">
-											<%= friend.displayname %>
+								<div class=" flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+									<a href="/partial/pages/profile/<%= friend.id %>" target="_blank"
+										class="cursor-pointer">
+										<img src="/api/profile/<%= friend.id %>/picture"
+											alt="Friend Picture <%= friend.id %>"
+											class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">
+										<div class="text-center mt-2">
+											<div class="text-lg font-bold">
+												<%= friend.displayname %>
+											</div>
+											<div class="text-sm text-gray-600">@<%= friend.username %>
+											</div>
 										</div>
-										<div class="text-sm text-gray-600">@<%= friend.username %>
-										</div>
-									</div>
-									<form method="POST" action="/friends/remove" class="mt-2">
-										<input type="hidden" name="friendId" value="<%= friend.id %>">
-										<button type="submit"
-											class="bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded">
-											Remove
-										</button>
-									</form>
+									</a>
+									<% if (isSelf) { %>
+										<form method="POST" action="/api/friends/remove" class="mt-2">
+											<input type="hidden" name="friendId" value="<%= friend.id %>">
+											<button type="submit"
+												onclick="event.stopPropagation(); return confirm('Are you sure you want to remove <%= friend.displayname %> from your friends?'); loadPartialView('profile')"
+												class="bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded">
+												Remove
+											</button>
+										</form>
+										<% } %>
 								</div>
 								<% }) %>
 									<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">

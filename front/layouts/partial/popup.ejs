@@ -5,7 +5,7 @@
 	<% if (callback && callback.trim()) { %>
 		<button
 			class="ml-4 bg-<%= color %>-500 hover:bg-<%= color %>-600 text-white px-2 py-1 rounded transition-colors"
-			onclick="<%= callback %>">
+			onclick="<%= callback %>; this.closest('.popup').remove();">
 			<%= buttonName %>
 		</button>
 		<% } %>

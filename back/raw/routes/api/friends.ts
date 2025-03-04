@@ -5,8 +5,8 @@ import { connectedClients, sendPopupToClient } from '../../sse.js';
 export async function friendRoutes(app: FastifyInstance) {
 
 	app.post('/api/friends/request', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
-		const requesterId: number = req.user.id;
-		const requestedId = req.body.requestId;
+		const requesterId: number = Number(req.user.id);
+		const requestedId: number = Number(req.body.requestId);
 
 		const pendingRequest = await getPendingFriendRequest(requesterId, requestedId);
 		if (pendingRequest) {

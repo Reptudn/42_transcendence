@@ -27,8 +27,6 @@ export async function eventRoutes(app: FastifyInstance) {
 			'Transfer-Encoding': 'identity'
 		});
 
-		console.log('Established sse conn');
-
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
 		connectedClients.set(user.id, reply);
@@ -88,6 +86,6 @@ export function sendPopupToClient(id: number, title: string = 'Info', descriptio
 }
 setInterval(() => {
 	connectedClients.forEach((reply: FastifyReply, user: number) => {
-		sendPopupToClient(user, 'PING', '-> it\'s pongin\' time!', 'pink', 'testCallback()');
+		sendPopupToClient(user, 'PING', '-> it\'s pongin\' time!', 'pink');
 	});
 }, 30000);
