@@ -35,7 +35,7 @@
 							<% friends.forEach(friend=> { %>
 								<div class=" flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
 									<a href="/partial/pages/profile/<%= friend.id %>" target="_blank"
-										class="cursor-pointer">
+										class="cursor-pointer flex flex-col items-center">
 										<img src="/api/profile/<%= friend.id %>/picture"
 											alt="Friend Picture <%= friend.id %>"
 											class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">

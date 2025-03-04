@@ -17,8 +17,6 @@ export async function friendRoutes(app: FastifyInstance) {
 
 		try {
 			const requestId = await sendFriendRequest(requesterId, requestedId);
-			console.log('connectedClients: ', connectedClients);
-			console.log('requestedId: ', requestedId);
 			if (connectedClients && connectedClients.has(requestedId)) {
 				sendPopupToClient(
 					requestedId,

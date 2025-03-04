@@ -27,6 +27,8 @@ export async function eventRoutes(app: FastifyInstance) {
 			'Transfer-Encoding': 'identity'
 		});
 
+		// TODO: after making friend requests declinable, send all outstanding requests again when reconnected
+
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
 		connectedClients.set(user.id, reply);
