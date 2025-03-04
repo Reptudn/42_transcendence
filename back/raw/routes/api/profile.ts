@@ -3,7 +3,7 @@ import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyU
 import { checkAuth } from "./auth.js";
 
 export async function profileRoutes(app: FastifyInstance) {
-	const DEFAULT_PROFILE_PIC_COUNT = 21;
+	const DEFAULT_PROFILE_PIC_COUNT = 26;
 	const PROFILE_PIC_OFFSET = Math.floor(Math.random() * DEFAULT_PROFILE_PIC_COUNT);
 	app.get('/api/profile/:id/picture', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { id } = req.params;

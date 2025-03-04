@@ -1,5 +1,13 @@
 # ITS HAPPENING
 
+### restraints
+
+- password (8 - 32)
+- username (under 16)
+- display name (under 32)
+- bio (under 1024)
+- profile picture (under 1mb)
+
 > can we please add this i think it's cool -> https://www.youtube.com/watch?v=5pPMvFGJPCs
 
 socket.io for websockets
