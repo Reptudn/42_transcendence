@@ -130,3 +130,10 @@ export async function deleteUser(id: number) {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	await db.run('DELETE FROM users WHERE id = ?', id);
 }
+
+export async function getNameForUser(id: number): Promise<string> {
+	const user = await getUserById(id);
+	if (!user)
+		return 'Unknown User';
+	return user.displayname ? user.displayname : '@' + user.username;
+}

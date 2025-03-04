@@ -2,7 +2,7 @@ import { dataBaseLocation, Friend } from './database.js';
 import { open, Database } from 'sqlite';
 import sqlite3 from 'sqlite3';
 
-export async function sendFriendRequest(requesterId: number, requestedId: number): Promise<number> {
+export async function createFriendRequest(requesterId: number, requestedId: number): Promise<number> {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	const result = await db.run(
 		'INSERT INTO friends (requester_id, requested_id) VALUES (?, ?)',
@@ -22,6 +22,17 @@ export async function acceptFriendRequest(requestId: number): Promise<void> {
 	);
 	if (result.changes === 0) {
 		throw new Error('No friend request found to accept.');
+	}
+}
+
+export async function rejectFriendRequest(requestId: number): Promise<void> {
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const result = await db.run(
+		'DELETE FROM friends WHERE id = ?',
+		requestId
+	);
+	if (result.changes === 0) {
+		throw new Error('No friend request found to reject.');
 	}
 }
 
@@ -46,14 +57,25 @@ export async function getFriends(userId: number) {
 	);
 }
 
-export async function getPendingFriendRequest(fromUserId: number, toUserId: number): Promise<Friend | undefined> {
+export async function getFriendRequest(fromUserId: number, toUserId: number): Promise<Friend | undefined> {
 	const db: Database = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database
 	});
 	return await db.get<Friend>(
-		`SELECT * FROM friends WHERE requester_id = ? AND requested_id = ? AND accepted = 0`,
-		[fromUserId, toUserId]
+		`SELECT * FROM friends WHERE requester_id = ? AND requested_id = ? OR requester_id = ? AND requested_id = ?`,
+		[fromUserId, toUserId, toUserId, fromUserId]
+	);
+}
+
+export async function getPendingFriendRequestsFromUser(userId: number): Promise<Friend[]> {
+	const db: Database = await open({
+		filename: dataBaseLocation,
+		driver: sqlite3.Database
+	});
+	return await db.all<Friend[]>(
+		`SELECT * FROM friends WHERE requester_id = ? AND accepted = 0`,
+		[userId]
 	);
 }
 
@@ -63,7 +85,7 @@ export async function getPendingFriendRequestsForUser(userId: number): Promise<F
 		driver: sqlite3.Database
 	});
 	return await db.all<Friend[]>(
-		`SELECT * FROM friends WHERE requester_id = ? AND accepted = 0`,
+		`SELECT * FROM friends WHERE requested_id = ? AND accepted = 0`,
 		[userId]
 	);
 }

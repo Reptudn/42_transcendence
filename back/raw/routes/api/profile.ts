@@ -3,6 +3,8 @@ import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyU
 import { checkAuth } from "./auth.js";
 
 export async function profileRoutes(app: FastifyInstance) {
+	const DEFAULT_PROFILE_PIC_COUNT = 21;
+	const PROFILE_PIC_OFFSET = Math.floor(Math.random() * DEFAULT_PROFILE_PIC_COUNT);
 	app.get('/api/profile/:id/picture', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
 		const { id } = req.params;
 		const user = await getUserById(parseInt(id));
@@ -10,7 +12,8 @@ export async function profileRoutes(app: FastifyInstance) {
 			return reply.code(404).send({ message: 'User not found' });
 		}
 		if (!user.profile_picture) {
-			return reply.redirect('/static/assets/images/default_profile.png');
+			let defaultPicId = (user.id + PROFILE_PIC_OFFSET) % DEFAULT_PROFILE_PIC_COUNT;
+			return reply.redirect(`/static/assets/images/default_profile${defaultPicId}.png`);
 		}
 		let base64Data = user.profile_picture;
 		const dataPrefix = 'data:image/png;base64,';

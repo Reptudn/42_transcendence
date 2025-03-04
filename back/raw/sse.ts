@@ -5,6 +5,9 @@ import logger from './logger.js';
 import { __dirname } from './main.js';
 import { checkAuth } from './routes/api/auth.js';
 import { User } from './db/database.js';
+import { getPendingFriendRequestsForUser, removeFriendship } from './db/db_friends.js';
+import { Friend } from './db/database.js';
+import { getUserById, getNameForUser } from './db/db_users.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
@@ -27,13 +30,24 @@ export async function eventRoutes(app: FastifyInstance) {
 			'Transfer-Encoding': 'identity'
 		});
 
-		// TODO: after making friend requests declinable, send all outstanding requests again when reconnected
-
 		reply.raw.write(`data: ${JSON.stringify({ type: 'log', message: 'Connection with Server established' })}\n\n`);
 
 		connectedClients.set(user.id, reply);
 
-		sendPopupToClient(user.id, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green', 'testCallback()', 'HELL YEAH BEEP BOOP BACK AT YOU DUDE');
+		sendPopupToClient(user.id, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green');
+
+		const openFriendRequests = await getPendingFriendRequestsForUser(user.id)
+		{
+			for (const request of openFriendRequests) {
+				const requester: User | null = await getUserById(request.requester_id);
+				if (requester) {
+					sendPopupToClient(user.id, 'Friend Request', `<a href="/partial/pages/profile/${request.requester_id}" target="_blank">User ${await getNameForUser(request.requester_id) || requester.username}</a> wishes to be your friend!`, 'blue', `acceptFriendRequest(${request.id})`, 'Accept', `declineFriendRequest(${request.id})`, 'Decline');
+				} else {
+					logger.error(`User with id ${request.requester_id} not found.`);
+					removeFriendship(request.requester_id, request.requested_id);
+				}
+			}
+		}
 
 		request.raw.on('close', () => {
 			connectedClients.delete(user.id);
@@ -52,8 +66,8 @@ export async function eventRoutes(app: FastifyInstance) {
 			reply.send({ message: 'Not authenticated' });
 			return;
 		}
-		const { title, description, color, callback, buttonName } = request.body as { title: string, description: string, color: string, callback: string, buttonName: string };
-		sendPopupToClient(user.id, title, description, color, callback, buttonName);
+		const { title, description, color, callback1, buttonName1, callback2, buttonName2 } = request.body as { title: string, description: string, color: string, callback1: string, buttonName1: string, callback2: string, buttonName2: string };
+		sendPopupToClient(user.id, title, description, color, callback1, buttonName1, callback2, buttonName2);
 		reply.send({ message: 'Popup sent' });
 	});
 }
@@ -66,14 +80,22 @@ export const sendRawToClient = (user: User, data: any) => {
 		console.error(`Client ${user.displayname} not found in connected users.`);
 	}
 };
-export function sendPopupToClient(id: number, title: string = 'Info', description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'PROCEED') {
+export function sendPopupToClient(
+	id: number,
+	title: string = 'Info',
+	description: string = '',
+	color: string = 'black',
+	callback1: string = '',
+	buttonName1: string = 'PROCEED',
+	callback2: string = '',
+	buttonName2: string = 'CANCEL') {
 	let reply = connectedClients.get(id);
 	if (!reply) {
 		logger.error(`Client with id ${id} not found in connected users.`);
 		return;
 	}
 	try {
-		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback, buttonName }, (err, str) => {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2 }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
 				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);

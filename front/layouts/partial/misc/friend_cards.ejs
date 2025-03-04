@@ -16,7 +16,7 @@
 					</div>
 				</a>
 				<% if (!user.alreadyFriend) { %>
-					<button onclick="event.stopPropagation(); sendFriendRequest(<%= user.id %>, this);"
+					<button onclick="sendFriendRequest(<%= user.id %>, this);"
 						class="mt-2 bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-1 px-3 rounded">
 						Add Friend
 					</button>
