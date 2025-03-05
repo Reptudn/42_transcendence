@@ -143,10 +143,11 @@ async function updateNumber(increment: number): Promise<void> {
 	}
 }
 const numberDisplay = document.getElementById('numberDisplay');
-if (numberDisplay) {
+if (numberDisplay && !numberDisplay.hasAttribute('data-listener-added')) {
 	numberDisplay.addEventListener('click', () => {
 		updateNumber(1);
 	});
+	numberDisplay.setAttribute('data-listener-added', 'true');
 }
 setInterval(fetchNumber, 1000);
 document.addEventListener('DOMContentLoaded', fetchNumber);

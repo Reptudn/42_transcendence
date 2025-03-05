@@ -167,3 +167,10 @@ export async function getNameForUser(id: number): Promise<string> {
 		return 'Unknown User';
 	return user.displayname ? user.displayname : '@' + user.username;
 }
+
+export async function incrementUserClickCount(userId: number, increment: number = 1): Promise<number> {
+	const db = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	await db.run('UPDATE users SET click_count = click_count + ? WHERE id = ?', [increment, userId]);
+	const user = await db.get('SELECT click_count FROM users WHERE id = ?', userId);
+	return user ? user.click_count : 0;
+}

@@ -29,7 +29,7 @@
 				</div>
 				<% } %>
 
-					<div class="mt-6">
+					<div class="mt-6 border-t pt-4">
 						<h3 class="text-xl font-bold mb-4">Friends</h3>
 						<div class="flex flex-wrap gap-4">
 							<% friends.forEach(friend=> { %>
@@ -69,7 +69,28 @@
 					</div>
 
 					<div class="mt-6 border-t pt-4">
-						<h4 class="font-bold">Match History</h4>
+						<h4 class="text-xl font-bold mb-4">Match History</h4>
 						<p class="text-gray-500">Coming soon...</p>
 					</div>
+
+					<% if (achievements && achievements.length> 0) { %>
+						<div class="mt-6 border-t pt-4">
+							<h3 class="text-xl font-bold mb-4">Achievements</h3>
+							<span class="text-gray-500 ml-5">
+								<%= unlockedCount %> / <%= totalCount %>
+							</span>
+							<ul class="list-disc pl-5">
+								<% achievements.forEach(achievement=> { %>
+									<li class="<%= achievement.unlocked ? 'text-green-600' : 'text-gray-500' %>">
+										<strong>
+											<%= achievement.name %>
+										</strong>: <%= achievement.description %>
+											<% if (achievement.unlocked) { %>
+												<span> 🎉</span>
+												<% } %>
+									</li>
+									<% }) %>
+							</ul>
+						</div>
+						<% } %>
 </div>

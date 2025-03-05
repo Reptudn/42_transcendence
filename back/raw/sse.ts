@@ -88,14 +88,15 @@ export function sendPopupToClient(
 	callback1: string = '',
 	buttonName1: string = 'PROCEED',
 	callback2: string = '',
-	buttonName2: string = 'CANCEL') {
+	buttonName2: string = 'CANCEL',
+	isAchievement: boolean = false) {
 	let reply = connectedClients.get(id);
 	if (!reply) {
 		logger.error(`Client with id ${id} not found in connected users.`);
 		return;
 	}
 	try {
-		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2 }, (err, str) => {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2, isAchievement }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
 				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);

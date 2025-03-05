@@ -3,6 +3,7 @@ import { getUserById } from "../db/db_users.js";
 import { checkAuth } from "./api/auth.js";
 import { searchUsers } from '../db/db_users.js';
 import { getFriends, getPendingFriendRequestsForUser } from '../db/db_friends.js';
+import { getUserAchievements, getAllAchievements } from '../db/db_achievements.js';
 
 export async function generalRoutes(app: FastifyInstance) {
 
@@ -43,9 +44,20 @@ export async function generalRoutes(app: FastifyInstance) {
 					throw new Error("User not found");
 				}
 				profile.profile_picture = "/profile/" + profileId + "/picture";
-				let friends = await getFriends(profileId);
 				variables["user"] = profile;
 				variables["isSelf"] = isSelf;
+
+				const unlockedAchievements = await getUserAchievements(profileId);
+				const allAchievements = await getAllAchievements();
+				const achievements = allAchievements.map(ach => ({
+					...ach,
+					unlocked: unlockedAchievements.some(ua => ua.id === ach.id)
+				}));
+				variables["achievements"] = achievements;
+				variables["unlockedCount"] = unlockedAchievements.length;
+				variables["totalCount"] = allAchievements.length;
+
+				let friends = await getFriends(profileId);
 				variables["friends"] = friends;
 			} else if (page === 'edit_profile') {
 				let profile = await checkAuth(req, true);

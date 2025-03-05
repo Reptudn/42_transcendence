@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../../db/db_users.js";
 import { checkAuth } from "./auth.js";
+import { unlockAchievement } from "../../db/db_achievements.js";
 
 export async function profileRoutes(app: FastifyInstance) {
 	const DEFAULT_PROFILE_PIC_COUNT = 26;
@@ -37,6 +38,10 @@ export async function profileRoutes(app: FastifyInstance) {
 				if (typeof profile_picture != 'string' || !profile_picture.startsWith('data:image/png;base64,')) {
 					return reply.code(400).send({ message: 'Invalid profile picture' });
 				}
+			}
+
+			if (displayName == "Reptudn" || displayName == "Freddy") {
+				await unlockAchievement(userId, 'name-change-creator');
 			}
 
 			await updateUserProfile(userId, username, displayName, bio, profile_picture);

@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { getUserById, loginUser, registerUser } from "../../db/db_users.js";
+import { unlockAchievement } from "../../db/db_achievements.js";
 import { User } from "../../db/database.js";
 
 export async function authRoutes(app: FastifyInstance) {

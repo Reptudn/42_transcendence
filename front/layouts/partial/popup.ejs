@@ -1,27 +1,32 @@
-<div class="popup pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
+<div class="popup flex pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
 	role="alert">
-	<strong class="font-bold"><%- title %></strong>
-	<span class="block"><%- description %></span>
-	<% if (callback1 && callback1.trim()) { %>
-		<button
-			class="ml-4 bg-<%= color %>-500 hover:bg-<%= color %>-600 text-white px-2 py-1 rounded transition-colors"
-			onclick="<%= callback1 %>; this.closest('.popup').remove();">
-			<%= buttonName1 ? buttonName1 : callback1 %>
-		</button>
+	<% if (isAchievement) { %>
+		<img src="/static/assets/images/achievement-star.png" alt="Star" style="max-height: 3em;">
 		<% } %>
-			<% if (callback2 && callback2.trim()) { %>
-				<button
-					class="ml-4 bg-<%= color %>-500 hover:bg-<%= color %>-600 text-white px-2 py-1 rounded transition-colors"
-					onclick="<%= callback2 %>; this.closest('.popup').remove();">
-					<%= buttonName2 ? buttonName2 : callback2 %>
-				</button>
-				<% } %>
-					<span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="dismissPopup(this)">
-						<svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button"
-							xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-							<title>Close</title>
-							<path
-								d="M14.348 5.652a.5.5 0 0 1 .708.708L11.707 10l3.35 3.35a.5.5 0 0 1-.708.708L11 10.707l-3.35 3.35a.5.5 0 0 1-.708-.708L10.293 10 6.943 6.65a.5.5 0 0 1 .708-.708L11 9.293l3.35-3.35z" />
-						</svg>
-					</span>
+			<div class="flex-1">
+				<strong class="font-bold"><%- title %></strong>
+				<span class="block"><%- description %></span>
+				<% if (callback1 && callback1.trim()) { %>
+					<button
+						class="ml-4 bg-<%= color %>-500 hover:bg-<%= color %>-600 text-white px-2 py-1 rounded transition-colors"
+						onclick="<%= callback1 %>; this.closest('.popup').remove();">
+						<%= buttonName1 ? buttonName1 : callback1 %>
+					</button>
+					<% } %>
+						<% if (callback2 && callback2.trim()) { %>
+							<button
+								class="ml-4 bg-<%= color %>-500 hover:bg-<%= color %>-600 text-white px-2 py-1 rounded transition-colors"
+								onclick="<%= callback2 %>; this.closest('.popup').remove();">
+								<%= buttonName2 ? buttonName2 : callback2 %>
+							</button>
+							<% } %>
+			</div>
+			<span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="dismissPopup(this)">
+				<svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 20 20">
+					<title>Close</title>
+					<path
+						d="M14.348 5.652a.5.5 0 0 1 .708.708L11.707 10l3.35 3.35a.5.5 0 0 1-.708.708L11 10.707l-3.35 3.35a.5.5 0 0 1-.708-.708L10.293 10 6.943 6.65a.5.5 0 0 1 .708-.708L11 9.293l3.35-3.35z" />
+				</svg>
+			</span>
 </div>
