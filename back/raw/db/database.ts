@@ -40,7 +40,10 @@ async function createDatabase() {
 		displayname TEXT NOT NULL,
 		bio TEXT DEFAULT '',
 		profile_picture TEXT DEFAULT '',
-		click_count INTEGER DEFAULT 0
+		click_count INTEGER DEFAULT 0,
+		title_first INTEGER,
+		title_second INTEGER,
+		title_third INTEGER
 	)
 	`);
 
@@ -61,7 +64,10 @@ async function createDatabase() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		key TEXT NOT NULL UNIQUE,
 		name TEXT NOT NULL UNIQUE,
-		description TEXT NOT NULL
+		description TEXT NOT NULL,
+		title_first TEXT,
+		title_second TEXT,
+		title_third TEXT
 		)
 	`);
 
@@ -78,11 +84,11 @@ async function createDatabase() {
 	`);
 
 	await db.exec(`
-		INSERT OR IGNORE INTO achievements (key, name, description) VALUES 
-		('number-1', 'What''s the point?', 'Click the number once.'),
-		('number-2', 'Clickerman', 'Click the number 100 times.'),
-		('number-3', 'Why?', 'Click the number 1000 times.'),
-		('name-change-creator', 'God Complex', 'Change your display name to \"Reptudn\" or \"Freddy\".')
+		INSERT OR IGNORE INTO achievements (key, name, description, title_first, title_second, title_third) VALUES 
+		('number-1', 'What''s the point?', 'Click the number once.', 'Clicking', 'Enthusiast', '👈'),
+		('number-2', 'Clickerman', 'Click the number 100 times.', 'Blazing', 'Clickerman', '🔥'),
+		('number-3', 'Why?', 'Click the number 1000 times.', 'Relentless', 'Clicking Machine', '💣'),
+		('name-change-creator', 'God Complex', 'Change your display name to \"Reptudn\" or \"Freddy\".', 'God-like', 'Plagiarist', '👀')
 	`);
 }
 createDatabase().catch(error => {

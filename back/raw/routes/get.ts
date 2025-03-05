@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById } from "../db/db_users.js";
+import { getUserById, getUserTitleString } from "../db/db_users.js";
 import { checkAuth } from "./api/auth.js";
 import { searchUsers } from '../db/db_users.js';
 import { getFriends, getPendingFriendRequestsForUser } from '../db/db_friends.js';
@@ -46,6 +46,7 @@ export async function generalRoutes(app: FastifyInstance) {
 				profile.profile_picture = "/profile/" + profileId + "/picture";
 				variables["user"] = profile;
 				variables["isSelf"] = isSelf;
+				variables["title"] = await getUserTitleString(profile.id);
 
 				const unlockedAchievements = await getUserAchievements(profileId);
 				const allAchievements = await getAllAchievements();

@@ -36,11 +36,14 @@ export async function registerUser(username: string, password: string, displayna
 	if (/\s/.test(username) || /\s/.test(password)) {
 		throw new Error('Username and password cannot contain spaces');
 	}
+	const titleFirst = Math.floor(Math.random() * 10);
+	const titleSecond = Math.floor(Math.random() * 10);
+	const titleThird = Math.floor(Math.random() * 10);
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	const hashedPassword: string = await bcrypt.hash(password, 10);
 	await db.run(
-		'INSERT INTO users (username, password, displayname) VALUES (?, ?, ?)',
-		[username, hashedPassword, displayname]
+		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
+		[username, hashedPassword, displayname, titleFirst, titleSecond]
 	);
 }
 export async function loginUser(username: string, password: string): Promise<User> {
@@ -173,4 +176,64 @@ export async function incrementUserClickCount(userId: number, increment: number 
 	await db.run('UPDATE users SET click_count = click_count + ? WHERE id = ?', [increment, userId]);
 	const user = await db.get('SELECT click_count FROM users WHERE id = ?', userId);
 	return user ? user.click_count : 0;
+}
+
+const default_titles_first = ['Motivated', 'Determined', 'Pong', 'Curious', 'Matchmaking', 'Professional', 'Aggressive', 'Evil', 'Insane', 'Happy'];
+const default_titles_second = ['Coder', 'Ponger', 'Gamer', 'Achievement Collector', 'Anarchist', 'CORE Player', 'Opponent', 'Addict', 'Pong Player', 'Noob'];
+const default_titles_third = ['⭐️', '🎮', '🏓', '🍔', '🍕', '💥', '🚀', '🎸', '😎', '💩'];
+
+export async function getUserTitleString(userId: number) {
+	const db = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const user = await db.get('SELECT title_first, title_second, title_third FROM users WHERE id = ?', userId);
+	if (!user) return '';
+
+	let title: string = '';
+	if (user.title_first < 10) {
+		title += default_titles_first[user.title_first];
+	} else {
+		const titleFirst = await db.get('SELECT title_first FROM achievements WHERE id = ?', user.title_first - 10);
+		if (titleFirst) title += titleFirst.name;
+	}
+	if (title) title += ' ';
+	if (user.title_second < 10) {
+		title += default_titles_second[user.title_second];
+	} else {
+		const titleSecond = await db.get('SELECT title_second FROM achievements WHERE id = ?', user.title_second - 10);
+		if (titleSecond) title += titleSecond.name;
+	}
+	if (title) title += ' ';
+	if (user.title_third < 10) {
+		title += default_titles_third[user.title_third];
+	} else {
+		const titleThird = await db.get('SELECT title_third FROM achievements WHERE id = ?', user.title_third - 10);
+		if (titleThird) title += titleThird.name;
+	}
+	return title;
+}
+
+async function getUserTitles(title: string, default_titles: string[]): Promise<string[]> {
+	const usertitles: string[] = [];
+
+	for (const title of default_titles) {
+		usertitles.push(title);
+	}
+
+	const db = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const titles = await db.all('SELECT ' + title + ' FROM achievements');
+	for (const title of titles) {
+		usertitles.push(title.name);
+	}
+
+	return usertitles;
+}
+export async function getUserTitlesForTitle(title: number): Promise<string[]> {
+	switch (title) {
+		case 1:
+			return getUserTitles('title_first', default_titles_first);
+		case 2:
+			return getUserTitles('title_second', default_titles_second);
+		case 3:
+		default:
+			return getUserTitles('title_third', default_titles_third);
+	}
 }
