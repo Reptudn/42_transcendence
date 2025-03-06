@@ -23,7 +23,7 @@
 	<div class="google-signin">
 		<script src="https://accounts.google.com/gsi/client" async></script>
 		<div id="g_id_onload"
-			data-client_id=""
+			data-client_id="<%= process.env.GOOGLE_OAUTH_CLIENT_ID %>"
 			data-login_uri="http://localhost:4242/api/auth/google"
 			data-auto_prompt="false">
 		</div>

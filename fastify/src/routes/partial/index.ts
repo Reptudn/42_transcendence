@@ -1,0 +1,97 @@
+import { FastifyPluginAsync } from "fastify"
+
+const partials: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+
+	fastify.get('/', async (req: any, reply: any) => {
+		const isAuthenticated = await checkAuth(req) != null;
+		return reply.view('partial/pages/index.ejs', { name: 'Guest', isAuthenticated }, { layout: 'basic.ejs' });
+	});
+
+  	fastify.get('/pages/:page/:profile_id?', async (req: any, reply: any) => {
+		const page = req.params.page;
+		const loadpartial = req.headers['loadpartial'] === 'true';
+		const layoutOption = loadpartial ? false : 'basic.ejs';
+		const user = await checkAuth(req);
+
+		let variables: { [key: string]: any } = {};
+		variables["isAuthenticated"] = user != null;
+		if (user != null)
+			variables["name"] = user.displayname || user.username;
+		else
+			variables["name"] = "Guest";
+
+		let errorCode: number = 418;
+
+		try {
+			if (page === 'profile') {
+				await checkAuth(req, true);
+				let self_id: number | null = user ? user.id : null;
+				let friend_id: number | null = req.params.profile_id ? parseInt(req.params.profile_id) : null;
+				if (friend_id == null && self_id == null) {
+					errorCode = 400;
+					throw new Error("No user id provided & not logged in");
+				}
+				let profileId: number = friend_id ?? self_id!;
+				let isSelf = profileId === req.user.id;
+				let profile = await getUserById(profileId);
+				if (!profile) {
+					errorCode = 404;
+					throw new Error("User not found");
+				}
+				profile.profile_picture = "/profile/" + profileId + "/picture";
+				let friends = await getFriends(profileId);
+				variables["user"] = profile;
+				variables["isSelf"] = isSelf;
+				variables["friends"] = friends;
+			} else if (page === 'edit_profile') {
+				let profile = await checkAuth(req, true);
+				if (!profile) {
+					errorCode = 404;
+					throw new Error("User not found");
+				}
+				variables["user"] = profile;
+			}
+		} catch (err) {
+			variables["err_code"] = errorCode;
+			if (err instanceof Error) {
+				variables["err_message"] = err.message;
+			} else {
+				variables["err_message"] = "An unknown error occurred";
+			}
+			return reply.code(errorCode).view('partial/pages/error.ejs', variables, { layout: layoutOption });
+		}
+
+		if (['add_friends'].includes(page) && !variables["isAuthenticated"])
+			return reply.view(`partial/pages/no_access.ejs`, variables, { layout: layoutOption });
+		else
+			return reply.view(`partial/pages/${page}.ejs`, variables, { layout: layoutOption });
+	});
+
+	fastify.get('/menu', async (req: any, reply: any) => {
+		const isAuthenticated = await checkAuth(req) != null;
+		const menuTemplate = isAuthenticated ? 'partial/menu/loggedin.ejs' : 'partial/menu/guest.ejs';
+		return reply.view(menuTemplate, { name: 'Freddy' });
+	});
+
+	fastify.get('/friends/search', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+		const query: string = req.query.q || '';
+		let results = query ? await searchUsers(query) : [];
+		results.filter((user: any) => user.id !== req.user.id);
+		results = results.slice(0, 50);
+
+		const friends = await getFriends(req.user.id);
+		const pendingRequests = await getPendingFriendRequestsForUser(req.user.id);
+		const pendingIds = pendingRequests.map((pending: any) => pending.requested_id);
+
+		results = results.filter((result: any) => {
+			const isFriend = friends.some((friend: any) => friend.id === result.id);
+			const isPending = pendingIds.includes(result.id);
+			const isSelf = result.id === req.user.id;
+			return !isFriend && !isPending && !isSelf;
+		});
+
+		return reply.view('partial/misc/friend_cards.ejs', { results });
+	});
+}
+
+export default partials;

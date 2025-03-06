@@ -16,9 +16,29 @@ import { numberRoutes } from './routes/number.js';
 import { friendRoutes } from './routes/api/friends.js';
 import { request } from 'http';
 
+import oauthPlugin from "@fastify/oauth2";
+
 const app = fastify();
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+app.register(oauthPlugin, {
+	name: "googleOAuth2",
+	credentials: {
+		client: {
+			id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+			secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+		},
+		auth: oauthPlugin.GOOGLE_CONFIGURATION,
+	},
+	scope: ["profile", "email"],
+	startRedirectPath: "/api/auth/google",
+	callbackUri: (req: { protocol: string; hostname: string; }) => `${req.protocol}://${req.hostname}/api/auth/google/callback`,
+	callbackUriParams: {
+		access_type: "offline",
+		prompt: "consent",
+	},
+});
 
 app.register(fastifyJwt, {
 	secret: crypto.randomBytes(64).toString('hex'),

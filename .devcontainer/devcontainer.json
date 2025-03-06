@@ -23,7 +23,8 @@
 				"github.vscode-github-actions",
 				"YoavBls.pretty-ts-errors",
 				"usernamehw.errorlens",
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-docker",
+				"DigitalBrainstem.javascript-ejs-support"
 			]
 		}
 	},

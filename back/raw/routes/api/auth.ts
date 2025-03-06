@@ -1,7 +1,8 @@
 import fastify, { FastifyInstance } from "fastify";
 import { getUserById, loginUser, registerUser } from "../../db/db_users.js";
 import { User } from "../../db/database.js";
-import oauthPlugin from '@fastify/oauth2';
+import oauthPlugin from "@fastify/oauth2";
+
 
 export async function authRoutes(app: FastifyInstance) {
 	// normal auth
@@ -51,28 +52,9 @@ export async function authRoutes(app: FastifyInstance) {
 
 	if (process.env.googleClientId && process.env.googleClientSecret) {
 		console.log('Google OAuth enabled');
-		
+	
 		// google oauth
-		app.register(oauthPlugin, {
-			name: 'googleOAuth2',
-			scope: ['profile', 'email'],
-			config: {
-				tokenHost: 'https://accounts.google.com',
-				tokenPath: '/o/oauth2/token',
-				authorizeHost: 'https://accounts.google.com',
-				authorizePath: '/o/oauth2/auth',
-			},
-			callbackUri: 'http://localhost:3000/auth/google/callback',
-			credentials: {
-				client: {
-					id: "",
-					secret: "",
-				},
-				auth: oauthPlugin.GOOGLE_CONFIGURATION,
-			},
-			startRedirectPath: 'api/auth/google',
-			callbackUriParams: true,
-		});
+
 		app.get('/api/auth/google/callback', async (req: any, reply: any) => {
 			const { token, user } = req.googleOAuth2;
 			if (token && user) {
@@ -92,7 +74,7 @@ export async function authRoutes(app: FastifyInstance) {
 				reply.send('Something went wrong');
 			}
 		});
-
+		
 	} else console.log('Google OAuth disbaled');
 }
 
