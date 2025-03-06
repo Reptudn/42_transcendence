@@ -8,7 +8,8 @@
 				"editor.formatOnPaste": true,
 				"editor.formatOnSave": true,
 				"C_Cpp.formatting": "disabled",
-				"files.autoSave": "onFocusChange"
+				"files.autoSave": "onFocusChange",
+				"editor.defaultFormatter": "esbenp.prettier-vscode"
 			},
 			"extensions": [
 				"PKief.material-icon-theme",
@@ -23,7 +24,8 @@
 				"github.vscode-github-actions",
 				"YoavBls.pretty-ts-errors",
 				"usernamehw.errorlens",
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-docker",
+				"esbenp.prettier-vscode"
 			]
 		}
 	},
