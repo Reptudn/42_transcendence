@@ -43,6 +43,12 @@ export async function profileRoutes(app: FastifyInstance) {
 			if (displayName == "Reptudn" || displayName == "Freddy") {
 				await unlockAchievement(userId, 'name-change-creator');
 			}
+			if (typeof bio == 'string')
+				if (bio.length > 100)
+					await unlockAchievement(userId, 'long-bio');
+			if (profile_picture) {
+				await unlockAchievement(userId, 'pfp-change');
+			}
 
 			await updateUserProfile(userId, username, displayName, bio, profile_picture);
 			await updateUserPassword(userId, oldPassword, newPassword);

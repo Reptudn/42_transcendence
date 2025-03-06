@@ -104,8 +104,16 @@
 		"title_third": "🤦"
 	},
 	{
+		"key": "lose-3",
+		"name": "Three strikes and you're out.",
+		"description": "Lose 3 games of Pong.",
+		"title_first": "Failing",
+		"title_second": "Moron",
+		"title_third": "🤡"
+	},
+	{
 		"key": "lose-5",
-		"name": "Misfortune's Muse",
+		"name": "QUICK, Hide the evidence!",
 		"description": "Lose 5 games of Pong.",
 		"title_first": "Lacking",
 		"title_second": "newbie",
@@ -126,5 +134,93 @@
 		"title_first": "Abysmal",
 		"title_second": "Anti-Talent",
 		"title_third": "🫠"
+	},
+	{
+		"key": "long-bio",
+		"name": "The Storyteller",
+		"description": "Write a bio that over 100 characters long.",
+		"title_first": "Verbose",
+		"title_second": "Storyteller",
+		"title_third": "📚"
+	},
+	{
+		"key": "pfp-change",
+		"name": "The Chameleon",
+		"description": "Change your profile picture.",
+		"title_first": "Changing",
+		"title_second": "Chameleon",
+		"title_third": "🤩"
+	},
+	{
+		"key": "login",
+		"name": "The baby",
+		"description": "Create an account.",
+		"title_first": "New",
+		"title_second": "User",
+		"title_third": "👶"
+	},
+	{
+		"key": "change-title",
+		"name": "Self-promotion",
+		"description": "Change your title.",
+		"title_first": "Egoistic",
+		"title_second": "Self-indulger",
+		"title_third": "🤑"
+	},
+	{
+		"key": "beat-3",
+		"name": "The highschool bully",
+		"description": "Beat 3 people in Pong.",
+		"title_first": "Fear-inducing",
+		"title_second": "Bully",
+		"title_third": "👊"
+	},
+	{
+		"key": "beat-10",
+		"name": "The one you don't want to mess with",
+		"description": "Beat 10 people in Pong.",
+		"title_first": "Mighty",
+		"title_second": "Accomplisher",
+		"title_third": "👻"
+	},
+	{
+		"key": "beat-25",
+		"name": "Sweet victory",
+		"description": "Beat 25 people in Pong.",
+		"title_first": "Victorious",
+		"title_second": "Conqueror",
+		"title_third": "🎇"
+	},
+	{
+		"key": "beat-50",
+		"name": "Haha noobs",
+		"description": "Beat 50 people in Pong.",
+		"title_first": "Unbeatable",
+		"title_second": "Talent",
+		"title_third": "🤯"
+	},
+	{
+		"key": "beat-100",
+		"name": "He who shall not be named",
+		"description": "Beat 100 people in Pong.",
+		"title_first": "Unstoppable",
+		"title_second": "Force",
+		"title_third": "🦹‍♂️"
+	},
+	{
+		"key": "beat-250",
+		"name": "The Pong God",
+		"description": "Beat 250 people in Pong.",
+		"title_first": "Undefeated",
+		"title_second": "God",
+		"title_third": "👑"
+	},
+	{
+		"key": "defeated-4",
+		"name": "eMoTiOnAl DaMaGe",
+		"description": "Lose first against 3 other people.",
+		"title_first": "Damaged",
+		"title_second": "Nobody",
+		"title_third": "😭"
 	}
 ]

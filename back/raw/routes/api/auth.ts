@@ -10,6 +10,7 @@ export async function authRoutes(app: FastifyInstance) {
 			const user: User = await loginUser(username, password);
 			const token = app.jwt.sign({ username: user.username, id: user.id },
 				{ expiresIn: '10d' });
+			await unlockAchievement(user.id, 'login');
 			reply
 				.setCookie('token', token, {
 					httpOnly: true,
