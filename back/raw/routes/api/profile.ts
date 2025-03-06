@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword } from "../../db/db_users.js";
+import { getUserById, updateUserProfile, updateUserPassword, deleteUser, verifyUserPassword, updateUserTitle } from "../../db/db_users.js";
 import { checkAuth } from "./auth.js";
 import { unlockAchievement } from "../../db/db_achievements.js";
 
@@ -53,6 +53,29 @@ export async function profileRoutes(app: FastifyInstance) {
 				return reply.code(500).send({ message: error.message });
 			} else {
 				return reply.code(500).send({ message: 'An unknown error occurred' });
+			}
+		}
+	});
+	app.post('/api/profile/edit-title', { preValidation: [app.authenticate] }, async (req: any, reply: any) => {
+		const userId = req.user.id;
+		try {
+			const currentUser = await getUserById(userId);
+			if (!currentUser) {
+				return reply.code(404).send({ message: 'User not found' });
+			}
+
+			const { firstTitle, secondTitle, thirdTitle } = req.body;
+
+			await updateUserTitle(userId, firstTitle, secondTitle, thirdTitle);
+
+			return reply.code(200).send({ message: 'Profile updated' });
+		} catch (error) {
+			if (error instanceof Error) {
+				return reply.code(500).send({ message: error.message });
+			} else {
+				return reply.code(500).send({
+					message: 'An unknown error occurred'
+				});
 			}
 		}
 	});

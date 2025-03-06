@@ -2,6 +2,13 @@ import sqlite3 from 'sqlite3';
 import bcrypt from 'bcrypt';
 import { open, Database } from 'sqlite';
 import { dataBaseLocation, User } from './database.js';
+import { getUserAchievements } from './db_achievements.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const default_titles_first = require('../../../data/defaultTitles.json').default_titles_first;
+const default_titles_second = require('../../../data/defaultTitles.json').default_titles_second;
+const default_titles_third = require('../../../data/defaultTitles.json').default_titles_third;
 
 export async function printDatabase() {
 	try {
@@ -36,11 +43,15 @@ export async function registerUser(username: string, password: string, displayna
 	if (/\s/.test(username) || /\s/.test(password)) {
 		throw new Error('Username and password cannot contain spaces');
 	}
+	const titleFirst = Math.floor(Math.random() * default_titles_first.length);
+	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
+	const titleThird = Math.floor(Math.random() * default_titles_third.length);
+
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	const hashedPassword: string = await bcrypt.hash(password, 10);
 	await db.run(
-		'INSERT INTO users (username, password, displayname) VALUES (?, ?, ?)',
-		[username, hashedPassword, displayname]
+		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
+		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
 	);
 }
 export async function loginUser(username: string, password: string): Promise<User> {
@@ -62,7 +73,7 @@ export async function loginUser(username: string, password: string): Promise<Use
 export async function getUserById(id: number): Promise<User | null> {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	const user = await db.get(
-		'SELECT id, username, displayname, bio, profile_picture FROM users WHERE id = ?',
+		'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE id = ?',
 		id
 	);
 	return user || null;
@@ -131,6 +142,19 @@ export async function updateUserProfile(
 		await db.run('UPDATE users SET profile_picture = ? WHERE id = ?', [profile_picture, id]);
 }
 
+export async function updateUserTitle(id: number, firstTitle: number = -1, secondTitle: number = -1, thirdTitle: number = -1) {
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	if (firstTitle >= 0) {
+		await db.run('UPDATE users SET title_first = ? WHERE id = ?', [firstTitle, id]);
+	}
+	if (secondTitle >= 0) {
+		await db.run('UPDATE users SET title_second = ? WHERE id = ?', [secondTitle, id]);
+	}
+	if (thirdTitle >= 0) {
+		await db.run('UPDATE users SET title_third = ? WHERE id = ?', [thirdTitle, id]);
+	}
+}
+
 export async function updateUserPassword(id: number, oldPassword: string, newPassword: string) {
 	if (!oldPassword && !newPassword) {
 		return;
@@ -173,4 +197,100 @@ export async function incrementUserClickCount(userId: number, increment: number 
 	await db.run('UPDATE users SET click_count = click_count + ? WHERE id = ?', [increment, userId]);
 	const user = await db.get('SELECT click_count FROM users WHERE id = ?', userId);
 	return user ? user.click_count : 0;
+}
+
+export async function getUserTitle(userId: number, slot: number) {
+	const db = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const user = await db.get('SELECT title_first, title_second, title_third FROM users WHERE id = ?', userId);
+	if (!user) return '';
+
+	let titleValue: number;
+	let defaultTitles: string[];
+
+	if (slot == 1) {
+		titleValue = user.title_first;
+		defaultTitles = default_titles_first;
+	} else if (slot == 2) {
+		titleValue = user.title_second;
+		defaultTitles = default_titles_second;
+	} else {
+		titleValue = user.title_third;
+		defaultTitles = default_titles_third;
+	}
+
+	if (titleValue < defaultTitles.length) {
+		return defaultTitles[titleValue];
+	} else {
+		let achievement;
+		const achievementId = titleValue - defaultTitles.length;
+		if (slot == 1)
+			achievement = await db.get(
+				`SELECT title_first as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
+		else if (slot == 2)
+			achievement = await db.get(
+				`SELECT title_second as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
+		else
+			achievement = await db.get(
+				`SELECT title_third as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
+		if (achievement && achievement.title) {
+			return achievement.title;
+		}
+	}
+
+	return '';
+}
+
+export async function getUserTitleString(userId: number) {
+	return await getUserTitle(userId, 1) + ' ' + await getUserTitle(userId, 2) + ' ' + await getUserTitle(userId, 3);
+}
+
+async function getUserTitles(column: string, default_titles: string[]): Promise<string[]> {
+	const usertitles: string[] = [];
+	for (const defaultTitle of default_titles) {
+		usertitles.push(defaultTitle);
+	}
+
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	const titles = await db.all(`SELECT ${column} AS name FROM achievements`);
+
+	for (const row of titles) {
+		usertitles.push(row.name);
+	}
+
+	return usertitles;
+}
+
+export interface TitleOption {
+	label: string;
+	value: number;
+}
+
+export async function getUserTitlesForTitle(titleSlot: number, userId: number): Promise<TitleOption[]> {
+	let defaultTitles: string[];
+	if (titleSlot === 1) {
+		defaultTitles = default_titles_first;
+	} else if (titleSlot === 2) {
+		defaultTitles = default_titles_second;
+	} else {
+		defaultTitles = default_titles_third;
+	}
+
+	const defaultOptions: TitleOption[] = defaultTitles.map((title, index) => ({
+		label: title,
+		value: index
+	}));
+
+	const unlockedAchievements = await getUserAchievements(userId);
+	const unlockedOptions: TitleOption[] = unlockedAchievements.map(ach => ({
+		label: titleSlot === 1 ? ach.title_first : titleSlot === 2 ? ach.title_second : ach.title_third,
+		value: ach.id + defaultTitles.length
+	})).filter(option => option.label && option.label.trim() !== "");
+
+	return [...defaultOptions, ...unlockedOptions];
 }

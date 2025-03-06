@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getUserById } from "../db/db_users.js";
+import { getUserById, getUserTitlesForTitle, getUserTitleString, getUserTitle, TitleOption } from "../db/db_users.js";
 import { checkAuth } from "./api/auth.js";
 import { searchUsers } from '../db/db_users.js';
 import { getFriends, getPendingFriendRequestsForUser } from '../db/db_friends.js';
@@ -46,6 +46,7 @@ export async function generalRoutes(app: FastifyInstance) {
 				profile.profile_picture = "/profile/" + profileId + "/picture";
 				variables["user"] = profile;
 				variables["isSelf"] = isSelf;
+				variables["title"] = await getUserTitleString(profile.id);
 
 				const unlockedAchievements = await getUserAchievements(profileId);
 				const allAchievements = await getAllAchievements();
@@ -66,6 +67,14 @@ export async function generalRoutes(app: FastifyInstance) {
 					throw new Error("User not found");
 				}
 				variables["user"] = profile;
+
+				variables["firstTitle"] = await getUserTitle(profile.id, 1);
+				variables["secondTitle"] = await getUserTitle(profile.id, 2);
+				variables["thirdTitle"] = await getUserTitle(profile.id, 3);
+
+				variables["firstTitles"] = await getUserTitlesForTitle(1, profile.id);
+				variables["secondTitles"] = await getUserTitlesForTitle(2, profile.id);
+				variables["thirdTitles"] = await getUserTitlesForTitle(3, profile.id);
 			}
 		} catch (err) {
 			variables["err_code"] = errorCode;

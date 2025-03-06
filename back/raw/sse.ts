@@ -88,15 +88,40 @@ export function sendPopupToClient(
 	callback1: string = '',
 	buttonName1: string = 'PROCEED',
 	callback2: string = '',
-	buttonName2: string = 'CANCEL',
-	isAchievement: boolean = false) {
+	buttonName2: string = 'CANCEL') {
 	let reply = connectedClients.get(id);
 	if (!reply) {
 		logger.error(`Client with id ${id} not found in connected users.`);
 		return;
 	}
 	try {
-		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2, isAchievement }, (err, str) => {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/misc/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2, "isAchievement": false }, (err, str) => {
+			if (err) {
+				logger.error("Error rendering view:", err);
+				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);
+			} else {
+				reply.raw.write(`data: ${JSON.stringify({ type: 'popup', html: str })}\n\n`);
+			}
+		});
+	} catch (err) {
+		logger.error("Error rendering view:", err);
+		reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);
+	}
+}
+export function sendAchievementToClient(
+	id: number,
+	title: string,
+	description: string,
+	firstTitle: string,
+	secondTitle: string,
+	thirdTitle: string) {
+	let reply = connectedClients.get(id);
+	if (!reply) {
+		logger.error(`Client with id ${id} not found in connected users.`);
+		return;
+	}
+	try {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/misc/popup.ejs`), { title, description, 'color': 'purple', 'callback1': '', 'buttonName1': '', 'callback2': '', 'buttonName2': '', 'isAchievement': true, firstTitle, secondTitle, thirdTitle }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
 				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);

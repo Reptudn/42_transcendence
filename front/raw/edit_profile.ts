@@ -99,6 +99,56 @@ document.getElementById('editprofilesubmit')?.addEventListener('click', async (e
 	}
 });
 
+const initialTitleValues = {
+	firstTitle: (document.getElementById('firstTitle') as HTMLInputElement).value,
+	secondTitle: (document.getElementById('secondTitle') as HTMLInputElement).value,
+	thirdTitle: (document.getElementById('thirdTitle') as HTMLInputElement).value
+};
+
+document.getElementById('edittitlesubmit')?.addEventListener('click', async (event) => {
+	event.preventDefault();
+
+	const formData: { [key: string]: string } = {};
+
+	const firstTitleField = document.getElementById('firstTitle') as HTMLInputElement;
+	const secondTitleField = document.getElementById('secondTitle') as HTMLInputElement;
+	const thirdTitleField = document.getElementById('thirdTitle') as HTMLInputElement;
+
+	if (firstTitleField.value !== initialTitleValues.firstTitle) {
+		formData['firstTitle'] = firstTitleField.value;
+	}
+	if (secondTitleField.value !== initialTitleValues.secondTitle) {
+		formData['secondTitle'] = secondTitleField.value;
+	}
+	if (thirdTitleField.value !== initialTitleValues.thirdTitle) {
+		formData['thirdTitle'] = thirdTitleField.value;
+	}
+
+	const token = localStorage.getItem('token');
+
+	try {
+		const response = await fetch('/api/profile/edit-title', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				...(token ? { 'Authorization': `Bearer ${token}` } : {})
+			},
+			body: JSON.stringify(formData)
+		});
+
+		const data = await response.json();
+		if (response.ok) {
+			alert('Title updated successfully! 🎉');
+			loadPartialView('profile');
+		} else {
+			alert(`Error: ${data.message}`);
+		}
+	} catch (error) {
+		console.error('Upload error:', error);
+		alert('An error occurred while updating your title. Please try again.');
+	}
+});
+
 document.getElementById('changepasswordsubmit')?.addEventListener('click', async (event) => {
 	event.preventDefault();
 
