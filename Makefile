@@ -29,6 +29,8 @@ log:
 		-not -name "*.ico" \
 		-not -name "logs/*" \
 		-not -name "package-lock.json" \
+		-not -name "README.md" \
+		-not -name ".gitignore" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
 
 .PHONY: build exec re run start log

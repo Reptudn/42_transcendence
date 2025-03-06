@@ -1,10 +1,10 @@
 <div class="popup flex pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
 	role="alert">
 	<% if (isAchievement) { %>
-		<img src="/static/assets/images/achievement-star.png" alt="Star" style="max-height: 3em;">
+		<img src="/static/assets/images/achievement-star.png" alt="Star" style="max-height: 3em;" class="mr-4">
 		<% } %>
 			<div class="flex-1">
-				<strong class="font-bold"><%- title %></strong>
+				<strong class="font-bold mr-8"><%- title %></strong>
 				<span class="block"><%- description %></span>
 				<% if (callback1 && callback1.trim()) { %>
 					<button

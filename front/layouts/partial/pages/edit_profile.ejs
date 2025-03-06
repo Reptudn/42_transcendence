@@ -36,6 +36,39 @@
 		<div class="h-10"></div>
 		<hr class="my-4">
 
+		<h3 class="text-lg font-bold mb-2">Change Title</h3>
+		<div class="mb-4">
+			<select id="firstTitle" name="firstTitle" class="w-full px-3 py-2 border rounded">
+				<% firstTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_first===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<select id="secondTitle" name="secondTitle" class="w-full px-3 py-2 border rounded">
+				<% secondTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_second===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<select id="thirdTitle" name="thirdTitle" class="w-full px-3 py-2 border rounded">
+				<% thirdTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_third===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<div class="text-center">
+				<button type="submit" id="edittitlesubmit"
+					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save
+					Title</button>
+			</div>
+		</div>
+
+		<div class="h-10"></div>
+		<hr class="my-4">
+
 		<h3 class="text-lg font-bold mb-2">Change Password</h3>
 		<div class="mb-4">
 			<label class="block text-gray-700 font-bold mb-2">Old Password:</label>

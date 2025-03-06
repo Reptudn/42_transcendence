@@ -96,7 +96,7 @@ export function sendPopupToClient(
 		return;
 	}
 	try {
-		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2, isAchievement }, (err, str) => {
+		ejs.renderFile(path.join(__dirname, `../../front/layouts/partial/misc/popup.ejs`), { title, description, color, callback1, buttonName1, callback2, buttonName2, isAchievement }, (err, str) => {
 			if (err) {
 				logger.error("Error rendering view:", err);
 				reply.raw.write(`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`);

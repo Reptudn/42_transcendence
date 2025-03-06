@@ -11,6 +11,10 @@ export interface User {
 	displayname: string;
 	bio: string;
 	profile_picture: string;
+	click_count: number;
+	title_first: number;
+	title_second: number;
+	title_third: number;
 };
 export interface Friend {
 	id: number;
@@ -24,6 +28,9 @@ export interface Achievement {
 	key: string;
 	name: string;
 	description: string;
+	title_first: string;
+	title_second: string;
+	title_third: string;
 };
 
 async function createDatabase() {

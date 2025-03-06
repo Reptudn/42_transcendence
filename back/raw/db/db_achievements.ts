@@ -11,10 +11,10 @@ export async function getAllAchievements(): Promise<Achievement[]> {
 export async function getUserAchievements(userId: number): Promise<Achievement[]> {
 	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
 	return await db.all<Achievement[]>(
-		`SELECT a.id, a.name, a.description 
-	FROM achievements a 
-	INNER JOIN user_achievements ua ON a.id = ua.achievement_id 
-	WHERE ua.user_id = ?`, [userId]
+		`SELECT a.id, a.name, a.description, a.title_first, a.title_second, a.title_third
+		FROM achievements a 
+		INNER JOIN user_achievements ua ON a.id = ua.achievement_id 
+		WHERE ua.user_id = ?`, [userId]
 	);
 }
 
