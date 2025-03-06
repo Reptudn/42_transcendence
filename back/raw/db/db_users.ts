@@ -221,10 +221,23 @@ export async function getUserTitle(userId: number, slot: number) {
 	if (titleValue < defaultTitles.length) {
 		return defaultTitles[titleValue];
 	} else {
-		const achievement = await db.get(
-			`SELECT title_${slot} as title FROM achievements WHERE id = ?`,
-			titleValue
-		);
+		let achievement;
+		const achievementId = titleValue - defaultTitles.length;
+		if (slot == 1)
+			achievement = await db.get(
+				`SELECT title_first as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
+		else if (slot == 2)
+			achievement = await db.get(
+				`SELECT title_second as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
+		else
+			achievement = await db.get(
+				`SELECT title_third as title FROM achievements WHERE id = ?`,
+				achievementId
+			);
 		if (achievement && achievement.title) {
 			return achievement.title;
 		}
@@ -276,7 +289,7 @@ export async function getUserTitlesForTitle(titleSlot: number, userId: number): 
 	const unlockedAchievements = await getUserAchievements(userId);
 	const unlockedOptions: TitleOption[] = unlockedAchievements.map(ach => ({
 		label: titleSlot === 1 ? ach.title_first : titleSlot === 2 ? ach.title_second : ach.title_third,
-		value: ach.id
+		value: ach.id + defaultTitles.length
 	})).filter(option => option.label && option.label.trim() !== "");
 
 	return [...defaultOptions, ...unlockedOptions];

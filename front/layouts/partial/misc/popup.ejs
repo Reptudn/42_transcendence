@@ -20,6 +20,24 @@
 								<%= buttonName2 ? buttonName2 : callback2 %>
 							</button>
 							<% } %>
+								<% if (isAchievement) { %>
+									<div class="mt-2">
+										<span class="mr-2">Unlocked Titles: </span>
+										<span
+											class="inline-block bg-<%= color %>-200 text-<%= color %>-800 border border-<%= color %>-400 rounded px-2 py-1 mr-2">
+											<%- firstTitle %>
+										</span>
+										<span
+											class="inline-block bg-<%= color %>-200 text-<%= color %>-800 border border-<%= color %>-400 rounded px-2 py-1 mr-2">
+											<%- secondTitle %>
+										</span>
+										<span
+											class="inline-block bg-<%= color %>-200 text-<%= color %>-800 border border-<%= color %>-400 rounded px-2 py-1 mr-2">
+											<%- thirdTitle %>
+										</span>
+									</div>
+									<% } %>
+
 			</div>
 			<span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="dismissPopup(this)">
 				<svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
