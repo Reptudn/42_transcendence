@@ -1,8 +1,11 @@
 import sqlite3 from 'sqlite3';
-import bcrypt from 'bcrypt';
 import { open, Database } from 'sqlite';
+import { createRequire } from 'module';
 
 export const dataBaseLocation: string = './back/db/db.db';
+
+const require = createRequire(import.meta.url);
+const achievementsData = require('../../../data/achievements.json');
 
 export interface User {
 	id: number;
@@ -90,13 +93,22 @@ async function createDatabase() {
 		)
 	`);
 
-	await db.exec(`
-		INSERT OR IGNORE INTO achievements (key, name, description, title_first, title_second, title_third) VALUES 
-		('number-1', 'What''s the point?', 'Click the number once.', 'Clicking', 'Enthusiast', '👈'),
-		('number-2', 'Clickerman', 'Click the number 100 times.', 'Blazing', 'Clickerman', '🔥'),
-		('number-3', 'Why?', 'Click the number 1000 times.', 'Relentless', 'Clicking Machine', '💣'),
-		('name-change-creator', 'God Complex', 'Change your display name to \"Reptudn\" or \"Freddy\".', 'God-like', 'Plagiarist', '👀')
-	`);
+	for (const achievement of achievementsData) {
+		await db.run(
+			`INSERT OR IGNORE INTO achievements 
+			(key, name, description, title_first, title_second, title_third) 
+			VALUES (?, ?, ?, ?, ?, ?)`,
+			[
+				achievement.key,
+				achievement.name,
+				achievement.description,
+				achievement.title_first,
+				achievement.title_second,
+				achievement.title_third,
+			]
+		);
+	}
+
 }
 createDatabase().catch(error => {
 	console.error('An error occurred while managing the database:', error);

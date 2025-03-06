@@ -3,10 +3,12 @@ import bcrypt from 'bcrypt';
 import { open, Database } from 'sqlite';
 import { dataBaseLocation, User } from './database.js';
 import { getUserAchievements } from './db_achievements.js';
+import { createRequire } from 'module';
 
-const default_titles_first = ['Motivated', 'Determined', 'Pong', 'Curious', 'Matchmaking', 'Professional', 'Aggressive', 'Evil', 'Insane', 'Happy', 'Superior'];
-const default_titles_second = ['Coder', 'Ponger', 'Gamer', 'Achievement Collector', 'Anarchist', 'CORE Player', 'Opponent', 'Addict', 'Pong Player', 'Noob'];
-const default_titles_third = ['⭐️', '🎮', '🏓', '🍔', '🍕', '💥', '🚀', '🎸', '😎', '💩', '🕺'];
+const require = createRequire(import.meta.url);
+const default_titles_first = require('../../../data/defaultTitles.json').default_titles_first;
+const default_titles_second = require('../../../data/defaultTitles.json').default_titles_second;
+const default_titles_third = require('../../../data/defaultTitles.json').default_titles_third;
 
 export async function printDatabase() {
 	try {
@@ -276,6 +278,6 @@ export async function getUserTitlesForTitle(titleSlot: number, userId: number): 
 		label: titleSlot === 1 ? ach.title_first : titleSlot === 2 ? ach.title_second : ach.title_third,
 		value: ach.id
 	})).filter(option => option.label && option.label.trim() !== "");
-	
+
 	return [...defaultOptions, ...unlockedOptions];
 }

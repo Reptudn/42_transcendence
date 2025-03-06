@@ -1,0 +1,130 @@
+[
+	{
+		"key": "number-1",
+		"name": "What's the point?",
+		"description": "Click the number once.",
+		"title_first": "Clicking",
+		"title_second": "Clickster",
+		"title_third": "👈"
+	},
+	{
+		"key": "number-2",
+		"name": "Clickerman",
+		"description": "Click the number 100 times.",
+		"title_first": "Blazing",
+		"title_second": "Clickerman",
+		"title_third": "🔥"
+	},
+	{
+		"key": "number-3",
+		"name": "Why?",
+		"description": "Click the number 1000 times.",
+		"title_first": "Insane",
+		"title_second": "Clicking Machine",
+		"title_third": "💣"
+	},
+	{
+		"key": "name-change-creator",
+		"name": "God Complex",
+		"description": "Change your display name to 'Reptudn' or 'Freddy'.",
+		"title_first": "Scheming",
+		"title_second": "Imposter",
+		"title_third": "👀"
+	},
+	{
+		"key": "play",
+		"name": "First Steps",
+		"description": "Play a game of Pong.",
+		"title_first": "Pong",
+		"title_second": "Player",
+		"title_third": "🏓"
+	},
+	{
+		"key": "win",
+		"name": "That's what I'm talking about!",
+		"description": "Win a game of Pong.",
+		"title_first": "Successful",
+		"title_second": "Winner",
+		"title_third": "🏆"
+	},
+	{
+		"key": "win-3",
+		"name": "OH BABY A TRIPLE!",
+		"description": "Win 3 games of Pong.",
+		"title_first": "Good",
+		"title_second": "Victor",
+		"title_third": "🎉"
+	},
+	{
+		"key": "win-5",
+		"name": "Pentagon of Perseverance",
+		"description": "Win 5 games of Pong.",
+		"title_first": "Great",
+		"title_second": "Defeater",
+		"title_third": "🎊"
+	},
+	{
+		"key": "win-10",
+		"name": "Decathlon Dominator",
+		"description": "Win 10 games of Pong.",
+		"title_first": "Skilled",
+		"title_second": "Champion",
+		"title_third": "🎈"
+	},
+	{
+		"key": "win-25",
+		"name": "Quarter Century Conqueror",
+		"description": "Win 25 games of Pong.",
+		"title_first": "Amazing",
+		"title_second": "Master",
+		"title_third": "🎇"
+	},
+	{
+		"key": "win-50",
+		"name": "Half-Century Hero",
+		"description": "Win 50 games of Pong.",
+		"title_first": "Legendary",
+		"title_second": "Ponger",
+		"title_third": "🎆"
+	},
+	{
+		"key": "win-100",
+		"name": "The legendary Centurion",
+		"description": "Win 100 games of Pong.",
+		"title_first": "God-like",
+		"title_second": "Pong Grandmaster",
+		"title_third": "🎖️🎖️🎖️"
+	},
+	{
+		"key": "lose",
+		"name": "You tried.",
+		"description": "Lose a game of Pong.",
+		"title_first": "Unsuccessful",
+		"title_second": "Loser",
+		"title_third": "🤦"
+	},
+	{
+		"key": "lose-5",
+		"name": "Misfortune's Muse",
+		"description": "Lose 5 games of Pong.",
+		"title_first": "Lacking",
+		"title_second": "newbie",
+		"title_third": "😭"
+	},
+	{
+		"key": "lose-10",
+		"name": "It happens to the best of us.",
+		"description": "Lose 10 games of Pong.",
+		"title_first": "Unlucky",
+		"title_second": "Participation Trophy Collector",
+		"title_third": "💀"
+	},
+	{
+		"key": "lose-25",
+		"name": "Losses of legendary lament",
+		"description": "Lose 25 games of Pong.",
+		"title_first": "Abysmal",
+		"title_second": "Anti-Talent",
+		"title_third": "🫠"
+	}
+]

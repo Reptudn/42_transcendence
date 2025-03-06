@@ -75,8 +75,6 @@ export async function generalRoutes(app: FastifyInstance) {
 				variables["firstTitles"] = await getUserTitlesForTitle(1, profile.id);
 				variables["secondTitles"] = await getUserTitlesForTitle(2, profile.id);
 				variables["thirdTitles"] = await getUserTitlesForTitle(3, profile.id);
-
-				console.log('rendering edit profile with variables ', variables);
 			}
 		} catch (err) {
 			variables["err_code"] = errorCode;
