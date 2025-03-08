@@ -1,0 +1,26 @@
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h2 class="text-2xl font-bold mb-6 text-center">Start Chat</h2>
+	<div class="mb-4">
+		<label for="gameId" class="block text-gray-700 font-bold mb-2">Game ID:</label>
+		<input type="text" id="gameId" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter game ID">
+	</div>
+	<div class="mb-4">
+		<label for="playerId" class="block text-gray-700 font-bold mb-2">Your Player ID:</label>
+		<input type="text" id="playerId" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter your player ID">
+	</div>
+	<button id="joinChatButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+	J	oin Chat
+	</button>
+</div>
+
+<script>
+	document.getElementById('joinChatButton').addEventListener('click', () => {
+	const gameId = document.getElementById('gameId').value.trim();
+	const playerId = document.getElementById('playerId').value.trim();
+	if (!gameId || !playerId) {
+		alert("Both Game ID and Player ID are required.");
+		return;
+	}
+	loadPartialView(`chat?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
+	});
+</script>

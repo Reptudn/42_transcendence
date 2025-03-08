@@ -92,12 +92,12 @@ export function startGame(admin: User, gameSettings: GameSettings) {
 			if (id === admin.id) {
 				player = new Player(PlayerType.USER, currPlayerID++, id);
 				// game admin request will be immediately accepted by client
-				sendRawToClient(id, { type: "game_admin_request", gameId, currPlayerID });
+				sendRawToClient(id, { type: "game_admin_request", gameId, playerId: currPlayerID });
 			} else {
 				let user = getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
 					player = new Player(PlayerType.USER, currPlayerID++, id);
-					sendRawToClient(id, { type: "game_request", gameId, currPlayerID });
+					sendRawToClient(id, { type: "game_request", gameId, playerId: currPlayerID });
 				} else {
 					throw new Error("User not found or not connected");
 				}
@@ -116,7 +116,7 @@ export function startGame(admin: User, gameSettings: GameSettings) {
 	runningGames.push(new Game(gameId, players));
 }
 
-app.get('/ws/game/:gameId/:playerId', { websocket: true }, (socket, req) => {
+app.get('/api/games/join/:gameId/:playerId', { websocket: true }, (socket, req) => {
 	const { gameId, playerId } = req.params as { gameId: string; playerId: string };
 	const parsedGameId = parseInt(gameId, 10);
 	const parsedPlayerId = parseInt(playerId, 10);

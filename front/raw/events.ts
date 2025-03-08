@@ -91,9 +91,9 @@ function setupEventSource() {
 				}
 			} else if (data.type === "game_request") {
 				console.log("👫 Game request received:", data);
-				sendPopup('Game Request', `You have been invited to play a game!`, 'blue', `acceptGameInvite('${data.gameId}')`, 'Accept');
+				sendPopup('Game Request', `You have been invited to play a game!`, 'blue', `acceptGameInvite('${data.gameId}, ${data.playerId}')`, 'Accept');
 			} else if (data.type === "game_admin_request") {
-				acceptGameInvite(data.gameId);
+				acceptGameInvite(data.gameId, data.playerId);
 			} else {
 				console.error("❌ Unknown event type:", data.type);
 				console.log(data);
@@ -129,6 +129,6 @@ function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');
 }
 
-function acceptGameInvite(gameId: string) {
-
+function acceptGameInvite(gameId: number, playerId: number) {
+	loadPartialView(`chat?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
 }
