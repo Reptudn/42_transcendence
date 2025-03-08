@@ -1,15 +1,21 @@
 {
 	"default_titles_first": [
-		"Bad",
 		"Unexperienced",
 		"Practicing",
-		"Terrible"
+		"Unskilled",
+		"Untrained",
+		"Unpracticed",
+		"New"
 	],
 	"default_titles_second": [
 		"Newcomer",
 		"Noob",
 		"Amateur",
-		"Rookie"
+		"Rookie",
+		"Beginner",
+		"Novice",
+		"Trainee",
+		"Apprentice"
 	],
 	"default_titles_third": [
 		"💩",

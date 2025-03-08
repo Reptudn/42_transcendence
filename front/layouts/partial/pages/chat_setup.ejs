@@ -1,26 +1,29 @@
 <div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-	<h2 class="text-2xl font-bold mb-6 text-center">Start Chat</h2>
-	<div class="mb-4">
-		<label for="gameId" class="block text-gray-700 font-bold mb-2">Game ID:</label>
-		<input type="text" id="gameId" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter game ID">
-	</div>
-	<div class="mb-4">
-		<label for="playerId" class="block text-gray-700 font-bold mb-2">Your Player ID:</label>
-		<input type="text" id="playerId" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter your player ID">
-	</div>
+	<% if (friends && friends.length > 0) { %>
+		<div class="flex flex-wrap gap-4">
+			<% friends.forEach(function(friends) { %>
+			<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+				<a href="/partial/pages/profile/<%= user.id %>" target="_blank"
+					class="cursor-pointer flex flex-col items-center">
+					<img src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
+						alt="Profile Picture <%= user.id %>"
+						class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">
+					<div class="text-center mt-2">
+						<div class="text-lg font-bold">
+							<%= friends.displayname %>
+						</div>
+						<div class="text-sm text-gray-600">@<%= friends.username %>
+						</div>
+					</div>
+				</a>
+				<input type="checkbox" name="friends" friend_id="<%= friends.id %>"
+					class="hidden friendCheckBox">
+			</div>
+			<% }); %>
+		</div>
+	<% } %>
 	<button id="joinChatButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-	J	oin Chat
+	Join Chat
 	</button>
 </div>
-
-<script>
-	document.getElementById('joinChatButton').addEventListener('click', () => {
-	const gameId = document.getElementById('gameId').value.trim();
-	const playerId = document.getElementById('playerId').value.trim();
-	if (!gameId || !playerId) {
-		alert("Both Game ID and Player ID are required.");
-		return;
-	}
-	loadPartialView(`chat?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
-	});
-</script>
+<script type="module" src="/static/js/chat_setup.js"></script>

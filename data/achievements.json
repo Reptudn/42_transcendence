@@ -155,8 +155,8 @@
 		"key": "login",
 		"name": "The baby",
 		"description": "Create an account.",
-		"title_first": "New",
-		"title_second": "User",
+		"title_first": "Newborn",
+		"title_second": "Baby",
 		"title_third": "👶"
 	},
 	{
@@ -218,7 +218,7 @@
 	{
 		"key": "defeated-4",
 		"name": "eMoTiOnAl DaMaGe",
-		"description": "Lose first against 3 other people.",
+		"description": "Lose first in a game against 3 other people.",
 		"title_first": "Damaged",
 		"title_second": "Nobody",
 		"title_third": "😭"

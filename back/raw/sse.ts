@@ -2,11 +2,13 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
 import logger from './logger.js';
-import { __dirname } from './main.js';
 import { checkAuth } from './routes/api/auth.js';
 import { User } from './db/database.js';
 import { getPendingFriendRequestsForUser, removeFriendship } from './db/db_friends.js';
 import { getUserById, getNameForUser } from './db/db_users.js';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
@@ -36,15 +38,13 @@ export async function eventRoutes(app: FastifyInstance) {
 		sendPopupToClient(user.id, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green');
 
 		const openFriendRequests = await getPendingFriendRequestsForUser(user.id)
-		{
-			for (const request of openFriendRequests) {
-				const requester: User | null = await getUserById(request.requester_id);
-				if (requester) {
-					sendPopupToClient(user.id, 'Friend Request', `<a href="/partial/pages/profile/${request.requester_id}" target="_blank">User ${await getNameForUser(request.requester_id) || requester.username}</a> wishes to be your friend!`, 'blue', `acceptFriendRequest(${request.id})`, 'Accept', `declineFriendRequest(${request.id})`, 'Decline');
-				} else {
-					logger.error(`User with id ${request.requester_id} not found.`);
-					removeFriendship(request.requester_id, request.requested_id);
-				}
+		for (const request of openFriendRequests) {
+			const requester: User | null = await getUserById(request.requester_id);
+			if (requester) {
+				sendPopupToClient(user.id, 'Friend Request', `<a href="/partial/pages/profile/${request.requester_id}" target="_blank">User ${await getNameForUser(request.requester_id) || requester.username}</a> wishes to be your friend!`, 'blue', `acceptFriendRequest(${request.id})`, 'Accept', `declineFriendRequest(${request.id})`, 'Decline');
+			} else {
+				logger.error(`User with id ${request.requester_id} not found.`);
+				removeFriendship(request.requester_id, request.requested_id);
 			}
 		}
 

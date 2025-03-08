@@ -4,6 +4,7 @@ import { checkAuth } from "./api/auth.js";
 import { searchUsers } from '../db/db_users.js';
 import { getFriends, getPendingFriendRequestsForUser } from '../db/db_friends.js';
 import { getUserAchievements, getAllAchievements } from '../db/db_achievements.js';
+import { connectedClients } from "../sse.js";
 
 export async function generalRoutes(app: FastifyInstance) {
 
@@ -75,6 +76,12 @@ export async function generalRoutes(app: FastifyInstance) {
 				variables["firstTitles"] = await getUserTitlesForTitle(1, profile.id);
 				variables["secondTitles"] = await getUserTitlesForTitle(2, profile.id);
 				variables["thirdTitles"] = await getUserTitlesForTitle(3, profile.id);
+			} else if (page === 'chat_setup') {
+				await checkAuth(req, true);
+				const user_id = req.user.id;
+				let friends = await getFriends(user_id);
+				friends = friends.filter(friend => connectedClients.has(friend.id));
+				variables["friends"] = friends;
 			}
 		} catch (err) {
 			variables["err_code"] = errorCode;
