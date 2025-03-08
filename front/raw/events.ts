@@ -91,6 +91,9 @@ function setupEventSource() {
 				}
 			} else if (data.type === "game_request") {
 				console.log("👫 Game request received:", data);
+				sendPopup('Game Request', `You have been invited to play a game!`, 'blue', `acceptGameInvite('${data.gameId}')`, 'Accept');
+			} else if (data.type === "game_admin_request") {
+				acceptGameInvite(data.gameId);
 			} else {
 				console.error("❌ Unknown event type:", data.type);
 				console.log(data);
@@ -124,4 +127,8 @@ function sendPopup(title: string, description: string = '', color: string = 'bla
 
 function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');
+}
+
+function acceptGameInvite(gameId: string) {
+
 }

@@ -6,7 +6,6 @@ import { __dirname } from './main.js';
 import { checkAuth } from './routes/api/auth.js';
 import { User } from './db/database.js';
 import { getPendingFriendRequestsForUser, removeFriendship } from './db/db_friends.js';
-import { Friend } from './db/database.js';
 import { getUserById, getNameForUser } from './db/db_users.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
@@ -72,12 +71,12 @@ export async function eventRoutes(app: FastifyInstance) {
 	});
 }
 
-export const sendRawToClient = (user: User, data: any) => {
-	const client = connectedClients.get(user.id);
+export const sendRawToClient = (userId: number, data: any) => {
+	const client = connectedClients.get(userId);
 	if (client) {
 		client.raw.write(data);
 	} else {
-		console.error(`Client ${user.displayname} not found in connected users.`);
+		console.error(`User ${userId} not found in connected users.`);
 	}
 };
 export function sendPopupToClient(
