@@ -85,7 +85,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	let players: Player[] = [];
 
 	players.push(new Player(PlayerType.USER, currPlayerID++, admin.id));
-	sendRawToClient(admin.id, { type: "game_admin_request", gameId, playerId: currPlayerID });
+	sendRawToClient(admin.id, JSON.stringify({ type: "game_admin_request", gameId, playerId: currPlayerID }));
 
 	for (const readPlayer of readPlayers) {
 		let player: Player | null = null;
@@ -95,7 +95,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 				let user = await getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
 					player = new Player(PlayerType.USER, currPlayerID++, id);
-					sendRawToClient(id, { type: "game_request", gameId, playerId: currPlayerID });
+					sendRawToClient(id, JSON.stringify({ type: "game_request", gameId, playerId: currPlayerID }));
 				} else {
 					throw new Error("User not found or not connected");
 				}
