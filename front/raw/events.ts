@@ -54,14 +54,7 @@ function getCookie(name: string) {
 
 let notifyEventSource: EventSource | null = null;
 function setupEventSource() {
-	let token: string | undefined = getCookie('token');
-	// if (token === undefined)
-	// {
-	// 	console.log("token is undefined.. not connecting to event stream.");
-	// 	return;
-	// }
-
-	notifyEventSource = new EventSource(`/notify?token=${token}`);
+	notifyEventSource = new EventSource('/notify');
 
 	notifyEventSource.onerror = (event) => {
 		console.error('notifyEventSource.onerror', event);
@@ -72,6 +65,8 @@ function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = (event) => {
+		console.log('EventSource message received:', event);
+		console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 

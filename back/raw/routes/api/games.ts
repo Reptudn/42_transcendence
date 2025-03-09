@@ -87,6 +87,8 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	players.push(new Player(PlayerType.USER, currPlayerID++, admin.id));
 	sendRawToClient(admin.id, JSON.stringify({ type: "game_admin_request", gameId, playerId: currPlayerID }));
 
+	console.log('Sent invite to admin', players);
+
 	for (const readPlayer of readPlayers) {
 		let player: Player | null = null;
 		if (readPlayer.type === PlayerType.USER) {
@@ -111,6 +113,8 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 		}
 	}
 
+	console.log('Game started with players:', players);
+
 	runningGames.push(new Game(gameId, players));
 }
 
@@ -122,6 +126,7 @@ export async function gameRoutes(app: FastifyInstance) {
 		}
 
 		const gameSettings = request.body;
+		console.log("Starting game with settings:", gameSettings);
 
 		try {
 			await startGame(user, gameSettings as GameSettings);
