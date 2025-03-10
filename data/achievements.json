@@ -138,7 +138,7 @@
 	{
 		"key": "long-bio",
 		"name": "The Storyteller",
-		"description": "Write a bio that over 100 characters long.",
+		"description": "Write a bio that is over 100 characters long.",
 		"title_first": "Verbose",
 		"title_second": "Storyteller",
 		"title_third": "📚"
@@ -147,8 +147,8 @@
 		"key": "pfp-change",
 		"name": "The Chameleon",
 		"description": "Change your profile picture.",
-		"title_first": "Changing",
-		"title_second": "Chameleon",
+		"title_first": "Shapeshifting",
+		"title_second": "Shapeshifter",
 		"title_third": "🤩"
 	},
 	{

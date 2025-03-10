@@ -1,11 +1,13 @@
 {
 	"default_titles_first": [
-		"Unexperienced",
+		"Inexperienced",
 		"Practicing",
 		"Unskilled",
 		"Untrained",
 		"Unpracticed",
-		"New"
+		"New",
+		"Pong",
+		"Pong Gaming"
 	],
 	"default_titles_second": [
 		"Newcomer",
