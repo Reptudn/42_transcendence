@@ -2,12 +2,13 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
 import logger from './logger.js';
-import { __dirname } from './main.js';
 import { checkAuth } from './routes/api/auth.js';
 import { User } from './db/database.js';
 import { getPendingFriendRequestsForUser, removeFriendship } from './db/db_friends.js';
-import { Friend } from './db/database.js';
 import { getUserById, getNameForUser } from './db/db_users.js';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
@@ -37,15 +38,13 @@ export async function eventRoutes(app: FastifyInstance) {
 		sendPopupToClient(user.id, 'BEEP BOOP BEEEEEP ~011001~ Server Connection established', '-> it\'s pongin\' time!', 'green');
 
 		const openFriendRequests = await getPendingFriendRequestsForUser(user.id)
-		{
-			for (const request of openFriendRequests) {
-				const requester: User | null = await getUserById(request.requester_id);
-				if (requester) {
-					sendPopupToClient(user.id, 'Friend Request', `<a href="/partial/pages/profile/${request.requester_id}" target="_blank">User ${await getNameForUser(request.requester_id) || requester.username}</a> wishes to be your friend!`, 'blue', `acceptFriendRequest(${request.id})`, 'Accept', `declineFriendRequest(${request.id})`, 'Decline');
-				} else {
-					logger.error(`User with id ${request.requester_id} not found.`);
-					removeFriendship(request.requester_id, request.requested_id);
-				}
+		for (const request of openFriendRequests) {
+			const requester: User | null = await getUserById(request.requester_id);
+			if (requester) {
+				sendPopupToClient(user.id, 'Friend Request', `<a href="/partial/pages/profile/${request.requester_id}" target="_blank">User ${await getNameForUser(request.requester_id) || requester.username}</a> wishes to be your friend!`, 'blue', `acceptFriendRequest(${request.id})`, 'Accept', `declineFriendRequest(${request.id})`, 'Decline');
+			} else {
+				logger.error(`User with id ${request.requester_id} not found.`);
+				removeFriendship(request.requester_id, request.requested_id);
 			}
 		}
 
@@ -72,12 +71,16 @@ export async function eventRoutes(app: FastifyInstance) {
 	});
 }
 
-export const sendRawToClient = (user: User, data: any) => {
-	const client = connectedClients.get(user.id);
-	if (client) {
-		client.raw.write(data);
+export const sendRawToClient = (userId: number, data: any) => {
+	console.log("Sending raw data to client", userId, data);
+	const reply = connectedClients.get(userId);
+	if (reply) {
+		if (!data.endsWith("\n\n")) {
+			data += "\n\n";
+		}
+		reply.raw.write(data);
 	} else {
-		console.error(`Client ${user.displayname} not found in connected users.`);
+		console.error(`User ${userId} not found in connected users.`);
 	}
 };
 export function sendPopupToClient(

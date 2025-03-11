@@ -3,6 +3,7 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyView from '@fastify/view';
 import fastifyStatic from '@fastify/static';
 import fastifyCookie from '@fastify/cookie';
+import websocket from '@fastify/websocket';
 import ejs from 'ejs';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -14,7 +15,7 @@ import { generalRoutes } from './routes/get.js';
 import { profileRoutes } from './routes/api/profile.js';
 import { numberRoutes } from './routes/number.js';
 import { friendRoutes } from './routes/api/friends.js';
-import { request } from 'http';
+import { gameRoutes } from './routes/api/games.js';
 
 const app = fastify();
 
@@ -31,6 +32,11 @@ app.register(fastifyJwt, {
 			}
 			return token;
 		}
+	}
+});
+app.register(websocket, {
+	options: {
+		maxPayload: 1048576, // 1 MB
 	}
 });
 app.register(fastifyView, {
@@ -80,6 +86,7 @@ app.register(generalRoutes);
 app.register(profileRoutes);
 app.register(numberRoutes);
 app.register(friendRoutes);
+app.register(gameRoutes);
 
 // error
 app.setNotFoundHandler((request, reply) => {

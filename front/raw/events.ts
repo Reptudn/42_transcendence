@@ -54,14 +54,7 @@ function getCookie(name: string) {
 
 let notifyEventSource: EventSource | null = null;
 function setupEventSource() {
-	let token: string | undefined = getCookie('token');
-	// if (token === undefined)
-	// {
-	// 	console.log("token is undefined.. not connecting to event stream.");
-	// 	return;
-	// }
-
-	notifyEventSource = new EventSource(`/notify?token=${token}`);
+	notifyEventSource = new EventSource('/notify');
 
 	notifyEventSource.onerror = (event) => {
 		console.error('notifyEventSource.onerror', event);
@@ -72,6 +65,8 @@ function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = (event) => {
+		console.log('EventSource message received:', event);
+		console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 
@@ -91,6 +86,9 @@ function setupEventSource() {
 				}
 			} else if (data.type === "game_request") {
 				console.log("👫 Game request received:", data);
+				sendPopup('Game Request', `You have been invited to play a game!`, 'blue', `acceptGameInvite(${data.gameId}, ${data.playerId})`, 'Accept');
+			} else if (data.type === "game_admin_request") {
+				acceptGameInvite(data.gameId, data.playerId);
 			} else {
 				console.error("❌ Unknown event type:", data.type);
 				console.log(data);
@@ -109,13 +107,21 @@ setInterval(() => {
 	}
 }, 5000);
 
-function sendPopup(title: string, description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'CLICK ME') {
+function sendPopup(
+		title: string,
+		description: string = '',
+		color: string = 'black',
+		callback1: string = '',
+		buttonName1: string = 'CLICK ME',
+		callback2: string = '',
+		buttonName2: string = 'CLICK ME 2')
+{
 	fetch('/notify/send', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({ title, description, color, callback, buttonName }),
+		body: JSON.stringify({ title, description, color, callback1, buttonName1, callback2, buttonName2 }),
 	})
 		.then((response) => response.json())
 		.then((data) => console.log('Popup sent:', data))
@@ -124,4 +130,9 @@ function sendPopup(title: string, description: string = '', color: string = 'bla
 
 function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');
+}
+
+function acceptGameInvite(gameId: number, playerId: number) {
+	console.log('Accepting game invite for gameId', gameId, 'with playerId', playerId);
+	loadPartialView(`chat?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
 }

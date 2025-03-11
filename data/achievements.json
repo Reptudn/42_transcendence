@@ -138,7 +138,7 @@
 	{
 		"key": "long-bio",
 		"name": "The Storyteller",
-		"description": "Write a bio that over 100 characters long.",
+		"description": "Write a bio that is over 100 characters long.",
 		"title_first": "Verbose",
 		"title_second": "Storyteller",
 		"title_third": "📚"
@@ -147,16 +147,16 @@
 		"key": "pfp-change",
 		"name": "The Chameleon",
 		"description": "Change your profile picture.",
-		"title_first": "Changing",
-		"title_second": "Chameleon",
+		"title_first": "Shapeshifting",
+		"title_second": "Shapeshifter",
 		"title_third": "🤩"
 	},
 	{
 		"key": "login",
 		"name": "The baby",
 		"description": "Create an account.",
-		"title_first": "New",
-		"title_second": "User",
+		"title_first": "Newborn",
+		"title_second": "Baby",
 		"title_third": "👶"
 	},
 	{
@@ -218,7 +218,7 @@
 	{
 		"key": "defeated-4",
 		"name": "eMoTiOnAl DaMaGe",
-		"description": "Lose first against 3 other people.",
+		"description": "Lose first in a game against 3 other people.",
 		"title_first": "Damaged",
 		"title_second": "Nobody",
 		"title_third": "😭"
