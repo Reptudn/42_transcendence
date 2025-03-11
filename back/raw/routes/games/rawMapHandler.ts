@@ -3,6 +3,9 @@ import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 
+// TODO: verify each player has a paddle, paddle path and hitbox
+// TODO: verify each map has an initial ball pos & movement vector
+
 export function getMapAsInitialGameState(settings: GameSettings): Object {
 	const map = require(`../../../../data/maps/${settings.map}.json`);
 	let gameState = [];

@@ -1,6 +1,11 @@
 {
 	"objects": [
 		{
+			"type": "ball",
+			"name": "ball",
+			"position": { "x": 45, "y": 55 }
+		},
+		{
 			"type": "paddle",
 			"name": "playerTop",
 			"playerNbr": 1,
