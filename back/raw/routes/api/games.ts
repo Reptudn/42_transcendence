@@ -148,8 +148,6 @@ export async function gameRoutes(app: FastifyInstance) {
 		const { gameId, playerId } = req.params as { gameId: string; playerId: string };
 		const parsedGameId = parseInt(gameId, 10);
 		const parsedPlayerId = parseInt(playerId, 10);
-
-		console.log('Woohoo! Connection websocket attempted!');
 	
 		const game = runningGames.find(g => g.gameId === parsedGameId);
 		if (!game) {
@@ -175,7 +173,7 @@ export async function gameRoutes(app: FastifyInstance) {
 				if (data.type === 'chat') {
 					const text = data.text;
 					for (const p of game.players) {
-						if (p.wsocket) {
+						if (p.wsocket && p.playerId !== parsedPlayerId) {
 							p.wsocket.send(JSON.stringify({ type: 'chat', playerId: parsedPlayerId, text }));
 						}
 					}

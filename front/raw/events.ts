@@ -107,13 +107,21 @@ setInterval(() => {
 	}
 }, 5000);
 
-function sendPopup(title: string, description: string = '', color: string = 'black', callback: string = '', buttonName: string = 'CLICK ME') {
+function sendPopup(
+		title: string,
+		description: string = '',
+		color: string = 'black',
+		callback1: string = '',
+		buttonName1: string = 'CLICK ME',
+		callback2: string = '',
+		buttonName2: string = 'CLICK ME 2')
+{
 	fetch('/notify/send', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({ title, description, color, callback, buttonName }),
+		body: JSON.stringify({ title, description, color, callback1, buttonName1, callback2, buttonName2 }),
 	})
 		.then((response) => response.json())
 		.then((data) => console.log('Popup sent:', data))
