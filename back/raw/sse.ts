@@ -72,9 +72,13 @@ export async function eventRoutes(app: FastifyInstance) {
 }
 
 export const sendRawToClient = (userId: number, data: any) => {
-	const client = connectedClients.get(userId);
-	if (client) {
-		client.raw.write(data);
+	console.log("Sending raw data to client", userId, data);
+	const reply = connectedClients.get(userId);
+	if (reply) {
+		if (!data.endsWith("\n\n")) {
+			data += "\n\n";
+		}
+		reply.raw.write(data);
 	} else {
 		console.error(`User ${userId} not found in connected users.`);
 	}

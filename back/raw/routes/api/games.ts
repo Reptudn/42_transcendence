@@ -85,7 +85,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	let players: Player[] = [];
 
 	players.push(new Player(PlayerType.USER, currPlayerID++, admin.id));
-	sendRawToClient(admin.id, JSON.stringify({ type: "game_admin_request", gameId, playerId: currPlayerID }));
+	sendRawToClient(admin.id, `data: ${JSON.stringify({ type: "game_admin_request", gameId, playerId: currPlayerID })}\n\n`);
 
 	console.log('Sent invite to admin', players);
 
@@ -97,16 +97,20 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 				let user = await getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
 					player = new Player(PlayerType.USER, currPlayerID++, id);
-					sendRawToClient(id, JSON.stringify({ type: "game_request", gameId, playerId: currPlayerID }));
+					sendRawToClient(id, `data: ${JSON.stringify({ type: "game_request", gameId, playerId: currPlayerID })}\n\n`);
 				} else {
 					throw new Error("User not found or not connected");
 				}
+			} else {
+				throw "Game-starting player should not be added as a player";
 			}
 		} else if (readPlayer.type === PlayerType.AI) {
 			let aiLevel = readPlayer.aiLevel;
 			player = new Player(PlayerType.AI, currPlayerID++, null, null, aiLevel);
 		} else if (readPlayer.type === PlayerType.LOCAL) {
 			player = new Player(PlayerType.LOCAL, currPlayerID++, admin.id, null, null, readPlayer.localPlayerId);
+		} else {
+			throw "Invalid player type";
 		}
 		if (player !== null) {
 			players.push(player);
@@ -144,6 +148,8 @@ export async function gameRoutes(app: FastifyInstance) {
 		const { gameId, playerId } = req.params as { gameId: string; playerId: string };
 		const parsedGameId = parseInt(gameId, 10);
 		const parsedPlayerId = parseInt(playerId, 10);
+
+		console.log('Woohoo! Connection websocket attempted!');
 	
 		const game = runningGames.find(g => g.gameId === parsedGameId);
 		if (!game) {
