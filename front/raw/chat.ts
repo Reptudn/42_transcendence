@@ -7,6 +7,7 @@ if (!gameId || !playerId) {
 	loadPartialView('chat_setup');
 }
 
+console.log('Attempting to join with game ID', gameId, 'and player ID', playerId);
 const wsUrl = `/api/games/join/${gameId}/${playerId}`;
 const ws = new WebSocket(wsUrl);
 
@@ -41,6 +42,14 @@ document.getElementById('sendChatButton')?.addEventListener('click', () => {
 		const msg = { type: 'chat', text: input.value.trim() };
 		ws.send(JSON.stringify(msg));
 		input.value = '';
+
+		const chatMessages = document.getElementById('chatMessages');
+		if (chatMessages) {
+			const messageElement = document.createElement('div');
+			messageElement.textContent = `You: ${msg.text}`;
+			chatMessages.appendChild(messageElement);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+		}
 	}
 });
 

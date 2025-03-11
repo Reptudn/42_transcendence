@@ -85,7 +85,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	let players: Player[] = [];
 
 	players.push(new Player(PlayerType.USER, currPlayerID++, admin.id));
-	sendRawToClient(admin.id, `data: ${JSON.stringify({ type: "game_admin_request", gameId, playerId: currPlayerID })}\n\n`);
+	sendRawToClient(admin.id, `data: ${JSON.stringify({ type: "game_admin_request", gameId, 'playerId': currPlayerID - 1 })}\n\n`);
 
 	console.log('Sent invite to admin', players);
 
@@ -97,7 +97,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 				let user = await getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
 					player = new Player(PlayerType.USER, currPlayerID++, id);
-					sendRawToClient(id, `data: ${JSON.stringify({ type: "game_request", gameId, playerId: currPlayerID })}\n\n`);
+					sendRawToClient(id, `data: ${JSON.stringify({ type: "game_request", gameId, 'playerId': currPlayerID - 1 })}\n\n`);
 				} else {
 					throw new Error("User not found or not connected");
 				}
