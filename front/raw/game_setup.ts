@@ -1,4 +1,4 @@
-document.getElementById('joinChatButton')?.addEventListener('click', () => {
+document.getElementById('startGameButton')?.addEventListener('click', () => {
 	let ids: number[] = [];
 	document.querySelectorAll('.friendCheckBox')?.forEach((checkbox) => {
 		if ((<HTMLInputElement>checkbox).checked) {
@@ -22,7 +22,11 @@ document.getElementById('joinChatButton')?.addEventListener('click', () => {
 					type: 'user',
 					id: ids[0]
 				}
-			]
+			],
+			powerups: (<HTMLInputElement>document.getElementById('powerups')).checked,
+			map: (<HTMLInputElement>document.getElementById('map')).value,
+			playerLives: (<HTMLInputElement>document.getElementById('lives')).value,
+			gameDifficulty: (<HTMLInputElement>document.getElementById('difficulty')).value
 		})
 	})
 	.then(response => {

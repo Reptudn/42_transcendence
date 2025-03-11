@@ -134,5 +134,5 @@ function testCallback() {
 
 function acceptGameInvite(gameId: number, playerId: number) {
 	console.log('Accepting game invite for gameId', gameId, 'with playerId', playerId);
-	loadPartialView(`chat?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
+	loadPartialView(`game?gameId=${encodeURIComponent(gameId)}&playerId=${encodeURIComponent(playerId)}`);
 }

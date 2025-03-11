@@ -76,7 +76,7 @@ export async function generalRoutes(app: FastifyInstance) {
 				variables["firstTitles"] = await getUserTitlesForTitle(1, profile.id);
 				variables["secondTitles"] = await getUserTitlesForTitle(2, profile.id);
 				variables["thirdTitles"] = await getUserTitlesForTitle(3, profile.id);
-			} else if (page === 'chat_setup') {
+			} else if (page === 'game_setup') {
 				await checkAuth(req, true);
 				const user_id = req.user.id;
 				let friends = await getFriends(user_id);

@@ -54,6 +54,22 @@
 		},
 		{
 			"type": "wall",
+			"name": "obstacle",
+			"shape": [
+				{ "x": 45, "y": 45 },
+				{ "x": 55, "y": 45 },
+				{ "x": 55, "y": 55 }
+			],
+			"conditions": [
+				{
+					"condition": "larger_than",
+					"value": "difficulty",
+					"target": 5
+				}
+			]
+		},
+		{
+			"type": "wall",
 			"name": "rightWall",
 			"shape": [
 				{ "x": 100, "y": 0 },
