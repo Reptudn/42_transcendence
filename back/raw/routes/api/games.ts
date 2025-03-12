@@ -59,6 +59,9 @@ export async function gameRoutes(app: FastifyInstance) {
 							p.wsocket.send(JSON.stringify({ type: 'chat', playerId: parsedPlayerId, text }));
 						}
 					}
+				} else if (data.type === 'move') {
+					player.movementDirection = data.dir;
+					console.log('Server received movement data:', data);
 				}
 			} catch (err) {
 				console.error(`Invalid message format from player ${parsedPlayerId}:`, err);

@@ -59,6 +59,11 @@ setInterval(() => {
 		if (game.status === GameStatus.WAITING)
 			continue;
 
-
+		// send updated game state to clients
+		for (const player of game.players) {
+			if (player.wsocket) {
+				player.wsocket.send(JSON.stringify({ type: 'state', state: game.gameState }))
+			}
+		}
 	}
 }, 1000 / ticksPerSecond);

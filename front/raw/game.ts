@@ -26,6 +26,12 @@ ws.onmessage = (event) => {
 				chatMessages.appendChild(messageElement);
 				chatMessages.scrollTop = chatMessages.scrollHeight;
 			}
+		} else if (data.type == 'state') {
+			const state = document.getElementById('state');
+			if (state)
+				state.innerHTML = JSON.stringify(data.state);
+		} else {
+			console.log('Unknown data received from websocket: ', data);
 		}
 	} catch (e) {
 		console.error('Error parsing chat message:', e);
@@ -35,6 +41,8 @@ ws.onmessage = (event) => {
 ws.onerror = (error) => {
 	console.error('WebSocket error:', error);
 };
+
+// CHAT
 
 document.getElementById('sendChatButton')?.addEventListener('click', () => {
 	const input = document.getElementById('chatInput') as HTMLInputElement;
@@ -58,3 +66,44 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 		document.getElementById('sendChatButton')?.click();
 	}
 });
+
+// INPUT
+
+let leftPressed = false;
+let rightPressed = false;
+let lastSentDirection = 'none';
+
+window.addEventListener('keydown', (e) => {
+	if (e.key === 'ArrowLeft') {
+		leftPressed = true;
+	} else if (e.key === 'ArrowRight') {
+		rightPressed = true;
+	}
+});
+
+window.addEventListener('keyup', (e) => {
+	if (e.key === 'ArrowLeft') {
+		leftPressed = false;
+	} else if (e.key === 'ArrowRight') {
+		rightPressed = false;
+	}
+});
+
+setInterval(() => {
+	if (leftPressed && !rightPressed) {
+		if (lastSentDirection !== 'dir1') {
+			ws.send(JSON.stringify({ type: 'move', dir: 'dir1' }));
+		}
+		lastSentDirection = 'dir1';
+	} else if (rightPressed && !leftPressed) {
+		if (lastSentDirection !== 'dir2') {
+			ws.send(JSON.stringify({ type: 'move', dir: 'dir2' }));
+		}
+		lastSentDirection = 'dir2';
+	} else {
+		if (lastSentDirection !== 'none') {
+			ws.send(JSON.stringify({ type: 'move', dir: 'none' }));
+		}
+		lastSentDirection = 'none';
+	}
+}, 1000 / 30); // 30 FPS

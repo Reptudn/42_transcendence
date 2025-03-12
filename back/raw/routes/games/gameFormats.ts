@@ -58,6 +58,8 @@ export class Player {
 
 	// live game data
 	lives: number = 3;
+	movementDirection: MovementDirection = MovementDirection.NONE;
+	// aiMoveCoolDown: number = aiLevel;
 
 	constructor(type: PlayerType, playerId: number, lives: number, userId: number | null = null, wsocket: WSWebSocket | null = null, aiLevel: number | null = null, localPlayerId: number | null = null) {
 		this.type = type;
@@ -72,6 +74,11 @@ export class Player {
 	isReady() {
 		return this.wsocket !== null;
 	}
+}
+export enum MovementDirection {
+	DIRECTION1 = "dir1",
+	DIRECTION2 = "dir2",
+	NONE = "none"
 }
 export enum GameStatus {
 	WAITING = "waiting", // awaiting all players to join
