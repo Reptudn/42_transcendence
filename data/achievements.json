@@ -129,11 +129,27 @@
 	},
 	{
 		"key": "lose-25",
-		"name": "Losses of legendary lament",
+		"name": "Is this loss?",
 		"description": "Lose 25 games of Pong.",
 		"title_first": "Abysmal",
 		"title_second": "Anti-Talent",
 		"title_third": "🫠"
+	},
+	{
+		"key": "game-only-ais",
+		"name": "so... alone...",
+		"description": "Play a game of Pong with only AIs.",
+		"title_first": "Lonely",
+		"title_second": "Warrior",
+		"title_third": "🥺"
+	},
+	{
+		"key": "singleplayer",
+		"name": "The Lone Wolf",
+		"description": "Play a game of Pong alone.",
+		"title_first": "Lone",
+		"title_second": "Wolf",
+		"title_third": "🐺"
 	},
 	{
 		"key": "long-bio",

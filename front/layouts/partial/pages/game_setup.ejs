@@ -1,40 +1,70 @@
-<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-	<% if (friends && friends.length > 0) { %>
-		<div class="flex flex-wrap gap-4">
-			<% friends.forEach(function(friend) { %>
-			<div class="flex flex-col items-center bg-gray-100 p-4 rounded-lg shadow-sm">
-				<a href="/partial/pages/profile/<%= friend.id %>" target="_blank"
-					class="cursor-pointer flex flex-col items-center">
-					<img src="/api/profile/<%= friend.id %>/picture?v=<%= Date.now() %>"
-						alt="Profile Picture <%= friend.id %>"
-						class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500">
-					<div class="text-center mt-2">
-						<div class="text-lg font-bold">
-							<%= friend.displayname %>
-						</div>
-						<div class="text-sm text-gray-600">@<%= friend.username %>
-						</div>
-					</div>
-				</a>
-				<input type="checkbox" name="friends" value="<%= friend.id %>"
-					class="friendCheckBox">
-			</div>
-			<% }); %>
+
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h1 class="text-3xl font-bold mb-6 text-center">Game Setup</h1>
+
+	<section class="mb-8">
+	<h2 class="text-2xl font-semibold mb-3">General Settings</h2>
+	<div class="grid grid-cols-2 gap-6">
+		<div>
+		<label for="map" class="block text-sm font-medium text-gray-700">Map</label>
+		<select id="map" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+			<option value="classic">Classic 🏓</option>
+		</select>
 		</div>
-	<% } %>
-	<select id="map">
-		<option value="classic">Classic 🏓</option>
-	</select>
-	<p>Player Lives</p>
-	<input type="number" id="lives" placeholder="3" class="w-full p-2 mt-2 border border-gray-300 rounded-lg"
-		min="1">
-	<p>Powerups enabled?</p>
-	<input type="checkbox" id="powerups" class="w-full p-2 mt-2 border border-gray-300 rounded-lg">
-	<p>Game Difficulty</p>
-	<input type="number" id="difficulty" placeholder="1" class="w-full p-2
-		mt-2 border border-gray-300 rounded-lg" min="1" max="10">
-	<button id="startGameButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-	Start Game
+		<div>
+		<label for="lives" class="block text-sm font-medium text-gray-700">Player Lives</label>
+		<input type="number" id="lives" placeholder="3" min="1"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+		</div>
+		<div>
+		<label for="difficulty" class="block text-sm font-medium text-gray-700">Game Difficulty</label>
+		<input type="number" id="difficulty" placeholder="1" min="1" max="10"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+		</div>
+		<div class="flex items-center mt-6">
+		<input type="checkbox" id="powerups" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+		<label for="powerups" class="ml-2 text-sm text-gray-700">Powerups Enabled?</label>
+		</div>
+	</div>
+	</section>
+
+	<section class="mb-8">
+	<h2 class="text-2xl font-semibold mb-3">Player Settings</h2>
+	<p class="text-sm text-gray-600 mb-4">
+		There must always be at least one player (that's you) and never more than four.
+		For additional players, choose from: Friend (User), Local Player, or AI.
+	</p>
+	<div id="playersContainer">
+		<div class="player-card p-4 border rounded-lg mb-4" data-player-index="0">
+		<h3 class="text-xl font-bold mb-2">Player 1: You</h3>
+		<div class="mb-2">
+			<label class="block text-sm font-medium text-gray-700">Control Scheme</label>
+			<select class="control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+			<option value="wasd">WASD</option>
+			<option value="arrows">Arrow Keys</option>
+			<option value="ijkl">IJKL</option>
+			</select>
+		</div>
+		</div>
+	</div>
+	<div class="flex space-x-4">
+		<button id="addPlayerButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+		Add Player
+		</button>
+		<button id="removePlayerButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+		Remove Player
+		</button>
+	</div>
+	</section>
+
+	<div class="text-center">
+	<button id="startGameButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+		Start Game
 	</button>
+	</div>
 </div>
+
+<script>
+	const friends = <%- JSON.stringify(friends) %>;
+</script>
 <script type="module" src="/static/js/game_setup.js"></script>
