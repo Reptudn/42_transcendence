@@ -1,7 +1,15 @@
-const playersContainer = document.getElementById('playersContainer') as HTMLElement;
-const addPlayerButton = document.getElementById('addPlayerButton') as HTMLButtonElement;
-const removePlayerButton = document.getElementById('removePlayerButton') as HTMLButtonElement;
-const startGameButton = document.getElementById('startGameButton') as HTMLButtonElement;
+const playersContainer = document.getElementById(
+	'playersContainer'
+) as HTMLElement;
+const addPlayerButton = document.getElementById(
+	'addPlayerButton'
+) as HTMLButtonElement;
+const removePlayerButton = document.getElementById(
+	'removePlayerButton'
+) as HTMLButtonElement;
+const startGameButton = document.getElementById(
+	'startGameButton'
+) as HTMLButtonElement;
 const maxPlayers = 4;
 
 function createPlayerCard(index: number): HTMLElement {
@@ -22,7 +30,8 @@ function createPlayerCard(index: number): HTMLElement {
 	typeDiv.appendChild(typeLabel);
 
 	const typeSelect = document.createElement('select');
-	typeSelect.className = 'player-type mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+	typeSelect.className =
+		'player-type mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 	typeSelect.innerHTML = `
 		<option value="user">Friend (User)</option>
 		<option value="local">Local Player</option>
@@ -62,7 +71,8 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 		container.appendChild(label);
 
 		const friendSelect = document.createElement('select');
-		friendSelect.className = 'friend-select mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		friendSelect.className =
+			'friend-select mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 		friendSelect.innerHTML = `<option value="">-- Choose a friend --</option>`;
 		friends.forEach((friend: Friend) => {
 			const option = document.createElement('option');
@@ -78,7 +88,8 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 		container.appendChild(label);
 
 		const controlSelect = document.createElement('select');
-		controlSelect.className = 'control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		controlSelect.className =
+			'control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 		controlSelect.innerHTML = `
 			<option value="wasd">WASD</option>
 			<option value="arrows">Arrow Keys</option>
@@ -93,7 +104,8 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 
 		const aiLevelInput = document.createElement('input');
 		aiLevelInput.type = 'number';
-		aiLevelInput.className = 'ai-level mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		aiLevelInput.className =
+			'ai-level mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 		aiLevelInput.min = '1';
 		aiLevelInput.max = '10';
 		aiLevelInput.value = '5';
@@ -102,7 +114,8 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 }
 
 addPlayerButton.addEventListener('click', () => {
-	const currentPlayers = playersContainer.querySelectorAll('.player-card').length;
+	const currentPlayers =
+		playersContainer.querySelectorAll('.player-card').length;
 	if (currentPlayers >= maxPlayers) {
 		alert('Maximum players reached. You cannot add more than 4 players.');
 		return;
@@ -122,37 +135,48 @@ removePlayerButton.addEventListener('click', () => {
 
 startGameButton.addEventListener('click', () => {
 	const map = (document.getElementById('map') as HTMLSelectElement).value;
-	const lives = parseInt((document.getElementById('lives') as HTMLInputElement).value) || 3;
-	const difficulty = parseInt((document.getElementById('difficulty') as HTMLInputElement).value) || 1;
-	const powerups = (document.getElementById('powerups') as HTMLInputElement).checked;
+	const lives =
+		parseInt(
+			(document.getElementById('lives') as HTMLInputElement).value
+		) || 3;
+	const difficulty =
+		parseInt(
+			(document.getElementById('difficulty') as HTMLInputElement).value
+		) || 1;
+	const powerups = (document.getElementById('powerups') as HTMLInputElement)
+		.checked;
 
 	const playerCards = playersContainer.querySelectorAll('.player-card');
 	const players: any[] = [];
 
 	playerCards.forEach((card, index) => {
-		if (index === 0) {
-			const controlScheme = (card.querySelector('.control-scheme') as HTMLSelectElement).value;
-			players.push({
-				type: 'user',
-				self: true,
-				controlScheme: controlScheme
-			});
-		} else {
-			const type = (card.querySelector('.player-type') as HTMLSelectElement).value;
+		// no data needed for first player
+		if (index > 0) {
+			const type = (
+				card.querySelector('.player-type') as HTMLSelectElement
+			).value;
 			const playerData: any = { type };
 			if (type === 'user') {
-				const friendSelect = card.querySelector('.friend-select') as HTMLSelectElement;
+				const friendSelect = card.querySelector(
+					'.friend-select'
+				) as HTMLSelectElement;
 				const friendId = friendSelect.value;
 				if (!friendId) {
 					alert(`Please select a friend for Player ${index + 1}.`);
 					throw new Error('Friend not selected');
 				}
-				playerData.friendId = parseInt(friendId);
+				playerData.id = parseInt(friendId);
 			} else if (type === 'local') {
-				const controlScheme = (card.querySelector('.control-scheme') as HTMLSelectElement).value;
+				const controlScheme = (
+					card.querySelector('.control-scheme') as HTMLSelectElement
+				).value;
 				playerData.controlScheme = controlScheme;
 			} else if (type === 'ai') {
-				const aiLevel = parseInt((card.querySelector('.ai-level') as HTMLInputElement).value) || 1;
+				const aiLevel =
+					parseInt(
+						(card.querySelector('.ai-level') as HTMLInputElement)
+							.value
+					) || 1;
 				playerData.aiLevel = aiLevel;
 			}
 			players.push(playerData);
@@ -164,25 +188,27 @@ startGameButton.addEventListener('click', () => {
 		playerLives: lives,
 		gameDifficulty: difficulty,
 		powerups,
-		players
+		players,
 	};
 
 	fetch('/api/games/start', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(data)
+		body: JSON.stringify(data),
 	})
-		.then(response => {
+		.then((response) => {
 			if (!response.ok) {
-				return response.json().then(err => { throw new Error(err.error || response.statusText); });
+				return response.json().then((err) => {
+					throw new Error(err.error || response.statusText);
+				});
 			}
 			return response.json();
 		})
-		.then(result => {
-			console.log("Game started successfully:", result);
-			alert("Game started successfully!");
+		.then((result) => {
+			console.log('Game started successfully:', result);
+			alert('Game started successfully!');
 		})
-		.catch(error => {
+		.catch((error) => {
 			console.error('Error starting game:', error);
 			alert(`Error starting game: ${error.message}`);
 		});

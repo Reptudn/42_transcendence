@@ -48,9 +48,9 @@
 			},
 			"conditions": [
 				{
-					"condition": "larger_than",
-					"value": "player_count",
-					"target": 0
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 1
 				}
 			]
 		},
@@ -70,9 +70,9 @@
 			],
 			"conditions": [
 				{
-					"condition": "larger_than",
-					"value": "player_count",
-					"target": 0
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 1
 				}
 			]
 		},
@@ -92,9 +92,267 @@
 			],
 			"conditions": [
 				{
-					"condition": "larger_than",
-					"value": "player_count",
-					"target": 0
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 1
+				}
+			]
+		},
+		{
+			"type": "paddle",
+			"name": "paddleBottom",
+			"playerNbr": 2,
+			"shape": [
+				{
+					"x": 45,
+					"y": 100
+				},
+				{
+					"x": 55,
+					"y": 100
+				},
+				{
+					"x": 55,
+					"y": 95
+				},
+				{
+					"x": 45,
+					"y": 95
+				},
+				{
+					"x": 45,
+					"y": 100
+				}
+			],
+			"anchor1": {
+				"x": 48,
+				"y": 97.5
+			},
+			"anchor2": {
+				"x": 52,
+				"y": 97.5
+			},
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 2
+				}
+			]
+		},
+		{
+			"type": "paddle_path",
+			"name": "paddleBottomPath",
+			"playerNbr": 2,
+			"shape": [
+				{
+					"x": 0,
+					"y": 100
+				},
+				{
+					"x": 100,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 2
+				}
+			]
+		},
+		{
+			"type": "player_damage_area",
+			"name": "playerBottomDamageArea",
+			"playerNbr": 2,
+			"shape": [
+				{
+					"x": 0,
+					"y": 100
+				},
+				{
+					"x": 100,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 2
+				}
+			]
+		},
+		{
+			"type": "paddle",
+			"name": "paddleLeft",
+			"playerNbr": 3,
+			"shape": [
+				{
+					"x": 0,
+					"y": 45
+				},
+				{
+					"x": 0,
+					"y": 55
+				},
+				{
+					"x": 5,
+					"y": 55
+				},
+				{
+					"x": 5,
+					"y": 45
+				},
+				{
+					"x": 0,
+					"y": 45
+				}
+			],
+			"anchor1": {
+				"x": 2.5,
+				"y": 48
+			},
+			"anchor2": {
+				"x": 2.5,
+				"y": 52
+			},
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 3
+				}
+			]
+		},
+		{
+			"type": "paddle_path",
+			"name": "paddleLeftPath",
+			"playerNbr": 3,
+			"shape": [
+				{
+					"x": 0,
+					"y": 0
+				},
+				{
+					"x": 0,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 3
+				}
+			]
+		},
+		{
+			"type": "player_damage_area",
+			"name": "playerLeftDamageArea",
+			"playerNbr": 3,
+			"shape": [
+				{
+					"x": 0,
+					"y": 0
+				},
+				{
+					"x": 0,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 3
+				}
+			]
+		},
+		{
+			"type": "paddle",
+			"name": "paddleRight",
+			"playerNbr": 4,
+			"shape": [
+				{
+					"x": 100,
+					"y": 45
+				},
+				{
+					"x": 100,
+					"y": 55
+				},
+				{
+					"x": 95,
+					"y": 55
+				},
+				{
+					"x": 95,
+					"y": 45
+				},
+				{
+					"x": 100,
+					"y": 45
+				}
+			],
+			"anchor1": {
+				"x": 97.5,
+				"y": 48
+			},
+			"anchor2": {
+				"x": 97.5,
+				"y": 52
+			},
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 4
+				}
+			]
+		},
+		{
+			"type": "paddle_path",
+			"name": "paddleRightPath",
+			"playerNbr": 4,
+			"shape": [
+				{
+					"x": 100,
+					"y": 0
+				},
+				{
+					"x": 100,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 4
+				}
+			]
+		},
+		{
+			"type": "player_damage_area",
+			"name": "playerRightDamageArea",
+			"playerNbr": 4,
+			"shape": [
+				{
+					"x": 100,
+					"y": 0
+				},
+				{
+					"x": 100,
+					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "larger_than_or_equal",
+					"variable": "player_count",
+					"target": 4
 				}
 			]
 		},
@@ -126,7 +384,7 @@
 			"conditions": [
 				{
 					"condition": "larger_than",
-					"value": "difficulty",
+					"variable": "difficulty",
 					"target": 5
 				}
 			]
@@ -155,6 +413,13 @@
 					"x": 100,
 					"y": 0
 				}
+			],
+			"conditions": [
+				{
+					"condition": "smaller_than",
+					"variable": "player_count",
+					"target": 4
+				}
 			]
 		},
 		{
@@ -181,6 +446,13 @@
 					"x": 0,
 					"y": 0
 				}
+			],
+			"conditions": [
+				{
+					"condition": "smaller_than",
+					"variable": "player_count",
+					"target": 3
+				}
 			]
 		},
 		{
@@ -206,6 +478,13 @@
 				{
 					"x": 0,
 					"y": 100
+				}
+			],
+			"conditions": [
+				{
+					"condition": "smaller_than",
+					"variable": "player_count",
+					"target": 2
 				}
 			]
 		},

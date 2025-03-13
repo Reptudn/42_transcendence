@@ -244,8 +244,8 @@
 		"name": "Just plain lucky",
 		"description": "Every game tick, you have a 1 in 10000 chance to get this achievement.",
 		"title_first": "Lucky",
-		"title_second": "Duck",
-		"title_third": "🦆"
+		"title_second": "Believer",
+		"title_third": "🍀"
 	},
 	{
 		"key": "close-death",
@@ -254,5 +254,13 @@
 		"title_first": "Risky",
 		"title_second": "Risk-taker",
 		"title_third": "🎲"
+	},
+	{
+		"key": "easy-win",
+		"name": "Try harder next time!",
+		"description": "Win a game of Pong without losing any health.",
+		"title_first": "Skilled",
+		"title_second": "Pong Professional",
+		"title_third": "💪"
 	}
 ]
