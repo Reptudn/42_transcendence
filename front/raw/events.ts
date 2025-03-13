@@ -108,14 +108,13 @@ setInterval(() => {
 }, 5000);
 
 function sendPopup(
-		title: string,
-		description: string = '',
-		color: string = 'black',
-		callback1: string = '',
-		buttonName1: string = 'CLICK ME',
-		callback2: string = '',
-		buttonName2: string = 'CLICK ME 2')
-{
+	title: string,
+	description: string = '',
+	color: string = 'black',
+	callback1: string = '',
+	buttonName1: string = 'CLICK ME',
+	callback2: string = '',
+	buttonName2: string = 'CLICK ME 2') {
 	fetch('/notify/send', {
 		method: 'POST',
 		headers: {

@@ -96,7 +96,7 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 		aiLevelInput.className = 'ai-level mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 		aiLevelInput.min = '1';
 		aiLevelInput.max = '10';
-		aiLevelInput.value = '1';
+		aiLevelInput.value = '5';
 		container.appendChild(aiLevelInput);
 	}
 }
@@ -144,8 +144,8 @@ startGameButton.addEventListener('click', () => {
 				const friendSelect = card.querySelector('.friend-select') as HTMLSelectElement;
 				const friendId = friendSelect.value;
 				if (!friendId) {
-				alert(`Please select a friend for Player ${index + 1}.`);
-				throw new Error('Friend not selected');
+					alert(`Please select a friend for Player ${index + 1}.`);
+					throw new Error('Friend not selected');
 				}
 				playerData.friendId = parseInt(friendId);
 			} else if (type === 'local') {
@@ -160,12 +160,10 @@ startGameButton.addEventListener('click', () => {
 	});
 
 	const data = {
-		general: {
-			map,
-			playerLives: lives,
-			gameDifficulty: difficulty,
-			powerups
-		},
+		map,
+		playerLives: lives,
+		gameDifficulty: difficulty,
+		powerups,
 		players
 	};
 
@@ -174,18 +172,18 @@ startGameButton.addEventListener('click', () => {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(data)
 	})
-	.then(response => {
-		if (!response.ok) {
-			return response.json().then(err => { throw new Error(err.error || response.statusText); });
-		}
-		return response.json();
-	})
-	.then(result => {
-		console.log("Game started successfully:", result);
-		alert("Game started successfully!");
-	})
-	.catch(error => {
-	console.error('Error starting game:', error);
-	alert(`Error starting game: ${error.message}`);
-	});
+		.then(response => {
+			if (!response.ok) {
+				return response.json().then(err => { throw new Error(err.error || response.statusText); });
+			}
+			return response.json();
+		})
+		.then(result => {
+			console.log("Game started successfully:", result);
+			alert("Game started successfully!");
+		})
+		.catch(error => {
+			console.error('Error starting game:', error);
+			alert(`Error starting game: ${error.message}`);
+		});
 });

@@ -229,7 +229,7 @@
 		"description": "Beat 250 people in Pong.",
 		"title_first": "Undefeated",
 		"title_second": "God",
-		"title_third": "👑"
+		"title_third": "👑👑👑"
 	},
 	{
 		"key": "defeated-4",
@@ -238,5 +238,21 @@
 		"title_first": "Damaged",
 		"title_second": "Nobody",
 		"title_third": "😭"
+	},
+	{
+		"key": "lucky",
+		"name": "Just plain lucky",
+		"description": "Every game tick, you have a 1 in 10000 chance to get this achievement.",
+		"title_first": "Lucky",
+		"title_second": "Duck",
+		"title_third": "🦆"
+	},
+	{
+		"key": "close-death",
+		"name": "Whoa, that was close!",
+		"description": "Win a game of Pong with 1 health left.",
+		"title_first": "Risky",
+		"title_second": "Risk-taker",
+		"title_third": "🎲"
 	}
 ]
