@@ -8,6 +8,7 @@ import {
 	Player,
 	PlayerType,
 } from './gameFormats.js';
+import { getMapAsInitialGameState } from './rawMapHandler.js';
 
 export let runningGames: Game[] = [];
 let nextGameId = 0;
@@ -84,7 +85,14 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 
 	console.log('Game started with players:', players);
 
-	runningGames.push(new Game(gameId, players, gameSettings));
+	runningGames.push(
+		new Game(
+			gameId,
+			players,
+			gameSettings,
+			await getMapAsInitialGameState(gameSettings)
+		)
+	);
 }
 
 const ticksPerSecond = 20;
