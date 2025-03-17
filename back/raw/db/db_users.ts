@@ -4,6 +4,7 @@ import { open, Database } from 'sqlite';
 import { dataBaseLocation, User } from './database.js';
 import { getUserAchievements } from './db_achievements.js';
 import { createRequire } from 'module';
+import { GoogleUserInfo } from '../routes/api/google.js';
 
 const require = createRequire(import.meta.url);
 const default_titles_first = require('../../../data/defaultTitles.json').default_titles_first;
@@ -54,7 +55,31 @@ export async function registerUser(username: string, password: string, displayna
 		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
 	);
 }
-export async function loginUser(username: string, password: string): Promise<User> {
+
+export async function registerGoogleUser(googleUser: GoogleUserInfo) {
+
+	const titleFirst = Math.floor(Math.random() * default_titles_first.length);
+	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
+	const titleThird = Math.floor(Math.random() * default_titles_third.length);
+
+	let username = googleUser.name.replace(" ", "_").trim().toLowerCase();
+	const isUniqueUsername = async (username: string) => {
+		const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+		const user = await db.get('SELECT * FROM users WHERE username = ?', username);
+		return !user;
+	};
+	while (!await isUniqueUsername(username)) {
+		username += Math.floor(Math.random() * 10);
+	}
+
+	const db: Database = await open({ filename: dataBaseLocation, driver: sqlite3.Database });
+	await db.run(
+		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+		[googleUser.id, username, "42Heilbronn", googleUser.name, titleFirst, titleSecond, titleThird, googleUser.picture]
+	);
+}
+
+export async function loginGoogleUser(username: string): Promise<User> {
 	const db: Database = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database
@@ -64,7 +89,20 @@ export async function loginUser(username: string, password: string): Promise<Use
 	if (!user)
 		throw new Error('Incorrect username or password');
 
-	if (!await verifyUserPassword(user.id, password))
+	// if (!await verifyUserPassword(user.id, password))
+	// 	throw new Error('Incorrect username or password');
+
+	return user;
+}
+
+export async function loginUser(username: string, password: string): Promise<User> {
+	const db: Database = await open({
+		filename: dataBaseLocation,
+		driver: sqlite3.Database
+	});
+
+	const user = await db.get('SELECT * FROM users WHERE username = ?', username);
+	if (!user || !await verifyUserPassword(user.id, password))
 		throw new Error('Incorrect username or password');
 
 	return user;

@@ -9,6 +9,7 @@ const achievementsData = require('../../../data/achievements.json');
 
 export interface User {
 	id: number;
+	google_id: string;
 	username: string;
 	password: string;
 	displayname: string;
@@ -45,6 +46,7 @@ async function createDatabase() {
 	await db.exec(`
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		google_id TEXT DEFAULT NULL UNIQUE,
 		username TEXT NOT NULL UNIQUE,
 		password TEXT NOT NULL,
 		displayname TEXT NOT NULL,
