@@ -1,5 +1,12 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { getUserById, loginUser, registerGoogleUser, registerUser, updateUserProfile, printDatabase } from "../../db/db_users.js";
+import {
+  getUserById,
+  loginUser,
+  registerGoogleUser,
+  registerUser,
+  updateUserProfile,
+  printDatabase,
+} from "../../db/db_users.js";
 import { unlockAchievement } from "../../db/db_achievements.js";
 import { User } from "../../db/database.js";
 import { OAuth2Namespace } from "@fastify/oauth2";
@@ -60,12 +67,12 @@ export async function authRoutes(app: FastifyInstance) {
   // google oauth
 
   app.get("/api/auth/google/callback", async (req: any, reply: any) => {
-    const { token } = await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
+    const { token } =
+      await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
     let user: GoogleUserInfo;
     try {
       user = await getGoogleProfile(token.access_token);
-    }
-    catch (error) {
+    } catch (error) {
       reply.send("Something went wrong");
       return;
     }
@@ -96,10 +103,8 @@ export async function checkAuth(
   request: any,
   throwErr: boolean = false
 ): Promise<User | null> {
-
   console.log("Checking auth");
   console.log(request.cookies.token);
-printDatabase();
 
   try {
     await request.jwtVerify();

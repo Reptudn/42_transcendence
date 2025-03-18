@@ -27,9 +27,6 @@ COPY --from=builder /app/back/build		/app/back/build
 RUN mkdir /app/back/db
 RUN mkdir /app/back/db/uploads
 
-ENV GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
-ENV GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
-
 COPY --from=builder /app/front/layouts	/app/front/layouts
 COPY --from=builder /app/front/assets	/app/front/static/assets
 COPY --from=builder /app/front/build	/app/front/static/js

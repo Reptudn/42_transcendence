@@ -17,9 +17,60 @@ import { numberRoutes } from "./routes/number.js";
 import { friendRoutes } from "./routes/api/friends.js";
 import { gameRoutes } from "./routes/api/games.js";
 import oauthPlugin from "@fastify/oauth2";
-import { getUserById, registerUser } from "./db/db_users.js";
+import fastifyEnv from "@fastify/env";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    config: {
+      GOOGLE_OAUTH_CLIENT_ID: string;
+      GOOGLE_OAUTH_CLIENT_SECRET: string;
+    };
+  }
+}
 
 const app = fastify();
+
+const envSchema = {
+  type: "object",
+  required: ["GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET"],
+  properties: {
+    GOOGLE_OAUTH_CLIENT_ID: { type: "string" },
+    GOOGLE_OAUTH_CLIENT_SECRET: { type: "string" },
+  },
+};
+app.register(fastifyCookie);
+app.register(fastifyEnv, { schema: envSchema }).ready((err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  // console.log(app.config);
+});
+
+app.after(async (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+
+  app.register(oauthPlugin, {
+    name: "googleOAuth2",
+    credentials: {
+      client: {
+        id: app.config.GOOGLE_OAUTH_CLIENT_ID,
+        secret: app.config.GOOGLE_OAUTH_CLIENT_SECRET,
+      },
+      auth: oauthPlugin.GOOGLE_CONFIGURATION,
+    },
+    scope: ["profile", "email"],
+    startRedirectPath: "/api/auth/google/",
+    callbackUri: "http://localhost:4242/api/auth/google/callback",
+    callbackUriParams: {
+      access_type: "offline",
+      prompt: "consent",
+    },
+  });
+});
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -53,32 +104,10 @@ app.register(fastifyView, {
   },
   viewExt: "ejs",
 });
-app.register(fastifyCookie);
 app.register(fastifyStatic, {
   root: path.join(__dirname, "../../front/static"),
   prefix: "/static/",
   list: true,
-});
-
-console.log(process.env.GOOGLE_OAUTH_CLIENT_ID)
-console.log(process.env.GOOGLE_OAUTH_CLIENT_SECRET)
-
-app.register(oauthPlugin, {
-  name: "googleOAuth2",
-  credentials: {
-    client: {
-      id: "",
-      secret: "",
-    },
-    auth: oauthPlugin.GOOGLE_CONFIGURATION,
-  },
-  scope: ["profile", "email"],
-  startRedirectPath: "/api/auth/google/",
-  callbackUri: "http://localhost:4242/api/auth/google/callback",
-  callbackUriParams: {
-    access_type: "offline",
-    prompt: "consent",
-  },
 });
 
 app.decorate("authenticate", async function (request: any, reply: any) {
@@ -94,6 +123,7 @@ app.ready().then(() => {
 });
 
 async function startServer() {
+  app.ready();
   try {
     await app.listen({ port: 4242, host: "0.0.0.0" });
     logger.info(`Server listening on port 4242`);
@@ -127,5 +157,6 @@ app.setNotFoundHandler((request, reply) => {
 });
 
 startServer();
+console.log("started server");
 
 export { app };
