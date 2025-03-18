@@ -78,12 +78,22 @@ app.register(fastifyJwt, {
   secret: crypto.randomBytes(64).toString("hex"),
   verify: {
     extractToken: (request: any) => {
-      let token = request.cookies.token;
-      // fall back to query param if not found
-      if (!token && request.query && request.query.token) {
-        token = request.query.token;
+      try {
+        console.log("jwt extract token!");
+        let token = request.cookies.token;
+        // fall back to query param if not found
+        if (!token && request.query && request.query.token) {
+          token = request.query.token;
+        }
+
+        if (!token && request.cookie) token = request.cookie.token;
+
+        console.log("Token", token);
+        return token;
+      } catch (error) {
+        console.log("Error in jwt extract token", error);
       }
-      return token;
+      return undefined;
     },
   },
 });

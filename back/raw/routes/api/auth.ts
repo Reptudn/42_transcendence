@@ -6,6 +6,8 @@ import {
   registerUser,
   updateUserProfile,
   printDatabase,
+  getGoogleUser,
+  loginGoogleUser,
 } from "../../db/db_users.js";
 import { unlockAchievement } from "../../db/db_achievements.js";
 import { User } from "../../db/database.js";
@@ -62,10 +64,6 @@ export async function authRoutes(app: FastifyInstance) {
     }
   });
 
-  console.log("Google OAuth enabled");
-
-  // google oauth
-
   app.get("/api/auth/google/callback", async (req: any, reply: any) => {
     const { token } =
       await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
@@ -77,25 +75,43 @@ export async function authRoutes(app: FastifyInstance) {
       return;
     }
 
-    const dbUser = undefined; // actually get the user
-    if (!dbUser) {
+    const dbUser = await getGoogleUser(user.id);
+    console.log("DB User", dbUser);
+    if (dbUser === null) {
       console.log("Registering user");
       console.log("User", user);
-      await registerGoogleUser(user);
-      // await updateUserProfile(user.email, user.given_name, user.family_name, user.picture);
+      try {
+        console.log("Registering Google User...");
+        await registerGoogleUser(user);
+        console.log("Registered Google User!");
+      } catch (error) {
+        console.log("Error Google Register", error);
+        reply.send(error);
+        return;
+      }
     }
-    const jwt = app.jwt.sign(
-      { username: user.email, id: user.id },
-      { expiresIn: "10d" }
-    );
-    console.log("Created JWT", jwt);
-    reply.setCookie("token", jwt, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-    });
-    reply.redirect("/partial/pages/profile");
+
+    try {
+      console.log("Google user id:", user.id);
+      const loggedGoogleUser = await loginGoogleUser(user.id);
+
+      const jwt = app.jwt.sign(
+        { username: loggedGoogleUser.username, id: loggedGoogleUser.id },
+        { expiresIn: "10d" }
+      );
+      await unlockAchievement(loggedGoogleUser.id, "login");
+      reply.setCookie("token", jwt, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        path: "/",
+      });
+      reply.redirect("/partial/pages/profile");
+    } catch (error) {
+      console.log("Error Google Login", error);
+      reply.send(error);
+      return;
+    }
   });
 }
 
@@ -104,10 +120,10 @@ export async function checkAuth(
   throwErr: boolean = false
 ): Promise<User | null> {
   console.log("Checking auth");
-  console.log(request.cookies.token);
+  console.log("Cookies:", request.cookies);
 
   try {
-    await request.jwtVerify();
+    await request.jwtVerify(); // INFO: if this throws an exception its probably because the old token is still in the browser and the new jwt secret is now different
     return getUserById(request.user.id);
   } catch (error) {
     console.log("Error", error);
