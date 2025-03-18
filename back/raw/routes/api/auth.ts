@@ -101,9 +101,10 @@ export async function authRoutes(app: FastifyInstance) {
       );
       await unlockAchievement(loggedGoogleUser.id, "login");
       reply.setCookie("token", jwt, {
+        // TODO: make cookie secure
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: false,
+        sameSite: "lax",
         path: "/",
       });
       reply.redirect("/partial/pages/profile");

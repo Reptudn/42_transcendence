@@ -1,29 +1,37 @@
 export interface GoogleUserInfo {
-	id: string;
-	email: string;
-	verified_email: boolean;
-	name: string;
-	given_name: string;
-	family_name: string;
-	picture: string;
+  id: string;
+  email: string;
+  verified_email: boolean;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
 }
 
 export async function getGoogleProfile(
-	accessToken: string,
+  accessToken: string
 ): Promise<GoogleUserInfo> {
-	const response = await fetch(
-	"https://www.googleapis.com/oauth2/v2/userinfo",
-	{
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	},
-	);
+  const response = await fetch(
+    "https://www.googleapis.com/oauth2/v2/userinfo",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 
-	if (!response.ok) {
-		throw new Error(`Failed to fetch Google profile: ${response.statusText}`);
-	}
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Google profile: ${response.statusText}`);
+  }
 
-	const data = await response.json();
-	return data as GoogleUserInfo;
+  const data = await response.json();
+  return data as GoogleUserInfo;
+}
+
+import { Buffer } from "node:buffer";
+
+export async function getImageFromLink(url: string) {
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer).toString("base64");
 }

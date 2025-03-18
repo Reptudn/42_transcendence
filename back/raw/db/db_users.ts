@@ -4,7 +4,7 @@ import { open, Database } from "sqlite";
 import { dataBaseLocation, User } from "./database.js";
 import { getUserAchievements } from "./db_achievements.js";
 import { createRequire } from "module";
-import { GoogleUserInfo } from "../routes/api/google.js";
+import { getImageFromLink, GoogleUserInfo } from "../routes/api/google.js";
 
 const require = createRequire(import.meta.url);
 const default_titles_first =
@@ -105,7 +105,7 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
       titleFirst,
       titleSecond,
       titleThird,
-      googleUser.picture,
+      getImageFromLink(googleUser.picture),
     ]
   );
   console.log("Google user registered");
