@@ -6,10 +6,11 @@ import { get } from 'node:http';
 
 const require = createRequire(import.meta.url);
 
-const defaultBotNames = require('../../../data/defaultBotNames.json');
+const defaultBotNames = require('../../../../data/defaultBotNames.json');
 
 export async function getMapAsInitialGameState(
-	settings: GameSettings
+	settings: GameSettings,
+	adminId: number
 ): Promise<object> {
 	const map = require(`../../../../data/maps/${settings.map}.json`);
 	const gameState: { objects?: any[]; players?: any[] } = {};
@@ -84,7 +85,9 @@ async function getPlayerData(settings: GameSettings): Promise<StatePlayer[]> {
 			statePlayers.push({
 				type: player.type,
 				id: player.id,
-				username: getRandomDefaultName(),
+				username: player.aiOrLocalPlayerName
+					? player.aiOrLocalPlayerName
+					: getRandomDefaultName(),
 				displayName: '',
 				playerTitle: '',
 			});

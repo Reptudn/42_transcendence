@@ -20,7 +20,14 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	const readPlayers = gameSettings.players;
 	let players: Player[] = [];
 
-	players.push(new Player(PlayerType.USER, currPlayerID % 4, admin.id));
+	players.push(
+		new Player(
+			PlayerType.USER,
+			currPlayerID % 4,
+			gameSettings.playerLives,
+			admin.id
+		)
+	);
 	sendRawToClient(
 		admin.id,
 		`data: ${JSON.stringify({
@@ -38,7 +45,12 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			if (id != admin.id) {
 				let user = await getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
-					player = new Player(PlayerType.USER, currPlayerID % 4, id);
+					player = new Player(
+						PlayerType.USER,
+						currPlayerID % 4,
+						gameSettings.playerLives,
+						id
+					);
 					sendRawToClient(
 						id,
 						`data: ${JSON.stringify({
@@ -54,7 +66,9 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 					);
 				}
 			} else {
-				throw 'Game-starting player should not be added as a player';
+				throw new Error(
+					'Game-starting player should not be added as a player'
+				);
 			}
 		} else if (readPlayer.type === PlayerType.AI) {
 			let aiLevel = readPlayer.aiLevel;
@@ -70,13 +84,14 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			player = new Player(
 				PlayerType.LOCAL,
 				currPlayerID++ % 4,
+				gameSettings.playerLives,
 				admin.id,
 				null,
 				null,
 				readPlayer.localPlayerId
 			);
 		} else {
-			throw 'Invalid player type';
+			throw new Error('Invalid player type');
 		}
 		if (player !== null) {
 			players.push(player);
@@ -90,9 +105,11 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			gameId,
 			players,
 			gameSettings,
-			await getMapAsInitialGameState(gameSettings)
+			await getMapAsInitialGameState(gameSettings, admin.id)
 		)
 	);
+
+	console.log(runningGames, 'runningGames');
 }
 
 const ticksPerSecond = 20;

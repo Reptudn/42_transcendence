@@ -26,6 +26,7 @@ log:
 		-not -name "*.jpeg" \
 		-not -name "*.db" \
 		-not -name "*.pdf" \
+		-not -name "*.json" \
 		-not -name "*.ico" \
 		-not -name "logs/*" \
 		-not -name "package-lock.json" \

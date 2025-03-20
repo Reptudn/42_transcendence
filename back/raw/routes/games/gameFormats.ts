@@ -84,8 +84,8 @@ export class Player {
 		localPlayerId: number | null = null
 	) {
 		this.type = type;
-		this.lives = lives;
 		this.playerId = playerId;
+		this.lives = lives;
 		this.userId = userId;
 		this.wsocket = wsocket;
 		this.aiLevel = aiLevel;
