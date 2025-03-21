@@ -16,13 +16,6 @@ export interface GameSettings {
 	map: string; // map name from data/maps/*.json
 	playerLives: number; // >= 1
 }
-export interface StatePlayer {
-	type: PlayerType;
-	id: number;
-	username: string;
-	displayName: string;
-	playerTitle: string;
-}
 
 export class Game {
 	gameId: number;
@@ -59,15 +52,20 @@ export class Player {
 	playerId: number; // unique within a game, not to be confused with user id system
 
 	// PlayerType.USER
-	userId: number | null;
 	wsocket: WSWebSocket | null;
+	userId: number | null;
+	username: string | null;
+	displayName: string | null;
+	playerTitle: string | null;
 
 	// PlayerType.AI
 	aiLevel: number | null;
+	aiName: string | null;
 
 	// PlayerType.LOCAL
 	// for local players, userId saves admin user id
 	localPlayerId: number | null;
+	localPlayerName: string | null;
 
 	// live game data
 	lives = 3;
@@ -81,7 +79,12 @@ export class Player {
 		userId: number | null = null,
 		wsocket: WSWebSocket | null = null,
 		aiLevel: number | null = null,
-		localPlayerId: number | null = null
+		localPlayerId: number | null = null,
+		username: string | null = null,
+		displayName: string | null = null,
+		playerTitle: string | null = null,
+		aiName: string | null = null,
+		localPlayerName: string | null = null
 	) {
 		this.type = type;
 		this.playerId = playerId;
@@ -90,6 +93,11 @@ export class Player {
 		this.wsocket = wsocket;
 		this.aiLevel = aiLevel;
 		this.localPlayerId = localPlayerId;
+		this.username = username;
+		this.displayName = displayName;
+		this.playerTitle = playerTitle;
+		this.aiName = aiName;
+		this.localPlayerName = localPlayerName;
 	}
 
 	isReady() {

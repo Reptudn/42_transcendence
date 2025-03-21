@@ -123,6 +123,7 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 		nameInput.className =
 			'ai-name mt-1 block w-full rounded-md border-gray-300 shadow-sm';
 		nameInput.placeholder = 'Enter AI name';
+		container.appendChild(nameInput);
 	}
 }
 
