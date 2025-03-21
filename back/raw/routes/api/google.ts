@@ -28,10 +28,27 @@ export async function getGoogleProfile(
   return data as GoogleUserInfo;
 }
 
-import { Buffer } from "node:buffer";
+import * as https from "node:https";
+export async function getImageFromLink(url: string): Promise<string> {
+  // TODO: make this function my our own
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (response) => {
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
 
-export async function getImageFromLink(url: string) {
-  const response = await fetch(url);
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer).toString("base64");
+        const contentType = response.headers["content-type"] || "image/jpeg";
+        const chunks: Buffer[] = [];
+
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.on("end", () => {
+          const buffer = Buffer.concat(chunks);
+          const base64Image = buffer.toString("base64");
+          resolve(`data:${contentType};base64,${base64Image}`);
+        });
+      })
+      .on("error", reject);
+  });
 }

@@ -1,5 +1,6 @@
 import sqlite3 from "sqlite3";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { open, Database } from "sqlite";
 import { dataBaseLocation, User } from "./database.js";
 import { getUserAchievements } from "./db_achievements.js";
@@ -100,12 +101,12 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
     [
       googleUser.id,
       username,
-      "42Heilbronn",
+      crypto.randomBytes(42).toString("hex"),
       googleUser.name,
       titleFirst,
       titleSecond,
       titleThird,
-      getImageFromLink(googleUser.picture),
+      await getImageFromLink(googleUser.picture),
     ]
   );
   console.log("Google user registered");

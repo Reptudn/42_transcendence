@@ -111,8 +111,9 @@ export async function authRoutes(app: FastifyInstance) {
     } catch (error) {
       console.log("Error Google Login", error);
       reply.send(error);
-      return;
     }
+
+    printDatabase();
   });
 }
 
