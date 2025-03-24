@@ -9,10 +9,10 @@ build:
 re:
 	mkdir -p back/db
 	docker build --no-cache -t $(CONTAINER_NAME) .
-	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
+	docker run --rm -p 4242:4242 --env-file .env --name $(CONTAINER_NAME) $(CONTAINER_NAME)
 
 run:
-	docker run --rm -p 4242:4242 --name $(CONTAINER_NAME) $(CONTAINER_NAME)
+	docker run --rm -p 4242:4242 --env-file .env --name $(CONTAINER_NAME) $(CONTAINER_NAME)
 
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
