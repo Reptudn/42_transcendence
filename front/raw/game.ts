@@ -39,7 +39,11 @@ ws.onmessage = (event) => {
 			const state = document.getElementById('state');
 			if (state) {
 				state.innerHTML = JSON.stringify(data.state);
-				drawGameState(data.state);
+				drawGameState(
+					data.state,
+					data.state.meta.size_x,
+					data.state.meta.size_y
+				);
 			}
 		} else {
 			console.log('Unknown data received from websocket: ', data);

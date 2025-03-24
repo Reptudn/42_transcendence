@@ -10,8 +10,9 @@ export async function getMapAsInitialGameState(
 			assert: { type: 'json' },
 		}
 	);
-	const gameState: { objects?: any[]; players?: any[] } = {};
+	const gameState: { objects?: any[]; players?: any[]; meta?: any } = {};
 	const objects = [];
+	gameState['meta'] = map.meta;
 	for (let object of map.objects) {
 		if (!object.conditions || object.conditions.length === 0) {
 			objects.push(object);

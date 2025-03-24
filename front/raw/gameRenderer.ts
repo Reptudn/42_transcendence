@@ -23,9 +23,6 @@ interface GameState {
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
-let mapWidth = 100;
-let mapHeight = 100;
-
 function isPointInsideCanvas(x: number, y: number): boolean {
 	return x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height;
 }
@@ -75,7 +72,11 @@ function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
 }
 
-export function drawGameState(gameState: GameState): void {
+export function drawGameState(
+	gameState: GameState,
+	mapWidth: number = 100,
+	mapHeight: number = 100
+): void {
 	console.log('Drawing game state:', gameState);
 	mapWidth = gameState.mapWidth ?? mapWidth;
 	mapHeight = gameState.mapHeight ?? mapHeight;
