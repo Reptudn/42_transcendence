@@ -4,6 +4,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+ENV GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+ENV GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+
 # COPY package*.json ./
 COPY . .
 RUN npm install
@@ -17,6 +20,7 @@ WORKDIR /app
 
 RUN chmod -R 777 /app
 
+COPY .env ./
 COPY package*.json ./
 RUN npm install --only=production
 
