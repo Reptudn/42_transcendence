@@ -53,6 +53,10 @@ ws.onerror = (error) => {
 	console.error('WebSocket error:', error);
 };
 
+ws.onclose = () => {
+	console.log('WebSocket closed');
+};
+
 // CHAT
 
 document.getElementById('sendChatButton')?.addEventListener('click', () => {
