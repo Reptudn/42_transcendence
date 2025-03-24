@@ -10,9 +10,7 @@ import {
 } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 
-import { createRequire } from 'node:module';
-const require = createRequire(import.meta.url);
-const defaultBotNames = require('../../../../data/defaultBotNames.json');
+import defaultBotNames from '../../../../data/defaultBotNames.json' with { type: 'json' };
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }

@@ -3,12 +3,11 @@ import bcrypt from 'bcrypt';
 import { open, Database } from 'sqlite';
 import { dataBaseLocation, User } from './database.js';
 import { getUserAchievements } from './db_achievements.js';
-import { createRequire } from 'module';
 
-const require = createRequire(import.meta.url);
-const default_titles_first = require('../../../data/defaultTitles.json').default_titles_first;
-const default_titles_second = require('../../../data/defaultTitles.json').default_titles_second;
-const default_titles_third = require('../../../data/defaultTitles.json').default_titles_third;
+import default_titles from '../../../data/defaultTitles.json' with { type: 'json' };
+const default_titles_first = default_titles.default_titles_first;
+const default_titles_second = default_titles.default_titles_second;
+const default_titles_third = default_titles.default_titles_third;
 
 export async function printDatabase() {
 	try {

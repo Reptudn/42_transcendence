@@ -4,7 +4,12 @@ export async function getMapAsInitialGameState(
 	settings: GameSettings,
 	adminId: number
 ): Promise<object> {
-	const map = require(`../../../../data/maps/${settings.map}.json`);
+	const { default: map } = await import(
+		`../../../../data/maps/${settings.map}.json`,
+		{
+			assert: { type: 'json' },
+		}
+	);
 	const gameState: { objects?: any[]; players?: any[] } = {};
 	const objects = [];
 	for (let object of map.objects) {
