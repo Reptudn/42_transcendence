@@ -1,18 +1,19 @@
-import { WebSocket as WSWebSocket } from 'ws';
-import { getMapAsInitialGameState } from './rawMapHandler.js';
+import type { WebSocket as WSWebSocket } from 'ws';
 
 export interface GameSettings {
-	players: [ // 1 - 4
+	players: [
+		// 1 - 4
 		{
 			type: PlayerType;
 			id: number;
 			aiLevel?: number;
 			localPlayerId?: number;
+			aiOrLocalPlayerName?: string;
 		}
-	],
-	gameDifficulty: number, // 1 - 10
-	powerups: boolean,
-	map: string, // map name from data/maps/*.json
+	];
+	gameDifficulty: number; // 1 - 10
+	powerups: boolean;
+	map: string; // map name from data/maps/*.json
 	playerLives: number; // >= 1
 }
 
@@ -20,14 +21,19 @@ export class Game {
 	gameId: number;
 	status: GameStatus;
 	players: Player[];
-	gameState: Object;
+	gameState: object;
 	powerups: boolean;
 
-	constructor(gameId: number, players: Player[], gameSettings: GameSettings) {
+	constructor(
+		gameId: number,
+		players: Player[],
+		gameSettings: GameSettings,
+		gameState: object
+	) {
 		this.gameId = gameId;
 		this.status = GameStatus.WAITING;
 		this.players = players;
-		this.gameState = getMapAsInitialGameState(gameSettings);
+		this.gameState = gameState;
 		console.log(this.gameState);
 		this.powerups = gameSettings.powerups;
 	}
@@ -46,29 +52,52 @@ export class Player {
 	playerId: number; // unique within a game, not to be confused with user id system
 
 	// PlayerType.USER
-	userId: number | null;
 	wsocket: WSWebSocket | null;
+	userId: number | null;
+	username: string | null;
+	displayName: string | null;
+	playerTitle: string | null;
 
 	// PlayerType.AI
 	aiLevel: number | null;
+	aiName: string | null;
 
 	// PlayerType.LOCAL
 	// for local players, userId saves admin user id
 	localPlayerId: number | null;
+	localPlayerName: string | null;
 
 	// live game data
-	lives: number = 3;
+	lives = 3;
 	movementDirection: MovementDirection = MovementDirection.NONE;
 	// aiMoveCoolDown: number = aiLevel;
 
-	constructor(type: PlayerType, playerId: number, lives: number, userId: number | null = null, wsocket: WSWebSocket | null = null, aiLevel: number | null = null, localPlayerId: number | null = null) {
+	constructor(
+		type: PlayerType,
+		playerId: number,
+		lives: number,
+		userId: number | null = null,
+		wsocket: WSWebSocket | null = null,
+		aiLevel: number | null = null,
+		localPlayerId: number | null = null,
+		username: string | null = null,
+		displayName: string | null = null,
+		playerTitle: string | null = null,
+		aiName: string | null = null,
+		localPlayerName: string | null = null
+	) {
 		this.type = type;
-		this.lives = lives;
 		this.playerId = playerId;
+		this.lives = lives;
 		this.userId = userId;
 		this.wsocket = wsocket;
 		this.aiLevel = aiLevel;
 		this.localPlayerId = localPlayerId;
+		this.username = username;
+		this.displayName = displayName;
+		this.playerTitle = playerTitle;
+		this.aiName = aiName;
+		this.localPlayerName = localPlayerName;
 	}
 
 	isReady() {
@@ -76,16 +105,16 @@ export class Player {
 	}
 }
 export enum MovementDirection {
-	DIRECTION1 = "dir1",
-	DIRECTION2 = "dir2",
-	NONE = "none"
+	DIRECTION1 = 'dir1',
+	DIRECTION2 = 'dir2',
+	NONE = 'none',
 }
 export enum GameStatus {
-	WAITING = "waiting", // awaiting all players to join
-	RUNNING = "running"
+	WAITING = 'waiting', // awaiting all players to join
+	RUNNING = 'running',
 }
 export enum PlayerType {
-	USER = "user",
-	AI = "ai",
-	LOCAL = "local"
+	USER = 'user',
+	AI = 'ai',
+	LOCAL = 'local',
 }

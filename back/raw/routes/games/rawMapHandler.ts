@@ -1,17 +1,20 @@
-import { GameSettings } from './gameFormats.js';
-import { createRequire } from 'module';
+import type { GameSettings } from './gameFormats.js';
 
-const require = createRequire(import.meta.url);
-
-// TODO: verify each player has a paddle, paddle path and hitbox
-// TODO: verify each map has an initial ball pos & movement vector
-
-export function getMapAsInitialGameState(settings: GameSettings): Object {
-	const map = require(`../../../../data/maps/${settings.map}.json`);
-	let gameState = [];
+export async function getMapAsInitialGameState(
+	settings: GameSettings
+): Promise<object> {
+	console.log('getMapAsInitialGameState');
+	const { default: map } = await import(
+		`../../../../data/maps/${settings.map}.json`,
+		{
+			assert: { type: 'json' },
+		}
+	);
+	const gameState: { objects?: any[]; players?: any[] } = {};
+	const objects = [];
 	for (let object of map.objects) {
 		if (!object.conditions || object.conditions.length === 0) {
-			gameState.push(object);
+			objects.push(object);
 			continue;
 		}
 		let fulfilled: boolean = true;
@@ -30,9 +33,10 @@ export function getMapAsInitialGameState(settings: GameSettings): Object {
 		}
 		if (fulfilled) {
 			const { conditions, ...objectWithoutConditions } = object;
-			gameState.push(objectWithoutConditions);
+			objects.push(objectWithoutConditions);
 		}
 	}
+	gameState['objects'] = objects;
 	return gameState;
 }
 function isMapConditionFulfilled(

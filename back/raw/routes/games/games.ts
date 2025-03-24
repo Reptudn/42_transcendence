@@ -1,5 +1,5 @@
 import { User } from '../../db/database.js';
-import { getUserById } from '../../db/db_users.js';
+import { getUserById, getUserTitleString } from '../../db/db_users.js';
 import { connectedClients, sendRawToClient } from '../../sse.js';
 import {
 	Game,
@@ -8,6 +8,13 @@ import {
 	Player,
 	PlayerType,
 } from './gameFormats.js';
+import { getMapAsInitialGameState } from './rawMapHandler.js';
+
+import defaultBotNames from '../../../../data/defaultBotNames.json' with { type: 'json' };
+import { getDefaultFormatCodeSettings } from 'typescript';
+function getRandomDefaultName(): string {
+	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
+}
 
 export let runningGames: Game[] = [];
 let nextGameId = 0;
@@ -19,7 +26,20 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	const readPlayers = gameSettings.players;
 	let players: Player[] = [];
 
-	players.push(new Player(PlayerType.USER, currPlayerID % 4, admin.id));
+	players.push(
+		new Player(
+			PlayerType.USER,
+			currPlayerID % 4,
+			gameSettings.playerLives,
+			admin.id,
+			null,
+			null,
+			null,
+			admin.username,
+			admin.displayname,
+			await getUserTitleString(admin.id)
+		)
+	);
 	sendRawToClient(
 		admin.id,
 		`data: ${JSON.stringify({
@@ -32,18 +52,31 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 
 	for (const readPlayer of readPlayers) {
 		let player: Player | null = null;
+		let playerID = currPlayerID % 4;
+		currPlayerID++;
 		if (readPlayer.type === PlayerType.USER) {
 			let id: number = readPlayer.id;
 			if (id != admin.id) {
 				let user = await getUserById(id);
 				if (user !== null && connectedClients.has(id)) {
-					player = new Player(PlayerType.USER, currPlayerID % 4, id);
+					player = new Player(
+						PlayerType.USER,
+						playerID,
+						gameSettings.playerLives,
+						id,
+						null,
+						null,
+						null,
+						user.username,
+						user.displayname,
+						await getUserTitleString(user.id)
+					);
 					sendRawToClient(
 						id,
 						`data: ${JSON.stringify({
 							type: 'game_request',
 							gameId,
-							playerId: currPlayerID % 5,
+							playerId: playerID,
 						})}\n\n`
 					);
 					currPlayerID++;
@@ -53,29 +86,45 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 					);
 				}
 			} else {
-				throw 'Game-starting player should not be added as a player';
+				throw new Error(
+					'Game-starting player should not be added as a player'
+				);
 			}
 		} else if (readPlayer.type === PlayerType.AI) {
 			let aiLevel = readPlayer.aiLevel;
 			player = new Player(
 				PlayerType.AI,
+				playerID,
 				gameSettings.playerLives,
-				currPlayerID++ % 4,
 				null,
 				null,
-				aiLevel
+				aiLevel,
+				null,
+				null,
+				null,
+				readPlayer.aiOrLocalPlayerName
+					? readPlayer.aiOrLocalPlayerName
+					: getRandomDefaultName()
 			);
 		} else if (readPlayer.type === PlayerType.LOCAL) {
 			player = new Player(
 				PlayerType.LOCAL,
-				currPlayerID++ % 4,
+				playerID,
+				gameSettings.playerLives,
 				admin.id,
 				null,
 				null,
-				readPlayer.localPlayerId
+				readPlayer.localPlayerId,
+				null,
+				null,
+				null,
+				null,
+				readPlayer.aiOrLocalPlayerName
+					? readPlayer.aiOrLocalPlayerName
+					: getRandomDefaultName()
 			);
 		} else {
-			throw 'Invalid player type';
+			throw new Error('Invalid player type');
 		}
 		if (player !== null) {
 			players.push(player);
@@ -84,7 +133,16 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 
 	console.log('Game started with players:', players);
 
-	runningGames.push(new Game(gameId, players, gameSettings));
+	runningGames.push(
+		new Game(
+			gameId,
+			players,
+			gameSettings,
+			await getMapAsInitialGameState(gameSettings)
+		)
+	);
+
+	console.log(runningGames, 'runningGames');
 }
 
 const ticksPerSecond = 20;

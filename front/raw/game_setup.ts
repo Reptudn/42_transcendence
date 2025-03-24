@@ -96,6 +96,13 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 			<option value="ijkl">IJKL</option>
 		`;
 		container.appendChild(controlSelect);
+
+		const nameInput = document.createElement('input');
+		nameInput.type = 'text';
+		nameInput.className =
+			'local-name mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		nameInput.placeholder = 'Enter player name';
+		container.appendChild(nameInput);
 	} else if (type === 'ai') {
 		const label = document.createElement('label');
 		label.className = 'block text-sm font-medium text-gray-700';
@@ -110,6 +117,13 @@ function updateAdditionalSettings(type: string, container: HTMLElement): void {
 		aiLevelInput.max = '10';
 		aiLevelInput.value = '5';
 		container.appendChild(aiLevelInput);
+
+		const nameInput = document.createElement('input');
+		nameInput.type = 'text';
+		nameInput.className =
+			'ai-name mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		nameInput.placeholder = 'Enter AI name';
+		container.appendChild(nameInput);
 	}
 }
 
@@ -171,6 +185,10 @@ startGameButton.addEventListener('click', () => {
 					card.querySelector('.control-scheme') as HTMLSelectElement
 				).value;
 				playerData.controlScheme = controlScheme;
+				const localName = card.querySelector(
+					'.local-name'
+				) as HTMLInputElement;
+				playerData.aiOrLocalPlayerName = localName.value;
 			} else if (type === 'ai') {
 				const aiLevel =
 					parseInt(
@@ -178,6 +196,10 @@ startGameButton.addEventListener('click', () => {
 							.value
 					) || 1;
 				playerData.aiLevel = aiLevel;
+				const aiName = card.querySelector(
+					'.ai-name'
+				) as HTMLInputElement;
+				playerData.aiOrLocalPlayerName = aiName.value;
 			}
 			players.push(playerData);
 		}

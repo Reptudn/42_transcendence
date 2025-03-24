@@ -1,11 +1,9 @@
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
-import { createRequire } from 'module';
 
 export const dataBaseLocation: string = './back/db/db.db';
 
-const require = createRequire(import.meta.url);
-const achievementsData = require('../../../data/achievements.json');
+import achievementsData from '../../../data/achievements.json' with { type: 'json' };
 
 export interface User {
 	id: number;
@@ -18,13 +16,13 @@ export interface User {
 	title_first: number;
 	title_second: number;
 	title_third: number;
-};
+}
 export interface Friend {
 	id: number;
 	accepted: boolean;
 	requester_id: number;
 	requested_id: number;
-};
+}
 
 export interface Achievement {
 	id: number;
@@ -34,12 +32,12 @@ export interface Achievement {
 	title_first: string;
 	title_second: string;
 	title_third: string;
-};
+}
 
 async function createDatabase() {
 	const db: Database = await open({
 		filename: dataBaseLocation,
-		driver: sqlite3.Database
+		driver: sqlite3.Database,
 	});
 
 	await db.exec(`
@@ -108,8 +106,7 @@ async function createDatabase() {
 			]
 		);
 	}
-
 }
-createDatabase().catch(error => {
+createDatabase().catch((error) => {
 	console.error('An error occurred while managing the database:', error);
 });
