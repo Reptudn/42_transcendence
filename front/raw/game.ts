@@ -1,3 +1,5 @@
+import { drawGameState } from './gameRenderer.js';
+
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 const playerId = urlParams.get('playerId');
@@ -7,12 +9,19 @@ if (!gameId || !playerId) {
 	loadPartialView('chat_setup');
 }
 
-console.log('Attempting to join with game ID', gameId, 'and player ID', playerId);
+console.log(
+	'Attempting to join with game ID',
+	gameId,
+	'and player ID',
+	playerId
+);
 const wsUrl = `/api/games/join/${gameId}/${playerId}`;
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
-	console.log(`Connected to chat websocket for game ${gameId} as player ${playerId}`);
+	console.log(
+		`Connected to chat websocket for game ${gameId} as player ${playerId}`
+	);
 };
 
 ws.onmessage = (event) => {
@@ -28,8 +37,10 @@ ws.onmessage = (event) => {
 			}
 		} else if (data.type == 'state') {
 			const state = document.getElementById('state');
-			if (state)
+			if (state) {
 				state.innerHTML = JSON.stringify(data.state);
+				drawGameState(data.state);
+			}
 		} else {
 			console.log('Unknown data received from websocket: ', data);
 		}

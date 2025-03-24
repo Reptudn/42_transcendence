@@ -1,9 +1,9 @@
 import type { GameSettings } from './gameFormats.js';
 
 export async function getMapAsInitialGameState(
-	settings: GameSettings,
-	adminId: number
+	settings: GameSettings
 ): Promise<object> {
+	console.log('getMapAsInitialGameState');
 	const { default: map } = await import(
 		`../../../../data/maps/${settings.map}.json`,
 		{

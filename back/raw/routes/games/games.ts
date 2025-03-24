@@ -11,6 +11,7 @@ import {
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 
 import defaultBotNames from '../../../../data/defaultBotNames.json' with { type: 'json' };
+import { getDefaultFormatCodeSettings } from 'typescript';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
@@ -137,7 +138,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			gameId,
 			players,
 			gameSettings,
-			await getMapAsInitialGameState(gameSettings, admin.id)
+			await getMapAsInitialGameState(gameSettings)
 		)
 	);
 
