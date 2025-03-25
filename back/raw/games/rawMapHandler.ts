@@ -5,7 +5,7 @@ export async function getMapAsInitialGameState(
 ): Promise<object> {
 	console.log('getMapAsInitialGameState');
 	const { default: map } = await import(
-		`../../../../data/maps/${settings.map}.json`,
+		`../../../data/maps/${settings.map}.json`,
 		{
 			assert: { type: 'json' },
 		}
