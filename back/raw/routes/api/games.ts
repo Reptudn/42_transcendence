@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { checkAuth } from '../api/auth.js';
 import { WebSocket as WSWebSocket } from 'ws';
-import { GameSettings } from '../games/gameFormats.js';
-import { startGame, runningGames } from '../games/games.js';
+import { GameSettings } from '../../games/gameFormats.js';
+import { startGame, runningGames } from '../../games/games.js';
 
 export async function gameRoutes(app: FastifyInstance) {
 	app.post(

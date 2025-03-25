@@ -1,6 +1,6 @@
-import { User } from '../../db/database.js';
-import { getUserById, getUserTitleString } from '../../db/db_users.js';
-import { connectedClients, sendRawToClient } from '../../sse.js';
+import { User } from '../db/database.js';
+import { getUserById, getUserTitleString } from '../db/db_users.js';
+import { connectedClients, sendRawToClient } from '../sse.js';
 import {
 	Game,
 	GameSettings,
@@ -10,7 +10,7 @@ import {
 } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 
-import defaultBotNames from '../../../../data/defaultBotNames.json' with { type: 'json' };
+import defaultBotNames from '../../../data/defaultBotNames.json' with { type: 'json' };
 import { getDefaultFormatCodeSettings } from 'typescript';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
