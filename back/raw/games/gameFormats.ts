@@ -1,4 +1,5 @@
 import type { WebSocket as WSWebSocket } from 'ws';
+import { GameState } from '../engine/engineFormats';
 
 export interface GameSettings {
 	players: [
@@ -21,14 +22,14 @@ export class Game {
 	gameId: number;
 	status: GameStatus;
 	players: Player[];
-	gameState: object;
+	gameState: GameState;
 	powerups: boolean;
 
 	constructor(
 		gameId: number,
 		players: Player[],
 		gameSettings: GameSettings,
-		gameState: object
+		gameState: GameState
 	) {
 		this.gameId = gameId;
 		this.status = GameStatus.WAITING;
@@ -69,7 +70,7 @@ export class Player {
 
 	// live game data
 	lives = 3;
-	movementDirection: MovementDirection = MovementDirection.NONE;
+	movementDirection: number = 0; // -1 | 0 | 1
 	// aiMoveCoolDown: number = aiLevel;
 
 	constructor(
@@ -103,11 +104,6 @@ export class Player {
 	isReady() {
 		return this.wsocket !== null;
 	}
-}
-export enum MovementDirection {
-	DIRECTION1 = 'dir1',
-	DIRECTION2 = 'dir2',
-	NONE = 'none',
 }
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join

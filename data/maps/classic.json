@@ -1,6 +1,7 @@
 {
 	"meta": {
 		"name": "Classic",
+		"id": "classic",
 		"author": "Freddy",
 		"size_x": 100,
 		"size_y": 100

@@ -9,6 +9,7 @@ import {
 	PlayerType,
 } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
+import { tickEngine } from '../engine/engine.js';
 
 import defaultBotNames from '../../../data/defaultBotNames.json' with { type: 'json' };
 import { getDefaultFormatCodeSettings } from 'typescript';
@@ -132,6 +133,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 	}
 
 	console.log('Game started with players:', players);
+	console.log('Game settings:', gameSettings);
 
 	runningGames.push(
 		new Game(
@@ -153,6 +155,8 @@ setInterval(() => {
 			console.log(`Game ${game.gameId} started!`);
 		}
 		if (game.status === GameStatus.WAITING) continue;
+
+		tickEngine(game);
 
 		// send updated game state to clients
 		for (const player of game.players) {

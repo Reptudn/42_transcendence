@@ -40,6 +40,54 @@
 		"title_third": "🏓"
 	},
 	{
+		"key": "play-7",
+		"name": "Lucky Number 7",
+		"description": "Play 7 games of Pong.",
+		"title_first": "Lucky",
+		"title_second": "Clover - Collector",
+		"title_third": "🍀"
+	},
+	{
+		"key": "play-13",
+		"name": "Unlucky Number 13",
+		"description": "Play 13 games of Pong.",
+		"title_first": "Unlucky",
+		"title_second": "Conspiracy Theorist",
+		"title_third": "👽"
+	},
+	{
+		"key": "play-21",
+		"name": "Blackjack",
+		"description": "Play 21 games of Pong.",
+		"title_first": "Gambling",
+		"title_second": "Addict",
+		"title_third": "🎰"
+	},
+	{
+		"key": "play-42",
+		"name": "The Answer to Life, the Universe, and Everything",
+		"description": "Play 42 games of Pong.",
+		"title_first": "Philosophical",
+		"title_second": "Dolphin Lover",
+		"title_third": "4️⃣2️⃣"
+	},
+	{
+		"key": "play-69",
+		"name": "Nice",
+		"description": "Play 69 games of Pong.",
+		"title_first": "Childish",
+		"title_second": "Child",
+		"title_third": "🤪"
+	},
+	{
+		"key": "play-100",
+		"name": "Calm down, it's just a game.",
+		"description": "Play 100 games of Pong.",
+		"title_first": "Addicted",
+		"title_second": "Gamer",
+		"title_third": "🎮"
+	},
+	{
 		"key": "win",
 		"name": "That's what I'm talking about!",
 		"description": "Win a game of Pong.",

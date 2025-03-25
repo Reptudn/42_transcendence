@@ -90,7 +90,7 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 
 let leftPressed = false;
 let rightPressed = false;
-let lastSentDirection = 'none';
+let lastSentDirection = 0;
 
 window.addEventListener('keydown', (e) => {
 	if (e.key === 'ArrowLeft') {
@@ -110,19 +110,19 @@ window.addEventListener('keyup', (e) => {
 
 setInterval(() => {
 	if (leftPressed && !rightPressed) {
-		if (lastSentDirection !== 'dir1') {
-			ws.send(JSON.stringify({ type: 'move', dir: 'dir1' }));
+		if (lastSentDirection !== -1) {
+			ws.send(JSON.stringify({ type: 'move', dir: -1 }));
 		}
-		lastSentDirection = 'dir1';
+		lastSentDirection = -1;
 	} else if (rightPressed && !leftPressed) {
-		if (lastSentDirection !== 'dir2') {
-			ws.send(JSON.stringify({ type: 'move', dir: 'dir2' }));
+		if (lastSentDirection !== 1) {
+			ws.send(JSON.stringify({ type: 'move', dir: 1 }));
 		}
-		lastSentDirection = 'dir2';
+		lastSentDirection = 1;
 	} else {
-		if (lastSentDirection !== 'none') {
-			ws.send(JSON.stringify({ type: 'move', dir: 'none' }));
+		if (lastSentDirection !== 0) {
+			ws.send(JSON.stringify({ type: 'move', dir: 0 }));
 		}
-		lastSentDirection = 'none';
+		lastSentDirection = 0;
 	}
 }, 1000 / 30); // 30 FPS

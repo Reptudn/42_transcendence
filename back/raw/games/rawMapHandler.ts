@@ -1,8 +1,9 @@
+import { GameState } from '../engine/engineFormats.js';
 import type { GameSettings } from './gameFormats.js';
 
 export async function getMapAsInitialGameState(
 	settings: GameSettings
-): Promise<object> {
+): Promise<GameState> {
 	console.log('getMapAsInitialGameState');
 	const { default: map } = await import(
 		`../../../data/maps/${settings.map}.json`,
@@ -10,12 +11,14 @@ export async function getMapAsInitialGameState(
 			assert: { type: 'json' },
 		}
 	);
-	const gameState: { objects?: any[]; players?: any[]; meta?: any } = {};
-	const objects = [];
-	gameState['meta'] = map.meta;
+	let gameState: GameState = {
+		meta: { name: '', author: '', size_x: 0, size_y: 0 },
+		objects: [],
+	};
+	gameState.meta = map.meta;
 	for (let object of map.objects) {
 		if (!object.conditions || object.conditions.length === 0) {
-			objects.push(object);
+			gameState.objects.push(object);
 			continue;
 		}
 		let fulfilled: boolean = true;
@@ -34,10 +37,9 @@ export async function getMapAsInitialGameState(
 		}
 		if (fulfilled) {
 			const { conditions, ...objectWithoutConditions } = object;
-			objects.push(objectWithoutConditions);
+			gameState.objects.push(objectWithoutConditions);
 		}
 	}
-	gameState['objects'] = objects;
 	return gameState;
 }
 function isMapConditionFulfilled(
@@ -47,7 +49,8 @@ function isMapConditionFulfilled(
 	target: number
 ): boolean {
 	let numVal: number = 0;
-	if (variable === 'player_count') numVal = settings.players.length;
+	if (variable === 'player_count') numVal = settings.players.length + 1;
+	// gamesettings players dont contain the admin
 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
 	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
 

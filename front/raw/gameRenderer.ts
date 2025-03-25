@@ -91,10 +91,9 @@ export function drawGameState(
 		console.log('Drawing object:', obj, 'with type:', obj.type);
 		switch (obj.type) {
 			case 'ball':
-				if (obj.position) {
-					const posX = obj.position.x * scale;
-					const posY = obj.position.y * scale;
-					drawCircle(posX, posY, 5, 'red');
+				if (obj.shape && obj.shape.length > 0) {
+					const points = transformPoints(obj.shape, scale);
+					drawPolygon(points, '', 'red');
 				} else
 					console.log('Ball object does not have a position:', obj);
 				break;
