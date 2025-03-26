@@ -22,6 +22,36 @@ interface GameState {
 	mapHeight?: number;
 }
 
+function lerp(a: number, b: number, t: number): number {
+	return a + (b - a) * t;
+}
+
+function interpolatePoint(p1: Point, p2: Point, t: number): Point {
+	return {
+		x: lerp(p1.x, p2.x, t),
+		y: lerp(p1.y, p2.y, t),
+	};
+}
+function interpolateGameObject(
+	obj1: GameObject,
+	obj2: GameObject,
+	t: number
+): GameObject {
+	const interpolated: GameObject = { ...obj2 };
+
+	if (obj1.center && obj2.center) {
+		interpolated.center = interpolatePoint(obj1.center, obj2.center, t);
+	}
+
+	if (obj1.shape && obj2.shape && obj1.shape.length === obj2.shape.length) {
+		interpolated.shape = obj1.shape.map((pt, i) =>
+			interpolatePoint(pt, obj2.shape![i], t)
+		);
+	}
+
+	return interpolated;
+}
+
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
@@ -74,7 +104,7 @@ function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
 }
 
-export function drawGameState(
+function drawGameState(
 	gameState: GameState,
 	mapWidth: number = 100,
 	mapHeight: number = 100
@@ -121,3 +151,49 @@ export function drawGameState(
 		}
 	}
 }
+
+// Animation Manager
+
+let previousState: GameState | null = null;
+let currentState: GameState | null = null;
+let lastUpdateTime: number = performance.now();
+const tickInterval = 1000 / 20; // 20 ticks per second
+let mapSizeX = 100;
+let mapSizeY = 100;
+
+export function updateGameState(
+	newState: GameState,
+	mapSizeX: number,
+	mapSizeY: number
+): void {
+	previousState = currentState;
+	currentState = newState;
+	lastUpdateTime = performance.now();
+	mapSizeX = mapSizeX;
+	mapSizeY = mapSizeY;
+}
+
+function render(): void {
+	const now = performance.now();
+	const t = Math.min((now - lastUpdateTime) / tickInterval, 1);
+
+	if (previousState && currentState) {
+		const interpolatedState: GameState = {
+			mapWidth: currentState.mapWidth,
+			mapHeight: currentState.mapHeight,
+			objects: currentState.objects.map((currObj, index) => {
+				const prevObj = previousState!.objects[index];
+				if (prevObj && currObj.type === prevObj.type) {
+					return interpolateGameObject(prevObj, currObj, t);
+				}
+				return currObj;
+			}),
+		};
+		drawGameState(interpolatedState, mapSizeX, mapSizeY);
+	} else if (currentState) {
+		drawGameState(currentState, mapSizeX, mapSizeY);
+	}
+	requestAnimationFrame(render);
+}
+
+requestAnimationFrame(render);

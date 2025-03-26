@@ -1,4 +1,4 @@
-import { drawGameState } from './gameRenderer.js';
+import { updateGameState } from './gameRenderer.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -39,7 +39,7 @@ ws.onmessage = (event) => {
 			const state = document.getElementById('state');
 			if (state) {
 				state.innerHTML = JSON.stringify(data.state);
-				drawGameState(
+				updateGameState(
 					data.state,
 					data.state.meta.size_x,
 					data.state.meta.size_y
