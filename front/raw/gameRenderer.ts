@@ -22,6 +22,14 @@ interface GameState {
 	mapHeight?: number;
 }
 
+interface TrailElement {
+	center: Point;
+	time: number;
+}
+
+const ballTrail: TrailElement[] = [];
+const trailLifetime: number = 1000;
+
 function lerp(a: number, b: number, t: number): number {
 	return a + (b - a) * t;
 }
@@ -104,6 +112,59 @@ function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
 }
 
+function drawTrailSegment(
+	elem1: TrailElement,
+	elem2: TrailElement,
+	scale: number,
+	now: number,
+	baseRadius: number
+): void {
+	const age1 = now - elem1.time;
+	const age2 = now - elem2.time;
+
+	const opacity1 = Math.max(0, 1 - age1 / trailLifetime);
+	const opacity2 = Math.max(0, 1 - age2 / trailLifetime);
+
+	const width1 = baseRadius * (1 - age1 / trailLifetime) * scale;
+	const width2 = baseRadius * (1 - age2 / trailLifetime) * scale;
+
+	const dx = (elem2.center.x - elem1.center.x) * scale;
+	const dy = (elem2.center.y - elem1.center.y) * scale;
+	const len = Math.hypot(dx, dy);
+	if (len === 0) return;
+
+	const pdx = -dy / len;
+	const pdy = dx / len;
+
+	const p1_left = {
+		x: elem1.center.x * scale + pdx * width1,
+		y: elem1.center.y * scale + pdy * width1,
+	};
+	const p1_right = {
+		x: elem1.center.x * scale - pdx * width1,
+		y: elem1.center.y * scale - pdy * width1,
+	};
+	const p2_left = {
+		x: elem2.center.x * scale + pdx * width2,
+		y: elem2.center.y * scale + pdy * width2,
+	};
+	const p2_right = {
+		x: elem2.center.x * scale - pdx * width2,
+		y: elem2.center.y * scale - pdy * width2,
+	};
+
+	const path = new Path2D();
+	path.moveTo(p1_left.x, p1_left.y);
+	path.lineTo(p2_left.x, p2_left.y);
+	path.lineTo(p2_right.x, p2_right.y);
+	path.lineTo(p1_right.x, p1_right.y);
+	path.closePath();
+
+	const avgOpacity = (opacity1 + opacity2) / 2;
+	ctx.fillStyle = `rgba(255, 0, 0, ${avgOpacity})`;
+	ctx.fill(path);
+}
+
 function drawGameState(
 	gameState: GameState,
 	mapWidth: number = 100,
@@ -120,19 +181,31 @@ function drawGameState(
 	clearCanvas();
 
 	for (const obj of gameState.objects) {
-		console.log('Drawing object:', obj, 'with type:', obj.type);
 		switch (obj.type) {
 			case 'ball':
 				if (obj.center && obj.radius) {
-					const posX = obj.center?.x * scale;
-					const posY = obj.center?.y * scale;
+					const now = performance.now();
+
+					for (let i = 0; i < ballTrail.length - 3; i++) {
+						drawTrailSegment(
+							ballTrail[i],
+							ballTrail[i + 1],
+							scale,
+							now,
+							obj.radius
+						);
+					}
+
+					const posX = obj.center.x * scale;
+					const posY = obj.center.y * scale;
 					const radius = obj.radius * scale;
 					drawCircle(posX, posY, radius, 'red');
-				} else
+				} else {
 					console.log(
 						'Ball object does not have a center or radius:',
 						obj
 					);
+				}
 				break;
 
 			case 'paddle':
@@ -176,6 +249,18 @@ export function updateGameState(
 function render(): void {
 	const now = performance.now();
 	const t = Math.min((now - lastUpdateTime) / tickInterval, 1);
+
+	if (currentState) {
+		const ballObj = currentState.objects.find(
+			(obj) => obj.type === 'ball' && obj.center
+		);
+		if (ballObj && ballObj.center) {
+			ballTrail.push({ center: { ...ballObj.center }, time: now });
+		}
+	}
+	while (ballTrail.length && now - ballTrail[0].time > trailLifetime) {
+		ballTrail.shift();
+	}
 
 	if (previousState && currentState) {
 		const interpolatedState: GameState = {
