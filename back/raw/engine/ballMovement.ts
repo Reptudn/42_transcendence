@@ -21,6 +21,7 @@ function pointInPolygon(point: Point, vs: Point[]): boolean {
 function distanceToSegment(point: Point, a: Point, b: Point): number {
 	const ab = subtractPoints(b, a);
 	const abLenSq = ab.x * ab.x + ab.y * ab.y;
+	if (abLenSq === 0) return distance(point, a);
 	const t = Math.max(
 		0,
 		Math.min(1, ((point.x - a.x) * ab.x + (point.y - a.y) * ab.y) / abLenSq)
@@ -46,30 +47,35 @@ function circlePolygonCollision(
 	return false;
 }
 
-// Compute an approximate collision normal for a circle colliding with a polygon.
-function computeCollisionNormal(
+// Compute the collision response for a circle colliding with a polygon.
+// Returns both the collision normal and the penetration depth.
+function computeCollisionResponse(
 	center: Point,
 	radius: number,
 	polygon: Point[]
-): Point | null {
-	let bestDist = Infinity;
+): { normal: Point; penetration: number } | null {
+	let bestPenetration = -Infinity;
 	let bestNormal: Point | null = null;
 	for (let i = 0; i < polygon.length - 1; i++) {
 		const a = polygon[i];
 		const b = polygon[i + 1];
 		const dist = distanceToSegment(center, a, b);
-		if (dist < bestDist) {
-			bestDist = dist;
+		const penetration = radius - dist;
+		if (penetration > bestPenetration && penetration > 0) {
+			bestPenetration = penetration;
 			const ab = subtractPoints(b, a);
 			const abLenSq = ab.x * ab.x + ab.y * ab.y;
-			const t = Math.max(
-				0,
-				Math.min(
-					1,
-					((center.x - a.x) * ab.x + (center.y - a.y) * ab.y) /
-						abLenSq
-				)
-			);
+			let t = 0;
+			if (abLenSq !== 0) {
+				t = Math.max(
+					0,
+					Math.min(
+						1,
+						((center.x - a.x) * ab.x + (center.y - a.y) * ab.y) /
+							abLenSq
+					)
+				);
+			}
 			const closest = { x: a.x + t * ab.x, y: a.y + t * ab.y };
 			bestNormal = normalize({
 				x: center.x - closest.x,
@@ -77,14 +83,16 @@ function computeCollisionNormal(
 			});
 		}
 	}
-	return bestNormal;
+	return bestNormal
+		? { normal: bestNormal, penetration: bestPenetration }
+		: null;
 }
 
 /* ─────────────────────────────────────────────────────────────
    BALL MOVEMENT
 ────────────────────────────────────────────────────────────── */
 
-export function moveBall(gameState: GameState): GameState {
+export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	const ball = gameState.objects.find((obj) => obj.type === 'ball');
 	if (!ball) {
 		console.warn('No ball found in game state.');
@@ -103,43 +111,80 @@ export function moveBall(gameState: GameState): GameState {
 	const center: Point = (ball as any).center;
 	const radius: number = (ball as any).radius;
 
-	if (!ball.velocity) {
-		ball.velocity = { x: 1, y: 1 };
+	if (!ball.velocity || (ball.velocity.x === 0 && ball.velocity.y === 0)) {
+		const normFactor = Math.sqrt(2) / 2;
+		ball.velocity = {
+			x: ballSpeed * normFactor,
+			y: ballSpeed * normFactor,
+		};
 		console.warn('Ball has no velocity. Defaulting to (1, 1).');
 	}
 
-	// Update the ball's center based on its velocity.
-	center.x += ball.velocity.x;
-	center.y += ball.velocity.y;
-
-	// Check for collisions with paddles and walls/obstacles.
-	for (let obj of gameState.objects) {
-		if (obj.type === 'paddle' || obj.type === 'wall') {
-			if (circlePolygonCollision(center, radius, obj.shape)) {
-				// Calculate the collision normal.
-				const normal = computeCollisionNormal(
-					center,
-					radius,
-					obj.shape
-				);
-				if (normal) {
-					// Reflect the velocity using: v' = v - 2*(v·n)*n.
-					const dot =
-						ball.velocity.x * normal.x + ball.velocity.y * normal.y;
-					ball.velocity.x = ball.velocity.x - 2 * dot * normal.x;
-					ball.velocity.y = ball.velocity.y - 2 * dot * normal.y;
-
-					// Nudge the ball slightly away to prevent it from sticking.
-					center.x += normal.x;
-					center.y += normal.y;
-				}
-				// For the sake of simplicity, we address only one collision per tick.
-				break;
-			}
+	// Set ballSpeed - matching velocity
+	{
+		const currentSpeed = Math.sqrt(
+			ball.velocity.x ** 2 + ball.velocity.y ** 2
+		);
+		if (currentSpeed !== 0) {
+			ball.velocity.x = (ball.velocity.x / currentSpeed) * ballSpeed;
+			ball.velocity.y = (ball.velocity.y / currentSpeed) * ballSpeed;
 		}
 	}
 
-	// Optionally, handle collisions with game boundaries.
+	const potentialCollisions: Point[][] = [];
+	for (let obj of gameState.objects) {
+		if (!obj.shape) continue;
+		// Skip objects were inside of to avoid getting stuck within them.
+		if (circlePolygonCollision(center, radius, obj.shape)) {
+			continue;
+		}
+		if (obj.type === 'paddle' || obj.type === 'wall') {
+			potentialCollisions.push(obj.shape);
+		}
+	}
+
+	center.x += ball.velocity.x;
+	center.y += ball.velocity.y;
+
+	// collect all collision normals to compute all collisions in a tick at once
+	const maxIterations = 5;
+	for (let iter = 0; iter < maxIterations; iter++) {
+		let collisionOccurred = false;
+		let combinedNormal = { x: 0, y: 0 };
+		let maxPenetration = 0;
+		for (const polygon of potentialCollisions) {
+			if (circlePolygonCollision(center, radius, polygon)) {
+				const response = computeCollisionResponse(
+					center,
+					radius,
+					polygon
+				);
+				if (response) {
+					combinedNormal.x += response.normal.x;
+					combinedNormal.y += response.normal.y;
+					// We pick the maximum penetration to ensure a sufficient push.
+					maxPenetration = Math.max(
+						maxPenetration,
+						response.penetration
+					);
+					collisionOccurred = true;
+				}
+			}
+		}
+		if (!collisionOccurred) break;
+		combinedNormal = normalize(combinedNormal);
+		// Adjust the ball's position to resolve penetration.
+		center.x += combinedNormal.x * maxPenetration;
+		center.y += combinedNormal.y * maxPenetration;
+		// Reflect the velocity using the combined collision normal.
+		const dot =
+			ball.velocity.x * combinedNormal.x +
+			ball.velocity.y * combinedNormal.y;
+		ball.velocity.x = ball.velocity.x - 2 * dot * combinedNormal.x;
+		ball.velocity.y = ball.velocity.y - 2 * dot * combinedNormal.y;
+	}
+
+	// Game boundary collisions
 	const { size_x, size_y } = gameState.meta;
 	if (center.x - radius < 0 || center.x + radius > size_x) {
 		ball.velocity.x = -ball.velocity.x;
@@ -149,6 +194,30 @@ export function moveBall(gameState: GameState): GameState {
 		ball.velocity.y = -ball.velocity.y;
 		center.y = Math.max(radius, Math.min(center.y, size_y - radius));
 	}
+
+	// 45-degree magnetism to prevent single-path stuck balls
+	{
+		let velocityXSign = ball.velocity.x > 0 ? 1 : -1;
+		let velocityYSign = ball.velocity.y > 0 ? 1 : -1;
+
+		ball.velocity.x = Math.abs(ball.velocity.x);
+		ball.velocity.y = Math.abs(ball.velocity.y);
+
+		const nudgeFactor = 0.0015 * ballSpeed;
+		if (ball.velocity.x < ball.velocity.y) {
+			ball.velocity.x += nudgeFactor;
+			ball.velocity.y -= nudgeFactor;
+		}
+		if (ball.velocity.y < ball.velocity.x) {
+			ball.velocity.y += nudgeFactor;
+			ball.velocity.x -= nudgeFactor;
+		}
+
+		ball.velocity.x *= velocityXSign;
+		ball.velocity.y *= velocityYSign;
+	}
+
+	normalize(ball.velocity, ballSpeed);
 
 	return gameState;
 }

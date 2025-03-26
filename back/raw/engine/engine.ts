@@ -12,7 +12,7 @@ export function tickEngine(game: Game): Game {
 		);
 	}
 
-	game.gameState = moveBall(game.gameState);
+	game.gameState = moveBall(game.gameState, 3);
 
 	return game;
 }
