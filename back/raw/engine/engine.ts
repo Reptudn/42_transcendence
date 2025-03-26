@@ -8,7 +8,7 @@ export function tickEngine(game: Game): Game {
 			game.gameState,
 			player.playerId,
 			player.movementDirection,
-			1
+			3
 		);
 	}
 
