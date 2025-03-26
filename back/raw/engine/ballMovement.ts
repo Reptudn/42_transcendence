@@ -112,9 +112,9 @@ export function moveBall(gameState: GameState): GameState {
 	center.x += ball.velocity.x;
 	center.y += ball.velocity.y;
 
-	// Check for collisions with paddles and obstacles.
+	// Check for collisions with paddles and walls/obstacles.
 	for (let obj of gameState.objects) {
-		if (obj.type === 'paddle' || obj.type === 'obstacle') {
+		if (obj.type === 'paddle' || obj.type === 'wall') {
 			if (circlePolygonCollision(center, radius, obj.shape)) {
 				// Calculate the collision normal.
 				const normal = computeCollisionNormal(
