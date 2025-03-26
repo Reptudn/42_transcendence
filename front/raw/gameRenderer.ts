@@ -12,6 +12,8 @@ interface GameObject {
 	playerNbr?: number;
 	anchor1?: Point;
 	anchor2?: Point;
+	center?: Point;
+	radius?: number;
 }
 
 interface GameState {
@@ -91,11 +93,16 @@ export function drawGameState(
 		console.log('Drawing object:', obj, 'with type:', obj.type);
 		switch (obj.type) {
 			case 'ball':
-				if (obj.shape && obj.shape.length > 0) {
-					const points = transformPoints(obj.shape, scale);
-					drawPolygon(points, '', 'red');
+				if (obj.center && obj.radius) {
+					const posX = obj.center?.x * scale;
+					const posY = obj.center?.y * scale;
+					const radius = obj.radius * scale;
+					drawCircle(posX, posY, radius, 'red');
 				} else
-					console.log('Ball object does not have a position:', obj);
+					console.log(
+						'Ball object does not have a center or radius:',
+						obj
+					);
 				break;
 
 			case 'paddle':

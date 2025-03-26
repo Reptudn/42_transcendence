@@ -1,4 +1,12 @@
-import { Point, GameState } from './engineFormats';
+import { Point, GameState } from './engineFormats.js';
+import {
+	distance,
+	normalize,
+	subtractPoints,
+	addPoints,
+	rotatePoint,
+	angleOf,
+} from './pointUtils.js';
 
 /**
  * Moves the given player's paddle along its path.
@@ -56,29 +64,6 @@ export function movePaddle(
 	const continuous: boolean =
 		pathPoints[0].x === pathPoints[pathPoints.length - 1].x &&
 		pathPoints[0].y === pathPoints[pathPoints.length - 1].y;
-
-	function distance(a: Point, b: Point): number {
-		return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-	}
-	function normalize(p: Point): Point {
-		const len = distance({ x: 0, y: 0 }, p);
-		return len === 0 ? { x: 0, y: 0 } : { x: p.x / len, y: p.y / len };
-	}
-	function subtractPoints(a: Point, b: Point): Point {
-		return { x: a.x - b.x, y: a.y - b.y };
-	}
-	function addPoints(a: Point, b: Point): Point {
-		return { x: a.x + b.x, y: a.y + b.y };
-	}
-	function rotatePoint(p: Point, angle: number): Point {
-		return {
-			x: p.x * Math.cos(angle) - p.y * Math.sin(angle),
-			y: p.x * Math.sin(angle) + p.y * Math.cos(angle),
-		};
-	}
-	function angleOf(vec: Point): number {
-		return Math.atan2(vec.y, vec.x);
-	}
 
 	// Helper: Projects a given point onto the path,
 	// returning the parameter (distance along the path) closest to that point.

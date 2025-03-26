@@ -1,5 +1,6 @@
-import { Game, Player } from '../games/gameFormats.js';
+import { Game } from '../games/gameFormats.js';
 import { movePaddle } from './paddleMovement.js';
+import { moveBall } from './ballMovement.js';
 
 export function tickEngine(game: Game): Game {
 	for (let player of game.players) {
@@ -10,6 +11,8 @@ export function tickEngine(game: Game): Game {
 			1
 		);
 	}
+
+	game.gameState = moveBall(game.gameState);
 
 	return game;
 }

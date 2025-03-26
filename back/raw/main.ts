@@ -13,7 +13,7 @@ import { eventRoutes } from './sse.js';
 import { authRoutes, checkAuth } from './routes/api/auth.js';
 import { generalRoutes } from './routes/get.js';
 import { profileRoutes } from './routes/api/profile.js';
-import { numberRoutes } from './routes/number.js';
+import { numberRoutes } from './routes/api/number.js';
 import { friendRoutes } from './routes/api/friends.js';
 import { gameRoutes } from './routes/api/games.js';
 import oauthPlugin from '@fastify/oauth2';

@@ -9,6 +9,8 @@ export interface GameObject {
 	playerNbr?: number;
 	shape: Point[];
 	velocity?: { x: number; y: number };
+	center?: Point;
+	radius?: number;
 	anchor1?: Point;
 	anchor2?: Point;
 }
