@@ -163,9 +163,16 @@ startGameButton.addEventListener('click', () => {
 	const playerCards = playersContainer.querySelectorAll('.player-card');
 	const players: any[] = [];
 
+	let playerNbr = 0;
 	playerCards.forEach((card, index) => {
 		// no data needed for first player
-		if (index > 0) {
+		if (index == 0) {
+			const controlScheme = (
+				card.querySelector('.control-scheme') as HTMLSelectElement
+			).value;
+			localStorage.setItem(`controlScheme&${playerNbr}`, controlScheme);
+			playerNbr++;
+		} else {
 			const type = (
 				card.querySelector('.player-type') as HTMLSelectElement
 			).value;
@@ -184,7 +191,11 @@ startGameButton.addEventListener('click', () => {
 				const controlScheme = (
 					card.querySelector('.control-scheme') as HTMLSelectElement
 				).value;
-				playerData.controlScheme = controlScheme;
+				localStorage.setItem(
+					`controlScheme&${playerNbr}`,
+					controlScheme
+				);
+				playerNbr++;
 				const localName = card.querySelector(
 					'.local-name'
 				) as HTMLInputElement;

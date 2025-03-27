@@ -2,11 +2,12 @@ import { updateGameState } from './gameRenderer.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
-const playerId = urlParams.get('playerId');
+const playerIds = urlParams.get('playerIds');
+const playerId = playerIds ? JSON.parse(playerIds)[0] : null;
 
 if (!gameId || !playerId) {
-	alert('Missing game ID or player ID. Please join via the chat setup.');
-	loadPartialView('chat_setup');
+	alert('Missing game ID or player ID. Please join via the game setup.');
+	loadPartialView('game_setup');
 }
 
 console.log(
@@ -23,6 +24,29 @@ ws.onopen = () => {
 		`Connected to chat websocket for game ${gameId} as player ${playerId}`
 	);
 };
+
+let playerControlMap: [playerId: number, controlScheme: string][] = [];
+
+function determineControlSchemes(state: any) {
+	let playerNbr = 0;
+	const controlSchemes = new Map<number, string>();
+	for (const player of state.players) {
+		if (playerIds?.includes(player.playerId)) {
+			const controlScheme = localStorage.getItem(
+				`controlScheme&${playerNbr}`
+			);
+			if (controlScheme) {
+				controlSchemes.set(player.playerId, controlScheme);
+			} else {
+				controlSchemes.set(player.playerId, 'arrows');
+				localStorage.setItem(`controlScheme&${playerNbr}`, 'arrows');
+				console.log('whoops no control scheme');
+			}
+			playerNbr++;
+		}
+	}
+	return controlSchemes;
+}
 
 ws.onmessage = (event) => {
 	try {
@@ -44,6 +68,9 @@ ws.onmessage = (event) => {
 					data.state.meta.size_x,
 					data.state.meta.size_y
 				);
+			}
+			if (playerControlMap.length === 0) {
+				determineControlSchemes(data.state);
 			}
 		} else {
 			console.log('Unknown data received from websocket: ', data);
@@ -88,41 +115,101 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 
 // INPUT
 
-let leftPressed = false;
-let rightPressed = false;
+let arrowsLeftPressed = false;
+let arrowsRightPressed = false;
+let wasdLeftPressed = false;
+let wasdRightPressed = false;
+let ijklLeftPressed = false;
+let ijklRightPressed = false;
 let lastSentDirection = 0;
 
 window.addEventListener('keydown', (e) => {
 	if (e.key === 'ArrowLeft') {
-		leftPressed = true;
+		arrowsLeftPressed = true;
 	} else if (e.key === 'ArrowRight') {
-		rightPressed = true;
+		arrowsRightPressed = true;
+	} else if (e.key === 'ArrowUp') {
+		arrowsLeftPressed = true;
+	} else if (e.key === 'ArrowDown') {
+		arrowsRightPressed = true;
+	}
+	if (e.key === 'a') {
+		wasdLeftPressed = true;
+	} else if (e.key === 'd') {
+		wasdRightPressed = true;
+	} else if (e.key === 'w') {
+		ijklLeftPressed = true;
+	} else if (e.key === 's') {
+		ijklRightPressed = true;
+	}
+	if (e.key === 'j') {
+		ijklLeftPressed = true;
+	} else if (e.key === 'l') {
+		ijklRightPressed = true;
+	} else if (e.key === 'i') {
+		wasdLeftPressed = true;
+	} else if (e.key === 'k') {
+		wasdRightPressed = true;
 	}
 });
 
 window.addEventListener('keyup', (e) => {
 	if (e.key === 'ArrowLeft') {
-		leftPressed = false;
+		arrowsLeftPressed = false;
 	} else if (e.key === 'ArrowRight') {
-		rightPressed = false;
+		arrowsRightPressed = false;
 	}
 });
 
 setInterval(() => {
-	if (leftPressed && !rightPressed) {
-		if (lastSentDirection !== -1) {
-			ws.send(JSON.stringify({ type: 'move', dir: -1 }));
+	for (const [playerId, controlScheme] of playerControlMap) {
+		let leftPressed = false;
+		let rightPressed = false;
+
+		if (controlScheme === 'wasd') {
+			leftPressed = wasdLeftPressed;
+			rightPressed = wasdRightPressed;
+		} else if (controlScheme === 'ijkl') {
+			leftPressed = ijklLeftPressed;
+			rightPressed = ijklRightPressed;
+		} else {
+			leftPressed = arrowsLeftPressed;
+			rightPressed = arrowsRightPressed;
 		}
-		lastSentDirection = -1;
-	} else if (rightPressed && !leftPressed) {
-		if (lastSentDirection !== 1) {
-			ws.send(JSON.stringify({ type: 'move', dir: 1 }));
+
+		if (leftPressed && !rightPressed) {
+			if (lastSentDirection !== -1) {
+				ws.send(
+					JSON.stringify({
+						type: 'move',
+						dir: -1,
+						targetPlayerId: playerId,
+					})
+				);
+			}
+			lastSentDirection = -1;
+		} else if (rightPressed && !leftPressed) {
+			if (lastSentDirection !== 1) {
+				ws.send(
+					JSON.stringify({
+						type: 'move',
+						dir: 1,
+						targetPlayerId: playerId,
+					})
+				);
+			}
+			lastSentDirection = 1;
+		} else {
+			if (lastSentDirection !== 0) {
+				ws.send(
+					JSON.stringify({
+						type: 'move',
+						dir: 0,
+						targetPlayerId: playerId,
+					})
+				);
+			}
+			lastSentDirection = 0;
 		}
-		lastSentDirection = 1;
-	} else {
-		if (lastSentDirection !== 0) {
-			ws.send(JSON.stringify({ type: 'move', dir: 0 }));
-		}
-		lastSentDirection = 0;
 	}
-}, 1000 / 30); // 30 FPS
+}, 10);

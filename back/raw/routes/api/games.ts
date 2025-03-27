@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { checkAuth } from '../api/auth.js';
-import { WebSocket as WSWebSocket } from 'ws';
-import { GameSettings } from '../../games/gameFormats.js';
+import type { WebSocket as WSWebSocket } from 'ws';
+import { GameSettings, PlayerType } from '../../games/gameFormats.js';
 import { startGame, runningGames } from '../../games/games.js';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -83,7 +83,50 @@ export async function gameRoutes(app: FastifyInstance) {
 							}
 						}
 					} else if (data.type === 'move') {
-						player.movementDirection = data.dir;
+						const targetPlayerId = data.targetPlayerId;
+						if (typeof targetPlayerId != 'number') {
+							console.error(
+								'Invalid target player ID:',
+								targetPlayerId
+							);
+							return;
+						}
+						const targetPlayer = game.players.find(
+							(p) => p.playerId === targetPlayerId
+						);
+						if (!targetPlayer) {
+							console.error(
+								'Player',
+								targetPlayerId,
+								'not found'
+							);
+							return;
+						}
+						if (targetPlayer.type === PlayerType.USER) {
+							if (targetPlayer.wsocket !== socket) {
+								console.error(
+									'Player',
+									targetPlayerId,
+									'not connected'
+								);
+								return;
+							}
+						} else if (targetPlayer.type === PlayerType.LOCAL) {
+							const owner = game.players.find(
+								(p) =>
+									p.userId === targetPlayer.userId &&
+									p !== targetPlayer
+							);
+							if (!owner || owner.wsocket !== socket) {
+								console.error(
+									'Player',
+									targetPlayerId,
+									'not connected'
+								);
+								return;
+							}
+						}
+						targetPlayer.movementDirection = data.direction;
 						console.log('Server received movement data:', data);
 					}
 				} catch (err) {

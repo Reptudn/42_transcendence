@@ -110,6 +110,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 		player.playerId = index;
 
 		if (player.userId && player.type == PlayerType.USER && player.userId !== admin.id && connectedClients.has(player.userId)) {
+			console.log('Sending game request to player:', player);
 			sendRawToClient(
 				player.userId,
 				`data: ${JSON.stringify({ type: 'game_request', gameId, playerId: index })}\n\n`
@@ -117,9 +118,16 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 		}
 	});
 
+	const adminPcPlayers: number[] = rotatedPlayers
+		.filter((player) => player.userId === admin.id)
+		.sort((a, b) => (a.type === PlayerType.USER ? -1 : 1))
+		.map((player) => player.playerId);
+
+	console.log('Admin PC players:', adminPcPlayers);
+
 	sendRawToClient(
 		admin.id,
-		`data: ${JSON.stringify({ type: 'game_admin_request', gameId, playerId: rotatedPlayers.find(p => p.userId === admin.id)?.playerId })}\n\n`
+		`data: ${JSON.stringify({ type: 'game_admin_request', gameId, playerIds: JSON.stringify(adminPcPlayers) })}\n\n`
 	);
 
 	runningGames.push(
