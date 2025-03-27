@@ -97,6 +97,8 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 		if (username.length > 20) username = base_username;
 	}
 
+
+
 	const db: Database = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database,
@@ -105,7 +107,7 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 		[
 			googleUser.id,
-			username,
+			username.split('').filter((c) => c.match(/[a-zA-Z0-9_]/)).join(''),
 			crypto.randomBytes(42).toString('hex'),
 			googleUser.name.substring(0, 16),
 			titleFirst,

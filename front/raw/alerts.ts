@@ -1,71 +1,31 @@
 // NOTE: this is for only local popup alerts and not server rendered ones
+// import ejs from 'ejs';
 
-const popupContainer: HTMLElement | null =
-	document.getElementById('popup-container');
+interface LocalAlertData {
+	title: string;
+	description: string;
+	color: string;
+}
 
-function addLocalPopup(message: string, type: string) {
-	if (!popupContainer) {
-		console.error('popup-container not found');
-		return;
-	}
+function showLocalPopup(data: LocalAlertData) {
+	const template = `
+<div class="popup flex pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
+	role="alert">
+	<div class="flex-1">
+		<strong class="font-bold mr-8"><%- title %></strong>
+		<span class="block"><%- description %></span>
+	</div>
+	<span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="dismissPopup(this)">
+		<svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 20 20">
+			<title>Close</title>
+			<path
+				d="M14.348 5.652a.5.5 0 0 1 .708.708L11.707 10l3.35 3.35a.5.5 0 0 1-.708.708L11 10.707l-3.35 3.35a.5.5 0 0 1-.708-.708L10.293 10 6.943 6.65a.5.5 0 0 1 .708-.708L11 9.293l3.35-3.35z" />
+		</svg>
+	</span>
+</div>
+`;
 
-	const popup = document.createElement('div');
-	popup.classList.add('popup');
-	popup.addEventListener('click', (e) => {
-		if (e.target instanceof HTMLElement) {
-			dismissPopup(e.target);
-		}
-	});
-	popup.innerHTML = message;
-
-	switch (type) {
-		case 'Alert':
-			popup.style.backgroundColor = 'yellow';
-			break;
-		case 'Log':
-			popup.style.backgroundColor = 'lightblue';
-			break;
-		case 'Info':
-			popup.style.backgroundColor = 'lightgreen';
-			break;
-		case 'Error':
-			popup.style.backgroundColor = 'pink';
-			break;
-		default:
-			break;
-	}
-
-	popupContainer.insertAdjacentHTML('beforeend', popup.outerHTML);
+	popupContainer?.insertAdjacentHTML('beforeend', ejs.render(template, data));
 	updateCloseAllVisibility();
 }
-
-export function localAlert(message: string) {
-	addLocalPopup(message, 'Alert');
-}
-
-export function localLog(message: string) {
-	addLocalPopup(message, 'Log');
-	localLog(message);
-}
-
-export function localInfo(message: string) {
-	addLocalPopup(message, 'Info');
-	console.info(message);
-}
-
-export function localError(message: string) {
-	addLocalPopup(message, 'Error');
-	console.error(message);
-}
-
-console.log('alerts.ts loaded');
-
-// FIXME: the ficking set interval doesnt want to fire even though its there
-
-setInterval(() => {
-	console.log('sending popup alerts');
-	// localAlert('This is an alert');
-	// localLog('This is a log');
-	// localInfo('This is an info');
-	// localError('This is an error');
-}, 5000);
