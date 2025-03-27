@@ -1,4 +1,3 @@
-
 function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
 	menuButtons.forEach((button) => {
@@ -12,22 +11,24 @@ function updateActiveMenu(selectedPage: string): void {
 }
 
 let abortController: AbortController | null = null;
-async function loadPartialView(page: string, pushState: boolean = true): Promise<void> {
+async function loadPartialView(
+	page: string,
+	pushState: boolean = true
+): Promise<void> {
 	const token = localStorage.getItem('token');
-	const headers: Record<string, string> = { 'loadpartial': 'true' };
-	if (token)
-		headers['Authorization'] = `Bearer ${token}`;
+	const headers: Record<string, string> = { loadpartial: 'true' };
+	if (token) headers['Authorization'] = `Bearer ${token}`;
 
 	try {
 		const response: Response = await fetch(`/partial/pages/${page}`, {
 			method: 'GET',
-			headers: headers
+			headers: headers,
 		});
 		const html: string = await response.text();
 
-		const contentElement: HTMLElement | null = document.getElementById('content');
+		const contentElement: HTMLElement | null =
+			document.getElementById('content');
 		if (contentElement) {
-
 			contentElement.innerHTML = html;
 
 			const scripts = contentElement.querySelectorAll('script');
@@ -35,29 +36,40 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 				if (abortController) abortController.abort();
 				abortController = new AbortController();
 
-				scripts.forEach(oldScript => {
+				scripts.forEach((oldScript) => {
 					const newScript = document.createElement('script');
 					newScript.type = oldScript.type || 'text/javascript';
 					if (oldScript.src)
-						newScript.src = oldScript.src + '?cb=' + Date.now(); // refresh script, force cache break
-					else
-						newScript.text = oldScript.text;
+						newScript.src = oldScript.src + '?cb=' + Date.now();
+					// refresh script, force cache break
+					else newScript.text = oldScript.text;
 
 					contentElement.appendChild(newScript);
 
 					oldScript.remove();
 
-					newScript.addEventListener('load', () => {
-						console.log('Script loaded:', newScript.src);
-					}, { signal: abortController!.signal });
-					newScript.addEventListener('error', (event) => {
-						console.error('Script error:', newScript.src, event);
-					}, { signal: abortController!.signal });
+					newScript.addEventListener(
+						'load',
+						() => {
+							console.log('Script loaded:', newScript.src);
+						},
+						{ signal: abortController!.signal }
+					);
+					newScript.addEventListener(
+						'error',
+						(event) => {
+							console.error(
+								'Script error:',
+								newScript.src,
+								event
+							);
+						},
+						{ signal: abortController!.signal }
+					);
 				});
 			}
-
 		} else {
-			console.warn("Content element not found");
+			console.warn('Content element not found');
 		}
 
 		updateActiveMenu(page);
@@ -65,11 +77,9 @@ async function loadPartialView(page: string, pushState: boolean = true): Promise
 		if (pushState) {
 			history.pushState({ page }, '', `/partial/pages/${page}`);
 		}
-	}
-	catch (error) {
+	} catch (error) {
 		console.error('Error fetching partial view:', error);
 	}
-
 }
 
 // history change event
@@ -86,8 +96,10 @@ async function updateMenu(): Promise<void> {
 		if (token) {
 			response = await fetch('/partial/menu', {
 				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-				}
+					Authorization: `Bearer ${
+						localStorage.getItem('token') || ''
+					}`,
+				},
 			});
 		} else {
 			response = await fetch(`/partial/menu`);
@@ -127,12 +139,11 @@ async function updateNumber(increment: number): Promise<void> {
 		const response = await fetch('/number', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ number: increment })
+			body: JSON.stringify({ number: increment }),
 		});
-		if (!response.ok)
-			return;
+		if (!response.ok) return;
 		const data = await response.json();
 		const displayElement = document.getElementById('numberDisplay');
 		if (displayElement) {
@@ -159,13 +170,22 @@ async function logout(): Promise<void> {
 			// Update your menu and load the home view
 			updateMenu();
 			loadPartialView('index');
-			console.log("You have been logged out with impeccable style!");
+			console.log('You have been logged out with impeccable style!');
 		} else {
 			const data = await response.json();
-			alert(`Error during logout: ${data.message}`);
+			showLocalPopup({
+				title: 'Logout error',
+				description: data.message,
+				color: 'red',
+			});
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
-		alert('An error occurred during logout. Do try again, old chap!');
+		showLocalPopup({
+			title: 'Logout error',
+			description:
+				'An error occurred during logout. Do try again, old chap!',
+			color: 'red',
+		});
 	}
 }

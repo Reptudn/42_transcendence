@@ -131,7 +131,12 @@ addPlayerButton.addEventListener('click', () => {
 	const currentPlayers =
 		playersContainer.querySelectorAll('.player-card').length;
 	if (currentPlayers >= maxPlayers) {
-		alert('Maximum players reached. You cannot add more than 4 players.');
+		showLocalPopup({
+			title: 'Error',
+			description:
+				'Maximum players reached. You cannot add more than 4 players.',
+			color: 'red',
+		});
 		return;
 	}
 	const newCard = createPlayerCard(currentPlayers);
@@ -141,7 +146,11 @@ addPlayerButton.addEventListener('click', () => {
 removePlayerButton.addEventListener('click', () => {
 	const currentPlayers = playersContainer.querySelectorAll('.player-card');
 	if (currentPlayers.length <= 1) {
-		alert('At least one player (you) is required.');
+		showLocalPopup({
+			title: 'Error',
+			description: 'At least one player (you) is required.',
+			color: 'red',
+		});
 		return;
 	}
 	playersContainer.removeChild(currentPlayers[currentPlayers.length - 1]);
@@ -176,7 +185,13 @@ startGameButton.addEventListener('click', () => {
 				) as HTMLSelectElement;
 				const friendId = friendSelect.value;
 				if (!friendId) {
-					alert(`Please select a friend for Player ${index + 1}.`);
+					showLocalPopup({
+						title: 'Error',
+						description: `Please select a friend for Player ${
+							index + 1
+						}.`,
+						color: 'red',
+					});
 					throw new Error('Friend not selected');
 				}
 				playerData.id = parseInt(friendId);
@@ -228,10 +243,18 @@ startGameButton.addEventListener('click', () => {
 		})
 		.then((result) => {
 			console.log('Game started successfully:', result);
-			alert('Game started successfully!');
+			showLocalPopup({
+				title: 'Game started successfully!',
+				description: 'Get ready and FIGHT FOR THE WIN!',
+				color: 'green',
+			});
 		})
 		.catch((error) => {
 			console.error('Error starting game:', error);
-			alert(`Error starting game: ${error.message}`);
+			showLocalPopup({
+				title: 'Error',
+				description: 'An error occurred. Please try again.',
+				color: 'red',
+			});
 		});
 });

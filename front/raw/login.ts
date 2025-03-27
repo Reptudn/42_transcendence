@@ -23,10 +23,8 @@ let loginAction = async () => {
 				description: 'You have logged in successfully',
 				color: 'green',
 			});
-			// alert('You have logged in successfully');
 		} else {
 			const data = await response.json();
-			// alert(`Error: ${data.message}`);
 			showLocalPopup({
 				title: 'Error',
 				description: data.message,
@@ -35,7 +33,6 @@ let loginAction = async () => {
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		// alert('An error occurred. Please try again.');
 		showLocalPopup({
 			title: 'Error',
 			description: 'An error occurred. Please try again.',
