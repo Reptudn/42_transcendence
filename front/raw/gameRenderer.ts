@@ -1,3 +1,18 @@
+let previousState: GameState | null = null;
+let currentState: GameState | null = null;
+let lastUpdateTime: number = performance.now();
+
+const tickInterval = 1000 / 20;
+
+let mapSizeX = 100;
+let mapSizeY = 100;
+
+let trailColor = { r: 255, g: 0, b: 0 };
+let lastVector: { x: number; y: number } | null = null;
+
+const ballTrail: TrailElement[] = [];
+const trailLifetime: number = 750;
+
 interface Point {
 	x: number;
 	y: number;
@@ -25,10 +40,8 @@ interface GameState {
 interface TrailElement {
 	center: Point;
 	time: number;
+	color: { r: number; g: number; b: number };
 }
-
-const ballTrail: TrailElement[] = [];
-const trailLifetime: number = 1000;
 
 function lerp(a: number, b: number, t: number): number {
 	return a + (b - a) * t;
@@ -75,13 +88,13 @@ function drawCircle(
 	x: number,
 	y: number,
 	radius: number,
-	fillStyle: string
+	color: { r: number; g: number; b: number }
 ): void {
 	ctx.beginPath();
 	if (!isPointInsideCanvas(x, y))
 		console.log('Point is outside canvas:', x, y);
 	ctx.arc(x, y, radius, 0, Math.PI * 2);
-	ctx.fillStyle = fillStyle;
+	ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 	ctx.fill();
 }
 
@@ -112,77 +125,123 @@ function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
 }
 
-function drawTaperedBallTrail(scale: number, baseRadius: number): void {
-	if (ballTrail.length < 2) return;
+function normalize(v: Point): Point {
+	const mag = Math.hypot(v.x, v.y);
+	return mag === 0 ? { x: 0, y: 0 } : { x: v.x / mag, y: v.y / mag };
+}
 
-	const now = performance.now();
-	const leftPoints: Point[] = [];
-	const rightPoints: Point[] = [];
+function computeOffsetPoints(
+	points: Point[],
+	widths: number[]
+): { left: Point[]; right: Point[] } {
+	const left: Point[] = [];
+	const right: Point[] = [];
 
-	function normalize(v: Point): Point {
-		const mag = Math.hypot(v.x, v.y);
-		return mag === 0 ? { x: 0, y: 0 } : { x: v.x / mag, y: v.y / mag };
-	}
+	for (let i = 0; i < points.length; i++) {
+		const p = points[i];
+		let offset: Point;
 
-	function getTangent(i: number): Point {
-		let pPrev: Point, pNext: Point;
 		if (i === 0) {
-			pPrev = ballTrail[i].center;
-			pNext = ballTrail[i + 1].center;
-		} else if (i === ballTrail.length - 1) {
-			pPrev = ballTrail[i - 1].center;
-			pNext = ballTrail[i].center;
+			const d = normalize({ x: points[1].x - p.x, y: points[1].y - p.y });
+			offset = { x: -d.y, y: d.x };
+			left.push({
+				x: p.x + offset.x * (widths[i] / 2),
+				y: p.y + offset.y * (widths[i] / 2),
+			});
+			right.push({
+				x: p.x - offset.x * (widths[i] / 2),
+				y: p.y - offset.y * (widths[i] / 2),
+			});
+		} else if (i === points.length - 1) {
+			const d = normalize({
+				x: p.x - points[i - 1].x,
+				y: p.y - points[i - 1].y,
+			});
+			offset = { x: -d.y, y: d.x };
+			left.push({
+				x: p.x + offset.x * (widths[i] / 2),
+				y: p.y + offset.y * (widths[i] / 2),
+			});
+			right.push({
+				x: p.x - offset.x * (widths[i] / 2),
+				y: p.y - offset.y * (widths[i] / 2),
+			});
 		} else {
-			pPrev = ballTrail[i - 1].center;
-			pNext = ballTrail[i + 1].center;
+			const pPrev = points[i - 1];
+			const pNext = points[i + 1];
+			const d1 = normalize({ x: p.x - pPrev.x, y: p.y - pPrev.y });
+			const d2 = normalize({ x: pNext.x - p.x, y: pNext.y - p.y });
+			const n1 = { x: -d1.y, y: d1.x };
+			const n2 = { x: -d2.y, y: d2.x };
+			const miter = normalize({ x: n1.x + n2.x, y: n1.y + n2.y });
+			const dot = miter.x * n1.x + miter.y * n1.y;
+			const miterLength = widths[i] / 2 / dot;
+			left.push({
+				x: p.x + miter.x * miterLength,
+				y: p.y + miter.y * miterLength,
+			});
+			right.push({
+				x: p.x - miter.x * miterLength,
+				y: p.y - miter.y * miterLength,
+			});
 		}
-		return normalize({ x: pNext.x - pPrev.x, y: pNext.y - pPrev.y });
 	}
 
-	for (let i = 0; i < ballTrail.length; i++) {
-		const pt = ballTrail[i].center;
-		const age = now - ballTrail[i].time;
+	return { left, right };
+}
+
+function drawBallTrail(scale: number, baseRadius: number): void {
+	if (ballTrail.length < 2) return;
+	const now = performance.now();
+
+	const points: Point[] = [];
+	const widths: number[] = [];
+	const alphas: number[] = [];
+	for (const elem of ballTrail) {
+		const scaledPt = { x: elem.center.x * scale, y: elem.center.y * scale };
+		points.push(scaledPt);
+		const age = now - elem.time;
 		const lifeFactor = 1 - Math.min(age / trailLifetime, 1);
-		const width = baseRadius * scale * 2 * lifeFactor;
-
-		const tangent = getTangent(i);
-		const perp = { x: -tangent.y, y: tangent.x };
-
-		const left: Point = {
-			x: pt.x * scale + perp.x * (width / 2),
-			y: pt.y * scale + perp.y * (width / 2),
-		};
-		const right: Point = {
-			x: pt.x * scale - perp.x * (width / 2),
-			y: pt.y * scale - perp.y * (width / 2),
-		};
-		leftPoints.push(left);
-		rightPoints.push(right);
+		widths.push(baseRadius * scale * 2 * lifeFactor);
+		alphas.push(lifeFactor);
 	}
 
-	const path = new Path2D();
-	path.moveTo(leftPoints[0].x, leftPoints[0].y);
-	for (let i = 1; i < leftPoints.length; i++) {
-		path.lineTo(leftPoints[i].x, leftPoints[i].y);
-	}
-	for (let i = rightPoints.length - 1; i >= 0; i--) {
-		path.lineTo(rightPoints[i].x, rightPoints[i].y);
-	}
-	path.closePath();
+	const { left, right } = computeOffsetPoints(points, widths);
 
-	const head = ballTrail[ballTrail.length - 1].center;
-	const tail = ballTrail[0].center;
-	const gradient = ctx.createLinearGradient(
-		tail.x * scale,
-		tail.y * scale,
-		head.x * scale,
-		head.y * scale
-	);
-	gradient.addColorStop(0, 'rgba(255, 0, 0, 0)');
-	gradient.addColorStop(1, 'rgba(255, 0, 0, 1)');
+	for (let i = 0; i < points.length - 1; i++) {
+		const pLeftStart = left[i];
+		const pLeftEnd = left[i + 1];
+		const pRightEnd = right[i + 1];
+		const pRightStart = right[i];
 
-	ctx.fillStyle = gradient;
-	ctx.fill(path);
+		const trapezoid = new Path2D();
+		trapezoid.moveTo(pLeftStart.x, pLeftStart.y);
+		trapezoid.lineTo(pLeftEnd.x, pLeftEnd.y);
+		trapezoid.lineTo(pRightEnd.x, pRightEnd.y);
+		trapezoid.lineTo(pRightStart.x, pRightStart.y);
+		trapezoid.closePath();
+
+		const grad = ctx.createLinearGradient(
+			points[i].x,
+			points[i].y,
+			points[i + 1].x,
+			points[i + 1].y
+		);
+
+		grad.addColorStop(
+			0,
+			`rgba(${ballTrail[i].color.r}, ${ballTrail[i].color.g}, ${ballTrail[i].color.b}, ${alphas[i]})`
+		);
+		grad.addColorStop(
+			1,
+			`rgba(${ballTrail[i + 1].color.r}, ${ballTrail[i + 1].color.g}, ${
+				ballTrail[i + 1].color.b
+			}, ${alphas[i + 1]})`
+		);
+
+		ctx.fillStyle = grad;
+		ctx.fill(trapezoid);
+	}
 }
 
 function drawGameState(
@@ -207,7 +266,7 @@ function drawGameState(
 					const posX = obj.center.x * scale;
 					const posY = obj.center.y * scale;
 					const radius = obj.radius * scale;
-					drawCircle(posX, posY, radius, 'red');
+					drawCircle(posX, posY, radius, trailColor);
 				} else {
 					console.log(
 						'Ball object does not have a center or radius:',
@@ -233,15 +292,6 @@ function drawGameState(
 	}
 }
 
-// Animation Manager
-
-let previousState: GameState | null = null;
-let currentState: GameState | null = null;
-let lastUpdateTime: number = performance.now();
-const tickInterval = 1000 / 20; // 20 ticks per second
-let mapSizeX = 100;
-let mapSizeY = 100;
-
 export function updateGameState(
 	newState: GameState,
 	mapSizeX: number,
@@ -252,6 +302,49 @@ export function updateGameState(
 	lastUpdateTime = performance.now();
 	mapSizeX = mapSizeX;
 	mapSizeY = mapSizeY;
+	detectBounce(newState);
+}
+
+function randomColor(): { r: number; g: number; b: number } {
+	return {
+		r: Math.floor(Math.random() * 256),
+		g: Math.floor(Math.random() * 256),
+		b: Math.floor(Math.random() * 256),
+	};
+}
+function detectBounce(state: GameState): void {
+	function calculateAngleDifference(
+		v1: { x: number; y: number },
+		v2: { x: number; y: number }
+	): number {
+		const dot = v1.x * v2.x + v1.y * v2.y;
+		const mag1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+		const mag2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+		if (mag1 === 0 || mag2 === 0) {
+			return 0;
+		}
+		let cosTheta = dot / (mag1 * mag2);
+		cosTheta = Math.max(-1, Math.min(1, cosTheta));
+		const angleRadians = Math.acos(cosTheta);
+		const angleDegrees = angleRadians * (180 / Math.PI);
+		return angleDegrees;
+	}
+
+	for (const obj of state.objects) {
+		if (obj.type === 'ball' && obj.velocity) {
+			const newVector = { x: obj.velocity.x, y: obj.velocity.y };
+			if (lastVector) {
+				const angleDiff = calculateAngleDifference(
+					lastVector,
+					newVector
+				);
+				if (angleDiff > 10) {
+					trailColor = randomColor();
+				}
+			}
+			lastVector = newVector;
+		}
+	}
 }
 
 function render(): void {
@@ -283,7 +376,11 @@ function render(): void {
 	}
 
 	if (interpolatedBallCenter) {
-		ballTrail.push({ center: { ...interpolatedBallCenter }, time: now });
+		ballTrail.push({
+			center: { ...interpolatedBallCenter },
+			time: now,
+			color: { ...trailColor },
+		});
 	}
 	while (ballTrail.length && now - ballTrail[0].time > trailLifetime) {
 		ballTrail.shift();
@@ -313,7 +410,7 @@ function render(): void {
 		const scaleX = canvas.width / (currentState?.mapWidth ?? mapSizeX);
 		const scaleY = canvas.height / (currentState?.mapHeight ?? mapSizeY);
 		const scale = Math.min(scaleX, scaleY);
-		drawTaperedBallTrail(scale, ballObj.radius);
+		drawBallTrail(scale, ballObj.radius);
 	}
 
 	requestAnimationFrame(render);
