@@ -23,7 +23,7 @@
 		{
 			"type": "paddle",
 			"name": "playerTop",
-			"playerNbr": 1,
+			"playerNbr": 0,
 			"shape": [
 				{
 					"x": 40,
@@ -65,7 +65,7 @@
 		{
 			"type": "paddle_path",
 			"name": "playerTopPath",
-			"playerNbr": 1,
+			"playerNbr": 0,
 			"shape": [
 				{
 					"x": 0,
@@ -87,7 +87,7 @@
 		{
 			"type": "player_damage_area",
 			"name": "playerTopDamageArea",
-			"playerNbr": 1,
+			"playerNbr": 0,
 			"shape": [
 				{
 					"x": 0,
@@ -109,7 +109,7 @@
 		{
 			"type": "paddle",
 			"name": "paddleBottom",
-			"playerNbr": 2,
+			"playerNbr": 1,
 			"shape": [
 				{
 					"x": 40,
@@ -151,7 +151,7 @@
 		{
 			"type": "paddle_path",
 			"name": "paddleBottomPath",
-			"playerNbr": 2,
+			"playerNbr": 1,
 			"shape": [
 				{
 					"x": 0,
@@ -173,7 +173,7 @@
 		{
 			"type": "player_damage_area",
 			"name": "playerBottomDamageArea",
-			"playerNbr": 2,
+			"playerNbr": 1,
 			"shape": [
 				{
 					"x": 0,
@@ -195,7 +195,7 @@
 		{
 			"type": "paddle",
 			"name": "paddleLeft",
-			"playerNbr": 3,
+			"playerNbr": 2,
 			"shape": [
 				{
 					"x": 0,
@@ -237,7 +237,7 @@
 		{
 			"type": "paddle_path",
 			"name": "paddleLeftPath",
-			"playerNbr": 3,
+			"playerNbr": 2,
 			"shape": [
 				{
 					"x": 2.5,
@@ -259,7 +259,7 @@
 		{
 			"type": "player_damage_area",
 			"name": "playerLeftDamageArea",
-			"playerNbr": 3,
+			"playerNbr": 2,
 			"shape": [
 				{
 					"x": 0,
@@ -281,7 +281,7 @@
 		{
 			"type": "paddle",
 			"name": "paddleRight",
-			"playerNbr": 4,
+			"playerNbr": 3,
 			"shape": [
 				{
 					"x": 100,
@@ -327,7 +327,7 @@
 		{
 			"type": "paddle_path",
 			"name": "paddleRightPath",
-			"playerNbr": 4,
+			"playerNbr": 3,
 			"shape": [
 				{
 					"x": 97.5,
@@ -349,7 +349,7 @@
 		{
 			"type": "player_damage_area",
 			"name": "playerRightDamageArea",
-			"playerNbr": 4,
+			"playerNbr": 3,
 			"shape": [
 				{
 					"x": 100,

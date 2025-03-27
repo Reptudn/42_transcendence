@@ -12,7 +12,6 @@ import { getMapAsInitialGameState } from './rawMapHandler.js';
 import { tickEngine } from '../engine/engine.js';
 
 import defaultBotNames from '../../../data/defaultBotNames.json' with { type: 'json' };
-import { getDefaultFormatCodeSettings } from 'typescript';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
@@ -21,16 +20,17 @@ export let runningGames: Game[] = [];
 let nextGameId = 0;
 
 export async function startGame(admin: User, gameSettings: GameSettings) {
-	let gameId = nextGameId++;
-	let currPlayerID = Math.floor(Math.random() * 4);
+	if (gameSettings.players.length > 3) {
+		throw new Error('Too many players');
+	}
 
-	const readPlayers = gameSettings.players;
-	let players: Player[] = [];
+	let gameId = nextGameId++;
+	const players: Player[] = [];
 
 	players.push(
 		new Player(
 			PlayerType.USER,
-			currPlayerID % 4,
+			-1,
 			gameSettings.playerLives,
 			admin.id,
 			null,
@@ -41,76 +41,48 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			await getUserTitleString(admin.id)
 		)
 	);
-	sendRawToClient(
-		admin.id,
-		`data: ${JSON.stringify({
-			type: 'game_admin_request',
-			gameId,
-			playerId: currPlayerID % 4,
-		})}\n\n`
-	);
-	currPlayerID++;
 
-	for (const readPlayer of readPlayers) {
+	for (const readPlayer of gameSettings.players) {
 		let player: Player | null = null;
-		let playerID = currPlayerID % 4;
-		currPlayerID++;
 		if (readPlayer.type === PlayerType.USER) {
-			let id: number = readPlayer.id;
-			if (id != admin.id) {
-				let user = await getUserById(id);
-				if (user !== null && connectedClients.has(id)) {
-					player = new Player(
-						PlayerType.USER,
-						playerID,
-						gameSettings.playerLives,
-						id,
-						null,
-						null,
-						null,
-						user.username,
-						user.displayname,
-						await getUserTitleString(user.id)
-					);
-					sendRawToClient(
-						id,
-						`data: ${JSON.stringify({
-							type: 'game_request',
-							gameId,
-							playerId: playerID,
-						})}\n\n`
-					);
-					currPlayerID++;
-				} else {
-					throw new Error(
-						'User ' + id + 'not found or not connected'
-					);
-				}
-			} else {
-				throw new Error(
-					'Game-starting player should not be added as a player'
+			const friendId = readPlayer.id;
+			if (friendId === admin.id) {
+				throw new Error('Game-starting player should not be added as a player');
+			}
+			const user = await getUserById(friendId);
+			if (user && connectedClients.has(friendId)) {
+				player = new Player(
+					PlayerType.USER,
+					-1,
+					gameSettings.playerLives,
+					friendId,
+					null,
+					null,
+					null,
+					user.username,
+					user.displayname,
+					await getUserTitleString(user.id)
 				);
+			} else {
+				throw new Error(`User ${friendId} not found or not connected`);
 			}
 		} else if (readPlayer.type === PlayerType.AI) {
-			let aiLevel = readPlayer.aiLevel;
 			player = new Player(
 				PlayerType.AI,
-				playerID,
+				-1,
 				gameSettings.playerLives,
 				null,
 				null,
-				aiLevel,
+				readPlayer.aiLevel,
 				null,
 				null,
 				null,
-				readPlayer.aiOrLocalPlayerName
-					? readPlayer.aiOrLocalPlayerName
-					: getRandomDefaultName()
+				readPlayer.aiOrLocalPlayerName || getRandomDefaultName()
 			);
 		} else if (readPlayer.type === PlayerType.LOCAL) {
 			player = new Player(
 				PlayerType.LOCAL,
-				playerID,
+				-1,
 				gameSettings.playerLives,
 				admin.id,
 				null,
@@ -119,32 +91,48 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 				null,
 				null,
 				null,
-				null,
-				readPlayer.aiOrLocalPlayerName
-					? readPlayer.aiOrLocalPlayerName
-					: getRandomDefaultName()
+				readPlayer.aiOrLocalPlayerName || getRandomDefaultName()
 			);
 		} else {
 			throw new Error('Invalid player type');
 		}
+
 		if (player !== null) {
 			players.push(player);
 		}
 	}
 
-	console.log('Game started with players:', players);
-	console.log('Game settings:', gameSettings);
+	const totalPlayers = players.length;
+	const offset = Math.floor(Math.random() * totalPlayers);
+	const rotatedPlayers = players.slice(offset).concat(players.slice(0, offset));
+
+	rotatedPlayers.forEach((player, index) => {
+		player.playerId = index;
+
+		if (player.userId && player.type == PlayerType.USER && player.userId !== admin.id && connectedClients.has(player.userId)) {
+			sendRawToClient(
+				player.userId,
+				`data: ${JSON.stringify({ type: 'game_request', gameId, playerId: index })}\n\n`
+			);
+		}
+	});
+
+	sendRawToClient(
+		admin.id,
+		`data: ${JSON.stringify({ type: 'game_admin_request', gameId, playerId: rotatedPlayers.find(p => p.userId === admin.id)?.playerId })}\n\n`
+	);
 
 	runningGames.push(
 		new Game(
 			gameId,
-			players,
+			rotatedPlayers,
 			gameSettings,
 			await getMapAsInitialGameState(gameSettings)
 		)
 	);
 
-	console.log(runningGames, 'runningGames');
+	console.log('Game started with players:', rotatedPlayers);
+	console.log('Game settings:', gameSettings);
 }
 
 const ticksPerSecond = 20;
