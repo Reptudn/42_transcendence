@@ -1,0 +1,36 @@
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
+	<div id="register-form">
+		<div class="mb-4">
+			<label for="username" class="block text-gray-700 font-bold mb-2">Username:</label>
+			<input type="text" id="username" name="username" required
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<div class="text-right text-sm text-gray-500" id="usernameCounter">0/16</div>
+		</div>
+		<div class="mb-4">
+			<label for="displayname" class="block text-gray-700 font-bold mb-2">Display Name:</label>
+			<input type="text" id="displayname" name="displayname" required
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<div class="text-right text-sm text-gray-500" id="displaynameCounter">0/16</div>
+		</div>
+		<div class="mb-6">
+			<label for="password" class="block text-gray-700 font-bold mb-2">Password:</label>
+			<input type="password" id="password" name="password" required
+				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+		</div>
+		<div class="text-center">
+			<button id="registerButton" type="button"
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Register</button>
+		</div>
+	</div>
+	<br>
+	<p class="text-center">or</p>
+	<br>
+	<a href ="/api/auth/google/">
+		<div class="google-signin bg-white-500 hover:bg-gray-200 text-black font-bold py-2 px-4 rounded-lg text-center border-2 border-black">
+			<img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google image" class="w-6 h-6 inline-block mr-2">
+			Login with Google
+		</div>
+	</a>
+</div>
+<script type="module" src="/static/js/register.js"></script>

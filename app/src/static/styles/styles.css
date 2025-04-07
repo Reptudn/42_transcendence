@@ -1,0 +1,79 @@
+html {
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	height: 100%;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+main {
+	flex: 1;
+}
+
+footer {
+	margin-top: auto;
+}
+
+body.dark {
+	background-color: #1a202c;
+	/* dark background */
+	color: #cbd5e0;
+	/* light text */
+}
+
+body.dark .bg-white {
+	background-color: #2d3748;
+	/* dark card background */
+}
+
+body.dark .bg-gray-100 {
+	background-color: #2d3748;
+	/* dark background */
+}
+
+body.dark .bg-blue-600 {
+	background-color: #2b6cb0;
+	/* dark header background */
+}
+
+body.dark .bg-gray-800 {
+	background-color: #1a202c;
+	/* dark footer background */
+}
+
+body.dark .text-gray-900 {
+	color: #cbd5e0;
+	/* light text */
+}
+
+body.dark .text-white {
+	color: #e2e8f0;
+	/* light text */
+}
+
+/* styles.css */
+body.dark .text-gray-700 {
+	color: #e2e8f0;
+	/* light text for dark mode */
+}
+
+body.dark .bg-white {
+	background-color: #2d3748;
+	/* dark background for dark mode */
+}
+
+button.active {
+	background-color: #0056b3;
+	border: 2px solid #fff;
+}

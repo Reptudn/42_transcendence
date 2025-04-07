@@ -1,0 +1,9 @@
+{
+	"extends": "fastify-tsconfig",
+	"compilerOptions": {
+		"lib": ["dom", "dom.iterable", "ESNext"],
+		"outDir": "dist",
+		"sourceMap": true
+	},
+	"include": ["src/**/*.ts"]
+}

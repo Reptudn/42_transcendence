@@ -1,0 +1,31 @@
+{
+	"default_titles_first": [
+		"Inexperienced",
+		"Practicing",
+		"Unskilled",
+		"Untrained",
+		"Unpracticed",
+		"New",
+		"Pong",
+		"Pong Gaming",
+		"Laughable",
+		"Unworthy",
+		"Painful-to-watch"
+	],
+	"default_titles_second": [
+		"Newcomer",
+		"Noob",
+		"Amateur",
+		"Rookie",
+		"Beginner",
+		"Novice",
+		"Trainee",
+		"Apprentice"
+	],
+	"default_titles_third": [
+		"💩",
+		"👎",
+		"📉",
+		"🤷"
+	]
+}

@@ -1,0 +1,103 @@
+<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+	<h2 class="text-2xl font-bold mb-6 text-center">Edit Your Profile</h2>
+	<div id="editProfileForm">
+		<div class="mb-4">
+			<label class="block text-gray-700 font-bold mb-2">Profile Picture:</label>
+			<img src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>" alt="Profile Picture"
+				class="w-24 h-24 rounded-full mb-2">
+			<input type="file" id="profilePicture" name="profile_picture" accept="image/png" class="w-full" value="">
+			<button type="button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+				id="profilePictureReset">Remove</button>
+		</div>
+		<div class="mb-4">
+			<label class="block text-gray-700 font-bold mb-2">Username:</label>
+			<input type="text" id="username" value="<%= user.username%>" required pattern="^\S+$"
+				class="w-full px-3 py-2 border rounded">
+			<div class="text-right text-sm text-gray-500" id="usernameCounter">0/16</div>
+			<small class="text-gray-500">No spaces allowed.</small>
+		</div>
+		<div class="mb-4">
+			<label class="block text-gray-700 font-bold mb-2">Display Name:</label>
+			<input type="text" id="displayName" value="<%= user.displayname %>" required
+				class="w-full px-3 py-2 border rounded">
+			<div class="text-right text-sm text-gray-500" id="displayNameCounter">0/16</div>
+		</div>
+		<div class="mb-4">
+			<label class="block text-gray-700 font-bold mb-2">Bio:</label>
+			<textarea id="bio" rows="3" class="w-full px-3 py-2 border rounded field-sizing-content"><%= user.bio %></textarea>
+		</div>
+		<div class="text-center">
+			<button type="submit" id="editprofilesubmit"
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save
+				Changes</button>
+		</div>
+
+		<div class="h-10"></div>
+		<hr class="my-4">
+
+		<h3 class="text-lg font-bold mb-2">Change Title</h3>
+		<p class="text-gray-500 text-sm mb-4">Complete achievements to unlock more titles.</p>
+		<div class="mb-4">
+			<select id="firstTitle" name="firstTitle" class="w-full px-3 py-2 border rounded">
+				<% firstTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_first===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<select id="secondTitle" name="secondTitle" class="w-full px-3 py-2 border rounded">
+				<% secondTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_second===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<select id="thirdTitle" name="thirdTitle" class="w-full px-3 py-2 border rounded">
+				<% thirdTitles.forEach(option=> { %>
+					<option value="<%= option.value %>" <%=user.title_third===option.value ? 'selected' : '' %>><%=
+							option.label %>
+					</option>
+					<% }); %>
+			</select>
+			<div class="text-center">
+				<button type="submit" id="edittitlesubmit"
+					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save
+					Title</button>
+			</div>
+		</div>
+
+		<div class="h-10"></div>
+		<hr class="my-4">
+
+		<h3 class="text-lg font-bold mb-2">Change Password</h3>
+		<div class="mb-4">
+			<label class="block text-gray-700 font-bold mb-2">Old Password:</label>
+			<input type="password" id="oldPassword" class="w-full px-3 py-2 border rounded">
+		</div>
+		<div class="mb-6">
+			<label class="block text-gray-700 font-bold mb-2">New Password:</label>
+			<input type="password" id="newPassword" class="w-full px-3 py-2 border rounded">
+			<small class="text-gray-500">New password cannot contain spaces.</small>
+		</div>
+		<div class="text-center">
+			<button type="submit" id="changepasswordsubmit"
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save
+				New Password</button>
+		</div>
+
+		<div class="h-10"></div>
+		<hr class="my-4">
+
+		<h3 class="text-lg font-bold mb-2">Delete User</h3>
+		<div class="mb-6">
+			<label class="block text-gray-700 font-bold mb-2">Password:</label>
+			<input type="password" id="deletePassword" class="w-full px-3 py-2 border rounded">
+		</div>
+
+		<div class="text-center">
+			<button type="submit" id="deleteprofilesubmit"
+				class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete User</button>
+		</div>
+		</form>
+	</div>
+	<script type="module" src="/static/js/edit_profile.js"></script>
