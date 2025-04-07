@@ -8,7 +8,7 @@ import { getUserAchievements } from './db_achievements.js';
 import { GoogleUserInfo } from '../../types/Auth.js';
 import { getImageFromLink } from '../google/profile.js';
 
-const default_titles = require('../../../data/defaultTitles.json');
+const default_titles = require('../../data/defaultTitles.json');
 const default_titles_first = default_titles.default_titles_first;
 const default_titles_second = default_titles.default_titles_second;
 const default_titles_third = default_titles.default_titles_third;
@@ -434,7 +434,7 @@ export async function getUserTitleString(userId: number) {
 	);
 }
 
-async function getUserTitles(
+export async function getUserTitles(
 	column: string,
 	default_titles: string[]
 ): Promise<string[]> {

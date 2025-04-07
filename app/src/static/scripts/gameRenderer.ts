@@ -43,17 +43,17 @@ interface TrailElement {
 	color: { r: number; g: number; b: number };
 }
 
-function lerp(a: number, b: number, t: number): number {
+export function lerp(a: number, b: number, t: number): number {
 	return a + (b - a) * t;
 }
 
-function interpolatePoint(p1: Point, p2: Point, t: number): Point {
+export function interpolatePoint(p1: Point, p2: Point, t: number): Point {
 	return {
 		x: lerp(p1.x, p2.x, t),
 		y: lerp(p1.y, p2.y, t),
 	};
 }
-function interpolateGameObject(
+export function interpolateGameObject(
 	obj1: GameObject,
 	obj2: GameObject,
 	t: number
@@ -76,15 +76,15 @@ function interpolateGameObject(
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
-function isPointInsideCanvas(x: number, y: number): boolean {
+export function isPointInsideCanvas(x: number, y: number): boolean {
 	return x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height;
 }
 
-function clearCanvas(): void {
+export function clearCanvas(): void {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawCircle(
+export function drawCircle(
 	x: number,
 	y: number,
 	radius: number,
@@ -98,7 +98,7 @@ function drawCircle(
 	ctx.fill();
 }
 
-function drawPolygon(
+export function drawPolygon(
 	points: Point[],
 	strokeStyle: string,
 	color: string = 'black',
@@ -121,16 +121,16 @@ function drawPolygon(
 	ctx.stroke(path);
 }
 
-function transformPoints(points: Point[], scale: number): Point[] {
+export function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
 }
 
-function normalize(v: Point): Point {
+export function normalize(v: Point): Point {
 	const mag = Math.hypot(v.x, v.y);
 	return mag === 0 ? { x: 0, y: 0 } : { x: v.x / mag, y: v.y / mag };
 }
 
-function computeOffsetPoints(
+export function computeOffsetPoints(
 	points: Point[],
 	widths: number[]
 ): { left: Point[]; right: Point[] } {
@@ -190,7 +190,7 @@ function computeOffsetPoints(
 	return { left, right };
 }
 
-function drawBallTrail(scale: number, baseRadius: number): void {
+export function drawBallTrail(scale: number, baseRadius: number): void {
 	if (ballTrail.length < 2) return;
 	const now = performance.now();
 
@@ -244,7 +244,7 @@ function drawBallTrail(scale: number, baseRadius: number): void {
 	}
 }
 
-function drawGameState(
+export function drawGameState(
 	gameState: GameState,
 	mapWidth: number = 100,
 	mapHeight: number = 100
@@ -305,14 +305,14 @@ export function updateGameState(
 	detectBounce(newState);
 }
 
-function randomColor(): { r: number; g: number; b: number } {
+export function randomColor(): { r: number; g: number; b: number } {
 	return {
 		r: Math.floor(Math.random() * 256),
 		g: Math.floor(Math.random() * 256),
 		b: Math.floor(Math.random() * 256),
 	};
 }
-function detectBounce(state: GameState): void {
+export function detectBounce(state: GameState): void {
 	function calculateAngleDifference(
 		v1: { x: number; y: number },
 		v2: { x: number; y: number }
@@ -347,7 +347,7 @@ function detectBounce(state: GameState): void {
 	}
 }
 
-function render(): void {
+export function render(): void {
 	const now = performance.now();
 	const t = Math.min((now - lastUpdateTime) / tickInterval, 1);
 

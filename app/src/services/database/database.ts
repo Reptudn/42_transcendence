@@ -3,7 +3,7 @@ import { open, Database } from 'sqlite';
 
 export const dataBaseLocation: string = './back/db/db.db';
 
-const achievementsData: Achievement[] = require('../../../data/achievements.json');
+const achievementsData: Achievement[] = require('../../data/achievements.json');
 
 async function createDatabase() {
 	const db: Database = await open({

@@ -12,7 +12,7 @@ const startGameButton = document.getElementById(
 ) as HTMLButtonElement;
 const maxPlayers = 4;
 
-function createPlayerCard(index: number): HTMLElement {
+export function createPlayerCard(index: number): HTMLElement {
 	const card = document.createElement('div');
 	card.className = 'player-card p-4 border rounded-lg mb-4';
 	card.setAttribute('data-player-index', index.toString());
@@ -61,7 +61,10 @@ interface Friend {
 
 declare const friends: Friend[];
 
-function updateAdditionalSettings(type: string, container: HTMLElement): void {
+export function updateAdditionalSettings(
+	type: string,
+	container: HTMLElement
+): void {
 	container.innerHTML = ''; // Clear any existing content.
 
 	if (type === 'user') {
