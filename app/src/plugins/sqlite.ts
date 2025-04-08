@@ -3,7 +3,7 @@ import fp from 'fastify-plugin';
 import { open, Database } from 'sqlite';
 import path from 'node:path';
 
-const achievementsData: Achievement[] = require('../../../data/achievements.json');
+import achievementsData from '../data/achievements.json';
 
 declare module 'fastify' {
 	interface FastifyInstance {
