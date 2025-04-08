@@ -4,7 +4,7 @@ import {
 	startGame,
 	runningGames,
 } from '../../../services/games/pong/games/games';
-import { checkAuth } from '../../../types/Auth';
+import { checkAuth } from '../../../services/auth/auth';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(

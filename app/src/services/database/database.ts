@@ -1,11 +1,22 @@
 import sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
+import path from 'path';
+import fs from 'fs';
 
-export const dataBaseLocation: string = './back/db/db.db';
+export const dataBaseLocation: string = '../../db/transcendence.db';
 
-const achievementsData: Achievement[] = require('../../data/achievements.json');
+import achievementsData from '../../data/achievements.json';
+import { console } from 'inspector';
 
 async function createDatabase() {
+	const dbPath = path.join(__dirname, dataBaseLocation);
+	if (!fs.existsSync(dbPath)) {
+		fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+	}
+
+	console.info('Database path:', dbPath);
+	console.info('Database location:', dataBaseLocation);
+
 	const db: Database = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database,

@@ -7,8 +7,3 @@ interface GoogleUserInfo {
 	family_name: string;
 	picture: string;
 }
-
-export async function checkAuth(
-	request: any,
-	throwErr: boolean = false
-): Promise<User | null>;

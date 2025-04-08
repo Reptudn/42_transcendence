@@ -7,7 +7,6 @@ import {
 	registerGoogleUser,
 	loginGoogleUser,
 } from '../services/database/db_users';
-import { GoogleUserInfo } from '../types/Auth';
 
 declare module 'fastify' {
 	interface FastifyInstance {

@@ -4,7 +4,7 @@ import path from 'node:path';
 
 export default fp(async (fastify) => {
 	fastify.register(fastifyStatic, {
-		root: path.join(__dirname, '../../front/static'),
+		root: path.join(__dirname, '../static'),
 		prefix: '/static/',
 		list: true,
 	});
