@@ -2,7 +2,6 @@ import { join } from 'node:path';
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload';
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
-import { checkAuth } from './services/auth/auth';
 import { eventRoutes } from './services/sse/sse';
 
 const envSchema = {
@@ -30,22 +29,6 @@ const app: FastifyPluginAsync<AppOptions> = async (
 			console.error(err);
 			fastify.close().then(() => process.exit(1));
 		}
-		// console.log(app.config);
-	});
-
-	fastify.setNotFoundHandler((request, reply) => {
-		return reply.code(404).view(
-			'/partial/pages/error.ejs',
-			{
-				err_code: '404',
-				err_message:
-					'Content not found. Have you considered gaining skill?',
-				isAuthenticated: checkAuth(request) != null,
-			},
-			{
-				layout: 'basic.ejs',
-			}
-		);
 	});
 
 	// Do not touch the following lines
