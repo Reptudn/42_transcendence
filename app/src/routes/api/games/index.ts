@@ -17,7 +17,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			const gameSettings = request.body;
-			console.log('Starting game with settings:', gameSettings);
+			fastify.log.info('Starting game with settings:', gameSettings);
 
 			try {
 				await startGame(user, gameSettings as GameSettings);
@@ -59,13 +59,13 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			player.wsocket = socket as WSWebSocket;
-			console.log(
+			fastify.log.info(
 				`Player ${parsedPlayerId} connected to game ${parsedGameId}.`
 			);
 
 			socket.on('message', (message: Buffer) => {
 				const msgStr = message.toString();
-				console.log(
+				fastify.log.info(
 					`Received message from player ${parsedPlayerId}: ${msgStr}`
 				);
 
@@ -86,10 +86,13 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						}
 					} else if (data.type === 'move') {
 						player.movementDirection = data.dir;
-						console.log('Server received movement data:', data);
+						fastify.log.info(
+							'Server received movement data:',
+							data
+						);
 					}
 				} catch (err) {
-					console.error(
+					fastify.log.error(
 						`Invalid message format from player ${parsedPlayerId}:`,
 						err
 					);
@@ -97,7 +100,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			});
 
 			socket.on('close', () => {
-				console.log(
+				fastify.log.info(
 					`Player ${parsedPlayerId} disconnected from game ${parsedGameId}.`
 				);
 				player.wsocket = null;

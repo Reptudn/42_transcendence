@@ -17,7 +17,7 @@ export default fp(async (fastify) => {
 					if (!token && request.cookie) token = request.cookie.token;
 					return token;
 				} catch (error) {
-					console.log('Error in jwt extract token', error);
+					fastify.log.error('Error in jwt extract token', error);
 				}
 				return undefined;
 			},

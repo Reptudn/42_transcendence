@@ -64,7 +64,7 @@ export default fp(async (fastify) => {
 				try {
 					await registerGoogleUser(user);
 				} catch (error) {
-					console.log('Error Google Register', error);
+					fastify.log.error('Error Google Register', error);
 					reply.send(error);
 					return;
 				}
@@ -90,11 +90,11 @@ export default fp(async (fastify) => {
 				});
 				reply.redirect('/partial/pages/profile');
 			} catch (error) {
-				console.log('Error Google Login', error);
+				fastify.log.error('Error Google Login', error);
 				reply.send(error);
 			}
 		} catch (error) {
-			console.log('Error Google Login', error);
+			fastify.log.error('Error Google Login', error);
 			reply.send(error);
 		}
 	});
