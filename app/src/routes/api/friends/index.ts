@@ -13,7 +13,7 @@ import { checkAuth } from '../../../services/auth/auth';
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
-		'/api/friends/request',
+		'/request',
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const requesterId: number = Number(req.user.id);
@@ -76,7 +76,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.post(
-		'/api/friends/accept',
+		'/accept',
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
@@ -113,7 +113,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.post(
-		'/api/friends/decline',
+		'/decline',
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
@@ -134,7 +134,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.post(
-		'/api/friends/remove',
+		'/remove',
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { friendId } = req.body;

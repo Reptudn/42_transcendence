@@ -8,7 +8,7 @@ export default fp(async (fastify) => {
 		engine: {
 			ejs,
 		},
-		root: path.join(__dirname, '../static/pages'),
+		root: path.join(__dirname, '../../public/pages/'),
 		options: {
 			context: {
 				get: (obj: any, prop: any) => obj && obj[prop],

@@ -14,7 +14,10 @@ import { connectedClients } from '../../../../services/sse/sse';
 import { checkAuth } from '../../../../services/auth/auth';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	fastify.get('/:page/:profile_id?', async (req: any, reply: any) => {
+	// fastify.get('/:page/:profile_id?', async (req: any, reply: any) => {
+	fastify.get('/:page', async (req: any, reply: any) => {
+		fastify.log.info('GET /partial/pages/:page/:profile_id');
+
 		const page = req.params.page;
 		const loadpartial = req.headers['loadpartial'] === 'true';
 		const layoutOption = loadpartial ? false : 'basic.ejs';
@@ -114,11 +117,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])
-			return reply.view(`partial/pages/no_access.ejs`, variables, {
+			return reply.view(`no_access.ejs`, variables, {
 				layout: layoutOption,
 			});
 		else
-			return reply.view(`partial/pages/${page}.ejs`, variables, {
+			return reply.view(`${page}.ejs`, variables, {
 				layout: layoutOption,
 			});
 	});

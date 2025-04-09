@@ -7,4 +7,9 @@ export default fp(async (fastify) => {
 		root: path.join(__dirname, '../static/'),
 		prefix: '/static/',
 	});
+	fastify.register(fastifyStatic, {
+		root: path.join(__dirname, '../../public/'),
+		prefix: '/public/',
+		decorateReply: false
+	});
 });
