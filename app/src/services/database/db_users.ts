@@ -5,9 +5,8 @@ import { open, Database } from 'sqlite';
 import { dataBaseLocation } from './database.js';
 import { getUserAchievements } from './db_achievements.js';
 
-import { getImageFromLink } from '../google/profile.js';
-
 import default_titles from '../../data/defaultTitles.json';
+import { getImageFromLink } from '../google/profile.js';
 const default_titles_first = default_titles.default_titles_first;
 const default_titles_second = default_titles.default_titles_second;
 const default_titles_third = default_titles.default_titles_third;

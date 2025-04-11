@@ -1,12 +1,12 @@
 import fp from 'fastify-plugin';
 import oauthPlugin, { OAuth2Namespace } from '@fastify/oauth2';
-import { getGoogleProfile } from '../services/google/profile';
 import { unlockAchievement } from '../services/database/db_achievements';
 import {
 	getGoogleUser,
 	registerGoogleUser,
 	loginGoogleUser,
 } from '../services/database/db_users';
+import { getGoogleProfile } from '../services/google/profile';
 
 declare module 'fastify' {
 	interface FastifyInstance {
