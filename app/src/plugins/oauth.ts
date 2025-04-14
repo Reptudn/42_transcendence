@@ -38,7 +38,7 @@ export default fp(async (fastify) => {
 		},
 		scope: ['profile', 'email'],
 		startRedirectPath: '/api/auth/google/',
-		callbackUri: 'http://localhost:4242/api/auth/google/callback', // TODO: dont hardcode this
+		callbackUri: 'http://localhost:3000/api/auth/google/callback', // TODO: dont hardcode this
 		callbackUriParams: {
 			access_type: 'offline',
 			prompt: 'consent',

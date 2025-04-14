@@ -2,16 +2,16 @@ import { FastifyPluginAsync } from 'fastify';
 import {
 	getUserAchievements,
 	getAllAchievements,
-} from '../../../../services/database/db_achievements';
-import { getFriends } from '../../../../services/database/db_friends';
+} from '../../../services/database/db_achievements';
+import { getFriends } from '../../../services/database/db_friends';
 import {
 	getUserById,
 	getUserTitleString,
 	getUserTitle,
 	getUserTitlesForTitle,
-} from '../../../../services/database/db_users';
-import { connectedClients } from '../../../../services/sse/sse';
-import { checkAuth } from '../../../../services/auth/auth';
+} from '../../../services/database/db_users';
+import { connectedClients } from '../../../services/sse/sse';
+import { checkAuth } from '../../../services/auth/auth';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// fastify.get('/:page/:profile_id?', async (req: any, reply: any) => {

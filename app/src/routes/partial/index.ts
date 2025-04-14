@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { checkAuth } from '../../../services/auth/auth';
+import { checkAuth } from '../../services/auth/auth';
 
 const partial: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/menu', async (req: any, reply: any) => {
