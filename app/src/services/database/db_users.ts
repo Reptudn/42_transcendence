@@ -5,7 +5,7 @@ import { open, Database } from 'sqlite';
 import { dataBaseLocation } from './database.js';
 import { getUserAchievements } from './db_achievements.js';
 
-import default_titles from '../../data/defaultTitles.json';
+import default_titles from '../../../data/defaultTitles.json';
 import { getImageFromLink } from '../google/profile.js';
 const default_titles_first = default_titles.default_titles_first;
 const default_titles_second = default_titles.default_titles_second;
@@ -89,6 +89,7 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 			'SELECT * FROM users WHERE username = ?',
 			username
 		);
+		db.close();
 		return !user;
 	};
 	let base_username = username;
@@ -98,9 +99,10 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 	}
 
 	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
+			filename: dataBaseLocation,
+			driver: sqlite3.Database,
+		});
+	
 	await db.run(
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 		[
@@ -114,6 +116,7 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 			await getImageFromLink(googleUser.picture),
 		]
 	);
+	db.close();
 }
 
 export async function loginGoogleUser(google_id: string): Promise<User> {
@@ -441,7 +444,7 @@ export async function getUserTitles(
 		usertitles.push(defaultTitle);
 	}
 
-	const db: Database = await open({
+	const db = await open({
 		filename: dataBaseLocation,
 		driver: sqlite3.Database,
 	});

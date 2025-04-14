@@ -55,11 +55,19 @@ export default fp(async (fastify) => {
 			try {
 				user = await getGoogleProfile(token.access_token);
 			} catch (error) {
-				reply.send('Something went wrong');
+				fastify.log.error('Error getting Google Profile', error);
+				reply.send(error);
 				return;
 			}
 
-			const dbUser = await getGoogleUser(user.id);
+			let dbUser: User | null = null;
+			try {
+				dbUser = await getGoogleUser(user.id);
+			} catch (error) {
+				fastify.log.error('Error getting Google User', error);
+				reply.send(error);
+				return;
+			}
 			if (dbUser === null) {
 				try {
 					await registerGoogleUser(user);
@@ -90,7 +98,7 @@ export default fp(async (fastify) => {
 				});
 				reply.redirect('/partial/pages/profile');
 			} catch (error) {
-				fastify.log.error('Error Google Login', error);
+				fastify.log.error('Error trying to login google user', error);
 				reply.send(error);
 			}
 		} catch (error) {

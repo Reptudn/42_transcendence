@@ -1,9 +1,9 @@
 import sqlite3 from 'sqlite3';
 import fp from 'fastify-plugin';
 import { open, Database } from 'sqlite';
-import path from 'node:path';
 
-import achievementsData from '../data/achievements.json';
+import achievementsData from '../../data/achievements.json';
+const dbPath = '../../db/transcendence.db';
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -13,9 +13,13 @@ declare module 'fastify' {
 
 export default fp(async (fastify) => {
 	const db: Database = await open({
-		filename: path.resolve(__dirname, '../db/transcendence.db'),
+		filename: '../../db/transcendence.db',
 		driver: sqlite3.Database,
 	});
+
+	fastify.log.info('Database path:', dbPath);
+	fastify.log.info('Database location:', dbPath);
+	fastify.log.info('Database connection established');
 
 	fastify.decorate('sqlite', db);
 
