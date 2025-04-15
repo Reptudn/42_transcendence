@@ -3,6 +3,7 @@ import fp from 'fastify-plugin';
 import { open, Database } from 'sqlite';
 
 import achievementsData from '../../data/achievements.json';
+import { FastifyInstance } from 'fastify';
 const dbPath = '../../db/transcendence.db';
 
 declare module 'fastify' {
@@ -25,8 +26,8 @@ export default fp(async (fastify) => {
 
 	// TODO: use migrations?
 
-	const createDatabase = async () => {
-		await db.exec(`
+	const createDatabase = async (fastify: FastifyInstance) => {
+		await fastify.sqlite.exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			google_id TEXT DEFAULT NULL UNIQUE,
@@ -42,7 +43,7 @@ export default fp(async (fastify) => {
 		)
 		`);
 
-		await db.exec(`
+		await fastify.sqlite.exec(`
 		CREATE TABLE IF NOT EXISTS friends (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			accepted BOOLEAN DEFAULT FALSE,
@@ -54,7 +55,7 @@ export default fp(async (fastify) => {
 		)
 		`);
 
-		await db.exec(`
+		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS achievements (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			key TEXT NOT NULL UNIQUE,
@@ -66,7 +67,7 @@ export default fp(async (fastify) => {
 			)
 		`);
 
-		await db.exec(`
+		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS user_achievements (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -79,7 +80,7 @@ export default fp(async (fastify) => {
 		`);
 
 		for (const achievement of achievementsData) {
-			await db.run(
+			await fastify.sqlite.run(
 				`INSERT OR IGNORE INTO achievements 
 				(key, name, description, title_first, title_second, title_third) 
 				VALUES (?, ?, ?, ?, ?, ?)`,
@@ -95,7 +96,7 @@ export default fp(async (fastify) => {
 		}
 	};
 
-	createDatabase()
+	await createDatabase(fastify)
 		.then(() => {
 			fastify.log.info('Database created');
 		})

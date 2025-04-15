@@ -4,8 +4,8 @@ import path from 'path';
 import {
 	getPendingFriendRequestsForUser,
 	removeFriendship,
-} from '../database/db_friends.js';
-import { getUserById, getNameForUser } from '../database/db_users.js';
+} from '../database/friends.js';
+import { getUserById, getNameForUser } from '../database/users.js';
 import { checkAuth } from '../auth/auth.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
@@ -17,7 +17,7 @@ export async function eventRoutes(fastify: FastifyInstance) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			console.log('Client connected with notify');
 
-			const user: User | null = await checkAuth(request);
+			const user: User | null = await checkAuth(request, false, fastify);
 			if (!user) {
 				reply.raw.end();
 				console.log('Client not authenticated');
@@ -48,11 +48,13 @@ export async function eventRoutes(fastify: FastifyInstance) {
 			);
 
 			const openFriendRequests = await getPendingFriendRequestsForUser(
-				user.id
+				user.id,
+				fastify
 			);
 			for (const request of openFriendRequests) {
 				const requester: User | null = await getUserById(
-					request.requester_id
+					request.requester_id,
+					fastify
 				);
 				if (requester) {
 					sendPopupToClient(
@@ -61,8 +63,10 @@ export async function eventRoutes(fastify: FastifyInstance) {
 						`<a href="/partial/pages/profile/${
 							request.requester_id
 						}" target="_blank">User ${
-							(await getNameForUser(request.requester_id)) ||
-							requester.username
+							(await getNameForUser(
+								request.requester_id,
+								fastify
+							)) || requester.username
 						}</a> wishes to be your friend!`,
 						'blue',
 						`acceptFriendRequest(${request.id})`,
@@ -76,7 +80,8 @@ export async function eventRoutes(fastify: FastifyInstance) {
 					);
 					removeFriendship(
 						request.requester_id,
-						request.requested_id
+						request.requested_id,
+						fastify
 					);
 				}
 			}
@@ -97,7 +102,7 @@ export async function eventRoutes(fastify: FastifyInstance) {
 		'/notify/send',
 		{ preValidation: [fastify.authenticate] },
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const user: User | null = await checkAuth(request);
+			const user: User | null = await checkAuth(request, false, fastify);
 			if (!user) {
 				reply.send({ message: 'Not authenticated' });
 				return;

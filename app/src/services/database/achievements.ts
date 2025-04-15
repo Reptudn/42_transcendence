@@ -1,24 +1,19 @@
-import { open, Database } from 'sqlite';
-import sqlite3 from 'sqlite3';
-import { dataBaseLocation } from './database.js';
 import { sendAchievementToClient } from '../sse/sse.js';
+import { FastifyInstance } from 'fastify';
 
-export async function getAllAchievements(): Promise<Achievement[]> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	return await db.all<Achievement[]>('SELECT * FROM achievements');
+export async function getAllAchievements(
+	fastify: FastifyInstance
+): Promise<Achievement[]> {
+	return await fastify.sqlite.all<Achievement[]>(
+		'SELECT * FROM achievements'
+	);
 }
 
 export async function getUserAchievements(
-	userId: number
+	userId: number,
+	fastify: FastifyInstance
 ): Promise<Achievement[]> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	return await db.all<Achievement[]>(
+	return await fastify.sqlite.all<Achievement[]>(
 		`SELECT a.id, a.name, a.description, a.title_first, a.title_second, a.title_third
 		FROM achievements a 
 		INNER JOIN user_achievements ua ON a.id = ua.achievement_id 
@@ -29,13 +24,10 @@ export async function getUserAchievements(
 
 export async function unlockAchievement(
 	userId: number,
-	achievementKey: string
+	achievementKey: string,
+	fastify: FastifyInstance
 ): Promise<void> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const achievement = await db.get<Achievement>(
+	const achievement = await fastify.sqlite.get<Achievement>(
 		'SELECT * FROM achievements WHERE key = ?',
 		achievementKey
 	);
@@ -43,7 +35,7 @@ export async function unlockAchievement(
 		console.error(`Achievement ${achievementKey} does not exist.`);
 		return;
 	}
-	const exists = await db.get(
+	const exists = await fastify.sqlite.get(
 		'SELECT * FROM user_achievements WHERE user_id = ? AND achievement_id = ?',
 		userId,
 		achievement.id
@@ -51,7 +43,7 @@ export async function unlockAchievement(
 	if (exists) {
 		return;
 	}
-	await db.run(
+	await fastify.sqlite.run(
 		'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)',
 		userId,
 		achievement.id

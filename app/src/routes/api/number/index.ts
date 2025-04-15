@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { unlockAchievement } from '../../../services/database/db_achievements';
-import { incrementUserClickCount } from '../../../services/database/db_users';
+import { unlockAchievement } from '../../../services/database/achievements';
+import { incrementUserClickCount } from '../../../services/database/users';
 
 let theNumber: number = 0;
 

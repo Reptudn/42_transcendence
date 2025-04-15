@@ -1,26 +1,20 @@
-import sqlite3 from 'sqlite3';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { open, Database } from 'sqlite';
-import { dataBaseLocation } from './database.js';
-import { getUserAchievements } from './db_achievements.js';
+import { getUserAchievements } from './achievements.js';
 
 import default_titles from '../../../data/defaultTitles.json';
 import { getImageFromLink } from '../google/profile.js';
+import { FastifyInstance } from 'fastify';
 const default_titles_first = default_titles.default_titles_first;
 const default_titles_second = default_titles.default_titles_second;
 const default_titles_third = default_titles.default_titles_third;
 
-export async function printDatabase() {
+export async function printDatabase(fastify: FastifyInstance) {
 	try {
-		const db: Database = await open({
-			filename: dataBaseLocation,
-			driver: sqlite3.Database,
-		});
-		const users = await db.all('SELECT * FROM users');
+		const users = await fastify.sqlite.all('SELECT * FROM users');
 		console.log('=== Users Table ===');
 		console.table(users);
-		const friends = await db.all('SELECT * FROM friends');
+		const friends = await fastify.sqlite.all('SELECT * FROM friends');
 		console.log('=== Friends Table ===');
 		console.table(friends);
 	} catch (error) {
@@ -31,7 +25,8 @@ export async function printDatabase() {
 export async function registerUser(
 	username: string,
 	password: string,
-	displayname: string
+	displayname: string,
+	fastify: FastifyInstance
 ) {
 	if (!username || !password) {
 		throw new Error('Username and password are required');
@@ -54,12 +49,8 @@ export async function registerUser(
 	);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
 	const hashedPassword: string = await bcrypt.hash(password, 10);
-	await db.run(
+	await fastify.sqlite.run(
 		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
 		[
 			username,
@@ -72,7 +63,10 @@ export async function registerUser(
 	);
 }
 
-export async function registerGoogleUser(googleUser: GoogleUserInfo) {
+export async function registerGoogleUser(
+	googleUser: GoogleUserInfo,
+	fastify: FastifyInstance
+) {
 	const titleFirst = Math.floor(Math.random() * default_titles_first.length);
 	const titleSecond = Math.floor(
 		Math.random() * default_titles_second.length
@@ -81,15 +75,10 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 
 	let username = googleUser.name.replace(' ', '_').trim().toLowerCase();
 	const isUniqueUsername = async (username: string) => {
-		const db: Database = await open({
-			filename: dataBaseLocation,
-			driver: sqlite3.Database,
-		});
-		const user = await db.get(
+		const user = await fastify.sqlite.get(
 			'SELECT * FROM users WHERE username = ?',
 			username
 		);
-		db.close();
 		return !user;
 	};
 	let base_username = username;
@@ -98,12 +87,7 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 		if (username.length > 20) username = base_username;
 	}
 
-	const db: Database = await open({
-			filename: dataBaseLocation,
-			driver: sqlite3.Database,
-		});
-	
-	await db.run(
+	await fastify.sqlite.run(
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 		[
 			googleUser.id,
@@ -116,16 +100,13 @@ export async function registerGoogleUser(googleUser: GoogleUserInfo) {
 			await getImageFromLink(googleUser.picture),
 		]
 	);
-	db.close();
 }
 
-export async function loginGoogleUser(google_id: string): Promise<User> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-
-	const user = await db.get(
+export async function loginGoogleUser(
+	google_id: string,
+	fastify: FastifyInstance
+): Promise<User> {
+	const user = await fastify.sqlite.get(
 		'SELECT * FROM users WHERE google_id = ?',
 		google_id
 	);
@@ -135,44 +116,37 @@ export async function loginGoogleUser(google_id: string): Promise<User> {
 
 export async function loginUser(
 	username: string,
-	password: string
+	password: string,
+	fastify: FastifyInstance
 ): Promise<User> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-
-	const user = await db.get(
+	const user = await fastify.sqlite.get(
 		'SELECT * FROM users WHERE username = ?',
 		username
 	);
-	if (!user || !(await verifyUserPassword(user.id, password)))
+	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
 	return user;
 }
 
-export async function getUserById(id: number): Promise<User | null> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const user = await db.get(
+export async function getUserById(
+	id: number,
+	fastify: FastifyInstance
+): Promise<User | null> {
+	const user = await fastify.sqlite.get(
 		'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE id = ?',
 		id
 	);
 	return user || null;
 }
 
-export async function getGoogleUser(google_id: string): Promise<User | null> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-
+export async function getGoogleUser(
+	google_id: string,
+	fastify: FastifyInstance
+): Promise<User | null> {
 	let user;
 	try {
-		user = await db.get(
+		user = await fastify.sqlite.get(
 			'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE google_id = ?',
 			google_id
 		);
@@ -183,12 +157,11 @@ export async function getGoogleUser(google_id: string): Promise<User | null> {
 	return user || null;
 }
 
-export async function searchUsers(query: string): Promise<User[]> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	return await db.all(
+export async function searchUsers(
+	query: string,
+	fastify: FastifyInstance
+): Promise<User[]> {
+	return await fastify.sqlite.all(
 		'SELECT id, username, displayname FROM users WHERE username LIKE ? OR displayname LIKE ?',
 		[`%${query}%`, `%${query}%`]
 	);
@@ -196,13 +169,13 @@ export async function searchUsers(query: string): Promise<User[]> {
 
 export async function verifyUserPassword(
 	id: number,
-	password: string
+	password: string,
+	fastify: FastifyInstance
 ): Promise<boolean> {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const user = await db.get('SELECT * FROM users WHERE id = ?', id);
+	const user = await fastify.sqlite.get(
+		'SELECT * FROM users WHERE id = ?',
+		id
+	);
 	if (!user) return false;
 
 	const passwordMatch = await bcrypt.compare(password, user.password);
@@ -216,7 +189,8 @@ export async function updateUserProfile(
 	username: string,
 	displayname: string,
 	bio: string,
-	profile_picture: string
+	profile_picture: string,
+	fastify: FastifyInstance
 ) {
 	if (username && username.length > 16) {
 		throw new Error('Username must be 16 or fewer characters');
@@ -250,63 +224,60 @@ export async function updateUserProfile(
 	) {
 		return;
 	}
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
 	if (username && username != undefined)
-		await db.run('UPDATE users SET username = ? WHERE id = ?', [
+		await fastify.sqlite.run('UPDATE users SET username = ? WHERE id = ?', [
 			username,
 			id,
 		]);
 	if (displayname != undefined)
-		await db.run('UPDATE users SET displayname = ? WHERE id = ?', [
-			displayname,
-			id,
-		]);
+		await fastify.sqlite.run(
+			'UPDATE users SET displayname = ? WHERE id = ?',
+			[displayname, id]
+		);
 	if (bio != undefined)
-		await db.run('UPDATE users SET bio = ? WHERE id = ?', [bio, id]);
-	if (profile_picture != undefined)
-		await db.run('UPDATE users SET profile_picture = ? WHERE id = ?', [
-			profile_picture,
+		await fastify.sqlite.run('UPDATE users SET bio = ? WHERE id = ?', [
+			bio,
 			id,
 		]);
+	if (profile_picture != undefined)
+		await fastify.sqlite.run(
+			'UPDATE users SET profile_picture = ? WHERE id = ?',
+			[profile_picture, id]
+		);
 }
 
 export async function updateUserTitle(
 	id: number,
 	firstTitle: number = -1,
 	secondTitle: number = -1,
-	thirdTitle: number = -1
+	thirdTitle: number = -1,
+	fastify: FastifyInstance
 ) {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
 	if (firstTitle >= 0) {
-		await db.run('UPDATE users SET title_first = ? WHERE id = ?', [
-			firstTitle,
-			id,
-		]);
+		await fastify.sqlite.run(
+			'UPDATE users SET title_first = ? WHERE id = ?',
+			[firstTitle, id]
+		);
 	}
 	if (secondTitle >= 0) {
-		await db.run('UPDATE users SET title_second = ? WHERE id = ?', [
-			secondTitle,
-			id,
-		]);
+		await fastify.sqlite.run(
+			'UPDATE users SET title_second = ? WHERE id = ?',
+			[secondTitle, id]
+		);
 	}
 	if (thirdTitle >= 0) {
-		await db.run('UPDATE users SET title_third = ? WHERE id = ?', [
-			thirdTitle,
-			id,
-		]);
+		await fastify.sqlite.run(
+			'UPDATE users SET title_third = ? WHERE id = ?',
+			[thirdTitle, id]
+		);
 	}
 }
 
 export async function updateUserPassword(
 	id: number,
 	oldPassword: string,
-	newPassword: string
+	newPassword: string,
+	fastify: FastifyInstance
 ) {
 	if (!oldPassword && !newPassword) {
 		return;
@@ -325,59 +296,57 @@ export async function updateUserPassword(
 		throw new Error('New password cannot contain spaces');
 	}
 
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const user = await db.get('SELECT * FROM users WHERE id = ?', id);
+	const user = await fastify.sqlite.get(
+		'SELECT * FROM users WHERE id = ?',
+		id
+	);
 	if (!user) throw new Error('User not found');
 
-	if (!(await verifyUserPassword(user.id, oldPassword)))
+	if (!(await verifyUserPassword(user.id, oldPassword, fastify)))
 		throw new Error('Old password is incorrect');
 
 	const hashedNew = await bcrypt.hash(newPassword, 10);
-	await db.run('UPDATE users SET password = ? WHERE id = ?', [hashedNew, id]);
+	await fastify.sqlite.run('UPDATE users SET password = ? WHERE id = ?', [
+		hashedNew,
+		id,
+	]);
 }
 
-export async function deleteUser(id: number) {
-	const db: Database = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	await db.run('DELETE FROM users WHERE id = ?', id);
+export async function deleteUser(id: number, fastify: FastifyInstance) {
+	await fastify.sqlite.run('DELETE FROM users WHERE id = ?', id);
 }
 
-export async function getNameForUser(id: number): Promise<string> {
-	const user = await getUserById(id);
+export async function getNameForUser(
+	id: number,
+	fastify: FastifyInstance
+): Promise<string> {
+	const user = await getUserById(id, fastify);
 	if (!user) return 'Unknown User';
 	return user.displayname ? user.displayname : '@' + user.username;
 }
 
 export async function incrementUserClickCount(
 	userId: number,
-	increment: number = 1
+	increment: number = 1,
+	fastify: FastifyInstance
 ): Promise<number> {
-	const db = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	await db.run(
+	await fastify.sqlite.run(
 		'UPDATE users SET click_count = click_count + ? WHERE id = ?',
 		[increment, userId]
 	);
-	const user = await db.get(
+	const user = await fastify.sqlite.get(
 		'SELECT click_count FROM users WHERE id = ?',
 		userId
 	);
 	return user ? user.click_count : 0;
 }
 
-export async function getUserTitle(userId: number, slot: number) {
-	const db = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const user = await db.get(
+export async function getUserTitle(
+	userId: number,
+	slot: number,
+	fastify: FastifyInstance
+) {
+	const user = await fastify.sqlite.get(
 		'SELECT title_first, title_second, title_third FROM users WHERE id = ?',
 		userId
 	);
@@ -403,17 +372,17 @@ export async function getUserTitle(userId: number, slot: number) {
 		let achievement;
 		const achievementId = titleValue - defaultTitles.length;
 		if (slot == 1)
-			achievement = await db.get(
+			achievement = await fastify.sqlite.get(
 				`SELECT title_first as title FROM achievements WHERE id = ?`,
 				achievementId
 			);
 		else if (slot == 2)
-			achievement = await db.get(
+			achievement = await fastify.sqlite.get(
 				`SELECT title_second as title FROM achievements WHERE id = ?`,
 				achievementId
 			);
 		else
-			achievement = await db.get(
+			achievement = await fastify.sqlite.get(
 				`SELECT title_third as title FROM achievements WHERE id = ?`,
 				achievementId
 			);
@@ -425,30 +394,32 @@ export async function getUserTitle(userId: number, slot: number) {
 	return '';
 }
 
-export async function getUserTitleString(userId: number) {
+export async function getUserTitleString(
+	userId: number,
+	fastify: FastifyInstance
+) {
 	return (
-		(await getUserTitle(userId, 1)) +
+		(await getUserTitle(userId, 1, fastify)) +
 		' ' +
-		(await getUserTitle(userId, 2)) +
+		(await getUserTitle(userId, 2, fastify)) +
 		' ' +
-		(await getUserTitle(userId, 3))
+		(await getUserTitle(userId, 3, fastify))
 	);
 }
 
 export async function getUserTitles(
 	column: string,
-	default_titles: string[]
+	default_titles: string[],
+	fastify: FastifyInstance
 ): Promise<string[]> {
 	const usertitles: string[] = [];
 	for (const defaultTitle of default_titles) {
 		usertitles.push(defaultTitle);
 	}
 
-	const db = await open({
-		filename: dataBaseLocation,
-		driver: sqlite3.Database,
-	});
-	const titles = await db.all(`SELECT ${column} AS name FROM achievements`);
+	const titles = await fastify.sqlite.all(
+		`SELECT ${column} AS name FROM achievements`
+	);
 
 	for (const row of titles) {
 		usertitles.push(row.name);
@@ -464,7 +435,8 @@ export interface TitleOption {
 
 export async function getUserTitlesForTitle(
 	titleSlot: number,
-	userId: number
+	userId: number,
+	fastify: FastifyInstance
 ): Promise<TitleOption[]> {
 	let defaultTitles: string[];
 	if (titleSlot === 1) {
@@ -480,7 +452,7 @@ export async function getUserTitlesForTitle(
 		value: index,
 	}));
 
-	const unlockedAchievements = await getUserAchievements(userId);
+	const unlockedAchievements = await getUserAchievements(userId, fastify);
 	const unlockedOptions: TitleOption[] = unlockedAchievements
 		.map((ach) => ({
 			label:

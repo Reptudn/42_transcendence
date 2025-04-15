@@ -6,8 +6,8 @@ import {
 	getFriendRequestById,
 	rejectFriendRequest,
 	removeFriendship,
-} from '../../../services/database/db_friends';
-import { getNameForUser } from '../../../services/database/db_users';
+} from '../../../services/database/friends';
+import { getNameForUser } from '../../../services/database/users';
 import { connectedClients, sendPopupToClient } from '../../../services/sse/sse';
 import { checkAuth } from '../../../services/auth/auth';
 

@@ -1,11 +1,11 @@
 import fp from 'fastify-plugin';
 import oauthPlugin, { OAuth2Namespace } from '@fastify/oauth2';
-import { unlockAchievement } from '../services/database/db_achievements';
+import { unlockAchievement } from '../services/database/achievements';
 import {
 	getGoogleUser,
 	registerGoogleUser,
 	loginGoogleUser,
-} from '../services/database/db_users';
+} from '../services/database/users';
 import { getGoogleProfile } from '../services/google/profile';
 
 declare module 'fastify' {
@@ -62,7 +62,7 @@ export default fp(async (fastify) => {
 
 			let dbUser: User | null = null;
 			try {
-				dbUser = await getGoogleUser(user.id);
+				dbUser = await getGoogleUser(user.id, fastify);
 			} catch (error) {
 				fastify.log.error('Error getting Google User', error);
 				reply.send(error);
@@ -70,7 +70,7 @@ export default fp(async (fastify) => {
 			}
 			if (dbUser === null) {
 				try {
-					await registerGoogleUser(user);
+					await registerGoogleUser(user, fastify);
 				} catch (error) {
 					fastify.log.error('Error Google Register', error);
 					reply.send(error);
@@ -79,7 +79,10 @@ export default fp(async (fastify) => {
 			}
 
 			try {
-				const loggedGoogleUser = await loginGoogleUser(user.id);
+				const loggedGoogleUser = await loginGoogleUser(
+					user.id,
+					fastify
+				);
 
 				const jwt = fastify.jwt.sign(
 					{
@@ -88,7 +91,7 @@ export default fp(async (fastify) => {
 					},
 					{ expiresIn: '10d' }
 				);
-				await unlockAchievement(loggedGoogleUser.id, 'login');
+				await unlockAchievement(loggedGoogleUser.id, 'login', fastify);
 				reply.setCookie('token', jwt, {
 					// TODO: make cookie secure
 					httpOnly: true,

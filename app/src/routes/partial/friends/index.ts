@@ -2,8 +2,8 @@ import { FastifyPluginAsync } from 'fastify';
 import {
 	getFriends,
 	getPendingFriendRequestsForUser,
-} from '../../../services/database/db_friends';
-import { searchUsers } from '../../../services/database/db_users';
+} from '../../../services/database/friends';
+import { searchUsers } from '../../../services/database/users';
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -11,13 +11,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const query: string = req.query.q || '';
-			let results = query ? await searchUsers(query) : [];
+			let results = query ? await searchUsers(query, fastify) : [];
 			results.filter((user: any) => user.id !== req.user.id);
 			results = results.slice(0, 50);
 
-			const friends = await getFriends(req.user.id);
+			const friends = await getFriends(req.user.id, fastify);
 			const pendingRequests = await getPendingFriendRequestsForUser(
-				req.user.id
+				req.user.id,
+				fastify
 			);
 			const pendingIds = pendingRequests.map(
 				(pending: any) => pending.requested_id

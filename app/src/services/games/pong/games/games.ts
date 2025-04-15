@@ -9,8 +9,9 @@ import { getMapAsInitialGameState } from './rawMapHandler.js';
 import { tickEngine } from '../engine/engine.js';
 
 const defaultBotNames = require('../../../../data/defaultBotNames.json');
-import { getUserTitleString, getUserById } from '../../../database/db_users.js';
+import { getUserTitleString, getUserById } from '../../../database/users.js';
 import { connectedClients, sendRawToClient } from '../../../sse/sse.js';
+import { FastifyInstance } from 'fastify';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
@@ -18,7 +19,11 @@ function getRandomDefaultName(): string {
 export let runningGames: Game[] = [];
 let nextGameId = 0;
 
-export async function startGame(admin: User, gameSettings: GameSettings) {
+export async function startGame(
+	admin: User,
+	gameSettings: GameSettings,
+	fastify: FastifyInstance
+) {
 	if (gameSettings.players.length > 3) {
 		throw new Error('Too many players');
 	}
@@ -37,7 +42,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 			null,
 			admin.username,
 			admin.displayname,
-			await getUserTitleString(admin.id)
+			await getUserTitleString(admin.id, fastify)
 		)
 	);
 
@@ -50,7 +55,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 					'Game-starting player should not be added as a player'
 				);
 			}
-			const user = await getUserById(friendId);
+			const user = await getUserById(friendId, fastify);
 			if (user && connectedClients.has(friendId)) {
 				player = new Player(
 					PlayerType.USER,
@@ -62,7 +67,7 @@ export async function startGame(admin: User, gameSettings: GameSettings) {
 					null,
 					user.username,
 					user.displayname,
-					await getUserTitleString(user.id)
+					await getUserTitleString(user.id, fastify)
 				);
 			} else {
 				throw new Error(`User ${friendId} not found or not connected`);
