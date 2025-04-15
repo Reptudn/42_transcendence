@@ -15,16 +15,16 @@ const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		async (req: any, reply: any) => {
 			const { number } = req.body;
 			theNumber += number;
-			const newCount = await incrementUserClickCount(req.user.id, number);
+			const newCount = await incrementUserClickCount(req.user.id, number, fastify);
 
 			if (newCount > 0) {
-				await unlockAchievement(req.user.id, 'number-1');
+				await unlockAchievement(req.user.id, 'number-1', fastify);
 			}
 			if (newCount >= 100) {
-				await unlockAchievement(req.user.id, 'number-2');
+				await unlockAchievement(req.user.id, 'number-2', fastify);
 			}
 			if (newCount >= 1000) {
-				await unlockAchievement(req.user.id, 'number-3');
+				await unlockAchievement(req.user.id, 'number-3', fastify);
 			}
 
 			reply.send({ number: theNumber });

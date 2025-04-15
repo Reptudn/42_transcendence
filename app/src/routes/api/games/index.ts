@@ -11,7 +11,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/api/games/start',
 		{ preValidation: [fastify.authenticate] },
 		async (request, reply) => {
-			const user = await checkAuth(request);
+			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
@@ -20,7 +20,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			fastify.log.info('Starting game with settings:', gameSettings);
 
 			try {
-				await startGame(user, gameSettings as GameSettings);
+				await startGame(user, gameSettings as GameSettings, fastify);
 				return reply
 					.code(200)
 					.send({ message: 'Game started successfully' });

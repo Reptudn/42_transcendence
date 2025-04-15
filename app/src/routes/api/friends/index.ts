@@ -28,11 +28,11 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const pendingRequest = await getFriendRequest(
 				requesterId,
-				requestedId
+				requestedId, fastify
 			);
 			if (pendingRequest) {
 				if (pendingRequest.requested_id == requesterId) {
-					await acceptFriendRequest(pendingRequest.id);
+					await acceptFriendRequest(pendingRequest.id, fastify);
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				} else {
@@ -46,7 +46,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				const requestId = await createFriendRequest(
 					requesterId,
-					requestedId
+					requestedId, fastify
 				);
 
 				if (connectedClients && connectedClients.has(requestedId)) {
@@ -54,7 +54,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						requestedId,
 						'Friend Request',
 						`<a href="/partial/pages/profile/${requesterId}" target="_blank">User ${
-							(await getNameForUser(requesterId)) || requesterId
+							(await getNameForUser(requesterId, fastify)) || requesterId
 						}</a> wishes to be your friend!`,
 						'blue',
 						`acceptFriendRequest(${requestId})`,
@@ -80,7 +80,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
-			const request = await getFriendRequestById(requestId);
+			const request = await getFriendRequestById(requestId, fastify);
 			if (!request) {
 				return reply.code(404).send({ message: 'Request not found' });
 			}
@@ -88,9 +88,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ message: 'Unauthorized' });
 			}
 			try {
-				await acceptFriendRequest(requestId);
+				await acceptFriendRequest(requestId, fastify);
 
-				const request = await getFriendRequestById(requestId);
+				const request = await getFriendRequestById(requestId, fastify);
 				if (request) {
 					sendPopupToClient(
 						request.requester_id,
@@ -98,7 +98,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						`Your friend request was accepted by <a href="/partial/pages/profile/${
 							request.requested_id
 						}" target="_blank">User ${
-							(await getNameForUser(request.requested_id)) ||
+							(await getNameForUser(request.requested_id, fastify)) ||
 							request.requested_id
 						}</a>!`,
 						'blue'
@@ -117,7 +117,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
-			const request = await getFriendRequestById(requestId);
+			const request = await getFriendRequestById(requestId, fastify);
 			if (!request) {
 				return reply.code(404).send({ message: 'Request not found' });
 			}
@@ -125,7 +125,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ message: 'Unauthorized' });
 			}
 			try {
-				await rejectFriendRequest(requestId);
+				await rejectFriendRequest(requestId, fastify);
 				reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				reply.code(400).send({ message: err.message });
@@ -138,7 +138,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { friendId } = req.body;
-			const request = await getFriendRequest(req.user.id, friendId);
+			const request = await getFriendRequest(req.user.id, friendId, fastify);
 			if (!request) {
 				return reply
 					.code(404)
@@ -150,10 +150,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			) {
 				return reply.code(401).send({ message: 'Unauthorized' });
 			}
-			const user = await checkAuth(req);
+			const user = await checkAuth(req, false, fastify);
 			if (!user) return reply.code(401).send({ message: 'Unauthorized' });
 			try {
-				await removeFriendship(user.id, friendId);
+				await removeFriendship(user.id, friendId, fastify);
 				reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				reply.code(400).send({ message: err.message });
