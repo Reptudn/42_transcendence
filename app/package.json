@@ -1,7 +1,7 @@
 {
-	"name": "app",
+	"name": "transcendence",
 	"version": "1.0.0",
-	"description": "This project was bootstrapped with Fastify-CLI.",
+	"description": "Overengeneered PONG",
 	"main": "app.ts",
 	"directories": {
 		"test": "test"
@@ -32,7 +32,7 @@
 		"@types/ws": "^8.18.1",
 		"bcrypt": "^5.1.1",
 		"ejs": "^3.1.8",
-		"fastify": "^5.0.0",
+		"fastify": "^5.3.0",
 		"fastify-cli": "^7.4.0",
 		"fastify-plugin": "^5.0.0",
 		"sqlite": "^5.1.1",
@@ -40,7 +40,7 @@
 		"ts-node": "^10.9.2"
 	},
 	"devDependencies": {
-		"@types/node": "^22.1.0",
+		"@types/node": "^22.14.1",
 		"c8": "^10.1.2",
 		"concurrently": "^9.0.0",
 		"fastify-tsconfig": "^3.0.0",
