@@ -75,6 +75,7 @@ export async function loadPartialView(
 		updateActiveMenu(page);
 
 		if (pushState) {
+			console.info('pushing state');
 			history.pushState({ page }, '', `/partial/pages/${page}`);
 		}
 	} catch (error) {

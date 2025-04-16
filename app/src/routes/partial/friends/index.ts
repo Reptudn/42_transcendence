@@ -33,7 +33,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return !isFriend && !isPending && !isSelf;
 			});
 
-			return reply.view('partial/misc/friend_cards.ejs', { results });
+			return reply.view('misc/friend_cards.ejs', { results });
 		}
 	);
 };

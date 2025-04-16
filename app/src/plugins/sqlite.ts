@@ -8,7 +8,6 @@ const achievementsData = JSON.parse(
 	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
 );
 import { FastifyInstance } from 'fastify';
-const dbPath = '../../db/transcendence.db';
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -18,15 +17,12 @@ declare module 'fastify' {
 
 export default fp(async (fastify) => {
 	const db: Database = await open({
-		filename: '../../db/transcendence.db',
+		filename: path.resolve(__dirname, '../../db/transcendence.db'),
 		driver: sqlite3.Database,
 	});
-
-	fastify.log.info('Database path:', dbPath);
-	fastify.log.info('Database location:', dbPath);
-	fastify.log.info('Database connection established');
-
 	fastify.decorate('sqlite', db);
+
+	fastify.log.info("Fastify opened and decorated!")
 
 	// TODO: use migrations?
 
@@ -110,7 +106,4 @@ export default fp(async (fastify) => {
 				error
 			);
 		})
-		.finally(() => {
-			db.close();
-		});
 });

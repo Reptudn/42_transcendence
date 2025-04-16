@@ -130,7 +130,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 			return reply
 				.code(errorCode)
-				.view('partial/pages/error.ejs', variables, {
+				.view('error.ejs', variables, {
 					layout: layoutOption,
 				});
 		}
