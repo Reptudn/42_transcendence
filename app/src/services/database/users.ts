@@ -1,10 +1,12 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path'
 import { getUserAchievements } from './achievements.js';
 
-import default_titles from '../../../data/defaultTitles.json';
 import { getImageFromLink } from '../google/profile.js';
 import { FastifyInstance } from 'fastify';
+const default_titles = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../data/defaultTitles.json'), 'utf-8'))
 const default_titles_first = default_titles.default_titles_first;
 const default_titles_second = default_titles.default_titles_second;
 const default_titles_third = default_titles.default_titles_third;

@@ -1,8 +1,12 @@
 import sqlite3 from 'sqlite3';
 import fp from 'fastify-plugin';
 import { open, Database } from 'sqlite';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import achievementsData from '../../data/achievements.json';
+const achievementsData = JSON.parse(
+	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
+);
 import { FastifyInstance } from 'fastify';
 const dbPath = '../../db/transcendence.db';
 

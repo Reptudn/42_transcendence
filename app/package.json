@@ -14,7 +14,7 @@
 		"dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
 		"dev:start": "fastify start --ignore-watch='node_modules dist' -w -l info -P dist/app.js"
 	},
-	"keywords": [],
+	"keywords": ["42", "42heilbronn", "core"],
 	"author": "jkauker",
 	"license": "ISC",
 	"dependencies": {
