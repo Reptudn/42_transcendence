@@ -1,6 +1,6 @@
 // ----- Closing Buttons -----
 
-import { loadPartialView } from './script';
+import { loadPartialView } from './script.js';
 
 const popupContainer: HTMLElement | null =
 	document.getElementById('popup-container');

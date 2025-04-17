@@ -7,14 +7,19 @@
 		"test": "test"
 	},
 	"scripts": {
-		"test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
 		"start": "npm run build:ts && fastify start -l info dist/app.js",
 		"build:ts": "tsc",
 		"watch:ts": "tsc -w",
-		"dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+		"build:frontend": "tsc -p tsconfig.frontend.json",
+		"watch:frontend": "tsc -p tsconfig.frontend.json -w",
+		"dev": "npm run build:ts && npm run build:frontend && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:watch:frontend\" \"npm:dev:start\"",
 		"dev:start": "fastify start --ignore-watch='node_modules dist db' -w -l info -P dist/app.js"
 	},
-	"keywords": ["42", "42heilbronn", "core"],
+	"keywords": [
+		"42",
+		"42heilbronn",
+		"core"
+	],
 	"author": "jkauker",
 	"license": "ISC",
 	"dependencies": {
