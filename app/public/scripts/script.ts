@@ -37,6 +37,7 @@ export async function loadPartialView(
 				abortController = new AbortController();
 
 				scripts.forEach((oldScript) => {
+					console.log("adding script", oldScript.src)
 					const newScript = document.createElement('script');
 					newScript.type = oldScript.type || 'text/javascript';
 					if (oldScript.src)

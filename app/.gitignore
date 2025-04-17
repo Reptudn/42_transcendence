@@ -67,3 +67,5 @@ dist
 public/js
 
 .env
+
+**/*.db
