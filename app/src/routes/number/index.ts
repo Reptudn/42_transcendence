@@ -1,21 +1,25 @@
 import { FastifyPluginAsync } from 'fastify';
-import { unlockAchievement } from '../../../services/database/achievements';
-import { incrementUserClickCount } from '../../../services/database/users';
+import { unlockAchievement } from '../../services/database/achievements';
+import { incrementUserClickCount } from '../../services/database/users';
 
 let theNumber: number = 0;
 
 const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	fastify.get('/number', async (req: any, reply: any) => {
+	fastify.get('/', async (req: any, reply: any) => {
 		reply.send({ number: theNumber });
 	});
 
 	fastify.post(
-		'/number',
+		'/',
 		{ preValidation: [fastify.authenticate] },
 		async (req: any, reply: any) => {
 			const { number } = req.body;
 			theNumber += number;
-			const newCount = await incrementUserClickCount(req.user.id, number, fastify);
+			const newCount = await incrementUserClickCount(
+				req.user.id,
+				number,
+				fastify
+			);
 
 			if (newCount > 0) {
 				await unlockAchievement(req.user.id, 'number-1', fastify);
@@ -27,7 +31,7 @@ const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				await unlockAchievement(req.user.id, 'number-3', fastify);
 			}
 
-			reply.send({ number: theNumber });
+			reply.code(200).send({ number: theNumber });
 		}
 	);
 };
