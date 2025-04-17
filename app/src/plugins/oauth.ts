@@ -6,7 +6,7 @@ import {
 	registerGoogleUser,
 	loginGoogleUser,
 } from '../services/database/users';
-import { getGoogleProfile } from '../services/google/profile';
+import { getGoogleProfile } from '../services/google/user';
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -53,7 +53,9 @@ export default fp(async (fastify) => {
 				);
 			let user: GoogleUserInfo;
 			try {
-				fastify.log.info("Trying to get google profile from google token");
+				fastify.log.info(
+					'Trying to get google profile from google token'
+				);
 				user = await getGoogleProfile(token.access_token);
 			} catch (error) {
 				fastify.log.error('Error getting Google Profile', error);
@@ -63,7 +65,7 @@ export default fp(async (fastify) => {
 
 			let dbUser: User | null = null;
 			try {
-				fastify.log.info("Trying to get google user from db")
+				fastify.log.info('Trying to get google user from db');
 				dbUser = await getGoogleUser(user.id, fastify);
 			} catch (error) {
 				fastify.log.error('Error getting Google User', error);
@@ -72,7 +74,7 @@ export default fp(async (fastify) => {
 			}
 			if (dbUser === null) {
 				try {
-					fastify.log.info("Trying to register google user into db")
+					fastify.log.info('Trying to register google user into db');
 					await registerGoogleUser(user, fastify);
 				} catch (error) {
 					fastify.log.error('Error Google Register', error);
@@ -82,7 +84,7 @@ export default fp(async (fastify) => {
 			}
 
 			try {
-				fastify.log.info("Trying to login google user")
+				fastify.log.info('Trying to login google user');
 				const loggedGoogleUser = await loginGoogleUser(
 					user.id,
 					fastify
@@ -95,7 +97,7 @@ export default fp(async (fastify) => {
 					},
 					{ expiresIn: '10d' }
 				);
-				fastify.log.info("Trying to unlock login achievement");
+				fastify.log.info('Trying to unlock login achievement');
 				await unlockAchievement(loggedGoogleUser.id, 'login', fastify);
 				reply.setCookie('token', jwt, {
 					// TODO: make cookie secure
