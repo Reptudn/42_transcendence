@@ -31,6 +31,7 @@ export async function loadPartialView(
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 
+
 	try {
 		const response: Response = await fetch(`/partial/pages/${page}`, {
 			method: 'GET',
@@ -54,6 +55,7 @@ export async function loadPartialView(
 					newScript.async = true;
 					newScript.defer = true;
 					newScript.type = oldScript.type || 'text/javascript';
+					console.log("Loading script:", oldScript);
 					if (oldScript.src)
 						newScript.src = oldScript.src + '?cb=' + Date.now();
 					// refresh script, force cache break

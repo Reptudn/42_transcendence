@@ -4,6 +4,15 @@ export interface FriendUser {
 	displayname: string;
 }
 
+declare global {
+	interface Window {
+		acceptFriendRequest: (requestId: number) => void;
+		sendFriendRequest: (requestId: number, btn: HTMLButtonElement) => void;
+		declineFriendRequest: (requestId: number) => void;
+		removeFriendRequest: (friendId: number) => void;
+	}
+}
+
 export function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 	btn.textContent = 'Request sent';
 	btn.style.backgroundColor = 'green';
@@ -79,3 +88,10 @@ export function removeFriendRequest(friendId: number) {
 			console.error('Error removing friend:', error);
 		});
 }
+
+console.info("moin moin from friends.ts");
+
+window.sendFriendRequest = sendFriendRequest;
+window.acceptFriendRequest = acceptFriendRequest;
+window.declineFriendRequest = declineFriendRequest;
+window.removeFriendRequest = removeFriendRequest;
