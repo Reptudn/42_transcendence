@@ -49,12 +49,10 @@ export async function loadPartialView(
 				window.abortController = new AbortController();
 
 				scripts.forEach((oldScript) => {
-					console.log("adding script", oldScript.src)
 					const newScript = document.createElement('script');
 					newScript.noModule = false;
 					newScript.async = true;
 					newScript.defer = true;
-					console.log("oldScript", oldScript);
 					newScript.type = oldScript.type || 'text/javascript';
 					if (oldScript.src)
 						newScript.src = oldScript.src + '?cb=' + Date.now();

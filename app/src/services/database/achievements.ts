@@ -49,6 +49,9 @@ export async function unlockAchievement(
 		achievement.id
 	);
 
+	fastify.log.info(
+		`User ${userId} unlocked achievement: ${achievementKey}`
+	);
 	sendAchievementToClient(
 		userId,
 		'ACHIEVEMENT UNLOCK: ' + achievement.name,
