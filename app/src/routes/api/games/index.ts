@@ -8,7 +8,7 @@ import { checkAuth } from '../../../services/auth/auth';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
-		'/api/games/start',
+		'/start',
 		{ preValidation: [fastify.authenticate] },
 		async (request, reply) => {
 			const user = await checkAuth(request, false, fastify);
@@ -34,7 +34,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.get(
-		'/api/games/join/:gameId/:playerId',
+		'/join/:gameId/:playerId',
 		{ websocket: true },
 		(socket, req) => {
 			const { gameId, playerId } = req.params as {
