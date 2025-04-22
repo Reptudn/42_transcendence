@@ -17,7 +17,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
 		const page = req.params.page;
 		const loadpartial = req.headers['loadpartial'] === 'true';
-		const layoutOption = loadpartial ? false : 'basic.ejs';
+		const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 		const user = await checkAuth(req, false, fastify);
 
 		let variables: { [key: string]: any } = {};
