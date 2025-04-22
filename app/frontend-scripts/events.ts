@@ -170,3 +170,11 @@ export function acceptGameInvite(gameId: number, playerId: number) {
 		)}&playerId=${encodeURIComponent(playerId)}`
 	);
 }
+
+declare global {
+	interface Window {
+		acceptGameInvite: (gameId: number, playerId: number) => void;
+	}
+}
+
+window.acceptGameInvite = acceptGameInvite;
