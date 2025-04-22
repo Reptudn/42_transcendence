@@ -140,7 +140,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				layout: layoutOption,
 			});
 		else
-			return reply.view(`${page}.ejs`, variables, {
+			return reply.view(`${page}`, variables, {
 				layout: layoutOption,
 			});
 	});

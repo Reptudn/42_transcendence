@@ -1,3 +1,16 @@
+declare global {
+	interface Window {
+		updateActiveMenu: (selectedPage: string) => void;
+		loadPartialView: (page: string, pushState?: boolean) => Promise<void>;
+		updateMenu: () => Promise<void>;
+		logout: () => Promise<void>;
+		fetchNumber: () => Promise<void>;
+		updateNumber: (increment: number) => Promise<void>;
+		abortController: AbortController | null;
+	}
+}
+
+
 export function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
 	menuButtons.forEach((button) => {
@@ -10,7 +23,6 @@ export function updateActiveMenu(selectedPage: string): void {
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
-export let abortController: AbortController | null = null;
 export async function loadPartialView(
 	page: string,
 	pushState: boolean = true
@@ -33,12 +45,16 @@ export async function loadPartialView(
 
 			const scripts = contentElement.querySelectorAll('script');
 			if (scripts && scripts.length > 0) {
-				if (abortController) abortController.abort();
-				abortController = new AbortController();
+				if (window.abortController) window.abortController.abort();
+				window.abortController = new AbortController();
 
 				scripts.forEach((oldScript) => {
 					console.log("adding script", oldScript.src)
 					const newScript = document.createElement('script');
+					newScript.noModule = false;
+					newScript.async = true;
+					newScript.defer = true;
+					console.log("oldScript", oldScript);
 					newScript.type = oldScript.type || 'text/javascript';
 					if (oldScript.src)
 						newScript.src = oldScript.src + '?cb=' + Date.now();
@@ -54,7 +70,7 @@ export async function loadPartialView(
 						() => {
 							console.log('Script loaded:', newScript.src);
 						},
-						{ signal: abortController!.signal }
+						{ signal: window.abortController!.signal }
 					);
 					newScript.addEventListener(
 						'error',
@@ -65,7 +81,7 @@ export async function loadPartialView(
 								event
 							);
 						},
-						{ signal: abortController!.signal }
+						{ signal: window.abortController!.signal }
 					);
 				});
 			}
@@ -120,7 +136,7 @@ export async function updateMenu(): Promise<void> {
 // THE number
 let numberFetchFailed: boolean = false;
 
-export async function fetchNumber(): Promise<void> {
+async function fetchNumber(): Promise<void> {
 	if (numberFetchFailed) {
 		return;
 	}
@@ -162,10 +178,10 @@ if (numberDisplay && !numberDisplay.hasAttribute('data-listener-added')) {
 	});
 	numberDisplay.setAttribute('data-listener-added', 'true');
 }
-setInterval(fetchNumber, 1000);
+setInterval(fetchNumber, 100000);
 document.addEventListener('DOMContentLoaded', fetchNumber);
 
-export async function logout(): Promise<void> {
+async function logout(): Promise<void> {
 	try {
 		const response = await fetch('/api/logout', { method: 'POST' });
 		if (response.ok) {
@@ -182,3 +198,10 @@ export async function logout(): Promise<void> {
 		alert('An error occurred during logout. Do try again, old chap!');
 	}
 }
+
+window.updateActiveMenu = updateActiveMenu;
+window.loadPartialView = loadPartialView;
+window.updateMenu = updateMenu;
+window.logout = logout;
+window.fetchNumber = fetchNumber;
+window.updateNumber = updateNumber;

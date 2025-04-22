@@ -1,5 +1,5 @@
 import './script.js';
-import { abortController, loadPartialView } from './script.js';
+import { loadPartialView } from './script.js';
 
 let registerAction = async () => {
 	if (!window.location.pathname.endsWith('/register')) return;
@@ -36,7 +36,7 @@ const registerButton = document.getElementById('registerButton');
 if (registerButton) {
 	console.log('registerButton found');
 	registerButton.addEventListener('click', registerAction, {
-		signal: abortController!.signal,
+		signal: window.abortController!.signal,
 	});
 } else console.error('registerButton not found');
 

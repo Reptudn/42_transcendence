@@ -1,5 +1,5 @@
 import './script.js';
-import { updateMenu, loadPartialView, abortController } from './script.js';
+import { updateMenu, loadPartialView } from './script.js';
 
 let loginAction = async () => {
 	if (!window.location.pathname.endsWith('/login')) return;
@@ -34,7 +34,7 @@ const loginButton = document.getElementById('loginButton');
 if (loginButton) {
 	console.log('loginButton found');
 	loginButton.addEventListener('click', loginAction, {
-		signal: abortController!.signal,
+		signal: window.abortController!.signal,
 	});
 } else {
 	console.error('loginButton not found');

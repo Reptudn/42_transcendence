@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { unlockAchievement } from '../../../services/database/achievements';
-import { loginUser, registerUser } from '../../../services/database/users';
+import { unlockAchievement } from '../../services/database/achievements';
+import { loginUser, registerUser } from '../../services/database/users';
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post('/login', async (req: any, reply: any) => {
