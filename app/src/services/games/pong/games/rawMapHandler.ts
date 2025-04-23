@@ -1,5 +1,4 @@
 import { GameState } from '../engine/engineFormats.js';
-import type { GameSettings } from './gameFormats.js';
 
 export async function getMapAsInitialGameState(
 	settings: GameSettings

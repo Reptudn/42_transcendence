@@ -1,16 +1,13 @@
-import {
-	Game,
-	GameSettings,
-	GameStatus,
-	Player,
-	PlayerType,
-} from './gameFormats.js';
+import { Game, Player } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 import { tickEngine } from '../engine/engine.js';
 import * as fs from 'fs';
 import * as path from 'path';
 const defaultBotNames = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, '../../../../../data/defaultBotNames.json'), 'utf-8')
+	fs.readFileSync(
+		path.resolve(__dirname, '../../../../../data/defaultBotNames.json'),
+		'utf-8'
+	)
 );
 import { getUserTitleString, getUserById } from '../../../database/users.js';
 import { connectedClients, sendRawToClient } from '../../../sse/sse.js';

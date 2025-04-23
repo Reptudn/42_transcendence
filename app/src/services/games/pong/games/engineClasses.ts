@@ -1,5 +1,4 @@
 import type { WebSocket as WSWebSocket } from 'ws';
-import { GameState } from '../engine/engineFormats';
 
 export class Game {
 	gameId: number;
@@ -31,6 +30,7 @@ export class Game {
 		return true;
 	}
 }
+
 export class Player {
 	type: PlayerType;
 	playerId: number; // unique within a game, not to be confused with user id system

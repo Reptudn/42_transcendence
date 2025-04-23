@@ -7,8 +7,8 @@
 		"test": "test"
 	},
 	"scripts": {
-		"start": "npm run build:ts && && NODE_OPTIONS='--experimental-json-modules' fastify start -l info dist/app.js",
-		"build:ts": "tsc && && NODE_OPTIONS='--experimental-json-modules'",
+		"start": "npm run build:ts && fastify start -l info dist/app.js",
+		"build:ts": "tsc",
 		"watch:ts": "tsc -w",
 		"build:frontend": "tsc -p tsconfig.frontend.json",
 		"watch:frontend": "tsc -p tsconfig.frontend.json -w",

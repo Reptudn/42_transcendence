@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { getUserById } from '../database/users';
+import { getUserById } from '../database/users.js';
 
 export async function checkAuth(
 	request: any,

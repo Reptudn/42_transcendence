@@ -1,8 +1,7 @@
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload';
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
-import { eventRoutes } from './services/sse/sse';
 
 const envSchema = {
 	type: 'object',
@@ -49,7 +48,6 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		dir: join(__dirname, 'routes'),
 		options: opts,
 	});
-	fastify.register(eventRoutes);
 };
 
 export default app;
