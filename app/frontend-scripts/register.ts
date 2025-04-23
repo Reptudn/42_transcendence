@@ -2,8 +2,6 @@ import './script.js';
 import { loadPartialView } from './script.js';
 
 let registerAction = async () => {
-	if (!window.location.pathname.endsWith('/register')) return;
-
 	const username = (document.querySelector('#username') as HTMLInputElement)
 		.value;
 	const displayname = (
@@ -12,7 +10,7 @@ let registerAction = async () => {
 	const password = (document.querySelector('#password') as HTMLInputElement)
 		.value;
 	try {
-		const response = await fetch('/api/register', {
+		const response = await fetch('/api/auth/register', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

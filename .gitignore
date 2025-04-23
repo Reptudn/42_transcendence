@@ -64,7 +64,7 @@ test/types/index.js
 # compiled app
 dist
 
-public/js
+app/public/js
 
 .env
 

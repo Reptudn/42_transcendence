@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', fetchNumber);
 
 async function logout(): Promise<void> {
 	try {
-		const response = await fetch('/api/logout', { method: 'POST' });
+		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			// Update your menu and load the home view
 			updateMenu();
