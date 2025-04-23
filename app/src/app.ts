@@ -1,4 +1,4 @@
-import path, { join } from 'node:path';
+import { join } from 'node:path';
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload';
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
@@ -39,6 +39,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	void fastify.register(AutoLoad, {
 		dir: join(__dirname, 'plugins'),
 		options: opts,
+		autoHooks: true,
+		overwriteHooks: true,
 	});
 
 	// This loads all plugins defined in routes
@@ -47,6 +49,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	void fastify.register(AutoLoad, {
 		dir: join(__dirname, 'routes'),
 		options: opts,
+		autoHooks: true,
+		overwriteHooks: true,
 	});
 };
 

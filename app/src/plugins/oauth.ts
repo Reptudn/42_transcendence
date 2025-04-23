@@ -35,7 +35,7 @@ export default fp(
 			},
 			scope: ['profile', 'email'],
 			startRedirectPath: '/api/auth/google/',
-			callbackUri: '/api/auth/google/callback', // TODO: dont hardcode this
+			callbackUri: '/api/auth/google/callback',
 			callbackUriParams: {
 				access_type: 'offline',
 				prompt: 'consent',

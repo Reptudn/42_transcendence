@@ -1,12 +1,6 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
-import {
-	getPendingFriendRequestsForUser,
-	removeFriendship,
-} from '../database/friends.js';
-import { getUserById, getNameForUser } from '../database/users.js';
-import { checkAuth } from '../auth/auth.js';
 
 export let connectedClients: Map<number, FastifyReply> = new Map();
 
