@@ -6,8 +6,7 @@ import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
 import { FastifyInstance } from 'fastify';
-import { fileURLToPath } from 'node:url';
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(__filename);
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
