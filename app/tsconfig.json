@@ -1,13 +1,11 @@
 {
 	"extends": "fastify-tsconfig",
 	"compilerOptions": {
-		// "target": "ESNext",
-		// "module": "ESNext",
-		// "moduleResolution": "Node",
+		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "ESNext"],
 		"outDir": "dist",
 		"sourceMap": true,
-		// "esModuleInterop": true,
+		"strict": true,
 		"resolveJsonModule": true
 	},
 	"include": ["src/**/*.ts"],
