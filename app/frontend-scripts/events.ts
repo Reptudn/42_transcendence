@@ -63,12 +63,16 @@ export function getCookie(name: string) {
 	}
 }
 
-let notifyEventSource: EventSource | null = null;
+export let notifyEventSource: EventSource | null = null;
 function setupEventSource() {
 	notifyEventSource = new EventSource('/notify');
-
+	notifyEventSource.addEventListener('close', (event) => {
+		console.info('notifyEventSource.close', event);
+		notifyEventSource?.close();
+		notifyEventSource = null;
+	});
 	notifyEventSource.onerror = (event) => {
-		console.error('notifyEventSource.onerror', event);
+		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
 	};
@@ -174,7 +178,10 @@ export function acceptGameInvite(gameId: number, playerId: number) {
 declare global {
 	interface Window {
 		acceptGameInvite: (gameId: number, playerId: number) => void;
+		notifyEventSource: EventSource | null;
 	}
 }
 
+closeAllPopups();
+window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;

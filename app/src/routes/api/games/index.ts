@@ -16,8 +16,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
-			const gameSettings = request.body;
-			fastify.log.info('Starting game with settings:', gameSettings);
+			const gameSettings: GameSettings = request.body as GameSettings;
+
+			if (!gameSettings) {
+				return reply.code(400).send({ error: 'Missing game settings' });
+			}
+
+			fastify.log.info(
+				'Starting game with settings:',
+				JSON.stringify(gameSettings)
+			);
 
 			try {
 				await startGame(user, gameSettings as GameSettings, fastify);

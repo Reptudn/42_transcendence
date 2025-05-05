@@ -169,11 +169,11 @@ startGameButton.addEventListener('click', () => {
 	playerCards.forEach((card, index) => {
 		// no data needed for first player
 		if (index > 0) {
-			const type = (
+			const PlayerType = (
 				card.querySelector('.player-type') as HTMLSelectElement
 			).value;
-			const playerData: any = { type };
-			if (type === 'user') {
+			const playerData: any = { PlayerType };
+			if (PlayerType === 'user') {
 				const friendSelect = card.querySelector(
 					'.friend-select'
 				) as HTMLSelectElement;
@@ -183,7 +183,7 @@ startGameButton.addEventListener('click', () => {
 					throw new Error('Friend not selected');
 				}
 				playerData.id = parseInt(friendId);
-			} else if (type === 'local') {
+			} else if (PlayerType === 'local') {
 				const controlScheme = (
 					card.querySelector('.control-scheme') as HTMLSelectElement
 				).value;
@@ -192,7 +192,7 @@ startGameButton.addEventListener('click', () => {
 					'.local-name'
 				) as HTMLInputElement;
 				playerData.aiOrLocalPlayerName = localName.value;
-			} else if (type === 'ai') {
+			} else if (PlayerType === 'ai') {
 				const aiLevel =
 					parseInt(
 						(card.querySelector('.ai-level') as HTMLInputElement)
@@ -216,6 +216,7 @@ startGameButton.addEventListener('click', () => {
 		players,
 	};
 
+	console.log('Sending data to server:', data);
 	fetch('/api/games/start', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },

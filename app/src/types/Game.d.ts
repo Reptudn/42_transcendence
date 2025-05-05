@@ -1,25 +1,22 @@
-declare enum PlayerType {
+enum PlayerType {
 	USER = 'user',
 	AI = 'ai',
 	LOCAL = 'local',
 }
 
-declare enum GameStatus {
+enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
 }
 
-declare interface GameSettings {
-	players: [
-		// 1 - 4
-		{
-			type: PlayerType;
-			id: number;
-			aiLevel?: number;
-			localPlayerId?: number;
-			aiOrLocalPlayerName?: string;
-		}
-	];
+interface GameSettings {
+	players: Array<{
+		type: 'user' | 'ai' | 'local';
+		id?: number;
+		aiLevel?: number;
+		aiOrLocalPlayerName?: string;
+		localPlayerId?: number;
+	}>;
 	gameDifficulty: number; // 1 - 10
 	powerups: boolean;
 	map: string; // map name from data/maps/*.json

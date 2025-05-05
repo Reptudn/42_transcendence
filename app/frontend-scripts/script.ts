@@ -10,7 +10,6 @@ declare global {
 	}
 }
 
-
 export function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
 	menuButtons.forEach((button) => {
@@ -30,7 +29,6 @@ export async function loadPartialView(
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers['Authorization'] = `Bearer ${token}`;
-
 
 	try {
 		const response: Response = await fetch(`/partial/pages/${page}`, {
@@ -55,7 +53,7 @@ export async function loadPartialView(
 					newScript.async = true;
 					newScript.defer = true;
 					newScript.type = oldScript.type || 'text/javascript';
-					console.log("Loading script:", oldScript);
+					console.log('Loading script:', oldScript);
 					if (oldScript.src)
 						newScript.src = oldScript.src + '?cb=' + Date.now();
 					// refresh script, force cache break
@@ -188,6 +186,8 @@ async function logout(): Promise<void> {
 			// Update your menu and load the home view
 			updateMenu();
 			loadPartialView('index');
+			window.notifyEventSource?.close();
+			window.notifyEventSource = null;
 			console.log('You have been logged out with impeccable style!');
 		} else {
 			const data = await response.json();

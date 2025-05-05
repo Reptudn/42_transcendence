@@ -19,6 +19,7 @@ function getRandomDefaultName(): string {
 export let runningGames: Game[] = [];
 let nextGameId = 0;
 
+// TODO: issue is here
 export async function startGame(
 	admin: User,
 	gameSettings: GameSettings,
@@ -31,6 +32,7 @@ export async function startGame(
 	let gameId = nextGameId++;
 	const players: Player[] = [];
 
+	fastify.log.info('Adding admin player');
 	players.push(
 		new Player(
 			PlayerType.USER,
@@ -46,7 +48,16 @@ export async function startGame(
 		)
 	);
 
+	fastify.log.info('Added admin player');
 	for (const readPlayer of gameSettings.players) {
+		fastify.log.info(
+			'Adding player',
+			readPlayer,
+			'with type',
+			readPlayer.type,
+			'and id',
+			readPlayer.id
+		);
 		let player: Player | null = null;
 		if (readPlayer.type === PlayerType.USER) {
 			const friendId = readPlayer.id;
@@ -55,8 +66,8 @@ export async function startGame(
 					'Game-starting player should not be added as a player'
 				);
 			}
-			const user = await getUserById(friendId, fastify);
-			if (user && connectedClients.has(friendId)) {
+			const user = await getUserById(friendId!, fastify);
+			if (user && connectedClients.has(friendId!)) {
 				player = new Player(
 					PlayerType.USER,
 					-1,
@@ -105,6 +116,7 @@ export async function startGame(
 
 		if (player !== null) {
 			players.push(player);
+			fastify.log.info('Added player', player);
 		}
 	}
 
