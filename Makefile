@@ -17,26 +17,20 @@ run:
 exec:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
 
-log_front:
-	find front -type f \
-		-not -name "*.png" \
-		-not -name "*.jpg" \
-		-not -name "*.jpeg" \
-		-not -name "*.ico" \
-		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
-
-log_back:
-	find back -type f \
+log:
+	find app -type f \
 		-not -path "./node_modules/*" \
 		-not -path "./.git/*" \
 		-not -name "*.db" \
 		-not -name "*.json" \
-		-not -name "logs/*" \
+		-not -name "*.pdf" \
+		-not -name "*.png" \
+		-not -name "*.ico" \
+		-not -path "logs/*" \
+		-not -path "db/*" \
 		-not -name "package-lock.json" \
 		-not -name "README.md" \
 		-not -name ".gitignore" \
 		-print -exec echo "====> {} <====" \; -exec cat {} \; || true
-
-log: log_front log_back
 
 .PHONY: build exec re run start log
