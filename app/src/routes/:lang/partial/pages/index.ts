@@ -2,16 +2,16 @@ import { FastifyPluginAsync } from 'fastify';
 import {
 	getUserAchievements,
 	getAllAchievements,
-} from '../../../services/database/achievements';
-import { getFriends } from '../../../services/database/friends';
+} from '../../../../services/database/achievements';
+import { getFriends } from '../../../../services/database/friends';
 import {
 	getUserById,
 	getUserTitleString,
 	getUserTitle,
 	getUserTitlesForTitle,
-} from '../../../services/database/users';
-import { connectedClients } from '../../../services/sse/sse';
-import { checkAuth } from '../../../services/auth/auth';
+} from '../../../../services/database/users';
+import { connectedClients } from '../../../../services/sse/sse';
+import { checkAuth } from '../../../../services/auth/auth';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
@@ -125,11 +125,9 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			} else {
 				variables['err_message'] = 'An unknown error occurred';
 			}
-			return reply
-				.code(errorCode)
-				.view('error.ejs', variables, {
-					layout: layoutOption,
-				});
+			return reply.code(errorCode).view('error.ejs', variables, {
+				layout: layoutOption,
+			});
 		}
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])

@@ -2,8 +2,8 @@ import { FastifyPluginAsync } from 'fastify';
 import {
 	getFriends,
 	getPendingFriendRequestsForUser,
-} from '../../../services/database/friends';
-import { searchUsers } from '../../../services/database/users';
+} from '../../../../services/database/friends';
+import { searchUsers } from '../../../../services/database/users';
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
