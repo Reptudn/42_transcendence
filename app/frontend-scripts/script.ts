@@ -7,6 +7,7 @@ declare global {
 		fetchNumber: () => Promise<void>;
 		updateNumber: (increment: number) => Promise<void>;
 		abortController: AbortController | null;
+		notifyEventSource: EventSource | null;
 	}
 }
 
@@ -30,11 +31,17 @@ export async function loadPartialView(
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 
+	const language = localStorage.getItem('language') || 'en';
+	if (language) headers['Accept-Language'] = language;
+
 	try {
-		const response: Response = await fetch(`/partial/pages/${page}`, {
-			method: 'GET',
-			headers: headers,
-		});
+		const response: Response = await fetch(
+			`${language}/partial/pages/${page}`,
+			{
+				method: 'GET',
+				headers: headers,
+			}
+		);
 		const html: string = await response.text();
 
 		const contentElement: HTMLElement | null =

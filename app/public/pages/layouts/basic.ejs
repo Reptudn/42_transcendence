@@ -30,6 +30,7 @@
 					<% if (!isAuthenticated) { %> <%-
 					include('layouts/menu/guest') %> <% } else { %> <%-
 					include('layouts/menu/loggedin') %> <% } %>
+					<%- include('components/language') %>
 				</div>
 			</div>
 		</header>
@@ -76,5 +77,6 @@
 		<script type="module" src="/static/js/script.js" defer></script>
 		<script type="module" src="/static/js/events.js" defer></script>
 		<script type="module" src="/static/js/friends.js" defer></script>
+		<script type="module" src="/static/js/language.js"></script>
 	</body>
 </html>
