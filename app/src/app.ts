@@ -30,6 +30,10 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		}
 	});
 
+	fastify.ready(() => {
+		console.log(fastify.printRoutes());
+	});
+
 	// Do not touch the following lines
 
 	// This loads all plugins defined in plugins
@@ -51,6 +55,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		options: opts,
 		autoHooks: true,
 		overwriteHooks: true,
+		routeParams: true
 	});
 };
 

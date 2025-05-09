@@ -36,7 +36,7 @@ export async function loadPartialView(
 
 	try {
 		const response: Response = await fetch(
-			`${language}/partial/pages/${page}`,
+			`/${language}/partial/pages/${page}`,
 			{
 				method: 'GET',
 				headers: headers,
@@ -98,7 +98,7 @@ export async function loadPartialView(
 
 		if (pushState) {
 			console.info('pushing state');
-			history.pushState({ page }, '', `/partial/pages/${page}`);
+			history.pushState({ page }, '', `/${language}/partial/pages/${page}`);
 		}
 	} catch (error) {
 		console.error('Error fetching partial view:', error);

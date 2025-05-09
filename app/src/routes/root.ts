@@ -7,6 +7,10 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		
 		return reply.redirect(`/${lang}`);
 	});
+
+	fastify.all('/*', async (request, reply) => {
+		return reply.redirect('/');
+	});
 };
 
 export default root;

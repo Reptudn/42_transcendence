@@ -12,6 +12,7 @@ import {
 } from '../../../../services/database/users';
 import { connectedClients } from '../../../../services/sse/sse';
 import { checkAuth } from '../../../../services/auth/auth';
+import { getLanguages } from '../..';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
@@ -19,8 +20,10 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const loadpartial = req.headers['loadpartial'] === 'true';
 		const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 		const user = await checkAuth(req, false, fastify);
+		const lang = req.params.lang;
 
 		let variables: { [key: string]: any } = {};
+		variables['text'] = getLanguages().get(lang) || getLanguages().get('en');
 		variables['isAuthenticated'] = user != null;
 		if (user != null) variables['name'] = user.displayname || user.username;
 		else variables['name'] = 'Guest';
