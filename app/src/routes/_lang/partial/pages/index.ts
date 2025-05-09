@@ -12,7 +12,7 @@ import {
 } from '../../../../services/database/users';
 import { connectedClients } from '../../../../services/sse/sse';
 import { checkAuth } from '../../../../services/auth/auth';
-import { getLanguages } from '../..';
+import { getLanguages } from '../../../../services/locale';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
@@ -23,7 +23,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const lang = req.params.lang;
 
 		let variables: { [key: string]: any } = {};
-		variables['text'] = getLanguages().get(lang) || getLanguages().get('en');
+		variables['text'] = getLanguages(lang);
+		fastify.log.info('lang:', variables['text']);
 		variables['isAuthenticated'] = user != null;
 		if (user != null) variables['name'] = user.displayname || user.username;
 		else variables['name'] = 'Guest';
@@ -132,6 +133,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				layout: layoutOption,
 			});
 		}
+
+		fastify.log.info('variables:', variables);
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])
 			return reply.view(`no_access.ejs`, variables, {
