@@ -1,15 +1,36 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { GameState } from '../engine/engineFormats.js';
 
 export async function getMapAsInitialGameState(
 	settings: GameSettings
 ): Promise<GameState> {
 	console.log('getMapAsInitialGameState');
-	const { default: map } = await import(
-		`../../../../../data/maps/${settings.map}.json`,
-		{
-			assert: { type: 'json' },
-		}
+	const jsonPath = join(
+		__dirname,
+		'..',
+		'..',
+		'..',
+		'..',
+		'..',
+		'data',
+		'maps',
+		`${settings.map}.json`
 	);
+
+	let map: {
+		meta: { name: string; author: string; size_x: number; size_y: number };
+		objects: Array<any>;
+	};
+
+	try {
+		const raw = await readFile(jsonPath, 'utf-8');
+		map = JSON.parse(raw);
+	} catch (err) {
+		console.error(`Failed to load map JSON at ${jsonPath}:`, err);
+		throw new Error('Could not load map data.');
+	}
+
 	let gameState: GameState = {
 		meta: { name: '', author: '', size_x: 0, size_y: 0 },
 		objects: [],

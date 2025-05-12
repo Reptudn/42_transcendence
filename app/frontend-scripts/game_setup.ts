@@ -169,11 +169,11 @@ startGameButton.addEventListener('click', () => {
 	playerCards.forEach((card, index) => {
 		// no data needed for first player
 		if (index > 0) {
-			const PlayerType = (
+			const type = (
 				card.querySelector('.player-type') as HTMLSelectElement
 			).value;
-			const playerData: any = { PlayerType };
-			if (PlayerType === 'user') {
+			const playerData: any = { type };
+			if (type === 'user') {
 				const friendSelect = card.querySelector(
 					'.friend-select'
 				) as HTMLSelectElement;
@@ -183,7 +183,7 @@ startGameButton.addEventListener('click', () => {
 					throw new Error('Friend not selected');
 				}
 				playerData.id = parseInt(friendId);
-			} else if (PlayerType === 'local') {
+			} else if (type === 'local') {
 				const controlScheme = (
 					card.querySelector('.control-scheme') as HTMLSelectElement
 				).value;
@@ -192,7 +192,7 @@ startGameButton.addEventListener('click', () => {
 					'.local-name'
 				) as HTMLInputElement;
 				playerData.aiOrLocalPlayerName = localName.value;
-			} else if (PlayerType === 'ai') {
+			} else if (type === 'ai') {
 				const aiLevel =
 					parseInt(
 						(card.querySelector('.ai-level') as HTMLInputElement)

@@ -17,6 +17,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			const gameSettings: GameSettings = request.body as GameSettings;
+			fastify.log.info(
+				'Game settings: ' +
+					JSON.stringify(gameSettings) +
+					' parsed from raw data ' +
+					JSON.stringify(request.body)
+			);
 
 			if (!gameSettings) {
 				return reply.code(400).send({ error: 'Missing game settings' });

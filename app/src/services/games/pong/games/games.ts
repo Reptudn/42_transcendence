@@ -1,4 +1,4 @@
-import { Game, Player, PlayerType } from './gameFormats.js';
+import { Game, Player, PlayerType, GameStatus } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 import { tickEngine } from '../engine/engine.js';
 import * as fs from 'fs';
@@ -51,12 +51,12 @@ export async function startGame(
 	fastify.log.info('Added admin player');
 	for (const readPlayer of gameSettings.players) {
 		fastify.log.info(
-			'Adding player',
-			readPlayer,
-			'with type',
-			readPlayer.type,
-			'and id',
-			readPlayer.id
+			'Adding player' +
+				readPlayer +
+				'with type' +
+				readPlayer.type +
+				'and id' +
+				readPlayer.id
 		);
 		let player: Player | null = null;
 		if (readPlayer.type === PlayerType.USER) {
@@ -168,7 +168,6 @@ export async function startGame(
 	console.log('Game started with players:', rotatedPlayers);
 	console.log('Game settings:', gameSettings);
 }
-
 
 const ticksPerSecond = 20;
 setInterval(() => {

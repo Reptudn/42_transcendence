@@ -1,6 +1,11 @@
 import type { WebSocket as WSWebSocket } from 'ws';
 import { GameState } from '../engine/engineFormats';
 
+export enum GameStatus {
+	WAITING = 'waiting', // awaiting all players to join
+	RUNNING = 'running',
+}
+
 export class Game {
 	gameId: number;
 	status: GameStatus;

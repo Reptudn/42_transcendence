@@ -1,8 +1,3 @@
-enum GameStatus {
-	WAITING = 'waiting', // awaiting all players to join
-	RUNNING = 'running',
-}
-
 interface GameSettings {
 	players: Array<{
 		type: 'user' | 'ai' | 'local';

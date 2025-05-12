@@ -1,5 +1,5 @@
 import type { WebSocket as WSWebSocket } from 'ws';
-import { PlayerType } from 'gameFormats'
+import { PlayerType, GameStatus } from './gameFormats';
 
 export class Game {
 	gameId: number;
