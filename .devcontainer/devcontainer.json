@@ -29,7 +29,7 @@
 				"biomejs.biome"
 			]
 		}
-	},
-	"workspaceFolder": "/workspaces/42_transcendence/",
-	"postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
+	}
+//	"workspaceFolder": "/workspaces/42_transcendence/",
+//	"postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
 }
