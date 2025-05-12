@@ -1,4 +1,4 @@
-import { Game, Player } from './gameFormats.js';
+import { Game, Player, PlayerType } from './gameFormats.js';
 import { getMapAsInitialGameState } from './rawMapHandler.js';
 import { tickEngine } from '../engine/engine.js';
 import * as fs from 'fs';
@@ -168,6 +168,7 @@ export async function startGame(
 	console.log('Game started with players:', rotatedPlayers);
 	console.log('Game settings:', gameSettings);
 }
+
 
 const ticksPerSecond = 20;
 setInterval(() => {

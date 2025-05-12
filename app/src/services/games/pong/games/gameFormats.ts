@@ -31,6 +31,11 @@ export class Game {
 		return true;
 	}
 }
+export enum PlayerType {
+	USER = 'user',
+	AI = 'ai',
+	LOCAL = 'local',
+}
 export class Player {
 	type: PlayerType;
 	playerId: number; // unique within a game, not to be confused with user id system

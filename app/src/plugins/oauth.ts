@@ -1,15 +1,5 @@
 import fp from 'fastify-plugin';
-import oauthPlugin, { OAuth2Namespace } from '@fastify/oauth2';
-
-declare module 'fastify' {
-	interface FastifyInstance {
-		config: {
-			GOOGLE_OAUTH_CLIENT_ID: string;
-			GOOGLE_OAUTH_CLIENT_SECRET: string;
-		};
-		googleOAuth2: OAuth2Namespace;
-	}
-}
+import oauthPlugin from '@fastify/oauth2';
 
 export default fp(
 	async (fastify) => {

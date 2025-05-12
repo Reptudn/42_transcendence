@@ -1,11 +1,9 @@
 import fp from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
-// import crypto from 'node:crypto';
 
 export default fp(async (fastify) => {
 	fastify.register(fastifyJwt, {
-		// secret: crypto.randomBytes(64).toString('hex'),
-		secret: 'supersecret',
+		secret: fastify.config.JWT_SECRET || 'supersecret',
 		verify: {
 			extractToken: (request: any) => {
 				try {

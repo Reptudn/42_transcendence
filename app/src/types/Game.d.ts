@@ -1,9 +1,3 @@
-enum PlayerType {
-	USER = 'user',
-	AI = 'ai',
-	LOCAL = 'local',
-}
-
 enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
