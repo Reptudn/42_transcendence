@@ -3,11 +3,11 @@
 	"compilerOptions": {
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "ESNext"],
-		"outDir": "dist",
+		"outDir": "app/dist",
 		"sourceMap": true,
 		"strict": true,
 		"resolveJsonModule": true
 	},
-	"include": ["src/**/*.ts"],
-	"exclude": ["frontend-scripts/**/*.ts"]
+	"include": ["app/src/**/*.ts"],
+	"exclude": ["app/frontend-scripts/**/*.ts"]
 }
