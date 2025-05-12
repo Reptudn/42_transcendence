@@ -66,7 +66,7 @@ export function interpolateGameObject(
 
 	if (obj1.shape && obj2.shape && obj1.shape.length === obj2.shape.length) {
 		interpolated.shape = obj1.shape.map((pt, i) =>
-			interpolatePoint(pt, obj2.shape![i], t)
+			obj2.shape ? interpolatePoint(pt, obj2.shape[i], t) : pt
 		);
 	}
 
@@ -74,14 +74,19 @@ export function interpolateGameObject(
 }
 
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d')!;
+const ctx = canvas.getContext('2d');
+if (!ctx) {
+	throw new Error('Failed to get 2D context from canvas');
+}
 
 export function isPointInsideCanvas(x: number, y: number): boolean {
 	return x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height;
 }
 
 export function clearCanvas(): void {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	if (ctx) {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+	}
 }
 
 export function drawCircle(
@@ -90,20 +95,24 @@ export function drawCircle(
 	radius: number,
 	color: { r: number; g: number; b: number }
 ): void {
-	ctx.beginPath();
-	if (!isPointInsideCanvas(x, y))
-		console.log('Point is outside canvas:', x, y);
-	ctx.arc(x, y, radius, 0, Math.PI * 2);
-	ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-	ctx.fill();
+	if (ctx) {
+		ctx.beginPath();
+		if (!isPointInsideCanvas(x, y))
+			console.log('Point is outside canvas:', x, y);
+		ctx.arc(x, y, radius, 0, Math.PI * 2);
+		ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
+		ctx.fill();
+	} else {
+		console.error('Canvas context is null');
+	}
 }
 
 export function drawPolygon(
 	points: Point[],
 	strokeStyle: string,
-	color: string = 'black',
-	lineWidth: number = 2,
-	closePath: boolean = true
+	color = 'black',
+	lineWidth = 2,
+	closePath = true
 ): void {
 	if (points.length === 0) return;
 	const path = new Path2D();
@@ -114,11 +123,15 @@ export function drawPolygon(
 			console.log('Point is outside canvas:', points[i]);
 	}
 	if (closePath) path.closePath();
-	ctx.fillStyle = color;
-	ctx.fill(path);
-	ctx.strokeStyle = strokeStyle;
-	ctx.lineWidth = lineWidth;
-	ctx.stroke(path);
+	if (ctx) {
+		ctx.fillStyle = color;
+		ctx.fill(path);
+		ctx.strokeStyle = strokeStyle;
+		ctx.lineWidth = lineWidth;
+		ctx.stroke(path);
+	} else {
+		console.error('Canvas context is null');
+	}
 }
 
 export function transformPoints(points: Point[], scale: number): Point[] {
@@ -221,6 +234,10 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 		trapezoid.lineTo(pRightStart.x, pRightStart.y);
 		trapezoid.closePath();
 
+		if (!ctx) {
+			console.error('Canvas context is null');
+			return;
+		}
 		const grad = ctx.createLinearGradient(
 			points[i].x,
 			points[i].y,
@@ -244,17 +261,11 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 	}
 }
 
-export function drawGameState(
-	gameState: GameState,
-	mapWidth: number = 100,
-	mapHeight: number = 100
-): void {
+export function drawGameState(gameState: GameState): void {
 	console.log('Drawing game state:', gameState);
-	mapWidth = gameState.mapWidth ?? mapWidth;
-	mapHeight = gameState.mapHeight ?? mapHeight;
 
-	const scaleX = canvas.width / mapWidth;
-	const scaleY = canvas.height / mapHeight;
+	const scaleX = canvas.width / mapSizeX;
+	const scaleY = canvas.height / mapSizeY;
 	const scale = Math.min(scaleX, scaleY);
 
 	clearCanvas();
@@ -294,14 +305,14 @@ export function drawGameState(
 
 export function updateGameState(
 	newState: GameState,
-	mapSizeX: number,
-	mapSizeY: number
+	newMapSizeX: number,
+	newMapSizeY: number
 ): void {
 	previousState = currentState;
 	currentState = newState;
 	lastUpdateTime = performance.now();
-	mapSizeX = mapSizeX;
-	mapSizeY = mapSizeY;
+	mapSizeX = newMapSizeX;
+	mapSizeY = newMapSizeY;
 	detectBounce(newState);
 }
 
@@ -370,7 +381,7 @@ export function render(): void {
 		const currBall = currentState.objects.find(
 			(obj) => obj.type === 'ball' && obj.center
 		);
-		if (currBall && currBall.center) {
+		if (currBall?.center) {
 			interpolatedBallCenter = currBall.center;
 		}
 	}
@@ -391,22 +402,24 @@ export function render(): void {
 			mapWidth: currentState.mapWidth,
 			mapHeight: currentState.mapHeight,
 			objects: currentState.objects.map((currObj, index) => {
-				const prevObj = previousState!.objects[index];
+				const prevObj = previousState
+					? previousState.objects[index]
+					: undefined;
 				if (prevObj && currObj.type === prevObj.type) {
 					return interpolateGameObject(prevObj, currObj, t);
 				}
 				return currObj;
 			}),
 		};
-		drawGameState(interpolatedState, mapSizeX, mapSizeY);
+		drawGameState(interpolatedState);
 	} else if (currentState) {
-		drawGameState(currentState, mapSizeX, mapSizeY);
+		drawGameState(currentState);
 	}
 
 	const ballObj = currentState?.objects.find(
 		(obj) => obj.type === 'ball' && obj.radius
 	);
-	if (ballObj && ballObj.radius) {
+	if (ballObj?.radius) {
 		const scaleX = canvas.width / (currentState?.mapWidth ?? mapSizeX);
 		const scaleY = canvas.height / (currentState?.mapHeight ?? mapSizeY);
 		const scale = Math.min(scaleX, scaleY);

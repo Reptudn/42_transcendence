@@ -1,7 +1,7 @@
 import './script.js';
 import { updateMenu, loadPartialView } from './script.js';
 
-let loginAction = async () => {
+const loginAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement)
 		.value;
 	const password = (document.querySelector('#password') as HTMLInputElement)
@@ -32,7 +32,7 @@ const loginButton = document.getElementById('loginButton');
 if (loginButton) {
 	console.log('loginButton found');
 	loginButton.addEventListener('click', loginAction, {
-		signal: window.abortController!.signal,
+		signal: window.abortController?.signal,
 	});
 } else {
 	console.error('loginButton not found');

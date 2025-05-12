@@ -31,7 +31,7 @@ export function dismissPopup(closeElement: HTMLElement): void {
 
 export function closeAllPopups(): void {
 	const popups = document.querySelectorAll('.popup');
-	popups.forEach((popup) => {
+	for (const popup of popups) {
 		popup.classList.add('animate-fadeOut');
 		popup.addEventListener(
 			'animationend',
@@ -41,7 +41,7 @@ export function closeAllPopups(): void {
 			},
 			{ once: true }
 		);
-	});
+	}
 }
 const closeAllBtn = document.getElementById('close-all-popups-btn');
 if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
@@ -50,11 +50,11 @@ else console.error('closeAllBtn not found');
 // ----- EventSource -----
 
 export function getCookie(name: string) {
-	const value = '; ' + document.cookie;
+	const value = `; ${document.cookie}`;
 	console.log('cookies: ', document.cookie);
-	const parts = value.split('; ' + name + '=');
+	const parts = value.split(`; ${name}=`);
 
-	if (parts.length == 2) {
+	if (parts.length === 2) {
 		const part = parts.pop();
 		if (part) {
 			return part.split(';').shift();
@@ -103,7 +103,7 @@ function setupEventSource() {
 				console.log('👫 Game request received:', data);
 				sendPopup(
 					'Game Request',
-					`You have been invited to play a game!`,
+					'You have been invited to play a game!',
 					'blue',
 					`acceptGameInvite(${data.gameId}, ${data.playerId})`,
 					'Accept'
@@ -130,12 +130,12 @@ setInterval(() => {
 
 function sendPopup(
 	title: string,
-	description: string = '',
-	color: string = 'black',
-	callback1: string = '',
-	buttonName1: string = 'CLICK ME',
-	callback2: string = '',
-	buttonName2: string = 'CLICK ME 2'
+	description = '',
+	color = 'black',
+	callback1 = '',
+	buttonName1 = 'CLICK ME',
+	callback2 = '',
+	buttonName2 = 'CLICK ME 2'
 ) {
 	fetch('/notify/send', {
 		method: 'POST',

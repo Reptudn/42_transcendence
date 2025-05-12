@@ -1,7 +1,7 @@
 import './script.js';
 import { loadPartialView } from './script.js';
 
-let registerAction = async () => {
+const registerAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement)
 		.value;
 	const displayname = (
@@ -34,7 +34,7 @@ const registerButton = document.getElementById('registerButton');
 if (registerButton) {
 	console.log('registerButton found');
 	registerButton.addEventListener('click', registerAction, {
-		signal: window.abortController!.signal,
+		signal: window.abortController?.signal,
 	});
 } else console.error('registerButton not found');
 
@@ -43,11 +43,13 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 	const counter = document.getElementById(counterId);
 	if (input && counter) {
 		input.addEventListener('input', () => {
-			counter.textContent =
-				(input as HTMLInputElement).value.length + '/' + max;
+			counter.textContent = `${
+				(input as HTMLInputElement).value.length
+			}/${max}`;
 		});
-		counter.textContent =
-			(input as HTMLInputElement).value.length + '/' + max;
+		counter.textContent = `${
+			(input as HTMLInputElement).value.length
+		}/${max}`;
 	}
 }
 updateCounter('username', 'usernameCounter', 16);

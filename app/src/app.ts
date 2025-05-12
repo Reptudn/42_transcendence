@@ -1,11 +1,15 @@
 import { join } from 'node:path';
-import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload';
-import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
+import AutoLoad, { type AutoloadPluginOptions } from '@fastify/autoload';
+import type { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
 
 const envSchema = {
 	type: 'object',
-	required: ['GOOGLE_OAUTH_CLIENT_ID', 'GOOGLE_OAUTH_CLIENT_SECRET', 'JWT_SECRET'],
+	required: [
+		'GOOGLE_OAUTH_CLIENT_ID',
+		'GOOGLE_OAUTH_CLIENT_SECRET',
+		'JWT_SECRET',
+	],
 	properties: {
 		GOOGLE_OAUTH_CLIENT_ID: { type: 'string' },
 		GOOGLE_OAUTH_CLIENT_SECRET: { type: 'string' },

@@ -36,7 +36,7 @@ ws.onmessage = (event) => {
 				chatMessages.appendChild(messageElement);
 				chatMessages.scrollTop = chatMessages.scrollHeight;
 			}
-		} else if (data.type == 'state') {
+		} else if (data.type === 'state') {
 			const state = document.getElementById('state');
 			if (state) {
 				state.innerHTML = JSON.stringify(data.state);

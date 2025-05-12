@@ -25,11 +25,11 @@
 				"YoavBls.pretty-ts-errors",
 				"usernamehw.errorlens",
 				"ms-azuretools.vscode-docker",
-				"esbenp.prettier-vscode"
-				// "biomejs.biome"
+				"esbenp.prettier-vscode",
+				"biomejs.biome"
 			]
 		}
-	}
-	// "workspaceFolder": "/workspaces/42_transcendence/",
-	// "postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
+	},
+	"workspaceFolder": "/workspaces/42_transcendence/",
+	"postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
 }

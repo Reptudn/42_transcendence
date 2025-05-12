@@ -59,13 +59,13 @@ document
 		) as HTMLInputElement;
 
 		if (usernameField.value !== initialValues.username) {
-			formData['username'] = usernameField.value;
+			formData.username = usernameField.value;
 		}
 		if (displayNameField.value !== initialValues.displayName) {
-			formData['displayName'] = displayNameField.value;
+			formData.displayName = displayNameField.value;
 		}
 		if (bioField.value !== initialValues.bio) {
-			formData['bio'] = bioField.value;
+			formData.bio = bioField.value;
 		}
 
 		try {
@@ -74,14 +74,18 @@ document
 				const profilePictureData = await getFileAsDataURL(
 					profilePictureInput
 				);
-				formData['profile_picture'] = profilePictureData;
+				formData.profile_picture = profilePictureData;
 			} else {
 				if (profilePictureResetClicked) {
-					formData['profile_picture'] = '';
+					formData.profile_picture = '';
 				}
 			}
-		} catch (error: any) {
-			alert('Image conversion error: ' + error.message);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				alert(`Image conversion error: ${error.message}`);
+			} else {
+				alert('An unknown error occurred during image conversion.');
+			}
 			return;
 		}
 
@@ -145,13 +149,13 @@ document
 		) as HTMLInputElement;
 
 		if (firstTitleField.value !== initialTitleValues.firstTitle) {
-			formData['firstTitle'] = firstTitleField.value;
+			formData.firstTitle = firstTitleField.value;
 		}
 		if (secondTitleField.value !== initialTitleValues.secondTitle) {
-			formData['secondTitle'] = secondTitleField.value;
+			formData.secondTitle = secondTitleField.value;
 		}
 		if (thirdTitleField.value !== initialTitleValues.thirdTitle) {
-			formData['thirdTitle'] = thirdTitleField.value;
+			formData.thirdTitle = thirdTitleField.value;
 		}
 
 		const token = localStorage.getItem('token');
@@ -196,8 +200,8 @@ document
 		) as HTMLInputElement;
 
 		if (oldPasswordField.value && newPasswordField.value) {
-			formData['oldPassword'] = oldPasswordField.value;
-			formData['newPassword'] = newPasswordField.value;
+			formData.oldPassword = oldPasswordField.value;
+			formData.newPassword = newPasswordField.value;
 		} else {
 			alert('Please fill in both fields to change password.');
 			return;
@@ -244,7 +248,7 @@ document
 		) as HTMLInputElement;
 
 		if (passwordField.value) {
-			formData['password'] = passwordField.value;
+			formData.password = passwordField.value;
 		}
 
 		const token = localStorage.getItem('token');
@@ -281,10 +285,12 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 	const counter = document.getElementById(counterId);
 	if (input && counter) {
 		input.addEventListener('input', () => {
-			counter.textContent =
-				(input as HTMLInputElement).value.length + '/' + max;
+			counter.textContent = `${
+				(input as HTMLInputElement).value.length
+			}/${max}`;
 		});
-		counter.textContent =
-			(input as HTMLInputElement).value.length + '/' + max;
+		counter.textContent = `${
+			(input as HTMLInputElement).value.length
+		}/${max}`;
 	}
 }

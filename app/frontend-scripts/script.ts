@@ -7,28 +7,29 @@ declare global {
 		fetchNumber: () => Promise<void>;
 		updateNumber: (increment: number) => Promise<void>;
 		abortController: AbortController | null;
+		notifyEventSource: EventSource | null;
 	}
 }
 
 export function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
-	menuButtons.forEach((button) => {
+	for (const button of menuButtons) {
 		if (button.getAttribute('data-page') === selectedPage) {
 			button.classList.add('active');
 		} else {
 			button.classList.remove('active');
 		}
-	});
+	}
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
 export async function loadPartialView(
 	page: string,
-	pushState: boolean = true
+	pushState = true
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
-	if (token) headers['Authorization'] = `Bearer ${token}`;
+	if (token) headers.Authorization = `Bearer ${token}`;
 
 	try {
 		const response: Response = await fetch(`/partial/pages/${page}`, {
@@ -47,7 +48,7 @@ export async function loadPartialView(
 				if (window.abortController) window.abortController.abort();
 				window.abortController = new AbortController();
 
-				scripts.forEach((oldScript) => {
+				for (const oldScript of scripts) {
 					const newScript = document.createElement('script');
 					newScript.noModule = false;
 					newScript.async = true;
@@ -55,7 +56,7 @@ export async function loadPartialView(
 					newScript.type = oldScript.type || 'text/javascript';
 					console.log('Loading script:', oldScript);
 					if (oldScript.src)
-						newScript.src = oldScript.src + '?cb=' + Date.now();
+						newScript.src = `${oldScript.src}?cb=${Date.now()}`;
 					// refresh script, force cache break
 					else newScript.text = oldScript.text;
 
@@ -68,7 +69,11 @@ export async function loadPartialView(
 						() => {
 							console.log('Script loaded:', newScript.src);
 						},
-						{ signal: window.abortController!.signal }
+						{
+							signal: window.abortController
+								? window.abortController.signal
+								: undefined,
+						}
 					);
 					newScript.addEventListener(
 						'error',
@@ -79,9 +84,13 @@ export async function loadPartialView(
 								event
 							);
 						},
-						{ signal: window.abortController!.signal }
+						{
+							signal: window.abortController
+								? window.abortController.signal
+								: undefined,
+						}
 					);
-				});
+				}
 			}
 		} else {
 			console.warn('Content element not found');
@@ -118,7 +127,7 @@ export async function updateMenu(): Promise<void> {
 				},
 			});
 		} else {
-			response = await fetch(`/partial/menu`);
+			response = await fetch('/partial/menu');
 		}
 
 		const html = await response.text();
@@ -132,7 +141,7 @@ export async function updateMenu(): Promise<void> {
 }
 
 // THE number
-let numberFetchFailed: boolean = false;
+let numberFetchFailed = false;
 
 async function fetchNumber(): Promise<void> {
 	if (numberFetchFailed) {
