@@ -1,35 +1,35 @@
 {
-  "name": "transcendence",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node",
-  "customizations": {
-    "vscode": {
-      "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash",
-        "editor.formatOnPaste": true,
-        "editor.formatOnSave": true,
-        "C_Cpp.formatting": "disabled",
-        "files.autoSave": "onFocusChange",
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-      },
-      "extensions": [
-        "PKief.material-icon-theme",
-        "GitHub.copilot",
-        "Gruntfuggly.todo-tree",
-        "eamodio.gitlens",
-        "mhutchie.git-graph",
-        "tomoki1207.pdf",
-        "xabikos.JavaScriptSnippets",
-        "qwtel.sqlite-viewer",
-        "xabikos.JavaScriptSnippets",
-        "github.vscode-github-actions",
-        "YoavBls.pretty-ts-errors",
-        "usernamehw.errorlens",
-        "ms-azuretools.vscode-docker",
-        "esbenp.prettier-vscode"
-        // "biomejs.biome"
-      ]
-    }
-  }
-  // "workspaceFolder": "/workspaces/42_transcendence/",
-  // "postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
+	"name": "transcendence",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:latest",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.shell.linux": "/bin/bash",
+				"editor.formatOnPaste": true,
+				"editor.formatOnSave": true,
+				"C_Cpp.formatting": "disabled",
+				"files.autoSave": "onFocusChange",
+				"editor.defaultFormatter": "esbenp.prettier-vscode"
+			},
+			"extensions": [
+				"PKief.material-icon-theme",
+				"GitHub.copilot",
+				"Gruntfuggly.todo-tree",
+				"eamodio.gitlens",
+				"mhutchie.git-graph",
+				"tomoki1207.pdf",
+				"xabikos.JavaScriptSnippets",
+				"qwtel.sqlite-viewer",
+				"xabikos.JavaScriptSnippets",
+				"github.vscode-github-actions",
+				"YoavBls.pretty-ts-errors",
+				"usernamehw.errorlens",
+				"ms-azuretools.vscode-docker",
+				"esbenp.prettier-vscode"
+				// "biomejs.biome"
+			]
+		}
+	}
+	// "workspaceFolder": "/workspaces/42_transcendence/",
+	// "postCreateCommand": "cd /workspaces/42_transcendence/ && npm i"
 }

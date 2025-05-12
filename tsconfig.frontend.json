@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"outDir": "app/public/js",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"target": "ES2020",
+		"lib": ["DOM", "DOM.Iterable", "ESNext"]
+	},
+	"include": ["app/frontend-scripts/**/*.ts"],
+	"exclude": ["node_modules"]
+}

@@ -1,0 +1,13 @@
+{
+	"extends": "fastify-tsconfig",
+	"compilerOptions": {
+		"target": "ESNext",
+		"lib": ["dom", "dom.iterable", "ESNext"],
+		"outDir": "app/dist",
+		"sourceMap": true,
+		"strict": true,
+		"resolveJsonModule": true
+	},
+	"include": ["app/src/**/*.ts"],
+	"exclude": ["app/frontend-scripts/**/*.ts"]
+}
