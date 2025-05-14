@@ -1,10 +1,16 @@
 import { FastifyPluginAsync } from 'fastify';
 import { checkAuth } from '../../../services/auth/auth';
 import { unlockAchievement } from '../../../services/database/achievements';
-import { getUserById, updateUserProfile, updateUserPassword, updateUserTitle, verifyUserPassword, deleteUser } from '../../../services/database/users';
+import {
+	getUserById,
+	updateUserProfile,
+	updateUserPassword,
+	updateUserTitle,
+	verifyUserPassword,
+	deleteUser,
+} from '../../../services/database/users';
 
 const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-
 	const DEFAULT_PROFILE_PIC_COUNT = 34;
 	const PROFILE_PIC_OFFSET = Math.floor(
 		Math.random() * DEFAULT_PROFILE_PIC_COUNT
@@ -67,8 +73,18 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 				}
 
-				if (displayName == 'Reptudn' || displayName == 'Freddy') {
-					await unlockAchievement(userId, 'name-change-creator', fastify);
+				if (
+					displayName == 'Reptudn' ||
+					displayName == 'Freddy' ||
+					displayName == 'Lauch' ||
+					displayName == 'Nick' ||
+					displayName == 'Luca'
+				) {
+					await unlockAchievement(
+						userId,
+						'name-change-creator',
+						fastify
+					);
 				}
 				if (typeof bio == 'string')
 					if (bio.length > 100)
@@ -82,9 +98,15 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					username,
 					displayName,
 					bio,
-					profile_picture, fastify
+					profile_picture,
+					fastify
 				);
-				await updateUserPassword(userId, oldPassword, newPassword, fastify);
+				await updateUserPassword(
+					userId,
+					oldPassword,
+					newPassword,
+					fastify
+				);
 
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
@@ -115,7 +137,8 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					userId,
 					firstTitle,
 					secondTitle,
-					thirdTitle, fastify
+					thirdTitle,
+					fastify
 				);
 
 				return reply.code(200).send({ message: 'Profile updated' });
@@ -145,7 +168,13 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						.code(400)
 						.send({ message: 'Password is required' });
 				}
-				if (!(await verifyUserPassword(currentUser.id, password, fastify))) {
+				if (
+					!(await verifyUserPassword(
+						currentUser.id,
+						password,
+						fastify
+					))
+				) {
 					return reply
 						.code(401)
 						.send({ message: 'Incorrect password' });
@@ -163,7 +192,6 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
-
 };
 
 export default profile;
