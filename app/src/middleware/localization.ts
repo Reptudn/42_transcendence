@@ -13,7 +13,9 @@ i18next
 		detection: {
 		order: ['querystring'],
 		caches: false
-		}
+		},
+		nonExplicitSupportedLngs: true,
+		preload: ['en', 'fr', 'de'],
 });
 
 export default i18next;
