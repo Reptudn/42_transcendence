@@ -19,6 +19,11 @@ function getRandomDefaultName(): string {
 export let runningGames: Game[] = [];
 let nextGameId = 0;
 
+export async function createGame(admin: User, fastify: FastifyInstance) {
+	const gameId = nextGameId;
+	nextGameId++;
+}
+
 // TODO: issue is here
 export async function startGame(
 	admin: User,

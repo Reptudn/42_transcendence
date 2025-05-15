@@ -8,6 +8,17 @@ import { checkAuth } from '../../../services/auth/auth';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
+		'/create',
+		{ preValidation: [fastify.authenticate] },
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+		}
+	);
+
+	fastify.post(
 		'/start',
 		{ preValidation: [fastify.authenticate] },
 		async (request, reply) => {

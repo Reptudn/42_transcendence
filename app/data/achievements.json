@@ -200,6 +200,14 @@
 		"title_third": "🐺"
 	},
 	{
+		"key": "one-life-game",
+		"name": "Living on the edge",
+		"description": "Start a game of Pong with only 1 life.",
+		"title_first": "Dangerous",
+		"title_second": "Adventurer",
+		"title_third": "⚔️"
+	},
+	{
 		"key": "long-bio",
 		"name": "The Storyteller",
 		"description": "Write a bio that is over 100 characters long.",
