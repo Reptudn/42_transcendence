@@ -37,7 +37,9 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		}
 	});
 
+	fastify.log.info('Registering i18next');
 	fastify.register(middleware.plugin, { i18next });
+	fastify.log.info('Registered i18next');
 
 	// Do not touch the following lines
 

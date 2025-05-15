@@ -12,7 +12,6 @@ import {
 } from '../../../services/database/users';
 import { connectedClients } from '../../../services/sse/sse';
 import { checkAuth } from '../../../services/auth/auth';
-import i18next from '../../../middleware/localization';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
