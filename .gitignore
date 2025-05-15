@@ -69,3 +69,5 @@ app/public/js
 .env
 
 **/*.db
+
+app/public/css/output.css
