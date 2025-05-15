@@ -12,30 +12,32 @@
 
 socket.io for websockets
 
+✅🔁❌
+
 id do
-- backend framework (1)
-- database (0.5)
+- backend framework (1) ✅
+- database (0.5) ✅
 - user management & auth (1)
-- remote auth using google (1)
-- User Stats & Dashboards (0.5)
+- remote auth using google (1) ✅
+- User Stats & Dashboards (0.5) ❌
 
 4
 
-- frontend framework (0.5)
-- Advanced 3d techniques (1)
-- Expanding browser compatibility to vr (0.5)
-- Multiple language support (0.5)
+- frontend framework (0.5) ✅
+- Advanced 3d techniques (1) ❌
+- Expanding browser compatibility (optionally to vr) (0.5) ❌
+- Multiple language support (0.5) 🔁
 
 2.5
 
-- Remote players (1)
+- Remote players (1) ✅
 
 1
 
 - Game customization options (0.5)
-- Live Chat (1)
-- Multiple players (1)
-- ai opponents (1)
+- Live Chat (1) ❌
+- Multiple players (1) ✅
+- ai opponents (1) ✅
 
 3.5
 
