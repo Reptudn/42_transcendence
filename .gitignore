@@ -70,4 +70,4 @@ app/public/js
 
 **/*.db
 
-output.css
+app/public/css/output.css
