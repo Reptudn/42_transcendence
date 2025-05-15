@@ -1,11 +1,14 @@
 interface GameSettings {
-	players: Array<{
-		type: 'user' | 'ai' | 'local';
-		id?: number;
-		aiLevel?: number;
-		aiOrLocalPlayerName?: string;
-		localPlayerId?: number;
-	}>;
+	players: [
+		// 0 - 3
+		{
+			type: PlayerType;
+			id: number;
+			aiLevel?: number;
+			localPlayerId?: number;
+			aiOrLocalPlayerName?: string;
+		}
+	];
 	gameDifficulty: number; // 1 - 10
 	powerups: boolean;
 	map: string; // map name from data/maps/*.json

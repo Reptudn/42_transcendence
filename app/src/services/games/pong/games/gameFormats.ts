@@ -29,7 +29,7 @@ export class Game {
 
 	isReady() {
 		for (const player of this.players) {
-			if (!player.isReady()) {
+			if (!player.isReady(this)) {
 				return false;
 			}
 		}
@@ -55,6 +55,7 @@ export class Player {
 	// PlayerType.AI
 	aiLevel: number | null;
 	aiName: string | null;
+	aiBrainData: AIBrainData | null;
 
 	// PlayerType.LOCAL
 	// for local players, userId saves admin user id
@@ -86,6 +87,7 @@ export class Player {
 		this.userId = userId;
 		this.wsocket = wsocket;
 		this.aiLevel = aiLevel;
+		this.aiBrainData = null;
 		this.localPlayerId = localPlayerId;
 		this.username = username;
 		this.displayName = displayName;
@@ -94,7 +96,27 @@ export class Player {
 		this.localPlayerName = localPlayerName;
 	}
 
-	isReady() {
-		return this.wsocket !== null;
+	isReady(game: Game) {
+		switch (this.type) {
+			case PlayerType.USER:
+				return this.wsocket !== null;
+
+			case PlayerType.AI:
+				return true;
+
+			case PlayerType.LOCAL: {
+				const adminPlayer = game.players.find(
+					(player) => player.userId === this.userId
+				);
+
+				return adminPlayer?.wsocket !== null;
+			}
+		}
 	}
+}
+export interface AIBrainData {
+	aiLastBallDistance: number;
+	aiDelayCounter: number;
+	aiLastTargetParam: number;
+	lastAIMovementDirection: number;
 }

@@ -202,11 +202,13 @@ startGameButton.addEventListener('click', () => {
 				) as HTMLInputElement;
 				playerData.aiOrLocalPlayerName = localName.value;
 			} else if (type === 'ai') {
-				const aiLevel =
+				let aiLevel =
 					Number.parseInt(
 						(card.querySelector('.ai-level') as HTMLInputElement)
 							.value
-					) || 1;
+					) - 1 || 5;
+				if (aiLevel < 0) aiLevel = 0;
+				if (aiLevel > 9) aiLevel = 9;
 				playerData.aiLevel = aiLevel;
 				const aiName = card.querySelector(
 					'.ai-name'
