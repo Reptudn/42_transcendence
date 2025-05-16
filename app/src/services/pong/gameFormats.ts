@@ -1,5 +1,6 @@
-import { GameState } from '../engine/engineFormats';
-import { Player } from './playerClass';
+import { GameState } from './engine/engineFormats';
+import type { Player } from './player';
+import { UserPlayer } from './player';
 
 export enum GameStatus {
 	WAITING = 'waiting',
@@ -13,13 +14,15 @@ export class Game {
 	gameState: GameState | null;
 	gameSettings: GameSettings | null;
 
-	constructor(gameId: number, admin: Player) {
+	constructor(gameId: number, admin: User) {
 		this.gameId = gameId;
 		this.status = GameStatus.WAITING;
-		this.players = [];
-		this.players.push(admin);
 		this.gameState = null;
 		this.gameSettings = null;
+
+		this.players = [];
+		const adminPlayer = new UserPlayer(this.players.length, admin.id);
+		this.players.push(adminPlayer);
 	}
 
 	isReady() {
