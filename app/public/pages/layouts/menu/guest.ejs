@@ -1,8 +1,13 @@
-<nav class="space-x-4">
-	<button data-page="login" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-		onclick="loadPartialView('login')">Login</button>
-	<button data-page="register" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+<nav class="flex flex-col items-start space-y-8">
+	<button data-page="login" class="cursor-pointer bg-background-dark hover:bg-gray-400 text-white font-bold w-20 h-20 rounded-full flex items-center justify-center"
+		onclick="loadPartialView('login')">
+		<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24">
+   			<path fill="currentColor" d="M8.692 14.308h6.616v-.166q0-.875-.88-1.354T12 12.308q-1.55 0-2.429.48q-.879.48-.879 1.354v.166ZM12 10.692q.633 0 1.066-.433q.434-.434.434-1.067q0-.632-.434-1.066q-.433-.434-1.066-.434t-1.066.434q-.434.434-.434 1.066q0 .633.434 1.067q.433.433 1.066.433ZM9 20v-2H4.615q-.69 0-1.152-.462Q3 17.075 3 16.385V5.615q0-.69.463-1.152Q3.925 4 4.615 4h14.77q.69 0 1.152.463q.463.462.463 1.152v10.77q0 .69-.462 1.152q-.463.463-1.153.463H15v2H9Zm-4.385-3h14.77q.23 0 .423-.192q.192-.193.192-.423V5.615q0-.23-.192-.423Q19.615 5 19.385 5H4.615q-.23 0-.423.192Q4 5.385 4 5.615v10.77q0 .23.192.423q.193.192.423.192ZM4 17V5v12Z"/>
+		</svg>
+
+	</button>
+	<button data-page="register" class="cursor-pointer bg-background-dark hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-full"
 		onclick="loadPartialView('register')">Register</button>
-	<button data-page="about" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+	<button data-page="about" class="cursor-pointer bg-background-dark hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-full"
 		onclick="loadPartialView('about')">About</button>
 </nav>

@@ -1,1 +1,13 @@
 @import 'tailwindcss';
+
+@theme {
+	--color-mint-500: oklch(0.72 0.11 178);
+	--color-background-dark: #121212; /* Dark grey */
+	--color-dark-blue: #1a2a4b; /* Dark blue */
+	--color-neon-purple: #9b59b6; /* Neon purple */
+	--color-neon-pink: #ff00ff; /* Neon pink */
+	--color-neon-cyan: #00ffff; /* Neon cyan */
+	--color-neon-blue: #3498db; /* Bright blue */
+	--color-neon-green: #2ecc71; /* Bright green */
+	--color-neon-yellow: #ffeb3b; /* Neon yellow */
+}
