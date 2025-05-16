@@ -1,4 +1,44 @@
 {
-	"title": "Willkommen bei der Transcendence Fremder...",
-	"description": "Rein mit dir du Lachsnase!"
+	"header": {
+		"home": "Startseite",
+		"title": "Willkommen bei Transcendence",
+		"page_title": "Transcendence: Startseite"
+	},
+	"menu": {
+		"login": "Anmelden",
+		"logout": "Abmelden",
+		"register": "Registrieren",
+		"about": "Über uns",
+		"profile": "Profil",
+		"game": "Spiel"
+	},
+	"footer": {
+		"number": {
+			"label": "DIE HEILIGE ZAHL DES SCHICKSALS!",
+			"click": "- (warum klickst du nicht darauf?)"
+		}
+		},
+	"index": {
+		"title": "Willkommen bei Transcendence, Fremder...",
+		"description": "Nur du und deine Lachsnase!"
+	},
+	"login": {
+		"title": "Einloggen",
+		"username": "Benutzername",
+		"password": "Passwort",
+		"login_button": "Einloggen",
+		"google_button": "Mit Google einloggen",
+		"or": "oder"
+	},
+	"register": {
+		"title": "Registrieren",
+		"username": "Benutzername",
+		"displayname": "Anzeigename",
+		"password": "Passwort",
+		"register_button": "Registrieren",
+		"google_button": "Mit Google registrieren"
+	},
+	"about": {
+		"title": "Über uns"
+	}
 }

@@ -1,14 +1,14 @@
 <nav class="space-x-4">
 	<button data-page="index" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-		onclick="loadPartialView('index')">Home</button>
+		onclick="loadPartialView('index')"><%= t('header.title') %></button>
 	<button data-page="profile" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-		onclick="loadPartialView('profile')">Profile</button>
+		onclick="loadPartialView('profile')"><%= t('header.profile') %></button>
 	<button data-page="game_setup" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-		onclick="loadPartialView('game_setup')">Game</button>
+		onclick="loadPartialView('game_setup')"><%= t('header.game') %></button>
 	<button data-page="logout" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 		onclick="logout()">
-		Logout
+		<%= t('header.logout') %>
 	</button>
 	<button data-page="about" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-		onclick="loadPartialView('about')">About</button>
+		onclick="loadPartialView('about')"><%= t('header.about') %></button>
 </nav>

@@ -1,4 +1,44 @@
 {
-	"title": "Bienvenue chez Transcendence Étranger...",
-	"description": "Juste vous et votre nez de saumon!"
+	"header": {
+		"home": "Accueil",
+		"title": "Bienvenue sur Transcendence",
+		"page_title": "Transcendence : Accueil"
+	},
+	"menu": {
+		"login": "Connexion",
+		"logout": "Déconnexion",
+		"register": "S'inscrire",
+		"about": "À propos",
+		"profile": "Profil",
+		"game": "Jeu"
+	},
+	"footer": {
+		"number": {
+			"label": "LE SAINT NOMBRE DU DESTIN !",
+			"click": "- (pourquoi ne cliquez-vous pas dessus ?)"
+		}
+	},
+	"index": {
+		"title": "Bienvenue sur Transcendence, étranger...",
+		"description": "Juste toi et ton nez de saumon !"
+	},
+	"login": {
+		"title": "Connexion",
+		"username": "Nom d'utilisateur",
+		"password": "Mot de passe",
+		"login_button": "Connexion",
+		"google_button": "Se connecter avec Google",
+		"or": "ou"
+	},
+	"register": {
+		"title": "S'inscrire",
+		"username": "Nom d'utilisateur",
+		"displayname": "Nom d'affichage",
+		"password": "Mot de passe",
+		"register_button": "S'inscrire",
+		"google_button": "S'inscrire avec Google"
+	},
+	"about": {
+		"title": "À propos"
+	}
 }

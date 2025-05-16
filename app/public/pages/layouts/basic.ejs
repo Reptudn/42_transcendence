@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Transcendence: Home</title>
+		<title><%= t('header.page_title') %></title>
 		<link rel="stylesheet" href="/static/css/styles.css" />
 		<link rel="stylesheet" href="/static/css/popups.css" />
 		<link href="/static/css/output.css" rel="stylesheet">
@@ -24,7 +24,7 @@
 					class="text-2xl font-bold"
 					onclick="loadPartialView('index')"
 				>
-					Welcome to Transcendence
+					<%= t('header.title') %>
 				</h1>
 				<div id="menu">
 					<% if (!isAuthenticated) { %> <%-
@@ -60,14 +60,14 @@
 			<div class="container mx-auto text-center">
 				<div>
 					<h2>
-						THE HOLY NUMBER OF DESTINY:
+						<%= t('footer.number.label') %>
 						<span
 							id="numberDisplay"
 							class="select-none cursor-pointer text-xl font-semibold text-blue-400 hover:text-blue-600 transition-colors"
 						>
 							0
 						</span>
-						- (why don't you click on it?)
+						<%= t('footer.number.click') %>
 					</h2>
 				</div>
 				<p>&copy; 2025; 42 Transcendence by jkauker, fschuber, ntalmon, lbohm and lglauch</p>

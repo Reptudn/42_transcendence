@@ -1,4 +1,44 @@
 {
-	"title": "Welcome to Transcendence Stranger...",
-	"description": "Just you and your salmon nose!"
+	"header": {
+		"home": "Home",
+		"title": "Welcome to Transcendence",
+		"page_title": "Transcendence: Home"
+	},
+	"menu": {
+		"login": "Login",
+		"logout": "Logout",
+		"register": "Register",
+		"about": "About",
+		"profile": "Profile",
+		"game": "Game"
+	},
+	"footer": {
+		"number": {
+			"label": "THE HOLY NUMBER OF DESTINY!",
+			"click": "- (why don't you click on it?)"
+		}
+	},
+	"index": {
+		"title": "Welcome to Transcendence Stranger...",
+		"description": "Just you and your salmon nose!"
+	},
+	"login": {
+		"title": "Login",
+		"username": "Username",
+		"password": "Password",
+		"login_button": "Login",
+		"google_button": "Login with Google",
+		"or": "or"
+	},
+	"register": {
+		"title": "Register",
+		"username": "Username",
+		"displayname": "Display Name",
+		"password": "Password",
+		"register_button": "Register",
+		"google_button": "Register with Google"
+	},
+	"about": {
+		"title": "About"
+	}
 }
