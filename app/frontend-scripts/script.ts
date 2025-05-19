@@ -15,9 +15,9 @@ export function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
 	for (const button of menuButtons) {
 		if (button.getAttribute('data-page') === selectedPage) {
-			button.classList.add('active');
+			button.classList.add('glow-blue');
 		} else {
-			button.classList.remove('active');
+			button.classList.remove('glow-blue');
 		}
 	}
 	document.head.title = `Transcendence: ${selectedPage}`;

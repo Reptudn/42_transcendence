@@ -11,3 +11,128 @@
 	--color-neon-green: #2ecc71; /* Bright green */
 	--color-neon-yellow: #ffeb3b; /* Neon yellow */
 }
+
+@layer utilities {
+	.glow-green {
+		font-family: 'VT323' , monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow:
+			0 0 5px #00ff00,
+			0 0 10px #00ff00,
+			0 0 20px #00ff00,
+			0 0 40px #00ff00;
+	}
+
+	.glow-blue {
+		font-family: 'VT323' , monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow:
+			0 0 5px #0000ff,
+			0 0 10px #0000ff,
+			0 0 20px #0000ff,
+			0 0 40px #0000ff;
+	}
+
+	.glow-red {
+		font-family: 'VT323' , monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow:
+			0 0 5px #ff0000,
+			0 0 10px #ff0000,
+			0 0 20px #ff0000,
+			0 0 40px #ff0000;
+	}
+
+	.scanlines {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			transparent,
+			transparent 2px,
+			rgba(255,255,255,0.25) 2px,
+			rgba(0,0,0,0.7) 3px,
+			transparent 4px,
+			transparent 6px
+		);
+		mix-blend-mode: overlay;
+		animation: scanlines-move 1s linear infinite;
+		z-index: 2;
+	}
+
+	@keyframes scanlines-move {
+		0% { background-position-y: 0; }
+		100% { background-position-y: 5px; }
+	}
+
+	.vignette {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		background: radial-gradient(
+			circle,
+			rgba(0, 0, 0, 0) 70%,
+			rgba(0, 0, 0, 0.2) 85%,
+			rgba(0, 0, 0, 1) 100%
+		);
+		z-index: 1;
+	}
+
+	.screen-bulge {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 60;
+		mix-blend-mode: lighten;
+		background: radial-gradient(
+			circle at 50% 50%,
+			rgba(255,255,255,0.35) 0%,
+			rgba(255,255,255,0.20) 35%,
+			rgba(0,0,0,0.25) 80%,
+			rgba(0,0,0,0.45) 100%
+		);
+	}
+
+
+}
+
+body {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>") 16 16, auto;
+}
+
+@keyframes cursor-glow {
+    0% {
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>") 16 16, pointer;
+    }
+    50% {
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='7' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='6' filter='url(%23g)'/></svg>") 16 16, pointer;
+    }
+    100% {
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>") 16 16, pointer;
+    }
+}
+
+/* Apply animated cursor to clickable elements on hover/focus */
+a:hover, a:focus,
+button:hover, button:focus,
+input[type="button"]:hover, input[type="button"]:focus,
+input[type="submit"]:hover, input[type="submit"]:focus,
+.cursor-pointer:hover, .cursor-pointer:focus {
+    animation: cursor-glow 1s infinite;
+}
+
+/* Fallback for browsers that don't animate cursor property: use strong glow on hover */
+a:hover, a:focus,
+button:hover, button:focus,
+input[type="button"]:hover, input[type="button"]:focus,
+input[type="submit"]:hover, input[type="submit"]:focus,
+.cursor-pointer:hover, .cursor-pointer:focus {
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='7' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='6' filter='url(%23g)'/></svg>") 16 16, pointer;
+}
+/* ...existing code... */
