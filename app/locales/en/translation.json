@@ -40,5 +40,14 @@
 	},
 	"about": {
 		"title": "About"
+	},
+	"profile": {
+		"edit_profile": "Edit Profile",
+		"no_bio": "This user has no bio.",
+		"friends": "Friends",
+		"remove": "Remove",
+		"add_friends": "Add Friends",
+		"locked_achievements": "Locked Achievements",
+		"achievements": "Achievements"
 	}
 }

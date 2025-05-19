@@ -40,5 +40,14 @@
 	},
 	"about": {
 		"title": "Über uns"
+	},
+	"profile": {
+		"edit_profile": "Profil bearbeiten",
+		"no_bio": "Dieser Benutzer hat keine Biografie.",
+		"friends": "Freunde",
+		"remove": "Entfernen",
+		"add_friends": "Mehr Freunde hinzufügen",
+		"locked_achievements": "Gesperrte Erfolge",
+		"achievements": "Erfolge"
 	}
 }
