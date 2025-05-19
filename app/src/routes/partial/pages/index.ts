@@ -117,6 +117,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					connectedClients.has(friend.id)
 				);
 				variables['friends'] = friends;
+			} else if (page === 'chat') {
+				await checkAuth(req, true, fastify);
 			}
 		} catch (err) {
 			variables['err_code'] = errorCode;
@@ -125,11 +127,9 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			} else {
 				variables['err_message'] = 'An unknown error occurred';
 			}
-			return reply
-				.code(errorCode)
-				.view('error.ejs', variables, {
-					layout: layoutOption,
-				});
+			return reply.code(errorCode).view('error.ejs', variables, {
+				layout: layoutOption,
+			});
 		}
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])
