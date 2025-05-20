@@ -49,5 +49,46 @@
 		"add_friends": "Ajouter des amis",
 		"locked_achievements": "Succès verrouillés",
 		"achievements": "Succès"
+	},
+	"edit_profile": {
+		"edit_profile": "Editer votre profil",
+		"profile_picture": "Image de profil",
+		"remove": "Retirer",
+		"username": "Nom d'utilisateur",
+		"no_spaces": "Aucune espace autorisée",
+		"displayname": "Nom d'affichage",
+		"save_changes": "Enregistrer les modifications",
+		"change_title": "Modifier le titre",
+		"complete_achievements_to_unlock": "Terminer les succès pour débloquer plus de titres",
+		"save_title": "Enregistrer le titre",
+		"change_password": "Changer le mot de passe",
+		"old_password": "Ancien mot de passe",
+		"new_password": "Nouveau mot de passe",
+		"password_no_spaces": "Le nouveau mot de passe ne peut pas contenir d'espaces",
+		"save_new_password": "Enregistrer le nouveau mot de passe",
+		"delete_user": "Supprimer l'utilisateur",
+		"password": "Mot de passe"
+	},
+	"game_setup": {
+		"game_setup": "Configuration du jeu",
+		"general_settings": "Paramètres généraux",
+		"map": "Carte",
+		"modes": {
+			"classic": "Classique"
+		},
+		"player_lives": "Vies du joueur",
+		"game_difficulty": "Difficulté du jeu",
+		"powerups_enabled": "Power-ups activés ?",
+		"player_settings": "Paramètres du joueur",
+		"player_settings_description": "Il doit toujours y avoir au moins un joueur (c'est vous) et jamais plus de quatre.\nPour les joueurs supplémentaires, choisissez parmi : Ami (Utilisateur), Joueur local ou IA.",
+		"player": "Joueur",
+		"you": "Vous",
+		"control_scheme": "Schéma de contrôle",
+		"controls": {
+			"arrow_keys": "Touches fléchées"
+		},
+		"add_player": "Ajouter un joueur",
+		"remove_player": "Supprimer un joueur",
+		"start_game": "Démarrer le jeu"
 	}
 }

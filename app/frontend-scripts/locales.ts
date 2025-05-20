@@ -5,7 +5,7 @@ declare global {
 }
 
 export function setLanguageCookie(lang: string) {
-	alert("set lang to: " + lang);
+	// alert("set lang to: " + lang);
 	document.cookie = `i18next=${lang}; path=/; max-age=${60 * 60 * 24 * 30}`;
 }
 

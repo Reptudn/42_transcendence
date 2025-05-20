@@ -49,5 +49,46 @@
 		"add_friends": "Mehr Freunde hinzufügen",
 		"locked_achievements": "Gesperrte Erfolge",
 		"achievements": "Erfolge"
+	},
+	"edit_profile": {
+		"edit_profile": "Profil bearbeiten",
+		"profile_picture": "Profilbild",
+		"remove": "Entfernen",
+		"username": "Benutzername",
+		"no_spaces": "Keine Leerzeichen erlaubt",
+		"displayname": "Anzeigename",
+		"save_changes": "Änderungen speichern",
+		"change_title": "Titel ändern",
+		"complete_achievements_to_unlock": "Erfolge abschließen, um weitere Titel freizuschalten",
+		"save_title": "Titel speichern",
+		"change_password": "Passwort ändern",
+		"old_password": "Altes Passwort",
+		"new_password": "Neues Passwort",
+		"password_no_spaces": "Das neue Passwort darf keine Leerzeichen enthalten",
+		"save_new_password": "Neues Passwort speichern",
+		"delete_user": "Benutzer löschen",
+		"password": "Passwort"
+	},
+	"game_setup": {
+		"game_setup": "Spiel-Einstellungen",
+		"general_settings": "Allgemeine Einstellungen",
+		"map": "Karte",
+		"modes": {
+			"classic": "Klassisch"
+		},
+		"player_lives": "Spielerleben",
+		"game_difficulty": "Spielschwierigkeit",
+		"powerups_enabled": "Power-ups aktiviert?",
+		"player_settings": "Spielereinstellungen",
+		"player_settings_description": "Es muss immer mindestens ein Spieler (das bist du) und niemals mehr als vier geben.\nür zusätzliche Spieler wähle aus: Freund (Benutzer), lokaler Spieler oder KI.",
+		"player": "Spieler",
+		"you": "Du",
+		"control_scheme": "Steuerungsschema",
+		"controls": {
+			"arrow_keys": "Pfeiltasten"
+		},
+		"add_player": "Spieler hinzufügen",
+		"remove_player": "Spieler entfernen",
+		"start_game": "Spiel starten"
 	}
 }
