@@ -2,7 +2,7 @@
 
 import { loadPartialView } from './script.js';
 
-const popupContainer: HTMLElement | null =
+export const popupContainer: HTMLElement | null =
 	document.getElementById('popup-container');
 if (!popupContainer) console.error('popup-container not found');
 
@@ -179,9 +179,17 @@ declare global {
 	interface Window {
 		acceptGameInvite: (gameId: number, playerId: number) => void;
 		notifyEventSource: EventSource | null;
+		updateCloseAllVisibility: () => void;
+		dismissPopup: (closeElement: HTMLElement) => void;
+		closeAllPopups: () => void;
+		popupContainer: HTMLElement | null;
 	}
 }
 
 closeAllPopups();
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
+window.updateCloseAllVisibility = updateCloseAllVisibility;
+window.dismissPopup = dismissPopup;
+window.closeAllPopups = closeAllPopups;
+window.popupContainer = popupContainer;
