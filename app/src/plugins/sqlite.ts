@@ -5,7 +5,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const achievementsData = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
+	fs.readFileSync(
+		path.resolve(__dirname, '../../data/achievements.json'),
+		'utf-8'
+	)
 );
 import { FastifyInstance } from 'fastify';
 
@@ -22,7 +25,7 @@ export default fp(async (fastify) => {
 	});
 	fastify.decorate('sqlite', db);
 
-	fastify.log.info("Fastify opened and decorated!")
+	fastify.log.info('Fastify opened and decorated!');
 
 	// TODO: use migrations?
 
@@ -79,6 +82,38 @@ export default fp(async (fastify) => {
 			)
 		`);
 
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS chats (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT, -- optional für Gruppen
+			is_group BOOLEAN DEFAULT 0,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			)
+		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS chat_participants (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			chat_id INTEGER NOT NULL,
+			user_id INTEGER NOT NULL,
+			FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(chat_id, user_id)
+			)
+		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS messages (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			chat_id INTEGER NOT NULL,
+			user_id INTEGER,
+			content TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+			)
+		`);
+
 		for (const achievement of achievementsData) {
 			await fastify.sqlite.run(
 				`INSERT OR IGNORE INTO achievements 
@@ -105,5 +140,5 @@ export default fp(async (fastify) => {
 				'An error occurred while managing the database:',
 				error
 			);
-		})
+		});
 });

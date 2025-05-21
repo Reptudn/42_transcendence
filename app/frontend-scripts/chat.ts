@@ -1,30 +1,30 @@
 const socket: WebSocket = new WebSocket('/api/chat');
 
 interface ChatMessage {
-	user: string,
-	message: string
+	user: string;
+	message: string;
 }
 
-function sendMessageToChat(message: ChatMessage)
-{
+function sendMessageToChat(message: ChatMessage) {
 	socket.send(JSON.stringify(message));
 }
 
-function appendToChatBox(message: ChatMessage)
-{
+function appendToChatBox(message: ChatMessage) {
+	const { user, message: msg } = message;
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) return;
 
 	const messageElement = document.createElement('div');
-	messageElement.textContent = `${message.user}: ${message.message}`;
+	messageElement.textContent = `${user}: ${msg}`;
 	chatMessages.appendChild(messageElement);
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 socket.onmessage = (event) => {
+	console.info('onmessage', event.data);
 	const parsed = JSON.parse(event.data);
 	appendToChatBox(parsed);
-}
+};
 
 document.getElementById('sendChatButton')?.addEventListener('click', () => {
 	const input = document.getElementById('chatInput') as HTMLInputElement;
@@ -32,7 +32,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', () => {
 		const msg = input.value.trim();
 		input.value = '';
 
-		sendMessageToChat({user: 'You', message: msg});
+		sendMessageToChat({ user: 'You', message: msg });
 	}
 });
 
