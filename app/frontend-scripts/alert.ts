@@ -3,7 +3,7 @@
 
 declare const ejs: typeof import('ejs');
 
-import { popupContainer, updateCloseAllVisibility } from './events';
+import { popupContainer, updateCloseAllVisibility } from './events.js';
 
 interface LocalAlertData {
 	title: string;
@@ -35,16 +35,18 @@ export function showLocalPopup(data: LocalAlertData) {
 	updateCloseAllVisibility();
 }
 
-showLocalPopup({
-	title: 'Local Alert',
-	description: 'This is a local alert message.',
-	color: 'blue',
-});
-
 declare global {
 	interface Window {
 		showLocalPopup: (data: LocalAlertData) => void;
 	}
 }
+
+window.showLocalPopup = showLocalPopup;
+
+showLocalPopup({
+	title: 'Local Alert',
+	description: 'This is a local alert message.',
+	color: 'blue',
+});
 
 console.info("moin moin from alert.ts");
