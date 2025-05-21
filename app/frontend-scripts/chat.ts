@@ -1,17 +1,38 @@
+const socket: WebSocket = new WebSocket('/api/chat');
+
+interface ChatMessage {
+	user: string,
+	message: string
+}
+
+function sendMessageToChat(message: ChatMessage)
+{
+	socket.send(JSON.stringify(message));
+}
+
+function appendToChatBox(message: ChatMessage)
+{
+	const chatMessages = document.getElementById('chatMessages');
+	if (!chatMessages) return;
+
+	const messageElement = document.createElement('div');
+	messageElement.textContent = `${message.user}: ${message.message}`;
+	chatMessages.appendChild(messageElement);
+	chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+socket.onmessage = (event) => {
+	const parsed = JSON.parse(event.data);
+	appendToChatBox(parsed);
+}
+
 document.getElementById('sendChatButton')?.addEventListener('click', () => {
 	const input = document.getElementById('chatInput') as HTMLInputElement;
 	if (input && input.value.trim() !== '') {
-		const msg = { type: 'chat', text: input.value.trim() };
-		// ws.send(JSON.stringify(msg));
+		const msg = input.value.trim();
 		input.value = '';
 
-		const chatMessages = document.getElementById('chatMessages');
-		if (chatMessages) {
-			const messageElement = document.createElement('div');
-			messageElement.textContent = `You: ${msg.text}`;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-		}
+		sendMessageToChat({user: 'You', message: msg});
 	}
 });
 
