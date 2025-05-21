@@ -89,8 +89,6 @@ export function removeFriendRequest(friendId: number) {
 		});
 }
 
-console.info("moin moin from friends.ts");
-
 window.sendFriendRequest = sendFriendRequest;
 window.acceptFriendRequest = acceptFriendRequest;
 window.declineFriendRequest = declineFriendRequest;
