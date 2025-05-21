@@ -127,17 +127,17 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 			return reply
 				.code(errorCode)
-				.view('error.ejs', variables, {
+				.view('error.ejs', { ...variables, t: req.t }, {
 					layout: layoutOption,
 				});
 		}
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])
-			return reply.view(`no_access.ejs`, variables, {
+			return reply.view(`no_access.ejs`, {...variables, t: req.t }, {
 				layout: layoutOption,
 			});
 		else
-			return reply.view(`${page}`, variables, {
+			return reply.view(`${page}`, {...variables, t: req.t }, {
 				layout: layoutOption,
 			});
 	});
