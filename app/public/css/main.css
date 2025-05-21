@@ -106,19 +106,75 @@
 		z-index: 1;
 	}
 
-	.screen-bulge {
+	.tv-screen {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		perspective: 1000px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 0;
+		/* background: radial-gradient(
+			circle at 50% 50%,
+			rgba(255, 172, 172, 0.296) 0%,
+			rgb(72, 27, 0) 100%
+		); */
+		overflow: hidden;
+	}
+
+	.video-background {
 		position: fixed;
-		inset: 0;
-		pointer-events: none;
-		z-index: 60;
-		mix-blend-mode: lighten;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover; /* Ensures the video covers the entire screen */
+		z-index: -1; /* Places the video behind other content */
+		pointer-events: none; /* Prevents interaction with the video */
+	}
+
+	.video-fallback {
+		position: fixed; /* Ensures the image stays fixed in the viewport */
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover; /* Ensures the image covers the entire screen without distortion */
+		z-index: -1; /* Places the image behind all other content */
+		pointer-events: none; /* Prevents interaction with the image */
+	}
+
+	/* Inner screen with perspective */
+	.tv-screen-inner {
+		position: relative;
+		width: 90%;
+		height: 90%;
+		transform: scale(1.02); /* Slight tilt for the old TV effect */
+		border: 40px solid rgb(43, 43, 43);
+		border-radius: 1%;
+		box-shadow: 0 0 50px rgba(0, 0, 0, 0.858),
+			inset 0 0 20px rgba(0, 0, 0, 0.839);
 		background: radial-gradient(
 			circle at 50% 50%,
-			rgba(255, 255, 255, 0.35) 0%,
-			rgba(255, 255, 255, 0.2) 35%,
-			rgba(0, 0, 0, 0.25) 80%,
-			rgba(0, 0, 0, 0.45) 100%
+			rgb(46, 46, 46) 0%,
+			rgba(33, 33, 33, 0.9) 100%
 		);
+		overflow: hidden;
+	}
+
+	.tv-screen-inner::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			circle at 50% 50%,
+			rgba(255, 255, 255, 0.2) 0%,
+			rgba(0, 0, 0, 0.9) 100%
+		); /* Adds a zoom-like gradient */
+		transform: scale(1.1); /* Slight zoom effect */
+		filter: blur(2px); /* Blurs the edges for a CRT-like effect */
+		pointer-events: none;
 	}
 }
 
