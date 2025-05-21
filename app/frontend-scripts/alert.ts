@@ -12,7 +12,6 @@ interface LocalAlertData {
 }
 
 export function showLocalPopup(data: LocalAlertData) {
-	console.log("local alert");
 	const template = `
 <div class="popup flex pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
 	role="alert">
@@ -35,18 +34,34 @@ export function showLocalPopup(data: LocalAlertData) {
 	updateCloseAllVisibility();
 }
 
+export function showLocalError(description: string) {
+	showLocalPopup({title: 'Error', description, color: 'red'});
+}
+
+export function showLocalInfo(description: string) {
+	showLocalPopup({title: 'Info', description, color: 'yellow'});
+}
+
+export function showLocalLog(description: string) {
+	showLocalPopup({title: 'Log', description, color: 'green'});
+}
+
 declare global {
 	interface Window {
 		showLocalPopup: (data: LocalAlertData) => void;
+		showLocalError: (description: string) => void;
+		showLocalInfo: (description: string) => void;
+		showLocalLog: (description: string) => void;
 	}
 }
 
 window.showLocalPopup = showLocalPopup;
+window.showLocalError = showLocalError;
+window.showLocalInfo = showLocalInfo;
+window.showLocalLog = showLocalLog;
 
 showLocalPopup({
 	title: 'Local Alert',
 	description: 'This is a local alert message.',
 	color: 'blue',
 });
-
-console.info("moin moin from alert.ts");

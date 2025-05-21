@@ -1,3 +1,5 @@
+import { showLocalError, showLocalInfo } from "./alert.js";
+
 export interface FriendUser {
 	id: number;
 	username: string;
@@ -28,10 +30,10 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			console.log('Friend request sent:', data.message);
+			showLocalInfo(`Friend request sent: ${data.message}`);
 		})
 		.catch((error) => {
-			console.error('Error sending friend request:', error);
+			showLocalError(`Error sending friend request: ${error}`);
 			btn.textContent = 'Send request';
 			btn.style.backgroundColor = '';
 			btn.disabled = false;
@@ -48,10 +50,10 @@ export function acceptFriendRequest(requestId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			console.log('Friend request accepted:', data.message);
+			showLocalInfo(`Friend request accepted: ${data.message}`);
 		})
 		.catch((error) => {
-			console.error('Error accepting friend request:', error);
+			showLocalError(`Error accepting friend request: ${error}`);
 		});
 }
 export function declineFriendRequest(requestId: number) {
@@ -65,10 +67,10 @@ export function declineFriendRequest(requestId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			console.log('Friend request declined:', data.message);
+			showLocalInfo(`Friend request declined: ${data.message}`);
 		})
 		.catch((error) => {
-			console.error('Error declining friend request:', error);
+			showLocalError(`Error declining friend request: ${error}`);
 		});
 }
 export function removeFriendRequest(friendId: number) {
@@ -82,10 +84,10 @@ export function removeFriendRequest(friendId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			console.log('Friend removed:', data.message);
+			showLocalInfo(`Friend removed: ${data.message}`);
 		})
 		.catch((error) => {
-			console.error('Error removing friend:', error);
+			showLocalError(`Error removing friend: ${error}`);
 		});
 }
 

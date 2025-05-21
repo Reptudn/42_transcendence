@@ -1,3 +1,4 @@
+import { showLocalInfo, showLocalError } from './alert.js';
 import './script.js';
 import { updateMenu, loadPartialView } from './script.js';
 
@@ -17,14 +18,14 @@ const loginAction = async () => {
 		if (response.ok) {
 			updateMenu();
 			loadPartialView('profile');
-			alert('You have logged in successfully');
+			showLocalInfo('You have logged in successfully');
 		} else {
 			const data = await response.json();
-			alert(`Error: ${data.message}`);
+			showLocalError(`Error: ${data.message}`);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		alert('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.');
 	}
 };
 
