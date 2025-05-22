@@ -10,8 +10,8 @@ import {
 	getUserTitle,
 	getUserTitlesForTitle,
 } from '../../../services/database/users';
-import { connectedClients } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
+import { connectedClients } from '../../../services/sse/handler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {

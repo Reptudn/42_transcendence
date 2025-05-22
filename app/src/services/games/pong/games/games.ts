@@ -10,8 +10,9 @@ const defaultBotNames = JSON.parse(
 	)
 );
 import { getUserTitleString, getUserById } from '../../../database/users.js';
-import { connectedClients, sendRawToClient } from '../../../sse/popup.js';
+import { sendRawToClient } from '../../../sse/popup.js';
 import { FastifyInstance } from 'fastify';
+import { connectedClients } from '../../../sse/handler.js';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
