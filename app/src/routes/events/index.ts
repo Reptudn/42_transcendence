@@ -24,21 +24,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			sendSseHeaders(reply);
 
-			// reply.raw.writeHead(200, {
-			// 	'Content-Type': 'text/event-stream',
-			// 	'Cache-Control': 'no-cache',
-			// 	Connection: 'keep-alive',
-			// 	'Transfer-Encoding': 'identity',
-			// });
-
 			sendSseMessage(reply, 'log', 'Connection with Server established')
-
-			// reply.raw.write(
-			// 	`data: ${JSON.stringify({
-			// 		type: 'log',
-			// 		message: 'Connection with Server established',
-			// 	})}\n\n`
-			// );
 
 			connectedClients.set(user.id, reply);
 

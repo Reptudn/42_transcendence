@@ -2,19 +2,6 @@ import ejs from 'ejs';
 import path from 'path';
 import { connectedClients, sendSseHtml, sendSseMessage } from './handler';
 
-// TODO: abstract this to a common place
-export const sendRawToClient = (userId: number, data: any) => {
-	console.log('Sending raw data to client', userId, data);
-	const reply = connectedClients.get(userId);
-	if (reply) {
-		if (!data.endsWith('\n\n')) {
-			data += '\n\n';
-		}
-		reply.raw.write(data);
-	} else {
-		console.error(`User ${userId} not found in connected users.`);
-	}
-};
 export function sendPopupToClient(
 	id: number,
 	title: string = 'Info',
@@ -46,29 +33,14 @@ export function sendPopupToClient(
 			(err, str) => {
 				if (err) {
 					console.error('Error rendering view:', err);
-					// reply.raw.write(
-					// 	`data: ${JSON.stringify({
-					// 		type: 'error',
-					// 		message: err,
-					// 	})}\n\n`
-					// );
 					sendSseMessage(reply, 'error', err);
 				} else {
-					// reply.raw.write(
-					// 	`data: ${JSON.stringify({
-					// 		type: 'popup',
-					// 		html: str,
-					// 	})}\n\n`
-					// );
 					sendSseHtml(reply, 'popup', str);
 				}
 			}
 		);
 	} catch (err) {
 		console.error('Error rendering view:', err);
-		// reply.raw.write(
-		// 	`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`
-		// );
 		sendSseMessage(reply, 'error', err);
 	}
 }
@@ -105,29 +77,14 @@ export function sendAchievementToClient(
 			(err, str) => {
 				if (err) {
 					console.error('Error rendering view:', err);
-					// reply.raw.write(
-					// 	`data: ${JSON.stringify({
-					// 		type: 'error',
-					// 		message: err,
-					// 	})}\n\n`
-					// );
 					sendSseMessage(reply, 'error', err);
 				} else {
-					// reply.raw.write(
-					// 	`data: ${JSON.stringify({
-					// 		type: 'popup',
-					// 		html: str,
-					// 	})}\n\n`
-					// );
 					sendSseHtml(reply, 'popup', str);
 				}
 			}
 		);
 	} catch (err) {
 		console.error('Error rendering view:', err);
-		// reply.raw.write(
-		// 	`data: ${JSON.stringify({ type: 'error', message: err })}\n\n`
-		// );
 		sendSseMessage(reply, 'error', err);
 	}
 }

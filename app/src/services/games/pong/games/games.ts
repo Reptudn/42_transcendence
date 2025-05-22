@@ -10,9 +10,8 @@ const defaultBotNames = JSON.parse(
 	)
 );
 import { getUserTitleString, getUserById } from '../../../database/users.js';
-import { sendRawToClient } from '../../../sse/popup.js';
 import { FastifyInstance } from 'fastify';
-import { connectedClients } from '../../../sse/handler.js';
+import { connectedClients, sendSseRawByUserId } from '../../../sse/handler.js';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
@@ -136,7 +135,7 @@ export async function startGame(
 			player.userId !== admin.id &&
 			connectedClients.has(player.userId)
 		) {
-			sendRawToClient(
+			sendSseRawByUserId(
 				player.userId,
 				`data: ${JSON.stringify({
 					type: 'game_request',
@@ -147,7 +146,7 @@ export async function startGame(
 		}
 	});
 
-	sendRawToClient(
+	sendSseRawByUserId(
 		admin.id,
 		`data: ${JSON.stringify({
 			type: 'game_admin_request',
