@@ -30,15 +30,7 @@
 			</div>
 		</div>
 		<img src="/static/assets/backgrounds/tapete.jpg" alt="Background" class="video-fallback">
-		<!-- <video
-		src="/static/assets/backgrounds/Arcade_bg.mp4"
-		autoplay
-		muted
-		loop
-		class="video-background"
-		></video> -->
-		<div class="tv-screen-inner">
-		<img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" />
+		<div class="tv-screen-inner relative">
 		<header class="text-white p-4">
 			<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
 					<h1
@@ -61,23 +53,24 @@
 				<%- body %>
 			</div>
 			<div
-				id="popup-wrapper"
-				class="fixed bottom-5 left-5 z-50 flex flex-col gap-3 pointer-events-none"
+			id="popup-wrapper"
+			class="fixed bottom-12 left-5 z-50 flex flex-col gap-3 pointer-events-none"
 			>
-				<div
-					id="popup-container"
-					class="flex flex-col-reverse gap-3"
-				></div>
-				<button
-					id="close-all-popups-btn"
-					class="mt-2 self-start pointer-events-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-				>
-					Close all
-				</button>
+			<div
+			id="popup-container"
+			class="flex flex-col-reverse gap-3"
+			></div>
+			<button
+			id="close-all-popups-btn"
+			class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded"
+			>
+			Close all
+			</button>
 			</div>
 		</main>
+	</div>
 
-		<footer class="text-white p-4 mt-4 text-2xl absolute bottom-0 left-1/2 transform -translate-x-1/2">
+		<footer class="text-white p-4 mt-4 text-2xl absolute bottom-12 left-1/2 transform -translate-x-1/2">
 			<div class="container mx-auto text-center glow-green">
 				<div>
 					<h2>
@@ -103,6 +96,5 @@
 		<script type="module" src="/static/js/events.js" defer></script>
 		<script type="module" src="/static/js/friends.js" defer></script>
 		<script src="/static/js/loading_animation.js" defer></script>
-		</div>
 	</body>
 </html>
