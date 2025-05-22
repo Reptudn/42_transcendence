@@ -40,6 +40,33 @@
 			0 0 40px #ff0000;
 	}
 
+	.hover\:glow-green:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00,
+			0 0 40px #00ff00;
+	}
+
+	.hover\:glow-blue:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #0000ff, 0 0 10px #0000ff, 0 0 20px #0000ff,
+			0 0 40px #0000ff;
+	}
+
+	.hover\:glow-red:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff0000,
+			0 0 40px #ff0000;
+	}
+
 	.scanlines {
 		position: fixed;
 		inset: 0;
@@ -204,56 +231,27 @@
 }
 
 body {
-	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>")
-			16 16,
+	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><polygon points='0,0 24,12 6,28' fill='black' stroke='%2300ff00' stroke-width='2'/></svg>")
+			0 0,
 		auto;
 }
-
-@keyframes cursor-glow {
+a:hover,
+button:hover,
+.pointer-cursor:hover {
+	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><polygon points='0,0 24,12 6,28' fill='black' stroke='%2300ff00' stroke-width='2'/></svg>")
+			0 0,
+		auto;
+	animation: pulse-scale 1.2s infinite ease-in-out; /* Apply animation directly to the hovered element */
+}
+@keyframes pulse-scale {
 	0% {
-		cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>")
-				16 16,
-			pointer;
+		filter: drop-shadow(0 0 5px #00ff00);
 	}
 	50% {
-		cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='7' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='6' filter='url(%23g)'/></svg>")
-				16 16,
-			pointer;
+		filter: drop-shadow(0 0 15px #00ff00);
 	}
 	100% {
-		cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='3.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='4' filter='url(%23g)'/></svg>")
-				16 16,
-			pointer;
+		filter: drop-shadow(0 0 5px #00ff00);
 	}
-}
-
-/* Apply animated cursor to clickable elements on hover/focus */
-a:hover,
-a:focus,
-button:hover,
-button:focus,
-input[type='button']:hover,
-input[type='button']:focus,
-input[type='submit']:hover,
-input[type='submit']:focus,
-.cursor-pointer:hover,
-.cursor-pointer:focus {
-	animation: cursor-glow 1s infinite;
-}
-
-/* Fallback for browsers that don't animate cursor property: use strong glow on hover */
-a:hover,
-a:focus,
-button:hover,
-button:focus,
-input[type='button']:hover,
-input[type='button']:focus,
-input[type='submit']:hover,
-input[type='submit']:focus,
-.cursor-pointer:hover,
-.cursor-pointer:focus {
-	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><filter id='g'><feGaussianBlur stdDeviation='7' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter><circle cx='16' cy='16' r='6' fill='white'/><circle cx='16' cy='16' r='10' fill='none' stroke='%2300ff00' stroke-width='6' filter='url(%23g)'/></svg>")
-			16 16,
-		pointer;
 }
 /* ...existing code... */
