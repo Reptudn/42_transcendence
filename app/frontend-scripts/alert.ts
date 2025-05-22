@@ -1,9 +1,9 @@
 // NOTE: this is for only local popup alerts and not server rendered ones
 // import ejs from 'ejs';
 
-declare const ejs: typeof import('ejs');
+import { popupContainer, updateCloseAllVisibility } from './popup.js';
 
-import { popupContainer, updateCloseAllVisibility } from './events.js';
+declare const ejs: typeof import('ejs');
 
 interface LocalAlertData {
 	title: string;
