@@ -1,69 +1,8 @@
-// ----- Closing Buttons -----
-
-import { loadPartialView } from './script.js';
-
-export const popupContainer: HTMLElement | null =
-	document.getElementById('popup-container');
-if (!popupContainer) console.error('popup-container not found');
-
-export function updateCloseAllVisibility(): void {
-	const closeAllBtn = document.getElementById('close-all-popups-btn');
-	if (!closeAllBtn) return;
-	const popups = document.querySelectorAll('.popup');
-	closeAllBtn.style.display = popups.length > 0 ? 'block' : 'none';
-}
-updateCloseAllVisibility();
-
-export function dismissPopup(closeElement: HTMLElement): void {
-	const popup = closeElement.closest('.popup');
-	if (popup) {
-		popup.classList.add('animate-fadeOut');
-		popup.addEventListener(
-			'animationend',
-			() => {
-				popup.remove();
-				updateCloseAllVisibility();
-			},
-			{ once: true }
-		);
-	}
-}
-
-export function closeAllPopups(): void {
-	const popups = document.querySelectorAll('.popup');
-	for (const popup of popups) {
-		popup.classList.add('animate-fadeOut');
-		popup.addEventListener(
-			'animationend',
-			() => {
-				popup.remove();
-				updateCloseAllVisibility();
-			},
-			{ once: true }
-		);
-	}
-}
-const closeAllBtn = document.getElementById('close-all-popups-btn');
-if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
-else console.error('closeAllBtn not found');
-
-// ----- EventSource -----
-
-export function getCookie(name: string) {
-	const value = `; ${document.cookie}`;
-	console.log('cookies: ', document.cookie);
-	const parts = value.split(`; ${name}=`);
-
-	if (parts.length === 2) {
-		const part = parts.pop();
-		if (part) {
-			return part.split(';').shift();
-		}
-		return undefined;
-	}
-}
+import { closeAllPopups, popupContainer, updateCloseAllVisibility } from "./popup.js";
+import { loadPartialView } from "./script.js";
 
 export let notifyEventSource: EventSource | null = null;
+
 function setupEventSource() {
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
@@ -146,7 +85,7 @@ function sendPopup(
 	callback2 = '',
 	buttonName2 = 'CLICK ME 2'
 ) {
-	fetch('/notify/send', {
+	fetch('/event/send', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -188,17 +127,9 @@ declare global {
 	interface Window {
 		acceptGameInvite: (gameId: number, playerId: number) => void;
 		notifyEventSource: EventSource | null;
-		updateCloseAllVisibility: () => void;
-		dismissPopup: (closeElement: HTMLElement) => void;
-		closeAllPopups: () => void;
-		popupContainer: HTMLElement | null;
 	}
 }
 
 closeAllPopups();
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
-window.updateCloseAllVisibility = updateCloseAllVisibility;
-window.dismissPopup = dismissPopup;
-window.closeAllPopups = closeAllPopups;
-window.popupContainer = popupContainer;
