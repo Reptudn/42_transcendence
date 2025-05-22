@@ -65,7 +65,7 @@ export function getCookie(name: string) {
 
 export let notifyEventSource: EventSource | null = null;
 function setupEventSource() {
-	notifyEventSource = new EventSource('/notify');
+	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
 		notifyEventSource?.close();
@@ -80,40 +80,49 @@ function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = (event) => {
-		console.log('EventSource message received:', event);
-		console.log('EventSource data:', event.data);
+		// console.log('EventSource message received:', event);
+		// console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 
-			if (data.type === 'log') {
-				console.log(data.message);
-			} else if (data.type === 'warning') {
-				console.warn(data.message);
-			} else if (data.type === 'error') {
-				console.error(data.message);
-			} else if (data.type === 'popup') {
-				if (popupContainer) {
-					popupContainer.insertAdjacentHTML('beforeend', data.html);
-					updateCloseAllVisibility();
-				} else {
-					console.error('❌ popup-container not found in DOM!');
-					return;
-				}
-			} else if (data.type === 'game_request') {
-				console.log('👫 Game request received:', data);
-				sendPopup(
-					'Game Request',
-					'You have been invited to play a game!',
-					'blue',
-					`acceptGameInvite(${data.gameId}, ${data.playerId})`,
-					'Accept'
-				);
-			} else if (data.type === 'game_admin_request') {
-				acceptGameInvite(data.gameId, data.playerId);
-			} else {
-				console.error('❌ Unknown event type:', data.type);
-				console.log(data);
+			switch (data.type) {
+				case 'log':
+					console.log(data.message);
+					break;
+				case 'warning':
+					console.warn(data.message);
+					break;
+				case 'error':
+					console.error(data.message);
+					break;
+				case 'popup':
+					if (popupContainer) {
+						popupContainer.insertAdjacentHTML('beforeend', data.html);
+						updateCloseAllVisibility();
+					} else {
+						console.error('❌ popup-container not found in DOM!');
+						return;
+					}
+					break;
+				case 'game_request':
+					console.log('👫 Game request received:', data);
+					sendPopup(
+						'Game Request',
+						'You have been invited to play a game!',
+						'blue',
+						`acceptGameInvite(${data.gameId}, ${data.playerId})`,
+						'Accept'
+					);
+					break;
+				case 'game_admin_request':
+					acceptGameInvite(data.gameId, data.playerId);
+					break;
+				default:
+					console.error('❌ Unknown event type:', data.type);
+					console.log(data);
+					break;
 			}
+
 		} catch (err) {
 			console.error('Error parsing event data:', err);
 		}

@@ -8,7 +8,7 @@ import {
 	removeFriendship,
 } from '../../../services/database/friends';
 import { getNameForUser } from '../../../services/database/users';
-import { connectedClients, sendPopupToClient } from '../../../services/sse/sse';
+import { connectedClients, sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {

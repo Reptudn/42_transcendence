@@ -1,8 +1,8 @@
-import { FastifyReply } from 'fastify';
 import ejs from 'ejs';
 import path from 'path';
+import { connectedClients } from './handler';
 
-export let connectedClients: Map<number, FastifyReply> = new Map();
+
 
 export const sendRawToClient = (userId: number, data: any) => {
 	console.log('Sending raw data to client', userId, data);

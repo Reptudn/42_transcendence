@@ -1,11 +1,12 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-import { connectedClients, sendPopupToClient } from '../../services/sse/sse';
+import { sendPopupToClient } from '../../services/sse/popup';
 import { checkAuth } from '../../services/auth/auth';
 import {
 	getPendingFriendRequestsForUser,
 	removeFriendship,
 } from '../../services/database/friends';
 import { getUserById, getNameForUser } from '../../services/database/users';
+import { connectedClients } from '../../services/sse/handler';
 
 const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
