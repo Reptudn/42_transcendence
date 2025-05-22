@@ -1,10 +1,12 @@
-const chatEventSource = new EventSource('/api/chat');
 interface ChatMessage {
 	user: string;
 	message: string;
 }
 
-function appendToChatBox(message: ChatMessage) {
+getUser();
+getMessages();
+
+export function appendToChatBox(message: ChatMessage) {
 	const { user, message: msg } = message;
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) return;
@@ -14,10 +16,6 @@ function appendToChatBox(message: ChatMessage) {
 	chatMessages.appendChild(messageElement);
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
-chatEventSource.onmessage = (event) => {
-	console.log('chat event = ', event.data);
-};
 
 document
 	.getElementById('sendChatButton')
@@ -32,14 +30,10 @@ document
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					chat: 'global',
-					is_group: 'true',
+					is_group: true,
 					message: msg,
 				}),
 			});
-			appendToChatBox({ user: 'You', message: msg });
-			const response = await fetch('/api/chat');
-
-			console.log('respone', response);
 		}
 	});
 
@@ -48,3 +42,31 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 		document.getElementById('sendChatButton')?.click();
 	}
 });
+
+export async function getUser() {
+	const res = await fetch('/api/chat/users');
+	const users = await res.json();
+	const userList = document.getElementById('userList');
+	if (userList) {
+		userList.innerHTML = '';
+		for (const user of users) {
+			const div = document.createElement('div');
+			div.textContent = user.username;
+			div.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(div);
+		}
+	}
+}
+
+export async function getMessages() {
+	const res = await fetch('/api/chat/messages');
+	const msgs = await res.json();
+
+	const chatMessages = document.getElementById('chatMessages');
+	if (chatMessages) {
+		chatMessages.innerHTML = '';
+		for (const msg of msgs) {
+			appendToChatBox(msg);
+		}
+	}
+}

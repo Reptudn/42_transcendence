@@ -1,3 +1,5 @@
+import { showLocalInfo, showLocalError } from "./alert.js";
+
 const playersContainer = document.getElementById(
 	'playersContainer'
 ) as HTMLElement;
@@ -243,10 +245,10 @@ startGameButton.addEventListener('click', () => {
 		})
 		.then((result) => {
 			console.log('Game started successfully:', result);
-			alert('Game started successfully!');
+			showLocalInfo('Game started successfully!');
 		})
 		.catch((error) => {
 			console.error('Error starting game:', error);
-			alert(`Error starting game: ${error.message}`);
+			showLocalError(`Error starting game: ${error.message}`);
 		});
 });

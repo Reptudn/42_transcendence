@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Transcendence: Home</title>
+		<title><%= t('header.page_title') %></title>
 		<link rel="stylesheet" href="/static/css/styles.css" />
 		<link rel="stylesheet" href="/static/css/popups.css" />
 		<link href="/static/css/output.css" rel="stylesheet">
@@ -15,6 +15,8 @@
 			name="description"
 			content="Transcendence is a web application for the game of the same name."
 		/>
+		<!-- ejs import -->
+		<script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
 	</head>
 
 	<body class="bg-gray-400 text-gray-900">
@@ -24,13 +26,14 @@
 					class="text-2xl font-bold"
 					onclick="loadPartialView('index')"
 				>
-					Welcome to Transcendence
+					<%= t('header.title') %>
 				</h1>
 				<div id="menu">
 					<% if (!isAuthenticated) { %> <%-
 					include('layouts/menu/guest') %> <% } else { %> <%-
 					include('layouts/menu/loggedin') %> <% } %>
 				</div>
+				<%- include('misc/lang_select') %>
 			</div>
 		</header>
 
@@ -59,14 +62,14 @@
 			<div class="container mx-auto text-center">
 				<div>
 					<h2>
-						THE HOLY NUMBER OF DESTINY:
+						<%= t('footer.number.label') %>
 						<span
 							id="numberDisplay"
 							class="select-none cursor-pointer text-xl font-semibold text-blue-400 hover:text-blue-600 transition-colors"
 						>
 							0
 						</span>
-						- (why don't you click on it?)
+						<%= t('footer.number.click') %>
 					</h2>
 				</div>
 				<p>&copy; 2025; 42 Transcendence by jkauker, fschuber, ntalmon, lbohm and lglauch</p>
@@ -74,7 +77,8 @@
 		</footer>
 
 		<script type="module" src="/static/js/script.js" defer></script>
-		<script type="module" src="/static/js/events.js" defer></script>
 		<script type="module" src="/static/js/friends.js" defer></script>
+		<script type="module" src="/static/js/popup.js" defer></script>
+		<script type="module" src="/static/js/alert.js" defer></script>
 	</body>
 </html>

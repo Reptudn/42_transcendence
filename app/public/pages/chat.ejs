@@ -1,5 +1,10 @@
 <div class="flex flex-row h-80 space-x-8">
-	<input id="searchForFriend" class="flex h-8 w-64 border border-gray-300 px-4 py-2" type="text" placeholder="Search">
+	<div class="flex flex-col space-y-2">
+		<input id="searchForFriend" class="flex h-8 w-64 border border-gray-300 px-4 py-2" type="text" placeholder="Search">
+
+		<div id="userList" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto max-h-64">
+		</div>
+	</div>
 
 	<div class="flex flex-col flex-1 space-y-4">
 		<div id="chatMessages" class="flex-1 border h-80 w- border-gray-300 overflow-y-auto"> </div>

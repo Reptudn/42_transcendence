@@ -1,3 +1,5 @@
+import { showLocalError, showLocalInfo } from "./alert.js";
+
 let previousState: GameState | null = null;
 let currentState: GameState | null = null;
 let lastUpdateTime: number = performance.now();
@@ -103,7 +105,7 @@ export function drawCircle(
 		ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 		ctx.fill();
 	} else {
-		console.error('Canvas context is null');
+		showLocalError('Canvas context is null');
 	}
 }
 
@@ -130,7 +132,7 @@ export function drawPolygon(
 		ctx.lineWidth = lineWidth;
 		ctx.stroke(path);
 	} else {
-		console.error('Canvas context is null');
+		showLocalError('Canvas context is null');
 	}
 }
 
@@ -279,9 +281,8 @@ export function drawGameState(gameState: GameState): void {
 					const radius = obj.radius * scale;
 					drawCircle(posX, posY, radius, trailColor);
 				} else {
-					console.log(
-						'Ball object does not have a center or radius:',
-						obj
+					showLocalInfo(
+						`Ball object does not have a center or radius: ${obj}`
 					);
 				}
 				break;
@@ -290,7 +291,7 @@ export function drawGameState(gameState: GameState): void {
 				if (obj.shape && obj.shape.length > 0) {
 					const points = transformPoints(obj.shape, scale);
 					drawPolygon(points, '', 'blue');
-				} else console.log('Paddle object does not have a shape:', obj);
+				} else showLocalInfo(`Paddle object does not have a shape: ${obj}`);
 				break;
 
 			case 'wall':

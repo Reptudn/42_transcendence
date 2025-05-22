@@ -10,8 +10,8 @@ import {
 	getUserTitle,
 	getUserTitlesForTitle,
 } from '../../../services/database/users';
-import { connectedClients } from '../../../services/sse/sse';
 import { checkAuth } from '../../../services/auth/auth';
+import { connectedClients } from '../../../services/sse/handler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/:page', async (req: any, reply: any) => {
@@ -117,8 +117,6 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					connectedClients.has(friend.id)
 				);
 				variables['friends'] = friends;
-			} else if (page === 'chat') {
-				await checkAuth(req, true, fastify);
 			}
 		} catch (err) {
 			variables['err_code'] = errorCode;
@@ -133,13 +131,21 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		if (['add_friends'].includes(page) && !variables['isAuthenticated'])
-			return reply.view(`no_access.ejs`, variables, {
-				layout: layoutOption,
-			});
+			return reply.view(
+				`no_access.ejs`,
+				{ ...variables, t: req.t },
+				{
+					layout: layoutOption,
+				}
+			);
 		else
-			return reply.view(`${page}`, variables, {
-				layout: layoutOption,
-			});
+			return reply.view(
+				`${page}`,
+				{ ...variables, t: req.t },
+				{
+					layout: layoutOption,
+				}
+			);
 	});
 };
 

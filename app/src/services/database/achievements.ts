@@ -1,4 +1,4 @@
-import { sendAchievementToClient } from '../sse/sse.js';
+import { sendAchievementToClient } from '../sse/popup.js';
 import { FastifyInstance } from 'fastify';
 
 export async function getAllAchievements(

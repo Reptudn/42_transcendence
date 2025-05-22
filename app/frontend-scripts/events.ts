@@ -1,71 +1,16 @@
-// ----- Closing Buttons -----
-
+import {
+	closeAllPopups,
+	popupContainer,
+	updateCloseAllVisibility,
+} from './popup.js';
 import { loadPartialView } from './script.js';
 
-const popupContainer: HTMLElement | null =
-	document.getElementById('popup-container');
-if (!popupContainer) console.error('popup-container not found');
-
-export function updateCloseAllVisibility(): void {
-	const closeAllBtn = document.getElementById('close-all-popups-btn');
-	if (!closeAllBtn) return;
-	const popups = document.querySelectorAll('.popup');
-	closeAllBtn.style.display = popups.length > 0 ? 'block' : 'none';
-}
-updateCloseAllVisibility();
-
-export function dismissPopup(closeElement: HTMLElement): void {
-	const popup = closeElement.closest('.popup');
-	if (popup) {
-		popup.classList.add('animate-fadeOut');
-		popup.addEventListener(
-			'animationend',
-			() => {
-				popup.remove();
-				updateCloseAllVisibility();
-			},
-			{ once: true }
-		);
-	}
-}
-
-export function closeAllPopups(): void {
-	const popups = document.querySelectorAll('.popup');
-	for (const popup of popups) {
-		popup.classList.add('animate-fadeOut');
-		popup.addEventListener(
-			'animationend',
-			() => {
-				popup.remove();
-				updateCloseAllVisibility();
-			},
-			{ once: true }
-		);
-	}
-}
-const closeAllBtn = document.getElementById('close-all-popups-btn');
-if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
-else console.error('closeAllBtn not found');
-
-// ----- EventSource -----
-
-export function getCookie(name: string) {
-	const value = `; ${document.cookie}`;
-	console.log('cookies: ', document.cookie);
-	const parts = value.split(`; ${name}=`);
-
-	if (parts.length === 2) {
-		const part = parts.pop();
-		if (part) {
-			return part.split(';').shift();
-		}
-		return undefined;
-	}
-}
+import { appendToChatBox } from './chat.js';
 
 export let notifyEventSource: EventSource | null = null;
+
 function setupEventSource() {
-	notifyEventSource = new EventSource('/notify');
+	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
 		notifyEventSource?.close();
@@ -80,39 +25,53 @@ function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = (event) => {
-		console.log('EventSource message received:', event);
-		console.log('EventSource data:', event.data);
+		// console.log('EventSource message received:', event);
+		// console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 
-			if (data.type === 'log') {
-				console.log(data.message);
-			} else if (data.type === 'warning') {
-				console.warn(data.message);
-			} else if (data.type === 'error') {
-				console.error(data.message);
-			} else if (data.type === 'popup') {
-				if (popupContainer) {
-					popupContainer.insertAdjacentHTML('beforeend', data.html);
-					updateCloseAllVisibility();
-				} else {
-					console.error('❌ popup-container not found in DOM!');
-					return;
-				}
-			} else if (data.type === 'game_request') {
-				console.log('👫 Game request received:', data);
-				sendPopup(
-					'Game Request',
-					'You have been invited to play a game!',
-					'blue',
-					`acceptGameInvite(${data.gameId}, ${data.playerId})`,
-					'Accept'
-				);
-			} else if (data.type === 'game_admin_request') {
-				acceptGameInvite(data.gameId, data.playerId);
-			} else {
-				console.error('❌ Unknown event type:', data.type);
-				console.log(data);
+			switch (data.type) {
+				case 'log':
+					console.log(data.message);
+					break;
+				case 'warning':
+					console.warn(data.message);
+					break;
+				case 'error':
+					console.error(data.message);
+					break;
+				case 'popup':
+					if (popupContainer) {
+						popupContainer.insertAdjacentHTML(
+							'beforeend',
+							data.html
+						);
+						updateCloseAllVisibility();
+					} else {
+						console.error('❌ popup-container not found in DOM!');
+						return;
+					}
+					break;
+				case 'game_request':
+					console.log('👫 Game request received:', data);
+					sendPopup(
+						'Game Request',
+						'You have been invited to play a game!',
+						'blue',
+						`acceptGameInvite(${data.gameId}, ${data.playerId})`,
+						'Accept'
+					);
+					break;
+				case 'game_admin_request':
+					acceptGameInvite(data.gameId, data.playerId);
+					break;
+				case 'chat':
+					appendToChatBox(JSON.parse(data.message));
+					break;
+				default:
+					console.error('❌ Unknown event type:', data.type);
+					console.log(data);
+					break;
 			}
 		} catch (err) {
 			console.error('Error parsing event data:', err);
@@ -137,7 +96,7 @@ function sendPopup(
 	callback2 = '',
 	buttonName2 = 'CLICK ME 2'
 ) {
-	fetch('/notify/send', {
+	fetch('/event/send', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
