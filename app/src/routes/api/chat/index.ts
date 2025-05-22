@@ -1,27 +1,46 @@
-import { FastifyPluginAsync } from 'fastify';
-// import { WebSocket as WSWebSocket } from 'ws';
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import { checkAuth } from '../../../services/auth/auth';
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	// const players = new Set<WebSocket>();
+	fastify.get('/', async (req: FastifyRequest, res: FastifyReply) => {
+		req;
+		console.log('get');
+		res.raw.write('data: Hallo\n\n');
+	});
 
-	fastify.get('/', { websocket: true }, (socket, req) => {
-		// players.add(socket);
-		socket.send(
-			JSON.stringify({ user: 'System', message: 'Connected to chat!' })
+	fastify.post('/', async (req: FastifyRequest, res: FastifyReply) => {
+		const body = req.body as {
+			chat?: string;
+			is_group?: string;
+			message?: string;
+		};
+		const user = await checkAuth(req, false, fastify);
+
+		if (!user) {
+			return res.status(400).send({ error: 'Unknown User' });
+		}
+
+		let group = await fastify.sqlite.get(
+			'SELECT id, name, is_group FROM chats WHERE name = ?',
+			[body.chat]
 		);
 
-		socket.on('message', (message: Buffer) => {
-			const msg = message.toString();
-			console.info('chat function = ', msg);
-			// for (const player of players) {
-			// player.send(msg);
-			// }
-			socket.send(msg);
-		});
+		if (!group) {
+			await fastify.sqlite.run(
+				'INSERT INTO chats (name, is_group) VALUES (?, ?)',
+				[body.chat, body.is_group]
+			);
+			group = await fastify.sqlite.get(
+				'SELECT id, name, is_group FROM chats WHERE name = ?',
+				[body.chat]
+			);
+		}
 
-		socket.on('close', () => {
-			console.log('Disconnected from chat!');
-		});
+		await fastify.sqlite.run(
+			'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
+			[group.id, user.id, body.message]
+		);
+		res.send({ ok: true });
 	});
 };
 

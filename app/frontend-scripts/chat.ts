@@ -1,12 +1,7 @@
-const socket: WebSocket = new WebSocket('/api/chat');
-
+const chatEventSource = new EventSource('/api/chat');
 interface ChatMessage {
 	user: string;
 	message: string;
-}
-
-function sendMessageToChat(message: ChatMessage) {
-	socket.send(JSON.stringify(message));
 }
 
 function appendToChatBox(message: ChatMessage) {
@@ -20,21 +15,33 @@ function appendToChatBox(message: ChatMessage) {
 	chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-socket.onmessage = (event) => {
-	console.info('onmessage', event.data);
-	const parsed = JSON.parse(event.data);
-	appendToChatBox(parsed);
+chatEventSource.onmessage = (event) => {
+	console.log('chat event = ', event.data);
 };
 
-document.getElementById('sendChatButton')?.addEventListener('click', () => {
-	const input = document.getElementById('chatInput') as HTMLInputElement;
-	if (input && input.value.trim() !== '') {
-		const msg = input.value.trim();
-		input.value = '';
+document
+	.getElementById('sendChatButton')
+	?.addEventListener('click', async () => {
+		const input = document.getElementById('chatInput') as HTMLInputElement;
+		if (input && input.value.trim() !== '') {
+			const msg = input.value.trim();
+			input.value = '';
 
-		sendMessageToChat({ user: 'You', message: msg });
-	}
-});
+			await fetch('/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					chat: 'global',
+					is_group: 'true',
+					message: msg,
+				}),
+			});
+			appendToChatBox({ user: 'You', message: msg });
+			const response = await fetch('/api/chat');
+
+			console.log('respone', response);
+		}
+	});
 
 document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 	if (e.key === 'Enter') {
