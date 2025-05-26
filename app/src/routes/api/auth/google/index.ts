@@ -67,7 +67,7 @@ const google_callback: FastifyPluginAsync = async (
 				await unlockAchievement(loggedGoogleUser.id, 'login', fastify);
 				reply.setCookie('token', jwt, {
 					// TODO: make cookie secure
-					httpOnly: true,
+					httpOnly: process.env.NODE_ENV === 'production',
 					secure: false,
 					sameSite: 'lax',
 					path: '/',
