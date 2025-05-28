@@ -6,6 +6,7 @@ import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
 import { FastifyInstance } from 'fastify';
+import { inviteUserToChat } from '../../routes/api/chat/utils.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -57,7 +58,7 @@ export async function registerUser(
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
 	const hashedPassword: string = await bcrypt.hash(password, 10);
-	await fastify.sqlite.run(
+	const user = await fastify.sqlite.run(
 		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
 		[
 			username,
@@ -68,6 +69,9 @@ export async function registerUser(
 			titleThird,
 		]
 	);
+	if (user.changes !== 0 && typeof user.lastID === 'number') {
+		inviteUserToChat(fastify, user.lastID, '0');
+	}
 }
 
 export async function registerGoogleUser(

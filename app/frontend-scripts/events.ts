@@ -7,6 +7,8 @@ import { loadPartialView } from './script.js';
 
 import { appendToChatBox } from './chat.js';
 
+import type { Msg } from './chat.js';
+
 export let notifyEventSource: EventSource | null = null;
 
 function setupEventSource() {
@@ -65,9 +67,12 @@ function setupEventSource() {
 				case 'game_admin_request':
 					acceptGameInvite(data.gameId, data.playerId);
 					break;
-				case 'chat':
-					appendToChatBox(JSON.parse(data.message));
+				case 'chat': {
+					const wrapper = JSON.parse(data.message);
+					const msg = wrapper.msg as Msg;
+					appendToChatBox(msg);
 					break;
+				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
 					console.log(data);

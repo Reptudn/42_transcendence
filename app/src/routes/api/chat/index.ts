@@ -1,71 +1,207 @@
-import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-import { checkAuth } from '../../../services/auth/auth';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import { getUserById } from '../../../services/database/users';
 import {
 	connectedClients,
 	sendSseMessage,
 } from '../../../services/sse/handler';
 
+import {
+	getChatFromSql,
+	getMessagesFromSqlByChatId,
+	getMessagesFromSqlByMsgId,
+	getParticipantFromSql,
+	generateChatId,
+	createNewChat,
+	addToParticipants,
+} from './utils';
+
+interface MessageQuery {
+	chat_id: number;
+}
+
+export interface Chat {
+	id: number;
+	name: string | null;
+	is_group: boolean;
+	created_at: string;
+}
+
+export interface Part {
+	id: number;
+	chat_id: number;
+	user_id: number;
+}
+
+export interface Msg {
+	id: number;
+	chat_id: number;
+	user_id: number;
+	content: string;
+	created_at: string;
+}
+
+interface User {
+	id: number;
+	google_id: string;
+	username: string;
+	password: string;
+	displayname: string;
+	bio: string;
+	profile_picture: string;
+	click_count: number;
+	title_first: number;
+	title_second: number;
+	title_third: number;
+}
+
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	fastify.post('/', async (req: FastifyRequest, res: FastifyReply) => {
-		const body = req.body as {
-			chat?: string;
-			is_group?: boolean;
-			message?: string;
-		};
-		const user = await checkAuth(req, false, fastify);
+	fastify.post(
+		'/',
+		{ preValidation: [fastify.authenticate] },
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const body = req.body as {
+				chat: string;
+				is_group?: boolean;
+				message: string;
+			};
 
-		if (!user) {
-			return res.status(400).send({ error: 'Unknown User' });
-		}
-
-		let group = await fastify.sqlite.get(
-			'SELECT id, name, is_group FROM chats WHERE name = ?',
-			[body.chat]
-		);
-
-		if (!group) {
-			await fastify.sqlite.run(
-				'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-				[body.chat, body.is_group]
+			const user = await getUserById(
+				(req.user as { id: number }).id,
+				fastify
 			);
-			group = await fastify.sqlite.get(
-				'SELECT id, name, is_group FROM chats WHERE name = ?',
-				[body.chat]
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+			let newChatId = '0';
+			if (body.chat !== '0')
+				newChatId = generateChatId([
+					Number.parseInt(body.chat),
+					user.id,
+				]);
+			const group = await getChatFromSql(fastify, newChatId);
+			if (!group) {
+				return res.status(400).send({ error: 'Chat not Found' });
+			}
+			const partisipant = await getParticipantFromSql(
+				fastify,
+				user.id,
+				newChatId
 			);
-		}
-
-		await fastify.sqlite.run(
-			'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
-			[group.id, user.id, body.message]
-		);
-
-		for (const [, client] of connectedClients) {
-			sendSseMessage(
-				client,
-				'chat',
-				JSON.stringify({ user: user.username, message: body.message })
+			if (!partisipant) {
+				return res.status(400).send({ error: 'User has no Access' });
+			}
+			const msgId = await fastify.sqlite.run(
+				'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
+				[group.id, user.id, body.message]
 			);
+
+			if (msgId.changes !== 0 && typeof msgId.lastID === 'number') {
+				const msg = await getMessagesFromSqlByMsgId(
+					fastify,
+					msgId.lastID
+				);
+				if (!msg)
+					return res.status(400).send({ error: 'Message not Found' });
+				for (const [, client] of connectedClients) {
+					sendSseMessage(client, 'chat', JSON.stringify({ msg }));
+				}
+			}
+			res.send({ ok: true });
 		}
-		res.send({ ok: true });
-	});
+	);
 
-	fastify.get('/users', async (req: FastifyRequest, res: FastifyReply) => {
-		const users = await fastify.sqlite.all('SELECT username FROM users');
-		res.send(users);
-	});
+	fastify.get(
+		'/users',
+		{ preValidation: [fastify.authenticate] },
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const users = (await fastify.sqlite.all(
+				'SELECT id, google_id, username, password, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users'
+			)) as User[];
+			res.send(users);
+		}
+	);
+	fastify.get<{ Querystring: MessageQuery }>(
+		'/messages',
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						chat_id: { type: 'number' },
+					},
+					required: ['chat_id'],
+				},
+			},
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { chat_id } = req.query as MessageQuery;
+			const user = await getUserById(
+				(req.user as { id: number }).id,
+				fastify
+			);
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+			let newChatId = '0';
+			if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
 
-	fastify.get('/messages', async (req: FastifyRequest, res: FastifyReply) => {
-		// const messages = await fastify.sqlite.all(
-		// 	'SELECT user_id, content FROM messages'
-		// );
-		const messages = await fastify.sqlite.all(`
-			SELECT users.username AS user, messages.content AS message
-			FROM messages
-			JOIN users ON messages.user_id = users.id
-			ORDER BY messages.created_at ASC
-		`);
-		res.send(messages);
-	});
+			const chat = await getChatFromSql(fastify, newChatId);
+			if (!chat) {
+				return res.status(400).send({ error: 'Chat not Found' });
+			}
+			const partisipant = getParticipantFromSql(
+				fastify,
+				user.id,
+				newChatId
+			);
+			if (!partisipant) {
+				return res.status(400).send({ error: 'Partisipant not Found' });
+			}
+			const messages = await getMessagesFromSqlByChatId(
+				fastify,
+				newChatId
+			);
+			if (!messages) {
+				return res.status(400).send({ error: 'Messages not Found' });
+			}
+			res.send(messages);
+		}
+	);
+	fastify.get<{ Querystring: MessageQuery }>(
+		'/invite',
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						chat_id: { type: 'number' },
+					},
+					required: ['chat_id'],
+				},
+			},
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { chat_id } = req.query as MessageQuery;
+			const user = await getUserById(
+				(req.user as { id: number }).id,
+				fastify
+			);
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+			let newChatId = '0';
+			if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
+			const chat = await getChatFromSql(fastify, newChatId);
+			if (!chat) {
+				createNewChat(fastify, newChatId, false);
+				addToParticipants(fastify, user.id, newChatId);
+				addToParticipants(fastify, chat_id, newChatId);
+			}
+			res.send({ ok: true });
+		}
+	);
 };
 
 export default chat;
