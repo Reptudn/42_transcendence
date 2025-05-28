@@ -163,7 +163,7 @@
 			inset 0 0 20px rgba(0, 0, 0, 0.839);
 		overflow-y: auto;
 		overflow-x: hidden;
-		transform: scale(1.02) rotateX(5deg);
+		transform: scale(1.02) rotateX(1deg);
 	}
 
 	.tv-screen-inner::before {
@@ -178,7 +178,6 @@
 		position: relative;
 		width: 90%;
 		height: 90%;
-		transform: scale(1.02) rotateX(5deg);
 		border: 40px solid rgb(43, 43, 43);
 		border-radius: 1%;
 		box-shadow: 0 0 50px rgba(0, 0, 0, 0.858),

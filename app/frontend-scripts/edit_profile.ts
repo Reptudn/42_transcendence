@@ -1,3 +1,4 @@
+import { showLocalError, showLocalInfo, showLocalLog } from './alert.js';
 import './script.js';
 import { loadPartialView, updateMenu } from './script.js';
 
@@ -82,9 +83,9 @@ document
 			}
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				alert(`Image conversion error: ${error.message}`);
+				showLocalError(`Image conversion error: ${error.message}`);
 			} else {
-				alert('An unknown error occurred during image conversion.');
+				showLocalError('An unknown error occurred during image conversion.');
 			}
 			return;
 		}
@@ -103,7 +104,7 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				alert('Profile updated successfully! 🎉');
+				showLocalInfo('Profile updated successfully! 🎉');
 				if (usernameField.value !== initialValues.username) {
 					localStorage.removeItem('token');
 					loadPartialView('login');
@@ -112,11 +113,11 @@ document
 					loadPartialView('profile');
 				}
 			} else {
-				alert(`Error: ${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
-			alert(
+			showLocalError(
 				'An error occurred while updating your profile. Please try again.'
 			);
 		}
@@ -172,14 +173,14 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				alert('Title updated successfully! 🎉');
+				showLocalLog('Title updated successfully! 🎉');
 				loadPartialView('profile');
 			} else {
-				alert(`Error: ${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
-			alert(
+			showLocalError(
 				'An error occurred while updating your title. Please try again.'
 			);
 		}
@@ -221,16 +222,16 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				alert('Password updated successfully! 🎉');
+				showLocalInfo('Password updated successfully! 🎉');
 				localStorage.removeItem('token');
 				loadPartialView('login');
 				updateMenu();
 			} else {
-				alert(`Error: ${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
-			alert(
+			showLocalError(
 				'An error occurred while updating your password. Please try again.'
 			);
 		}
@@ -265,16 +266,16 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				alert('Profile deleted successfully! 🎉');
+				showLocalInfo('Profile deleted successfully! 🎉');
 				localStorage.removeItem('token');
 				loadPartialView('register');
 				updateMenu();
 			} else {
-				alert(`Error: ${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
-			alert(
+			showLocalError(
 				'An error occurred while deleting your profile. Please try again.'
 			);
 		}

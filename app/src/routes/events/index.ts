@@ -1,11 +1,12 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-import { connectedClients, sendPopupToClient } from '../../services/sse/sse';
+import { sendPopupToClient } from '../../services/sse/popup';
 import { checkAuth } from '../../services/auth/auth';
 import {
 	getPendingFriendRequestsForUser,
 	removeFriendship,
 } from '../../services/database/friends';
 import { getUserById, getNameForUser } from '../../services/database/users';
+import { connectedClients, sendSseHeaders, sendSseMessage } from '../../services/sse/handler';
 
 const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -21,19 +22,9 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return;
 			}
 
-			reply.raw.writeHead(200, {
-				'Content-Type': 'text/event-stream',
-				'Cache-Control': 'no-cache',
-				Connection: 'keep-alive',
-				'Transfer-Encoding': 'identity',
-			});
+			sendSseHeaders(reply);
 
-			reply.raw.write(
-				`data: ${JSON.stringify({
-					type: 'log',
-					message: 'Connection with Server established',
-				})}\n\n`
-			);
+			sendSseMessage(reply, 'log', 'Connection with Server established')
 
 			connectedClients.set(user.id, reply);
 

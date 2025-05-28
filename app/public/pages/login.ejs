@@ -1,28 +1,28 @@
 <div class="max-w-md p-6 rounded-lg glow-green">
-	<h2 class="font-bold mb-6 text-4xl">login</h2>
+	<h2 class="font-bold mb-6 text-4xl"><%= t('login.title') %></h2>
 	<div id="login-form">
 		<div class="mb-4">
-			<label for="username" class="block font-bold mb-2 text-2xl">username:</label>
+			<label for="username" class="block font-bold mb-2 text-2xl"><%= t('login.username') %></label>
 			<input type="text" id="username" name="username" required placeholder="> ____________"
 				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
 		</div>
 		<div class="mb-6">
-			<label for="password" class="block font-bold mb-2 text-2xl">password:</label>
+			<label for="password" class="block font-bold mb-2 text-2xl"><%= t('login.password') %></label>
 			<input type="password" id="password" name="password" required placeholder="> ____________"
 				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
 		</div>
 		<div class="text-center">
 			<button id="loginButton" type="button"
-				class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue">login</button>
+				class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
 		</div>
 	</div>
 	<br>
-	<p class="text-center text-3xl glow-red">or</p>
+	<p class="text-center text-3xl glow-red"><%= t('login.or') %></p>
 	<br>
 	<a href ="/api/auth/google/">
 		<div class="text-3xl google-signin bg-white-500 font-bold py-2 px-4 rounded-lg text-center hover:glow-blue">
 			<img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google image" class="w-6 h-6 inline-block mr-2">
-			login with google
+			<%= t('login.google_button') %>
 		</div>
 	</a>
 </div>

@@ -38,7 +38,7 @@
 						onclick="loadPartialView('index')"
 						id="menu-header"
 					>
-						transcendence
+						<%= t('header.title') %>
 					</h1>
 				<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
 					<% if (!isAuthenticated) { %> <%-
@@ -96,5 +96,7 @@
 		<script type="module" src="/static/js/events.js" defer></script>
 		<script type="module" src="/static/js/friends.js" defer></script>
 		<script src="/static/js/loading_animation.js" defer></script>
+		<script type="module" src="/static/js/popup.js" defer></script>
+		<script type="module" src="/static/js/alert.js" defer></script>
 	</body>
 </html>

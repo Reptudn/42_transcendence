@@ -5,7 +5,7 @@
 			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
 			onclick="loadPartialView('edit_profile')"
 		>
-			edit profile
+			<%= t('profile.edit_profile') %>
 		</a>
 	</div>
 	<% } %>
@@ -27,7 +27,7 @@
 	<div class="mt-4">
 		<h4 class="font-bold text-3xl">bio:</h4>
 		<p class="break-words hyphens-auto">
-			<%= user.bio || 'This user has not added a bio yet.' %>
+			<%= user.bio || t('profile.no_bio') %>
 		</p>
 	</div>
 	<% } %> <% if (friends.length > 0 || isSelf ) { %>
@@ -62,7 +62,7 @@
 					onclick="removeFriendRequest(<%= friend.id %>); loadPartialView('profile');"
 					class="bg-red-500 hover:bg-red-700 text-xs font-bold py-1 px-3 rounded"
 				>
-					remove
+					<%= t('profile.remove') %>
 				</button>
 				<% } %>
 			</div>
@@ -76,7 +76,7 @@
 				>
 					<span class="text-3xl font-bold glow-blue">+</span>
 				</a>
-				<div class="text-2xl mt-2">Add More Friends</div>
+				<div class="text-2xl mt-2"><%= t('profile.add_friends') %></div>
 			</div>
 			<% } %>
 		</div>
@@ -90,7 +90,7 @@
 
 	<div class="mt-6 border-t pt-4">
 		<h3 class="font-bold mb-4 text-3xl">
-			achievements (<%= unlockedCount %> / <%= totalCount %>)
+			<%= t('profile.achievements') %> (<%= unlockedCount %> / <%= totalCount %>)
 		</h3>
 		<div
 			id="unlockedAchievements"
@@ -117,7 +117,7 @@
 
 	<% if (isSelf) { %>
 	<div class="mt-6 border-t pt-4">
-		<h3 class="font-bold mb-4 text-3xl">locked achievements</h3>
+		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.locked_achievements') %></h3>
 		<div class="grid grid-cols-auto gap-4">
 			<% achievements.filter(a=>
 			!a.unlocked).forEach(function(achievement) { %>

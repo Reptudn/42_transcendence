@@ -2,6 +2,8 @@ import { join } from 'node:path';
 import AutoLoad, { type AutoloadPluginOptions } from '@fastify/autoload';
 import type { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
+import i18next from './middleware/localization';
+import middleware from 'i18next-http-middleware';
 
 const envSchema = {
 	type: 'object',
@@ -34,6 +36,10 @@ const app: FastifyPluginAsync<AppOptions> = async (
 			fastify.close().then(() => process.exit(1));
 		}
 	});
+
+	fastify.log.info('Registering i18next');
+	fastify.register(middleware.plugin, { i18next });
+	fastify.log.info('Registered i18next');
 
 	// Do not touch the following lines
 

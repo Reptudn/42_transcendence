@@ -1,3 +1,4 @@
+import { showLocalInfo, showLocalError } from './alert.js';
 import './script.js';
 import { loadPartialView } from './script.js';
 
@@ -19,14 +20,14 @@ const registerAction = async () => {
 		});
 		const data = await response.json();
 		if (response.ok) {
-			alert('You have registered successfully');
+			showLocalInfo('You have registered successfully');
 			loadPartialView('login');
 		} else {
-			alert(`Error: ${data.message}`);
+			showLocalError(`Error: ${data.message}`);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		alert('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.');
 	}
 };
 
