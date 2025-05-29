@@ -12,10 +12,49 @@ import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
 
+const friendRequestSchema = {
+	type: 'object',
+	properties: {
+		requestId: { type: 'number' },
+	},
+	required: ['requestId'],
+	additionalProperties: false,
+};
+
+const removeFriendshipSchema = {
+	type: 'object',
+	properties: {
+		friendId: { type: 'number' },
+	},
+	required: ['friendId'],
+	additionalProperties: false,
+};
+
+const acceptFriendRequestSchema = {
+	type: 'object',
+	properties: {
+		requestId: { type: 'number' },
+	},
+	required: ['requestId'],
+	additionalProperties: false,
+};
+
+const declineFriendRequestSchema = {
+	type: 'object',
+	properties: {
+		requestId: { type: 'number' },
+	},
+	required: ['requestId'],
+	additionalProperties: false,
+};
+
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/request',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: friendRequestSchema },
+		},
 		async (req: any, reply: any) => {
 			const requesterId: number = Number(req.user.id);
 			const requestedId: number = Number(req.body.requestId);
@@ -29,7 +68,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const pendingRequest = await getFriendRequest(
 				requesterId,
-				requestedId, fastify
+				requestedId,
+				fastify
 			);
 			if (pendingRequest) {
 				if (pendingRequest.requested_id == requesterId) {
@@ -47,7 +87,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				const requestId = await createFriendRequest(
 					requesterId,
-					requestedId, fastify
+					requestedId,
+					fastify
 				);
 
 				if (connectedClients && connectedClients.has(requestedId)) {
@@ -55,7 +96,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						requestedId,
 						'Friend Request',
 						`<a href="/partial/pages/profile/${requesterId}" target="_blank">User ${
-							(await getNameForUser(requesterId, fastify)) || requesterId
+							(await getNameForUser(requesterId, fastify)) ||
+							requesterId
 						}</a> wishes to be your friend!`,
 						'blue',
 						`acceptFriendRequest(${requestId})`,
@@ -78,7 +120,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/accept',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: acceptFriendRequestSchema },
+		},
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
 			const request = await getFriendRequestById(requestId, fastify);
@@ -99,8 +144,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						`Your friend request was accepted by <a href="/partial/pages/profile/${
 							request.requested_id
 						}" target="_blank">User ${
-							(await getNameForUser(request.requested_id, fastify)) ||
-							request.requested_id
+							(await getNameForUser(
+								request.requested_id,
+								fastify
+							)) || request.requested_id
 						}</a>!`,
 						'blue'
 					);
@@ -115,7 +162,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/decline',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: declineFriendRequestSchema },
+		},
 		async (req: any, reply: any) => {
 			const { requestId } = req.body;
 			const request = await getFriendRequestById(requestId, fastify);
@@ -136,10 +186,17 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/remove',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: removeFriendshipSchema },
+		},
 		async (req: any, reply: any) => {
 			const { friendId } = req.body;
-			const request = await getFriendRequest(req.user.id, friendId, fastify);
+			const request = await getFriendRequest(
+				req.user.id,
+				friendId,
+				fastify
+			);
 			if (!request) {
 				return reply
 					.code(404)

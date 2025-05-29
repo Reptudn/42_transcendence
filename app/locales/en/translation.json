@@ -67,7 +67,8 @@
 		"password_no_spaces": "New password cannot contain spaces",
 		"save_new_password": "Save New Password",
 		"delete_user": "Delete User",
-		"password": "Password"
+		"password": "Password",
+		"bio": "Bio"
 	},
 	"game_setup": {
 		"game_setup": "Game Setup",

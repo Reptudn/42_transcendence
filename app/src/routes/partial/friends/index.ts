@@ -8,7 +8,18 @@ import { searchUsers } from '../../../services/database/users';
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
 		'/search',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						q: { type: 'string', minLength: 1, maxLength: 100 },
+					},
+					required: [],
+				},
+			},
+		},
 		async (req: any, reply: any) => {
 			const query: string = req.query.q || '';
 			let results = query ? await searchUsers(query, fastify) : [];

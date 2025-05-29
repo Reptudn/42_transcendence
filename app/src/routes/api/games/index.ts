@@ -6,10 +6,24 @@ import {
 } from '../../../services/games/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
 
+const startGameSchema = {
+	type: 'object',
+	properties: {
+		gameName: { type: 'string', minLength: 1, maxLength: 50 },
+		maxPlayers: { type: 'number', minimum: 2, maximum: 4 },
+		gameMode: { type: 'string', enum: ['normal', 'hardcore'] },
+	},
+	required: ['gameName', 'maxPlayers', 'gameMode'],
+	additionalProperties: false,
+};
+
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/start',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: startGameSchema },
+		},
 		async (request, reply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
