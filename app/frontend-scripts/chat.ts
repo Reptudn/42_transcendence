@@ -1,9 +1,9 @@
-// import { showLocalPopup } from './alert';
+import { showLocalPopup } from './alert';
 // import type { Msg } from '../src/routes/api/chat';
 
 export interface Msg {
 	id: number;
-	chat_id: number;
+	chat_id: string;
 	user_id: number;
 	content: string;
 	created_at: string;
@@ -30,12 +30,20 @@ await getMessages(localStorage.getItem('chat_id'));
 
 export function appendToChatBox(message: Msg) {
 	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) return;
+	if (!chatMessages) return; // TODO Error msg;
 
-	const messageElement = document.createElement('div');
-	messageElement.textContent = `${message.user_id}: ${message.content}`;
-	chatMessages.appendChild(messageElement);
-	chatMessages.scrollTop = chatMessages.scrollHeight;
+	if (localStorage.getItem('chat_id') === message.chat_id.toString()) {
+		const messageElement = document.createElement('div');
+		messageElement.textContent = `${message.user_id}: ${message.content}`;
+		chatMessages.appendChild(messageElement);
+		chatMessages.scrollTop = chatMessages.scrollHeight;
+	} else {
+		showLocalPopup({
+			title: 'New Msg',
+			description: 'You recived a new Msg',
+			color: 'blue',
+		});
+	}
 }
 
 document

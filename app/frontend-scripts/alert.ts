@@ -35,15 +35,15 @@ export function showLocalPopup(data: LocalAlertData) {
 }
 
 export function showLocalError(description: string) {
-	showLocalPopup({title: 'Error', description, color: 'red'});
+	showLocalPopup({ title: 'Error', description, color: 'red' });
 }
 
 export function showLocalInfo(description: string) {
-	showLocalPopup({title: 'Info', description, color: 'yellow'});
+	showLocalPopup({ title: 'Info', description, color: 'yellow' });
 }
 
 export function showLocalLog(description: string) {
-	showLocalPopup({title: 'Log', description, color: 'green'});
+	showLocalPopup({ title: 'Log', description, color: 'green' });
 }
 
 declare global {
