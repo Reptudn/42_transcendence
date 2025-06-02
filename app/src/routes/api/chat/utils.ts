@@ -76,7 +76,7 @@ export async function getMessagesFromSqlByChatId(
 	let msg: Msg[] | null;
 	try {
 		msg = (await fastify.sqlite.all(
-			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
+			'SELECT messages.id, messages.chat_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE chat_id = ? ORDER BY created_at ASC',
 			[chat_id]
 		)) as Msg[] | null;
 	} catch (err) {
@@ -93,9 +93,10 @@ export async function getMessagesFromSqlByMsgId(
 	let msg: Msg | null;
 	try {
 		msg = (await fastify.sqlite.get(
-			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE id = ?',
+			'SELECT messages.id, messages.chat_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
 			[msg_id]
 		)) as Msg | null;
+		console.log('msg Test inside = ', msg);
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 		return null;

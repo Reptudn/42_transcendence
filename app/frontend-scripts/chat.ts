@@ -1,10 +1,9 @@
-import { showLocalPopup } from './alert';
-// import type { Msg } from '../src/routes/api/chat';
+import { showLocalPopup } from './alert.js';
 
 export interface Msg {
 	id: number;
 	chat_id: string;
-	user_id: number;
+	displayname: string;
 	content: string;
 	created_at: string;
 }
@@ -32,15 +31,15 @@ export function appendToChatBox(message: Msg) {
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) return; // TODO Error msg;
 
-	if (localStorage.getItem('chat_id') === message.chat_id.toString()) {
+	if (localStorage.getItem('chat_id') === message.chat_id) {
 		const messageElement = document.createElement('div');
-		messageElement.textContent = `${message.user_id}: ${message.content}`;
+		messageElement.textContent = `${message.displayname}: ${message.content}`;
 		chatMessages.appendChild(messageElement);
 		chatMessages.scrollTop = chatMessages.scrollHeight;
 	} else {
 		showLocalPopup({
 			title: 'New Msg',
-			description: 'You recived a new Msg',
+			description: `You recived a new Msg from ${message.displayname}`,
 			color: 'blue',
 		});
 	}
@@ -82,9 +81,14 @@ export async function getUser() {
 		for (const user of users) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				localStorage.setItem('chat_id', user.id.toString());
-				await fetch(`/api/chat/invite?chat_id=${user.id}`);
-				await getMessages(user.id.toString());
+				const res = await fetch(`/api/chat/invite?chat_id=${user.id}`);
+				console.log('res test =', res);
+				if (!res.ok) return; // TODO Error msg
+				const responseData = await res.json();
+
+				const newId = responseData.chat_id as string;
+				localStorage.setItem('chat_id', newId);
+				await getMessages(newId);
 			});
 			butt.textContent = user.displayname;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';

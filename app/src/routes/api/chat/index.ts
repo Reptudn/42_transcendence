@@ -17,7 +17,7 @@ import {
 } from './utils';
 
 interface MessageQuery {
-	chat_id: number;
+	chat_id: string;
 }
 
 export interface Chat {
@@ -36,7 +36,7 @@ export interface Part {
 export interface Msg {
 	id: number;
 	chat_id: string;
-	user_id: number;
+	displayname: string;
 	content: string;
 	created_at: string;
 }
@@ -73,12 +73,12 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
-			let newChatId = '0';
-			if (body.chat !== '0')
-				newChatId = generateChatId([
-					Number.parseInt(body.chat),
-					user.id,
-				]);
+			const newChatId = body.chat;
+			// if (body.chat !== '0')
+			// 	newChatId = generateChatId([
+			// 		Number.parseInt(body.chat),
+			// 		user.id,
+			// 	]);
 			const group = await getChatFromSql(fastify, newChatId);
 			if (!group) {
 				return res.status(400).send({ error: 'Chat not Found' });
@@ -96,7 +96,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				newChatId
 			);
 			fastify.log.info(partisipants);
-			if (!partisipants || !Array.isArray(partisipants)) {
+			if (!partisipants) {
 				return res.status(400).send({ error: 'Users not Found' });
 			}
 			const msgId = await fastify.sqlite.run(
@@ -111,6 +111,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				if (!msg)
 					return res.status(400).send({ error: 'Message not Found' });
+				console.log('msg Test =', msg);
 				for (const part of partisipants) {
 					if (connectedClients.has(part.user_id)) {
 						const client = connectedClients.get(part.user_id);
@@ -146,7 +147,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				querystring: {
 					type: 'object',
 					properties: {
-						chat_id: { type: 'number' },
+						chat_id: { type: 'string' },
 					},
 					required: ['chat_id'],
 				},
@@ -161,8 +162,8 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
-			let newChatId = '0';
-			if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
+			const newChatId = chat_id;
+			// if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
 
 			const chat = await getChatFromSql(fastify, newChatId);
 			if (!chat) {
@@ -194,7 +195,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				querystring: {
 					type: 'object',
 					properties: {
-						chat_id: { type: 'number' },
+						chat_id: { type: 'string' },
 					},
 					required: ['chat_id'],
 				},
@@ -210,15 +211,20 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
 			let newChatId = '0';
-			if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
+			if (Number.parseInt(chat_id) !== 0)
+				newChatId = generateChatId([Number.parseInt(chat_id), user.id]);
 			const chat = await getChatFromSql(fastify, newChatId);
 			if (!chat) {
 				createNewChat(fastify, newChatId, false);
 				addToParticipants(fastify, user.id, newChatId);
-				if (user.id !== chat_id)
-					addToParticipants(fastify, chat_id, newChatId);
+				if (user.id !== Number.parseInt(chat_id))
+					addToParticipants(
+						fastify,
+						Number.parseInt(chat_id),
+						newChatId
+					);
 			}
-			res.send({ ok: true });
+			res.send({ chat_id: newChatId });
 		}
 	);
 };
