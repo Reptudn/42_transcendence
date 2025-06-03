@@ -11,6 +11,7 @@ import {
 	getMessagesFromSqlByMsgId,
 	getParticipantFromSql,
 	getAllParticipantsFromSql,
+	getAllChatsFromSqlByUserId,
 	generateChatId,
 	createNewChat,
 	addToParticipants,
@@ -141,6 +142,30 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				'SELECT id, google_id, username, password, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users'
 			)) as User[];
 			res.send(users);
+		}
+	);
+	fastify.get(
+		'/chats',
+		{ preValidation: [fastify.authenticate] },
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const user = await getUserById(
+				(req.user as { id: number }).id,
+				fastify
+			);
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+			const userPart = await getAllChatsFromSqlByUserId(fastify, user.id);
+			if (!userPart) return; // TODO Error msg
+			const chats: Chat[] = [];
+			for (const part of userPart) {
+				const chat = (await fastify.sqlite.get(
+					'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
+					[part.chat_id]
+				)) as Chat;
+				chats.push(chat);
+			}
+			res.send(chats);
 		}
 	);
 	fastify.get<{ Querystring: MessageQueryChat }>(

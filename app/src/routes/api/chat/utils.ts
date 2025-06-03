@@ -69,6 +69,23 @@ export async function getAllParticipantsFromSql(
 	return user;
 }
 
+export async function getAllChatsFromSqlByUserId(
+	fastify: FastifyInstance,
+	user_id: number
+) {
+	let chats: Part[] | null;
+	try {
+		chats = (await fastify.sqlite.all(
+			'SELECT id, chat_id, user_id FROM chat_participants WHERE user_id = ?',
+			[user_id]
+		)) as Part[] | null;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return null;
+	}
+	return chats;
+}
+
 export async function getMessagesFromSqlByChatId(
 	fastify: FastifyInstance,
 	chat_id: string

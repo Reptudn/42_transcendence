@@ -9,6 +9,13 @@ export interface Msg {
 	created_at: string;
 }
 
+interface Chat {
+	id: string;
+	name: string | null;
+	is_group: boolean;
+	created_at: string;
+}
+
 interface User {
 	id: number;
 	google_id: string;
@@ -26,6 +33,7 @@ interface User {
 if (!localStorage.getItem('chat_id')) localStorage.setItem('chat_id', '0');
 
 await getUser();
+await getChats();
 await getMessages(localStorage.getItem('chat_id'));
 
 export function appendToChatBox(message: Msg) {
@@ -151,6 +159,26 @@ export async function getUser() {
 				await getMessages(newId);
 			});
 			butt.textContent = user.displayname;
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(butt);
+		}
+	}
+}
+
+async function getChats() {
+	const res = await fetch('/api/chat/chats');
+	if (!res.ok) return; // TODO Error msg
+	const chats = (await res.json()) as Chat[];
+	const userList = document.getElementById('userList');
+	if (userList) {
+		for (const chat of chats) {
+			const butt = document.createElement('button');
+			butt.addEventListener('click', async () => {
+				localStorage.setItem('chat_id', chat.id);
+				await getMessages(chat.id);
+			});
+			if (chat.name === null) butt.textContent = chat.id;
+			else butt.textContent = chat.name;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
 			userList.appendChild(butt);
 		}
