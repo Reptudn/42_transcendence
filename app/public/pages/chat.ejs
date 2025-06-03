@@ -1,16 +1,40 @@
 <div class="flex flex-row h-80 space-x-8">
+	<!-- Linke Spalte: Suche & Userliste -->
 	<div class="flex flex-col space-y-2">
 		<input id="searchForFriend" class="flex h-8 w-64 border border-gray-300 px-4 py-2" type="text" placeholder="Search">
-
 		<div id="userList" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto max-h-64">
 		</div>
 	</div>
 
+	<!-- Mitte: Chat -->
 	<div class="flex flex-col flex-1 space-y-4">
-		<div id="chatMessages" class="flex-1 border h-80 w- border-gray-300 overflow-y-auto"> </div>
+		<div id="chatMessages" class="flex-1 border h-80 border-gray-300 overflow-y-auto"></div>
 		<input id="chatInput" type="text" class="border border-gray-300 px-4 py-2" placeholder="Type a message...">
-		<button id="sendChatButton" class="bg-blue-500 text-white"> Send </button>
+		<button id="sendChatButton" class="bg-blue-500 text-white px-4 py-2 rounded">Send</button>
+	</div>
+
+	<!-- Rechte Spalte: Buttons -->
+	<div class="flex flex-col space-y-4">
+		<button id="globalChat" class="bg-green-500 text-white px-4 py-2 rounded">Global Chat</button>
+		<button id="createGroup" class="bg-purple-500 text-white px-4 py-2 rounded">Neue Gruppe erstellen</button>
 	</div>
 </div>
+
+<!-- Modal für Gruppen-Erstellung -->
+<div id="groupWindow" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+	<div class="bg-white p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">Neue Gruppe erstellen</h2>
+		<input id="groupSearchInput" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<div id="searchResults" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<div class="flex justify-end space-x-2">
+			<button id="closeGroupWindow" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmCreateGroup" class="bg-blue-600 text-white px-4 py-2 rounded">Gruppe erstellen</button>
+		</div>
+	</div>
+</div>
+
 <script type="module" src="/static/js/chat.js"></script>
-<script type="module" src="/static/js/alert.js"></script>
+ 

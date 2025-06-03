@@ -16,8 +16,12 @@ import {
 	addToParticipants,
 } from './utils';
 
-interface MessageQuery {
+interface MessageQueryChat {
 	chat_id: string;
+}
+
+interface MessageQueryUser {
+	user_id: string[];
 }
 
 export interface Chat {
@@ -139,7 +143,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			res.send(users);
 		}
 	);
-	fastify.get<{ Querystring: MessageQuery }>(
+	fastify.get<{ Querystring: MessageQueryChat }>(
 		'/messages',
 		{
 			preValidation: [fastify.authenticate],
@@ -154,7 +158,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			},
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQuery;
+			const { chat_id } = req.query as MessageQueryChat;
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -163,7 +167,6 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
 			const newChatId = chat_id;
-			// if (chat_id !== 0) newChatId = generateChatId([chat_id, user.id]);
 
 			const chat = await getChatFromSql(fastify, newChatId);
 			if (!chat) {
@@ -187,7 +190,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			res.send(messages);
 		}
 	);
-	fastify.get<{ Querystring: MessageQuery }>(
+	fastify.get<{ Querystring: MessageQueryUser }>(
 		'/invite',
 		{
 			preValidation: [fastify.authenticate],
@@ -195,14 +198,17 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				querystring: {
 					type: 'object',
 					properties: {
-						chat_id: { type: 'string' },
+						user_id: {
+							type: 'array',
+							items: { type: 'string' },
+						},
 					},
-					required: ['chat_id'],
+					required: ['user_id'],
 				},
 			},
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQuery;
+			const { user_id } = req.query as MessageQueryUser;
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -211,18 +217,19 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
 			let newChatId = '0';
-			if (Number.parseInt(chat_id) !== 0)
-				newChatId = generateChatId([Number.parseInt(chat_id), user.id]);
+			const userIdsInt = user_id
+				.map((id) => Number.parseInt(id, 10))
+				.filter((id) => !Number.isNaN(id));
+			if (!userIdsInt.includes(user.id)) userIdsInt.push(user.id);
+			newChatId = generateChatId(userIdsInt);
 			const chat = await getChatFromSql(fastify, newChatId);
 			if (!chat) {
-				createNewChat(fastify, newChatId, false);
-				addToParticipants(fastify, user.id, newChatId);
-				if (user.id !== Number.parseInt(chat_id))
-					addToParticipants(
-						fastify,
-						Number.parseInt(chat_id),
-						newChatId
-					);
+				if (userIdsInt.length <= 2)
+					createNewChat(fastify, newChatId, false);
+				else createNewChat(fastify, newChatId, true);
+				for (const id of userIdsInt) {
+					addToParticipants(fastify, id, newChatId);
+				}
 			}
 			res.send({ chat_id: newChatId });
 		}
