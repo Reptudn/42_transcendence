@@ -1,4 +1,5 @@
-import { showLocalInfo, showLocalError } from './alert.js';
+import {showLocalInfo} from './alert.js'
+
 declare global {
 	interface Window {
 		updateActiveMenu: (selectedPage: string) => void;
@@ -137,7 +138,7 @@ export async function updateMenu(): Promise<void> {
 			menuElement.innerHTML = html;
 		}
 	} catch (error) {
-		showLocalError(`Menu fetch failed: ${error}`);
+		console.error('Menu fetch failed:', error);
 	}
 }
 
@@ -157,7 +158,7 @@ async function fetchNumber(): Promise<void> {
 		}
 	} catch (error) {
 		numberFetchFailed = true;
-		showLocalError(`Error fetching number: ${error}`);
+		console.error('Error fetching number:', error);
 	}
 }
 async function updateNumber(increment: number): Promise<void> {
@@ -176,7 +177,7 @@ async function updateNumber(increment: number): Promise<void> {
 			displayElement.textContent = data.number.toString();
 		}
 	} catch (error) {
-		showLocalError(`Error updating number: ${error}`);
+		console.error('Error updating number:', error);
 	}
 }
 const numberDisplay = document.getElementById('numberDisplay');
@@ -198,16 +199,14 @@ async function logout(): Promise<void> {
 			loadPartialView('index');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
-			showLocalInfo('You have been logged out with impeccable style!');
+			console.log('You have been logged out with impeccable style!');
 		} else {
 			const data = await response.json();
-			showLocalError(`Error during logout: ${data.message}`);
+			alert(`Error during logout: ${data.message}`);
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
-		showLocalError(
-			'An error occurred during logout. Do try again, old chap!'
-		);
+		alert('An error occurred during logout. Do try again, old chap!');
 	}
 }
 
