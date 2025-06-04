@@ -84,7 +84,7 @@ export default fp(async (fastify) => {
 
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS chats (
-			id TEXT PRIMARY KEY,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT, -- optional für Gruppen
 			is_group BOOLEAN DEFAULT 0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -94,7 +94,7 @@ export default fp(async (fastify) => {
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS chat_participants (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			chat_id TEXT NOT NULL,
+			chat_id INTEGER NOT NULL,
 			user_id INTEGER NOT NULL,
 			FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
 			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -105,7 +105,7 @@ export default fp(async (fastify) => {
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS messages (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			chat_id TEXT NOT NULL,
+			chat_id INTEGER NOT NULL,
 			user_id INTEGER,
 			content TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -16,7 +16,7 @@ export async function sendMsg(fastify: FastifyInstance) {
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const body = req.body as {
-				chat: string;
+				chat: number;
 				message: string;
 			};
 

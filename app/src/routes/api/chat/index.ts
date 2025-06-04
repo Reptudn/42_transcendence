@@ -6,13 +6,12 @@ import {
 	getMessagesFromSqlByChatId,
 	getParticipantFromSql,
 	getAllChatsFromSqlByUserId,
-	generateChatId,
 	createNewChat,
 	addToParticipants,
 } from './utils';
 
 interface MessageQueryChat {
-	chat_id: string;
+	chat_id: number;
 }
 
 interface MessageQueryUser {
@@ -29,13 +28,13 @@ export interface Chat {
 
 export interface Part {
 	id: number;
-	chat_id: string;
+	chat_id: number;
 	user_id: number;
 }
 
 export interface Msg {
 	id: number;
-	chat_id: string;
+	chat_id: number;
 	displayname: string;
 	content: string;
 	created_at: string;
@@ -167,22 +166,20 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
-			let newChatId = '0';
 			const userIdsInt = user_id
 				.map((id) => Number.parseInt(id, 10))
 				.filter((id) => !Number.isNaN(id));
 			if (!userIdsInt.includes(user.id)) userIdsInt.push(user.id);
-			newChatId = generateChatId(userIdsInt);
-			const chat = await getChatFromSql(fastify, newChatId);
-			if (!chat) {
-				if (userIdsInt.length <= 2)
-					createNewChat(fastify, newChatId, false, group_name);
-				else createNewChat(fastify, newChatId, true, group_name);
+			let chat_id: number | undefined = 0;
+			if (userIdsInt.length <= 2)
+				chat_id = await createNewChat(fastify, false, group_name);
+			else chat_id = await createNewChat(fastify, true, group_name);
+			if (chat_id !== undefined) {
 				for (const id of userIdsInt) {
-					addToParticipants(fastify, id, newChatId);
+					addToParticipants(fastify, id, chat_id);
 				}
+				res.send({ chat_id: chat_id.toString() });
 			}
-			res.send({ chat_id: newChatId });
 		}
 	);
 };

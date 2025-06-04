@@ -4,22 +4,22 @@ import type { Chat, Part, Msg } from './index';
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
 	user_id: number,
-	chat_id: string
+	chat_id: number
 ) {
 	const chat = await getChatFromSql(fastify, chat_id);
 	if (!chat) {
-		if (chat_id !== '0') {
+		if (chat_id !== 0) {
 			fastify.log.info('Error:', 'Chat not Found');
 			return;
 		}
-		createNewChat(fastify, chat_id, true, null);
+		createNewChat(fastify, true, null);
 	}
 	addToParticipants(fastify, user_id, chat_id);
 }
 
 export async function getChatFromSql(
 	fastify: FastifyInstance,
-	chat_id: string
+	chat_id: number
 ): Promise<Chat | null> {
 	let chat: Chat | null;
 	try {
@@ -37,7 +37,7 @@ export async function getChatFromSql(
 export async function getParticipantFromSql(
 	fastify: FastifyInstance,
 	user_id: number,
-	chat_id: string
+	chat_id: number
 ): Promise<Part | null> {
 	let user: Part | null;
 	try {
@@ -54,7 +54,7 @@ export async function getParticipantFromSql(
 
 export async function getAllParticipantsFromSql(
 	fastify: FastifyInstance,
-	chat_id: string
+	chat_id: number
 ): Promise<Part[] | null> {
 	let user: Part[] | null;
 	try {
@@ -88,7 +88,7 @@ export async function getAllChatsFromSqlByUserId(
 
 export async function getMessagesFromSqlByChatId(
 	fastify: FastifyInstance,
-	chat_id: string
+	chat_id: number
 ) {
 	let msg: Msg[] | null;
 	try {
@@ -124,7 +124,7 @@ export async function getMessagesFromSqlByMsgId(
 export function addToParticipants(
 	fastify: FastifyInstance,
 	user_id: number,
-	chat_id: string
+	chat_id: number
 ) {
 	try {
 		fastify.sqlite.run(
@@ -136,17 +136,18 @@ export function addToParticipants(
 	}
 }
 
-export function createNewChat(
+export async function createNewChat(
 	fastify: FastifyInstance,
-	chat_id: string,
 	is_group: boolean,
 	groupName: string | null
 ) {
 	try {
-		fastify.sqlite.run(
-			'INSERT INTO chats (id, name, is_group) VALUES (?, ?, ?)',
-			[chat_id, groupName, is_group]
+		const chat = await fastify.sqlite.run(
+			'INSERT INTO chats (name, is_group) VALUES (?, ?)',
+			[groupName, is_group]
 		);
+		if (chat.changes !== 0 && typeof chat.lastID === 'number')
+			return chat.lastID;
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 	}

@@ -64,12 +64,13 @@ document
 		if (input && input.value.trim() !== '') {
 			const msg = input.value.trim();
 			input.value = '';
-
+			const chat_id = localStorage.getItem('chat_id');
+			if (!chat_id) return; // TODO Error msg
 			await fetch('/api/chat', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					chat: localStorage.getItem('chat_id'),
+					chat: Number.parseInt(chat_id),
 					is_group: true,
 					message: msg,
 				}),
