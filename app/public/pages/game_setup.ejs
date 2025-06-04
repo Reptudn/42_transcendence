@@ -1,43 +1,43 @@
 
-<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-	<h1 class="text-3xl font-bold mb-6 text-center"><%= t('game_setup.game_setup') %></h1>
+<div class="max-w-4xl p-6 rounded-lg shadow-md glow-green">
+	<h1 class="text-4xl font-bold mb-6 text-center"><%= t('game_setup.game_setup') %></h1>
 
 	<section class="mb-8">
-	<h2 class="text-2xl font-semibold mb-3"><%= t('game_setup.general_settings') %></h2>
+	<h2 class="text-3xl font-semibold mb-3"><%= t('game_setup.general_settings') %></h2>
 	<div class="grid grid-cols-2 gap-6">
 		<div>
-		<label for="map" class="block text-sm font-medium text-gray-700"><%= t('game_setup.map') %></label>
+		<label for="map" class="block font-medium text-2xl"><%= t('game_setup.map') %></label>
 		<select id="map" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
 			<option value="classic"><%= t('game_setup.modes.classic') %> 🏓</option>
 		</select>
 		</div>
 		<div>
-		<label for="lives" class="block text-sm font-medium text-gray-700"><%= t('game_setup.player_lives') %></label>
+		<label for="lives" class="block font-medium text-2xl"><%= t('game_setup.player_lives') %></label>
 		<input type="number" id="lives" placeholder="3" min="1"
 				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
 		</div>
 		<div>
-		<label for="difficulty" class="block text-sm font-medium text-gray-700"><%= t('game_setup.game_difficulty') %></label>
+		<label for="difficulty" class="block font-medium text-2xl"><%= t('game_setup.game_difficulty') %></label>
 		<input type="number" id="difficulty" placeholder="1" min="1" max="10"
 				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
 		</div>
 		<div class="flex items-center mt-6">
 		<input type="checkbox" id="powerups" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-		<label for="powerups" class="ml-2 text-sm text-gray-700"><%= t('game_setup.powerups_enabled') %></label>
+		<label for="powerups" class="ml-2 text-2xl"><%= t('game_setup.powerups_enabled') %></label>
 		</div>
 	</div>
 	</section>
 
 	<section class="mb-8">
 	<h2 class="text-2xl font-semibold mb-3"><%= t('game_setup.player_settings') %></h2>
-	<p class="text-sm text-gray-600 mb-4">
+	<p class="text-sm text-1xl mb-4">
 		<%= t('game_setup.player_settings_description') %>
 	</p>
 	<div id="playersContainer">
 		<div class="player-card p-4 border rounded-lg mb-4" data-player-index="0">
 		<h3 class="text-xl font-bold mb-2"><%= t('game_setup.player') %> 1: <%= t('game_setup.you') %></h3>
 		<div class="mb-2">
-			<label class="block text-sm font-medium text-gray-700"><%= t('game_setup.control_scheme') %></label>
+			<label class="block text-sm font-medium"><%= t('game_setup.control_scheme') %></label>
 			<select class="control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm">
 			<option value="wasd">WASD</option>
 			<option value="arrows"><%= t('game_setup.controls.arrow_keys') %></option>
@@ -47,17 +47,17 @@
 		</div>
 	</div>
 	<div class="flex space-x-4">
-		<button id="addPlayerButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+		<button id="addPlayerButton" class="glow-green py-2 px-4 rounded text-2xl">
 		<%= t('game_setup.add_player') %>
 		</button>
-		<button id="removePlayerButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+		<button id="removePlayerButton" class="glow-red py-2 px-4 rounded text-2xl">
 		<%= t('game_setup.remove_player') %>
 		</button>
 	</div>
 	</section>
 
 	<div class="text-center">
-	<button id="startGameButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+	<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl">
 		<%= t('game_setup.start_game') %>
 	</button>
 	</div>

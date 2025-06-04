@@ -1,33 +1,33 @@
-<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-	<h2 class="text-2xl font-bold mb-6 text-center"><%= t('register.title') %></h2>
+<div class="max-w-md p-6 rounded-lg glow-green">
+	<h2 class="font-bold mb-6 text-4xl"><%= t('register.title') %></h2>
 	<div id="register-form">
 		<div class="mb-4">
-			<label for="username" class="block text-gray-700 font-bold mb-2"><%= t('register.username') %>:</label>
-			<input type="text" id="username" name="username" required
-				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<div class="text-right text-sm text-gray-500" id="usernameCounter">0/16</div>
+			<label for="username" class="block font-bold mb-2 text-2xl"><%= t('register.username') %>:</label>
+			<input type="text" id="username" name="username" required placeholder="> ____________"
+				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+			<div class="text-right glow-red text-2xl" id="usernameCounter">0/16</div>
 		</div>
 		<div class="mb-4">
-			<label for="displayname" class="block text-gray-700 font-bold mb-2"><%= t('register.displayname') %>:</label>
-			<input type="text" id="displayname" name="displayname" required
-				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-			<div class="text-right text-sm text-gray-500" id="displaynameCounter">0/16</div>
+			<label for="displayname" class="block font-bold mb-2 text-2xl"><%= t('register.displayname') %>:</label>
+			<input type="text" id="displayname" name="displayname" required placeholder="> ____________"
+				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+			<div class="text-right glow-red text-2xl" id="displaynameCounter">0/16</div>
 		</div>
 		<div class="mb-6">
-			<label for="password" class="block text-gray-700 font-bold mb-2"><%= t('register.password') %>:</label>
-			<input type="password" id="password" name="password" required
-				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<label for="password" class="block font-bold mb-2 text-2xl"><%= t('register.password') %>:</label>
+			<input type="password" id="password" name="password" required placeholder="> ____________"
+				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
 		</div>
 		<div class="text-center">
 			<button id="registerButton" type="button"
-				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"><%= t('register.register_button') %></button>
+				class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('register.register_button') %></button>
 		</div>
 	</div>
 	<br>
-	<p class="text-center"><%= t('login.or') %></p>
+	<p class="text-center text-3xl glow-red"><%= t('login.or') %></p>
 	<br>
 	<a href ="/api/auth/google/">
-		<div class="google-signin bg-white-500 hover:bg-gray-200 text-black font-bold py-2 px-4 rounded-lg text-center border-2 border-black">
+		<div class="text-3xl google-signin bg-white-500 font-bold py-2 px-4 rounded-lg text-center hover:glow-blue">
 			<img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google image" class="w-6 h-6 inline-block mr-2">
 			<%= t('register.google_button') %>
 		</div>
