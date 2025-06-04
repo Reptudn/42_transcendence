@@ -1,16 +1,10 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { getUserById } from '../../../services/database/users';
-import {
-	connectedClients,
-	sendSseMessage,
-} from '../../../services/sse/handler';
-
+import { sendMsg } from './send_msg';
 import {
 	getChatFromSql,
 	getMessagesFromSqlByChatId,
-	getMessagesFromSqlByMsgId,
 	getParticipantFromSql,
-	getAllParticipantsFromSql,
 	getAllChatsFromSqlByUserId,
 	generateChatId,
 	createNewChat,
@@ -22,6 +16,7 @@ interface MessageQueryChat {
 }
 
 interface MessageQueryUser {
+	group_name: string;
 	user_id: string[];
 }
 
@@ -61,79 +56,7 @@ interface User {
 }
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	fastify.post(
-		'/',
-		{ preValidation: [fastify.authenticate] },
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const body = req.body as {
-				chat: string;
-				is_group?: boolean;
-				message: string;
-			};
-
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-			const newChatId = body.chat;
-			// if (body.chat !== '0')
-			// 	newChatId = generateChatId([
-			// 		Number.parseInt(body.chat),
-			// 		user.id,
-			// 	]);
-			const group = await getChatFromSql(fastify, newChatId);
-			if (!group) {
-				return res.status(400).send({ error: 'Chat not Found' });
-			}
-			// const partisipant = await getParticipantFromSql(
-			// 	fastify,
-			// 	user.id,
-			// 	newChatId
-			// );
-			// if (!partisipant) {
-			// 	return res.status(400).send({ error: 'User has no Access' });
-			// }
-			const partisipants = await getAllParticipantsFromSql(
-				fastify,
-				newChatId
-			);
-			fastify.log.info(partisipants);
-			if (!partisipants) {
-				return res.status(400).send({ error: 'Users not Found' });
-			}
-			const msgId = await fastify.sqlite.run(
-				'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
-				[group.id, user.id, body.message]
-			);
-
-			if (msgId.changes !== 0 && typeof msgId.lastID === 'number') {
-				const msg = await getMessagesFromSqlByMsgId(
-					fastify,
-					msgId.lastID
-				);
-				if (!msg)
-					return res.status(400).send({ error: 'Message not Found' });
-				console.log('msg Test =', msg);
-				for (const part of partisipants) {
-					if (connectedClients.has(part.user_id)) {
-						const client = connectedClients.get(part.user_id);
-						if (client) {
-							sendSseMessage(
-								client,
-								'chat',
-								JSON.stringify({ msg })
-							);
-						}
-					}
-				}
-			}
-			res.send({ ok: true });
-		}
-	);
-
+	sendMsg(fastify);
 	fastify.get(
 		'/users',
 		{ preValidation: [fastify.authenticate] },
@@ -141,7 +64,10 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const users = (await fastify.sqlite.all(
 				'SELECT id, google_id, username, password, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users'
 			)) as User[];
-			res.send(users);
+			const updateUsers = users.filter(
+				(user) => user.id !== (req.user as { id: number }).id
+			);
+			res.send(updateUsers);
 		}
 	);
 	fastify.get(
@@ -163,7 +89,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
 					[part.chat_id]
 				)) as Chat;
-				chats.push(chat);
+				if (chat.id !== '0') chats.push(chat);
 			}
 			res.send(chats);
 		}
@@ -228,12 +154,12 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							items: { type: 'string' },
 						},
 					},
-					required: ['user_id'],
+					required: ['user_id', 'group_name'],
 				},
 			},
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryUser;
+			const { group_name, user_id } = req.query as MessageQueryUser;
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -250,8 +176,8 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const chat = await getChatFromSql(fastify, newChatId);
 			if (!chat) {
 				if (userIdsInt.length <= 2)
-					createNewChat(fastify, newChatId, false);
-				else createNewChat(fastify, newChatId, true);
+					createNewChat(fastify, newChatId, false, group_name);
+				else createNewChat(fastify, newChatId, true, group_name);
 				for (const id of userIdsInt) {
 					addToParticipants(fastify, id, newChatId);
 				}

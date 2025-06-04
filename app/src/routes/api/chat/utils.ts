@@ -12,7 +12,7 @@ export async function inviteUserToChat(
 			fastify.log.info('Error:', 'Chat not Found');
 			return;
 		}
-		createNewChat(fastify, chat_id, true);
+		createNewChat(fastify, chat_id, true, null);
 	}
 	addToParticipants(fastify, user_id, chat_id);
 }
@@ -139,13 +139,14 @@ export function addToParticipants(
 export function createNewChat(
 	fastify: FastifyInstance,
 	chat_id: string,
-	is_group: boolean
+	is_group: boolean,
+	groupName: string | null
 ) {
 	try {
-		fastify.sqlite.run('INSERT INTO chats (id, is_group) VALUES (?, ?)', [
-			chat_id,
-			is_group,
-		]);
+		fastify.sqlite.run(
+			'INSERT INTO chats (id, name, is_group) VALUES (?, ?, ?)',
+			[chat_id, groupName, is_group]
+		);
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 	}

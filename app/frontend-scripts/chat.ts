@@ -1,6 +1,5 @@
 import { showLocalPopup } from './alert.js';
 
-let userIds: string[] = [];
 export interface Msg {
 	id: number;
 	chat_id: string;
@@ -9,14 +8,14 @@ export interface Msg {
 	created_at: string;
 }
 
-interface Chat {
+export interface Chat {
 	id: string;
 	name: string | null;
 	is_group: boolean;
 	created_at: string;
 }
 
-interface User {
+export interface User {
 	id: number;
 	google_id: string;
 	username: string;
@@ -32,7 +31,6 @@ interface User {
 
 if (!localStorage.getItem('chat_id')) localStorage.setItem('chat_id', '0');
 
-await getUser();
 await getChats();
 await getMessages(localStorage.getItem('chat_id'));
 
@@ -58,61 +56,6 @@ document.getElementById('globalChat')?.addEventListener('click', async () => {
 	localStorage.setItem('chat_id', '0');
 	await getMessages(localStorage.getItem('chat_id'));
 });
-
-document.getElementById('createGroup')?.addEventListener('click', async () => {
-	document.getElementById('groupWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/users');
-	if (!res.ok) return; // TODO Error msg
-	const users = (await res.json()) as User[];
-	const userList = document.getElementById('searchResults');
-	if (userList) {
-		userList.innerHTML = '';
-		for (const user of users) {
-			const butt = document.createElement('button');
-			butt.addEventListener('click', async () => {
-				const pos = userIds.indexOf(user.id.toString());
-				if (pos === -1) userIds.push(user.id.toString());
-				else userIds.splice(pos, 1);
-			});
-			butt.textContent = user.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
-			userList.appendChild(butt);
-		}
-	}
-});
-
-document
-	.getElementById('confirmCreateGroup')
-	?.addEventListener('click', async () => {
-		console.log('invitet users =', userIds);
-		if (userIds.length === 0) {
-			showLocalPopup({
-				title: 'No members in Group',
-				description: 'You need to add some users to the Group',
-				color: 'red',
-			});
-			return;
-		}
-		const params = new URLSearchParams();
-		for (const id of userIds) {
-			params.append('user_id', id.toString());
-		}
-		const url = `/api/chat/invite?${params.toString()}`;
-		const res = await fetch(url);
-		if (!res.ok) return; // TODO Error msg
-		const responseData = await res.json();
-
-		const newId = responseData.chat_id as string;
-		localStorage.setItem('chat_id', newId);
-		await getMessages(newId);
-	});
-
-document
-	.getElementById('closeGroupWindow')
-	?.addEventListener('click', async () => {
-		userIds = [];
-		document.getElementById('groupWindow')?.classList.add('hidden');
-	});
 
 document
 	.getElementById('sendChatButton')
@@ -140,37 +83,13 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 	}
 });
 
-export async function getUser() {
-	const res = await fetch('/api/chat/users');
-	if (!res.ok) return; // TODO Error msg
-	const users = (await res.json()) as User[];
-	const userList = document.getElementById('userList');
-	if (userList) {
-		userList.innerHTML = '';
-		for (const user of users) {
-			const butt = document.createElement('button');
-			butt.addEventListener('click', async () => {
-				const res = await fetch(`/api/chat/invite?user_id=${user.id}`);
-				if (!res.ok) return; // TODO Error msg
-				const responseData = await res.json();
-
-				const newId = responseData.chat_id as string;
-				localStorage.setItem('chat_id', newId);
-				await getMessages(newId);
-			});
-			butt.textContent = user.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
-			userList.appendChild(butt);
-		}
-	}
-}
-
-async function getChats() {
+export async function getChats() {
 	const res = await fetch('/api/chat/chats');
 	if (!res.ok) return; // TODO Error msg
 	const chats = (await res.json()) as Chat[];
 	const userList = document.getElementById('userList');
 	if (userList) {
+		userList.innerHTML = '';
 		for (const chat of chats) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
