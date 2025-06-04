@@ -13,7 +13,7 @@ interface LocalAlertData {
 
 export function showLocalPopup(data: LocalAlertData) {
 	const template = `
-<div class="popup flex pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md relative"
+<div class="popup pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md"
 	role="alert">
 	<div class="flex-1">
 		<strong class="font-bold mr-8"><%- title %></strong>

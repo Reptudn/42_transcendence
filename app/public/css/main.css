@@ -92,7 +92,7 @@
 	}
 
 	/* #popup-wrapper {
-		transform: scale(1.02) rotateX(5deg);
+		position: absolute;
 	} */
 
 	@keyframes scanlines-move {
