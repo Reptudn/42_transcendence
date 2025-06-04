@@ -1,5 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
-
+import { showLocalInfo, showLocalError } from './alert.js';
 declare global {
 	interface Window {
 		updateActiveMenu: (selectedPage: string) => void;
@@ -206,7 +205,9 @@ async function logout(): Promise<void> {
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
-		showLocalError('An error occurred during logout. Do try again, old chap!');
+		showLocalError(
+			'An error occurred during logout. Do try again, old chap!'
+		);
 	}
 }
 
