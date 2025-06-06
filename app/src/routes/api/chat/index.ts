@@ -6,6 +6,7 @@ import {
 	getMessagesFromSqlByChatId,
 	getParticipantFromSql,
 	getAllChatsFromSqlByUserId,
+	getAllUsersFromSql,
 	createNewChat,
 	addToParticipants,
 } from './utils';
@@ -20,7 +21,7 @@ interface MessageQueryUser {
 }
 
 export interface Chat {
-	id: string;
+	id: number;
 	name: string | null;
 	is_group: boolean;
 	created_at: string;
@@ -35,12 +36,13 @@ export interface Part {
 export interface Msg {
 	id: number;
 	chat_id: number;
+	chatName: string;
 	displayname: string;
 	content: string;
 	created_at: string;
 }
 
-interface User {
+export interface User {
 	id: number;
 	google_id: string;
 	username: string;
@@ -60,9 +62,10 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/users',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const users = (await fastify.sqlite.all(
-				'SELECT id, google_id, username, password, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users'
-			)) as User[];
+			const users = await getAllUsersFromSql(fastify);
+			if (!users) {
+				return res.status(400).send({ error: 'Users not Found' });
+			}
 			const updateUsers = users.filter(
 				(user) => user.id !== (req.user as { id: number }).id
 			);
@@ -88,7 +91,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
 					[part.chat_id]
 				)) as Chat;
-				if (chat.id !== '0') chats.push(chat);
+				if (chat.id !== 1) chats.push(chat);
 			}
 			res.send(chats);
 		}
@@ -109,6 +112,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id } = req.query as MessageQueryChat;
+			console.log('chat_id msg test = ', chat_id);
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -141,7 +145,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 	fastify.get<{ Querystring: MessageQueryUser }>(
-		'/invite',
+		'/create',
 		{
 			preValidation: [fastify.authenticate],
 			schema: {

@@ -55,7 +55,7 @@ document
 		for (const id of userIds) {
 			params.append('user_id', id.toString());
 		}
-		const url = `/api/chat/invite?${params.toString()}`;
+		const url = `/api/chat/create?${params.toString()}`;
 		const res = await fetch(url);
 		if (!res.ok) return; // TODO Error msg
 		const responseData = await res.json();

@@ -20,6 +20,8 @@ export async function sendMsg(fastify: FastifyInstance) {
 				message: string;
 			};
 
+			console.log('chat send test = ', body.chat);
+			console.log('message send test = ', body.message);
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -62,6 +64,12 @@ export async function sendMsg(fastify: FastifyInstance) {
 						}
 					} else {
 						// TODO store msg send Popup when user is connected
+						/* 
+						{
+							part.user_id;
+							msg.chatName;
+						}
+						*/
 					}
 				}
 			}

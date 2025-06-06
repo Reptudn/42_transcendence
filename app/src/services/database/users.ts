@@ -70,7 +70,7 @@ export async function registerUser(
 		]
 	);
 	if (user.changes !== 0 && typeof user.lastID === 'number') {
-		inviteUserToChat(fastify, user.lastID, 0);
+		inviteUserToChat(fastify, user.lastID, 1);
 	}
 }
 

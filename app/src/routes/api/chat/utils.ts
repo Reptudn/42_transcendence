@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Chat, Part, Msg } from './index';
+import type { Chat, Part, Msg, User } from './index';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -8,7 +8,7 @@ export async function inviteUserToChat(
 ) {
 	const chat = await getChatFromSql(fastify, chat_id);
 	if (!chat) {
-		if (chat_id !== 0) {
+		if (chat_id !== 1) {
 			fastify.log.info('Error:', 'Chat not Found');
 			return;
 		}
@@ -86,6 +86,19 @@ export async function getAllChatsFromSqlByUserId(
 	return chats;
 }
 
+export async function getAllUsersFromSql(fastify: FastifyInstance) {
+	let users: User[] | null;
+	try {
+		users = (await fastify.sqlite.all(
+			'SELECT	id, google_id, username, password, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users'
+		)) as User[] | null;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return null;
+	}
+	return users;
+}
+
 export async function getMessagesFromSqlByChatId(
 	fastify: FastifyInstance,
 	chat_id: number
@@ -110,7 +123,7 @@ export async function getMessagesFromSqlByMsgId(
 	let msg: Msg | null;
 	try {
 		msg = (await fastify.sqlite.get(
-			'SELECT messages.id, messages.chat_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
+			'SELECT messages.id, messages.chat_id, chats.name AS chatName, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN chats ON messages.chat_id = chats.id JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
 			[msg_id]
 		)) as Msg | null;
 		console.log('msg Test inside = ', msg);
