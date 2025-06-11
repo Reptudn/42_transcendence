@@ -6,12 +6,42 @@ import {
 	removeFriendship,
 } from '../../services/database/friends';
 import { getUserById, getNameForUser } from '../../services/database/users';
-import { connectedClients, sendSseHeaders, sendSseMessage } from '../../services/sse/handler';
+import {
+	connectedClients,
+	sendSseHeaders,
+	sendSseMessage,
+} from '../../services/sse/handler';
+
+const sendServerNotificationSchema = {
+	type: 'object',
+	properties: {
+		title: { type: 'string', minLength: 1, maxLength: 100 },
+		description: { type: 'string', minLength: 1, maxLength: 500 },
+		color: { type: 'string', minLength: 1, maxLength: 20 },
+		callback1: { type: 'string', minLength: 1, maxLength: 100 },
+		buttonName1: { type: 'string', minLength: 1, maxLength: 50 },
+		callback2: { type: 'string', minLength: 1, maxLength: 100 },
+		buttonName2: { type: 'string', minLength: 1, maxLength: 50 },
+	},
+	required: [
+		'title',
+		'description',
+		'color',
+		'callback1',
+		'buttonName1',
+		'callback2',
+		'buttonName2',
+	],
+	additionalProperties: false,
+};
 
 const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
 		'/',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { response: { 200: { type: 'string' } } },
+		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			console.log('Client connected with notify');
 
@@ -24,7 +54,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			sendSseHeaders(reply);
 
-			sendSseMessage(reply, 'log', 'Connection with Server established')
+			sendSseMessage(reply, 'log', 'Connection with Server established');
 
 			connectedClients.set(user.id, reply);
 
@@ -88,7 +118,10 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/send',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: sendServerNotificationSchema },
+		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user: User | null = await checkAuth(request, false, fastify);
 			if (!user) {

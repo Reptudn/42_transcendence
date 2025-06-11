@@ -17,7 +17,7 @@
 			"label": "DIE HEILIGE ZAHL DES SCHICKSALS!",
 			"click": "- (warum klickst du nicht darauf?)"
 		}
-		},
+	},
 	"index": {
 		"title": "Willkommen bei Transcendence, Fremder...",
 		"description": "Nur du und deine Lachsnase!"
@@ -67,7 +67,8 @@
 		"password_no_spaces": "Das neue Passwort darf keine Leerzeichen enthalten",
 		"save_new_password": "Neues Passwort speichern",
 		"delete_user": "Benutzer löschen",
-		"password": "Passwort"
+		"password": "Passwort",
+		"bio": "Bio"
 	},
 	"game_setup": {
 		"game_setup": "Spiel-Einstellungen",

@@ -67,7 +67,8 @@
 		"password_no_spaces": "Le nouveau mot de passe ne peut pas contenir d'espaces",
 		"save_new_password": "Enregistrer le nouveau mot de passe",
 		"delete_user": "Supprimer l'utilisateur",
-		"password": "Mot de passe"
+		"password": "Mot de passe",
+		"bio": "Bio"
 	},
 	"game_setup": {
 		"game_setup": "Configuration du jeu",
