@@ -13,11 +13,34 @@ import {
 const editProfileSchema = {
 	type: 'object',
 	properties: {
-		username: { type: 'string', minLength: 3, maxLength: 20 },
-		displayName: { type: 'string', minLength: 3, maxLength: 50 },
-		bio: { type: 'string', maxLength: 100 },
-		oldPassword: { type: 'string', minLength: 6, maxLength: 100 },
-		newPassword: { type: 'string', minLength: 6, maxLength: 100 },
+		username: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 20,
+		},
+		displayName: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 50,
+		},
+		bio: {
+			type: 'string',
+			maxLength: 100,
+		},
+		oldPassword: {
+			type: 'string',
+			minLength: 6,
+			maxLength: 100,
+			pattern:
+				'^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$',
+		},
+		newPassword: {
+			type: 'string',
+			minLength: 6,
+			maxLength: 100,
+			pattern:
+				'^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$',
+		},
 		profile_picture: {
 			type: 'string',
 			pattern: '^data:image/png;base64,[A-Za-z0-9+/=]+$',

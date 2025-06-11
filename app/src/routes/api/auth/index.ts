@@ -5,12 +5,32 @@ import { loginUser, registerUser } from '../../../services/database/users';
 const authSchema = {
 	type: 'object',
 	properties: {
-		username: { type: 'string', minLength: 3, maxLength: 20 },
-		password: { type: 'string', minLength: 6, maxLength: 100 },
-		displayname: { type: 'string', minLength: 3, maxLength: 50 },
+		username: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 20,
+			pattern: '^[a-zA-Z0-9_]+$', // Nur alphanumerische Zeichen und Unterstriche
+		},
+		password: {
+			type: 'string',
+			minLength: 6,
+			maxLength: 100,
+			pattern:
+				'^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$',
+		},
+		displayname: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 50,
+		},
 	},
-	required: ['username', 'password'],
+	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
 	additionalProperties: false,
+};
+
+const registerSchema = {
+	...authSchema,
+	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
 };
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -50,7 +70,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	});
 	fastify.post(
 		'/register',
-		{ schema: { body: authSchema } },
+		{ schema: { body: registerSchema } },
 		async (req: any, reply: any) => {
 			const { username, password, displayname } = req.body;
 			try {
