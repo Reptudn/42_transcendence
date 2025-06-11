@@ -210,7 +210,7 @@ startGameButton.addEventListener('click', () => {
 							.value
 					) - 1 || 5;
 				if (aiLevel < 0) aiLevel = 0;
-				if (aiLevel > 9) aiLevel = 9;
+				else if (aiLevel > 9) aiLevel = 9;
 				playerData.aiLevel = aiLevel;
 				const aiName = card.querySelector(
 					'.ai-name'

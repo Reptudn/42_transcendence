@@ -7,22 +7,45 @@ import {
 import { checkAuth } from '../../../services/auth/auth';
 
 const startGameSchema = {
-	type: 'object',
-	properties: {
-		gameName: { type: 'string', minLength: 1, maxLength: 50 },
-		maxPlayers: { type: 'number', minimum: 2, maximum: 4 },
-		gameMode: { type: 'string', enum: ['normal', 'hardcore'] },
+	body: {
+		type: 'object',
+		required: ['map', 'playerLives', 'gameDifficulty', 'powerups', 'players'],
+		properties: {
+			map: { type: 'string' },
+			playerLives: { type: 'integer', minimum: 0 },
+			gameDifficulty: { type: 'integer', minimum: 0 },
+			powerups: { type: 'boolean' },
+			players: {
+				type: 'array',
+				items: {
+				type: 'object',
+				required: ['type'],
+				properties: {
+					type: { type: 'string', enum: ['user', 'local', 'ai'] },
+					id: { type: 'integer' }, // for 'user'
+					controlScheme: { type: 'string' }, // for 'local'
+					aiLevel: {
+					type: 'integer',
+					minimum: 0,
+					maximum: 9,
+					}, // for 'ai'
+					aiOrLocalPlayerName: { type: 'string' }, // for 'local' or 'ai'
+				},
+				additionalProperties: false,
+				},
+			},
+		},
+		additionalProperties: false,
 	},
-	required: ['gameName', 'maxPlayers', 'gameMode'],
-	additionalProperties: false,
 };
+
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/start',
 		{
 			preValidation: [fastify.authenticate],
-			schema: { body: startGameSchema },
+			schema: startGameSchema,
 		},
 		async (request, reply) => {
 			const user = await checkAuth(request, false, fastify);
