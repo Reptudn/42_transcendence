@@ -25,7 +25,7 @@ export default fp(
 			},
 			scope: ['profile', 'email'],
 			startRedirectPath: '/api/auth/google/',
-			callbackUri: '/api/auth/google/callback',
+			callbackUri: `${fastify.config.HOST_URI}api/auth/google/callback`,
 			callbackUriParams: {
 				access_type: 'offline',
 				prompt: 'consent',

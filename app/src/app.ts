@@ -11,11 +11,13 @@ const envSchema = {
 		'GOOGLE_OAUTH_CLIENT_ID',
 		'GOOGLE_OAUTH_CLIENT_SECRET',
 		'JWT_SECRET',
+		'HOST_URI'
 	],
 	properties: {
 		GOOGLE_OAUTH_CLIENT_ID: { type: 'string' },
 		GOOGLE_OAUTH_CLIENT_SECRET: { type: 'string' },
 		JWT_SECRET: { type: 'string' },
+		HOST_URI: { type: 'string' },
 	},
 };
 
