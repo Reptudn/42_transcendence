@@ -10,6 +10,7 @@ declare module 'fastify' {
 			GOOGLE_OAUTH_CLIENT_ID: string;
 			GOOGLE_OAUTH_CLIENT_SECRET: string;
 			JWT_SECRET: string;
+			HOST_URI: string;
 		};
 		googleOAuth2: OAuth2Namespace;
 	}

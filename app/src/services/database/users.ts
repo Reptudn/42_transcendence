@@ -106,7 +106,6 @@ export async function registerGoogleUser(
 				.split('')
 				.filter((c) => c.match(/[a-zA-Z0-9_]/))
 				.join(''),
-			,
 			crypto.randomBytes(42).toString('hex'),
 			googleUser.name.substring(0, 16),
 			titleFirst,

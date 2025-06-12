@@ -51,11 +51,11 @@ export async function startGame(
 	fastify.log.info('Added admin player');
 	for (const readPlayer of gameSettings.players) {
 		fastify.log.info(
-			'Adding player' +
-				readPlayer +
-				'with type' +
+			'Adding player ' +
+				readPlayer.toString() +
+				' with type ' +
 				readPlayer.type +
-				'and id' +
+				' and id ' +
 				readPlayer.id
 		);
 		let player: Player | null = null;

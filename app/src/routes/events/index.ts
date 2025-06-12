@@ -12,10 +12,36 @@ import {
 	sendSseMessage,
 } from '../../services/sse/handler';
 
+const sendServerNotificationSchema = {
+	type: 'object',
+	properties: {
+		title: { type: 'string', minLength: 1, maxLength: 100 },
+		description: { type: 'string', minLength: 1, maxLength: 500 },
+		color: { type: 'string', minLength: 1, maxLength: 20 },
+		callback1: { type: 'string', minLength: 1, maxLength: 100 },
+		buttonName1: { type: 'string', minLength: 1, maxLength: 50 },
+		callback2: { type: 'string', minLength: 1, maxLength: 100 },
+		buttonName2: { type: 'string', minLength: 1, maxLength: 50 },
+	},
+	required: [
+		'title',
+		'description',
+		'color',
+		'callback1',
+		'buttonName1',
+		'callback2',
+		'buttonName2',
+	],
+	additionalProperties: false,
+};
+
 const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
 		'/',
-		// { preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { response: { 200: { type: 'string' } } },
+		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			console.log('Client connected with notify');
 
@@ -92,7 +118,10 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/send',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: sendServerNotificationSchema },
+		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user: User | null = await checkAuth(request, false, fastify);
 			if (!user) {
