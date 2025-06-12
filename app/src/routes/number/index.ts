@@ -11,7 +11,16 @@ const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				body: {
+					type: 'object',
+					properties: { number: { type: 'number' } },
+					required: ['number'],
+				},
+			},
+		},
 		async (req: any, reply: any) => {
 			const { number } = req.body;
 			theNumber += number;

@@ -5,7 +5,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const achievementsData = JSON.parse(
-	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
+	fs.readFileSync(
+		path.resolve(__dirname, '../../data/achievements.json'),
+		'utf-8'
+	)
 );
 import { FastifyInstance } from 'fastify';
 
@@ -22,7 +25,7 @@ export default fp(async (fastify) => {
 	});
 	fastify.decorate('sqlite', db);
 
-	fastify.log.info("Fastify opened and decorated!")
+	fastify.log.info('Fastify opened and decorated!');
 
 	// TODO: use migrations?
 
@@ -105,5 +108,5 @@ export default fp(async (fastify) => {
 				'An error occurred while managing the database:',
 				error
 			);
-		})
+		});
 });
