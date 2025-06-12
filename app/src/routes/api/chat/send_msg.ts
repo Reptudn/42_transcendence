@@ -4,6 +4,7 @@ import {
 	getChatFromSql,
 	getAllParticipantsFromSql,
 	getMessagesFromSqlByMsgId,
+	checkUserBlocked,
 } from './utils';
 import {
 	connectedClients,
@@ -20,8 +21,6 @@ export async function sendMsg(fastify: FastifyInstance) {
 				message: string;
 			};
 
-			console.log('chat send test = ', body.chat);
-			console.log('message send test = ', body.message);
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify
@@ -55,6 +54,13 @@ export async function sendMsg(fastify: FastifyInstance) {
 				for (const part of partisipants) {
 					if (connectedClients.has(part.user_id)) {
 						const client = connectedClients.get(part.user_id);
+						const check = await checkUserBlocked(
+							fastify,
+							part.user_id,
+							user.id
+						);
+						if (typeof check === 'undefined') continue;
+						msg.blocked = check;
 						if (client) {
 							sendSseMessage(
 								client,

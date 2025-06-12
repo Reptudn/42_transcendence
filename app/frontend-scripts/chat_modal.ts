@@ -3,6 +3,7 @@ import { getMessages, getChats } from './chat.js';
 import { showLocalPopup } from './alert.js';
 
 let userIds: string[] = [];
+let userIdToBlock = '';
 
 document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
@@ -73,4 +74,50 @@ document
 		userIds = [];
 		groupName = '';
 		document.getElementById('groupWindow')?.classList.add('hidden');
+	});
+
+// Block User Modal
+
+document.getElementById('blockUser')?.addEventListener('click', async () => {
+	document.getElementById('blockUserWindow')?.classList.remove('hidden');
+	const res = await fetch('/api/chat/users');
+	if (!res.ok) return; // TODO Error msg
+	const users = (await res.json()) as User[];
+	const userList = document.getElementById('searchResultsToBlock');
+	if (userList) {
+		userList.innerHTML = '';
+		for (const user of users) {
+			const butt = document.createElement('button');
+			butt.addEventListener('click', async () => {
+				userIdToBlock = user.id.toString();
+			});
+			butt.textContent = user.displayname;
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(butt);
+		}
+	}
+});
+
+document
+	.getElementById('confirmBlockUser')
+	?.addEventListener('click', async () => {
+		if (userIdToBlock === '') {
+			showLocalPopup({
+				title: 'No user added',
+				description: 'You need to add some users to block',
+				color: 'red',
+			});
+			return;
+		}
+		const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
+		const res = await fetch(url);
+		if (!res.ok) return; // TODO Error msg
+		document.getElementById('closeBlockUser')?.click();
+	});
+
+document
+	.getElementById('closeBlockUser')
+	?.addEventListener('click', async () => {
+		userIdToBlock = '';
+		document.getElementById('blockUserWindow')?.classList.add('hidden');
 	});

@@ -114,6 +114,17 @@ export default fp(async (fastify) => {
 			)
 		`);
 
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS blocked_users (
+			blocker_id INTEGER NOT NULL,
+			blocked_id INTEGER NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (blocker_id, blocked_id),
+			FOREIGN KEY(blocker_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY(blocked_id) REFERENCES users(id) ON DELETE CASCADE
+			);
+		`);
+
 		for (const achievement of achievementsData) {
 			await fastify.sqlite.run(
 				`INSERT OR IGNORE INTO achievements 

@@ -3,7 +3,9 @@ import { showLocalPopup } from './alert.js';
 export interface Msg {
 	id: number;
 	chat_id: number;
+	user_id: number;
 	chatName: string;
+	blocked: boolean;
 	displayname: string;
 	content: string;
 	created_at: string;
@@ -93,8 +95,16 @@ searchUser.addEventListener('input', async () => {
 				console.log('user Found =', user.displayname);
 				const butt = document.createElement('button');
 				butt.addEventListener('click', async () => {
-					// localStorage.setItem('chat_id', chat.id);
-					// await getMessages(chat.id);
+					const params = new URLSearchParams();
+					params.append('group_name', user.displayname);
+					params.append('user_id', user.id.toString());
+					const url = `/api/chat/create_dm?${params.toString()}`;
+					const res = await fetch(url);
+					if (!res.ok) return; // TODO Error msg
+					const responseData = await res.json();
+					const newId = responseData.chat_id as string;
+					localStorage.setItem('chat_id', newId);
+					await getMessages(localStorage.getItem('chat_id'));
 				});
 				butt.textContent = user.displayname;
 				butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
@@ -125,7 +135,11 @@ export function appendToChatBox(message: Msg) {
 	if (!id) return; // TODO Error msg
 	if (Number.parseInt(id) === message.chat_id) {
 		const messageElement = document.createElement('div');
-		messageElement.textContent = `${message.displayname}: ${message.content}`;
+		if (!message.blocked) {
+			messageElement.textContent = `${message.displayname}: ${message.content}`;
+		} else {
+			messageElement.textContent = `${message.displayname}: Msg blocked`;
+		}
 		chatMessages.appendChild(messageElement);
 		chatMessages.scrollTop = chatMessages.scrollHeight;
 	} else if (message.chat_id !== 1) {

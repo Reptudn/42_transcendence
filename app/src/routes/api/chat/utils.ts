@@ -1,5 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Part, Msg, User } from './index';
+// import { name } from 'ejs';
+// import { group } from 'console';
+
+interface Blocked {
+	blocker_id: number;
+	blocked_id: number;
+	created_at: string;
+}
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -86,6 +94,39 @@ export async function getAllChatsFromSqlByUserId(
 	return chats;
 }
 
+export async function getPrivateChatFromSql(
+	fastify: FastifyInstance,
+	user_ids: number[],
+	group_name: string
+): Promise<number | null> {
+	let chats: Chat[] | null;
+	let parts: Part[] | null;
+	try {
+		chats = (await fastify.sqlite.all(
+			'SELECT id, name, is_group, create_at FROM chats WHERE name = ?',
+			[group_name]
+		)) as Chat[] | null;
+		if (!chats) return null; // TODO Error msg
+		for (const chat of chats) {
+			if (chat.is_group === false) {
+				parts = (await fastify.sqlite.all(
+					'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ?',
+					[chat.id]
+				)) as Part[] | null;
+				if (!parts) return null; // TODO Error msg
+				const partIds = new Set(parts.map((p) => p.user_id));
+				const check = user_ids.every((id) => partIds.has(id));
+				if (!check) continue;
+				return chat.id;
+			}
+		}
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return null;
+	}
+	return null;
+}
+
 export async function getAllUsersFromSql(fastify: FastifyInstance) {
 	let users: User[] | null;
 	try {
@@ -106,7 +147,7 @@ export async function getMessagesFromSqlByChatId(
 	let msg: Msg[] | null;
 	try {
 		msg = (await fastify.sqlite.all(
-			'SELECT messages.id, messages.chat_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE chat_id = ? ORDER BY created_at ASC',
+			'SELECT messages.id, messages.chat_id, messages.user_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE chat_id = ? ORDER BY created_at ASC',
 			[chat_id]
 		)) as Msg[] | null;
 	} catch (err) {
@@ -123,7 +164,7 @@ export async function getMessagesFromSqlByMsgId(
 	let msg: Msg | null;
 	try {
 		msg = (await fastify.sqlite.get(
-			'SELECT messages.id, messages.chat_id, chats.name AS chatName, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN chats ON messages.chat_id = chats.id JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
+			'SELECT messages.id, messages.chat_id, messages.user_id, chats.name AS chatName, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN chats ON messages.chat_id = chats.id JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
 			[msg_id]
 		)) as Msg | null;
 		console.log('msg Test inside = ', msg);
@@ -166,6 +207,34 @@ export async function createNewChat(
 	}
 }
 
-export function generateChatId(users: number[]): string {
-	return users.sort((a, b) => a - b).join('_');
+export async function blockUser(
+	fastify: FastifyInstance,
+	blocker_id: number,
+	blocked_id: number
+) {
+	try {
+		await fastify.sqlite.run(
+			'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
+			[blocker_id, blocked_id]
+		);
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+}
+
+export async function checkUserBlocked(
+	fastify: FastifyInstance,
+	blocker_id: number,
+	blocked_id: number
+) {
+	try {
+		const blocked = (await fastify.sqlite.get(
+			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
+			[blocker_id, blocked_id]
+		)) as Blocked | null;
+		if (!blocked) return false;
+		return true;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
 }

@@ -17,6 +17,7 @@
 	<div class="flex flex-col space-y-4">
 		<button id="globalChat" class="bg-green-500 text-white px-4 py-2 rounded">Global Chat</button>
 		<button id="createGroup" class="bg-purple-500 text-white px-4 py-2 rounded">Neue Gruppe erstellen</button>
+		<button id="blockUser" class="bg-purple-500 text-white px-4 py-2 rounded">Neue User blockiern</button>
 	</div>
 </div>
 
@@ -39,6 +40,26 @@
 		<div class="flex justify-end space-x-2">
 			<button id="closeGroupWindow" class="px-4 py-2 border">Abbrechen</button>
 			<button id="confirmCreateGroup" class="bg-blue-600 text-white px-4 py-2 rounded">Gruppe erstellen</button>
+		</div>
+	</div>
+</div>
+
+<!-- Modal für Block-User -->
+<div id="blockUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
+	<div class="bg-white p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">BlockUser</h2>
+
+		<!-- Personensuche -->
+		<input id="searchUserToBlock" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<!-- Suchergebnisse -->
+		<div id="searchResultsToBlock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex justify-end space-x-2">
+			<button id="closeBlockUser" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmBlockUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
 		</div>
 	</div>
 </div>
