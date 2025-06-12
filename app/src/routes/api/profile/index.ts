@@ -10,6 +10,58 @@ import {
 	deleteUser,
 } from '../../../services/database/users';
 
+const editProfileSchema = {
+	type: 'object',
+	properties: {
+		username: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 20,
+		},
+		displayName: {
+			type: 'string',
+			minLength: 3,
+			maxLength: 50,
+		},
+		bio: {
+			type: 'string',
+			maxLength: 100,
+		},
+		oldPassword: {
+			type: 'string',
+			minLength: 6,
+			maxLength: 100,
+			pattern:
+				'^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$',
+		},
+		newPassword: {
+			type: 'string',
+			minLength: 6,
+			maxLength: 100,
+			pattern:
+				'^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$',
+		},
+		profile_picture: {
+			type: 'string',
+			pattern: '^data:image/png;base64,[A-Za-z0-9+/=]+$',
+			maxLength: 1000000, // Adjust as needed for your use case
+		},
+	},
+	required: ['username', 'displayName'],
+	additionalProperties: false,
+};
+
+const editTitleSchema = {
+	type: 'object',
+	properties: {
+		firstTitle: { type: 'string', maxLength: 50 },
+		secondTitle: { type: 'string', maxLength: 50 },
+		thirdTitle: { type: 'string', maxLength: 50 },
+	},
+	required: ['firstTitle', 'secondTitle', 'thirdTitle'],
+	additionalProperties: false,
+};
+
 const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	const DEFAULT_PROFILE_PIC_COUNT = 34;
 	const PROFILE_PIC_OFFSET = Math.floor(
@@ -17,7 +69,16 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 	fastify.get(
 		'/:id/picture',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				params: {
+					type: 'object',
+					properties: { id: { type: 'string' } },
+					required: ['id'],
+				},
+			},
+		},
 		async (req: any, reply: any) => {
 			const { id } = req.params;
 			const user = await getUserById(parseInt(id), fastify);
@@ -44,7 +105,10 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/edit',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: editProfileSchema },
+		},
 		async (req: any, reply: any) => {
 			const userId = req.user.id;
 			try {
@@ -122,7 +186,10 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 	fastify.post(
 		'/edit-title',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: { body: editTitleSchema },
+		},
 		async (req: any, reply: any) => {
 			const userId = req.user.id;
 			try {
@@ -155,7 +222,22 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 	fastify.post(
 		'/delete',
-		{ preValidation: [fastify.authenticate] },
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						password: {
+							type: 'string',
+							minLength: 6,
+							maxLength: 100,
+						},
+					},
+					required: ['password'],
+				},
+			},
+		},
 		async (req: any, reply: any) => {
 			try {
 				const currentUser = await checkAuth(req, false, fastify);
