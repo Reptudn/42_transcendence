@@ -32,7 +32,7 @@
 	</div>
 	<% } %> <% if (friends.length > 0 || isSelf ) { %>
 	<div class="mt-6 border-t pt-4">
-		<h3 class="font-bold mb-4 text-3xl">friends</h3>
+		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.friends') %></h3>
 		<div class="flex flex-wrap gap-4">
 			<% friends.forEach(friend=> { %>
 			<div
