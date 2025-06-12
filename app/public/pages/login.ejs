@@ -1,26 +1,26 @@
-<div class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-	<h2 class="text-2xl font-bold mb-6 text-center"><%= t('login.title') %></h2>
+<div class="p-20 max-w-md p-6 rounded-lg glow-green">
+	<h2 class="font-bold mb-6 text-4xl"><%= t('login.title') %></h2>
 	<div id="login-form">
 		<div class="mb-4">
-			<label for="username" class="block text-gray-700 font-bold mb-2"><%= t('login.username') %></label>
-			<input type="text" id="username" name="username" required
-				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<label for="username" class="block font-bold mb-2 text-2xl"><%= t('login.username') %></label>
+			<input type="text" id="username" name="username" required placeholder="> ____________"
+				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
 		</div>
 		<div class="mb-6">
-			<label for="password" class="block text-gray-700 font-bold mb-2"><%= t('login.password') %></label>
-			<input type="password" id="password" name="password" required
-				class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+			<label for="password" class="block font-bold mb-2 text-2xl"><%= t('login.password') %></label>
+			<input type="password" id="password" name="password" required placeholder="> ____________"
+				class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
 		</div>
 		<div class="text-center">
 			<button id="loginButton" type="button"
-				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"><%= t('login.login_button') %></button>
+				class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
 		</div>
 	</div>
 	<br>
-	<p class="text-center"><%= t('login.or') %></p>
+	<p class="text-center text-3xl glow-red"><%= t('login.or') %></p>
 	<br>
 	<a href ="/api/auth/google/">
-		<div class="google-signin bg-white-500 hover:bg-gray-200 text-black font-bold py-2 px-4 rounded-lg text-center border-2 border-black">
+		<div class="text-3xl google-signin bg-white-500 py-2 px-4 rounded-lg text-center hover:glow-blue">
 			<img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google image" class="w-6 h-6 inline-block mr-2">
 			<%= t('login.google_button') %>
 		</div>

@@ -1,1 +1,314 @@
 @import 'tailwindcss';
+
+@theme {
+	--color-mint-500: oklch(0.72 0.11 178);
+	--color-background-dark: #121212; /* Dark grey */
+	--color-dark-blue: #1a2a4b; /* Dark blue */
+	--color-neon-purple: #9b59b6; /* Neon purple */
+	--color-neon-pink: #ff00ff; /* Neon pink */
+	--color-neon-cyan: #00ffff; /* Neon cyan */
+	--color-neon-blue: #3498db; /* Bright blue */
+	--color-neon-green: #2ecc71; /* Bright green */
+	--color-neon-yellow: #ffeb3b; /* Neon yellow */
+}
+
+@layer utilities {
+	.glow-green {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00,
+			0 0 40px #00ff00;
+	}
+
+	.glow-blue {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #0000ff, 0 0 10px #0000ff, 0 0 20px #0000ff,
+			0 0 40px #0000ff;
+	}
+
+	.glow-red {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff0000,
+			0 0 40px #ff0000;
+	}
+
+	.hover\:glow-green:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00,
+			0 0 40px #00ff00;
+	}
+
+	.hover\:glow-blue:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #0000ff, 0 0 10px #0000ff, 0 0 20px #0000ff,
+			0 0 40px #0000ff;
+	}
+
+	.hover\:glow-red:hover {
+		font-family: 'VT323', monospace;
+		font-weight: 400;
+		font-style: normal;
+		color: white;
+		text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 20px #ff0000,
+			0 0 40px #ff0000;
+	}
+
+	.scanlines {
+		position: absolute; /* Relativ zum tv-screen-inner */
+		inset: 0;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			transparent,
+			transparent 2px,
+			rgba(255, 255, 255, 0.25) 2px,
+			rgba(0, 0, 0, 0.7) 3px,
+			transparent 4px,
+			transparent 6px
+		);
+		mix-blend-mode: overlay;
+		animation: scanlines-move 1s linear infinite;
+		z-index: 2;
+	}
+
+	#close-all-popups-btn {
+		color: white;
+		text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00,
+			0 0 40px #00ff00;
+		border: 5px double #00ff00;
+	}
+
+	/* #popup-wrapper {
+		position: absolute;
+	} */
+
+	@keyframes scanlines-move {
+		0% {
+			background-position-y: 0;
+		}
+		100% {
+			background-position-y: 5px;
+		}
+	}
+
+	.vignette {
+		position: absolute; /* Relativ zum tv-screen-inner */
+		inset: 0;
+		pointer-events: none;
+		background: radial-gradient(
+			circle,
+			rgba(0, 0, 0, 0) 70%,
+			rgba(0, 0, 0, 0.2) 85%,
+			rgba(0, 0, 0, 1) 100%
+		);
+		z-index: 1;
+	}
+
+	.video-background {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover; /* Ensures the video covers the entire screen */
+		z-index: -1; /* Places the video behind other content */
+		pointer-events: none; /* Prevents interaction with the video */
+	}
+
+	.video-fallback {
+		position: fixed; /* Ensures the image stays fixed in the viewport */
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover; /* Ensures the image covers the entire screen without distortion */
+		z-index: -1; /* Places the image behind all other content */
+		pointer-events: none; /* Prevents interaction with the image */
+	}
+
+	.tv-screen {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		perspective: 700px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 0;
+		overflow: hidden;
+	}
+
+	.tv-screen-inner::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 60;
+		overflow: hidden;
+	}
+
+	.tv-screen-inner {
+		position: relative;
+		width: 90%;
+		height: 90%;
+		border: 40px solid rgb(43, 43, 43);
+		border-radius: 1%;
+		box-shadow: 0 0 50px rgba(0, 0, 0, 0.858),
+			inset 0 0 20px rgba(0, 0, 0, 0.839);
+		overflow-y: auto; /* Enable scrolling for content inside */
+		overflow-x: hidden; /* Prevent horizontal overflow */
+		background-image: url('/static/assets/backgrounds/Smoke_bg.gif');
+		/* background-image: url('/static/assets/backgrounds/clideo_editor_fb8aca8aa527455b8e5f992345b4da4e.gif'); */
+		background-size: cover; /* Ensure the image covers the container */
+		background-repeat: no-repeat; /* Prevent the image from repeating */
+		background-position: center; /* Center the image */
+		background-attachment: fixed; /* Keep the background fixed while scrolling */
+	}
+}
+
+/* Ladebildschirm */
+.loading-screen {
+	position: absolute; /* Relativ zum tv-screen-inner */
+	inset: 0; /* Füllt den gesamten Bereich des Containers */
+	background: #121212; /* Dunkler Hintergrund */
+	display: flex;
+	justify-content: center; /* Horizontal zentrieren */
+	align-items: center; /* Vertikal zentrieren */
+	flex-direction: column; /* Text und Ladebalken untereinander anordnen */
+	z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
+}
+
+.loading-content {
+	display: flex;
+	flex-direction: column; /* Text und Ladebalken untereinander anordnen */
+	align-items: center; /* Inhalt horizontal zentrieren */
+	text-align: center; /* Text innerhalb des Containers zentrieren */
+}
+
+.loading-text {
+	color: #00ff00; /* Neon-Grün */
+	font-family: 'VT323', monospace;
+	font-size: 3rem;
+	text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00;
+	margin-bottom: 20px; /* Abstand zwischen Text und Ladebalken */
+}
+
+.loading-bar-container {
+	width: 80%; /* Breite des Ladebalkens */
+	max-width: 600px; /* Maximalbreite für größere Bildschirme */
+	height: 10px;
+	background: rgba(255, 255, 255, 0.1); /* Leicht transparent */
+	border-radius: 5px;
+	overflow: hidden;
+	box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.loading-bar {
+	width: 0;
+	height: 100%;
+	background: linear-gradient(90deg, #00ff00, #00cc00);
+	animation: loading-bar-fill 2s linear forwards;
+}
+
+/* Animation für den Ladebalken */
+@keyframes loading-bar-fill {
+	0% {
+		width: 0;
+	}
+	100% {
+		width: 100%;
+	}
+}
+
+/* Welcome-Screen */
+.welcome-screen {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: black; /* Schwarzer Hintergrund */
+	z-index: 9999; /* Über allem */
+}
+
+.welcome-text {
+	color: #00ff00; /* Neon-Grün */
+	font-family: 'VT323', monospace;
+	font-size: 3rem;
+	text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00;
+	opacity: 0;
+	animation: fade-in 2s forwards; /* Einblenden */
+}
+
+/* Animation für das Einblenden */
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+/* Versteckt den Welcome-Screen standardmäßig */
+.hidden {
+	display: none;
+}
+
+@keyframes tv-shutdown {
+	0% {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+	50% {
+		opacity: 0.7;
+		transform: scaleY(0.2);
+	}
+	100% {
+		opacity: 0;
+		transform: scaleY(0);
+	}
+}
+
+.welcome-tv-shutdown {
+	animation: tv-shutdown 1s ease-in-out forwards;
+}
+
+body {
+	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><polygon points='0,0 24,12 6,28' fill='black' stroke='%2300ff00' stroke-width='2'/></svg>")
+			0 0,
+		auto;
+}
+a:hover,
+button:hover,
+.pointer-cursor:hover {
+	cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><polygon points='0,0 24,12 6,28' fill='black' stroke='%2300ff00' stroke-width='2'/></svg>")
+			0 0,
+		auto;
+	animation: pulse-scale 1.2s infinite ease-in-out; /* Apply animation directly to the hovered element */
+}
+@keyframes pulse-scale {
+	0% {
+		filter: drop-shadow(0 0 5px #00ff00);
+	}
+	50% {
+		filter: drop-shadow(0 0 15px #00ff00);
+	}
+	100% {
+		filter: drop-shadow(0 0 5px #00ff00);
+	}
+}
+/* ...existing code... */
