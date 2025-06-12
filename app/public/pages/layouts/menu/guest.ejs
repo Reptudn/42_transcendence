@@ -1,10 +1,10 @@
 <nav class="flex items-start space-x-8 text-3xl">
 	<button data-page="login" class="cursor-pointer hover:glow-blue hover:scale-110 text-white font-bold py-2 px-4 rounded-full glow-green"
 		onclick="loadPartialView('login')">
-		login
+		<%= t('menu.login') %>
 	</button>
 	<button data-page="register" class="cursor-pointer hover:glow-blue hover:scale-110 text-white font-bold py-2 px-4 rounded-full glow-green"
-		onclick="loadPartialView('register')">register</button>
+		onclick="loadPartialView('register')"><%= t('menu.register') %></button>
 	<button data-page="about" class="cursor-pointer hover:glow-blue hover:scale-110 text-white font-bold py-2 px-4 rounded-full glow-green"
-		onclick="loadPartialView('about')">about</button>
+		onclick="loadPartialView('about')"><%= t('menu.about') %></button>
 </nav>

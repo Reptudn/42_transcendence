@@ -1,3 +1,4 @@
+import { showLocalError, showLocalInfo } from './alert.js';
 import { updateGameState } from './gameRenderer.js';
 import { loadPartialView } from './script.js';
 
@@ -6,7 +7,7 @@ const gameId = urlParams.get('gameId');
 const playerId = urlParams.get('playerId');
 
 if (!gameId || !playerId) {
-	alert('Missing game ID or player ID. Please join via the chat setup.');
+	showLocalError('Missing game ID or player ID. Please join via the chat setup.');
 	loadPartialView('chat_setup');
 }
 
@@ -47,19 +48,19 @@ ws.onmessage = (event) => {
 				);
 			}
 		} else {
-			console.log('Unknown data received from websocket: ', data);
+			showLocalInfo(`Unknown data received from websocket: ${data}`);
 		}
 	} catch (e) {
-		console.error('Error parsing chat message:', e);
+		showLocalError(`Error parsing chat message: ${e}`);
 	}
 };
 
 ws.onerror = (error) => {
-	console.error('WebSocket error:', error);
+	showLocalError(`WebSocket error: ${error}`);
 };
 
 ws.onclose = () => {
-	console.log('WebSocket closed');
+	showLocalInfo('WebSocket closed');
 };
 
 // CHAT

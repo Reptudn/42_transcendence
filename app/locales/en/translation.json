@@ -1,0 +1,94 @@
+{
+	"header": {
+		"home": "Home",
+		"title": "Transcendence",
+		"page_title": "Transcendence: Home"
+	},
+	"menu": {
+		"login": "Login",
+		"logout": "Logout",
+		"register": "Register",
+		"about": "About",
+		"profile": "Profile",
+		"game": "Game"
+	},
+	"footer": {
+		"number": {
+			"label": "THE HOLY NUMBER OF DESTINY!",
+			"click": "- (why don't you click on it?)"
+		}
+	},
+	"index": {
+		"title": "Welcome to Transcendence Stranger...",
+		"description": "Just you and your salmon nose!"
+	},
+	"login": {
+		"title": "Login",
+		"username": "Username",
+		"password": "Password",
+		"login_button": "Login",
+		"google_button": "Login with Google",
+		"or": "or"
+	},
+	"register": {
+		"title": "Register",
+		"username": "Username",
+		"displayname": "Display Name",
+		"password": "Password",
+		"register_button": "Register",
+		"google_button": "Register with Google"
+	},
+	"about": {
+		"title": "About"
+	},
+	"profile": {
+		"edit_profile": "Edit Profile",
+		"no_bio": "This user has no bio.",
+		"friends": "Friends",
+		"remove": "Remove",
+		"add_friends": "Add Friends",
+		"locked_achievements": "Locked Achievements",
+		"achievements": "Achievements"
+	},
+	"edit_profile": {
+		"edit_profile": "Edit Your Profile",
+		"profile_picture": "Profile Picture",
+		"remove": "Remove",
+		"username": "Username",
+		"no_spaces": "No spaces allowed",
+		"displayname": "Display Name",
+		"save_changes": "Save Changes",
+		"change_title": "Change Title",
+		"complete_achievements_to_unlock": "Complete achievements to unlock more titles",
+		"save_title": "Save Title",
+		"change_password": "Change Password",
+		"old_password": "Old Password",
+		"new_password": "New Password",
+		"password_no_spaces": "New password cannot contain spaces",
+		"save_new_password": "Save New Password",
+		"delete_user": "Delete User",
+		"password": "Password"
+	},
+	"game_setup": {
+		"game_setup": "Game Setup",
+		"general_settings": "General Settings",
+		"map": "Map",
+		"modes": {
+			"classic": "Classic"
+		},
+		"player_lives": "Player Lives",
+		"game_difficulty": "Game Difficulty",
+		"powerups_enabled": "Powerups Enabled?",
+		"player_settings": "Player Settings",
+		"player_settings_description": "There must always be at least one player (that's you) and never more than four.\nFor additional players, choose from: Friend (User), Local Player, or AI.",
+		"player": "Player",
+		"you": "You",
+		"control_scheme": "Control Scheme",
+		"controls": {
+			"arrow_keys": "Arrow Keys"
+		},
+		"add_player": "Add Player",
+		"remove_player": "Remove Player",
+		"start_game": "Start Game"
+	}
+}

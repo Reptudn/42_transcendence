@@ -1,3 +1,5 @@
+import { showLocalError } from "./alert.js";
+
 export function fetchFriendSearchResults() {
 	const searchInput = document.getElementById(
 		'friendSearchInput'
@@ -17,9 +19,9 @@ export function fetchFriendSearchResults() {
 				resultsContainer.innerHTML = html;
 			}
 		})
-		.catch((err) =>
-			console.error('Error fetching friend search results:', err)
-		);
+		.catch((err) => {
+			showLocalError(`Failed to fetch friend search results: ${err}`);
+		});
 }
 
 const friendSearchInput = document.getElementById(

@@ -6,7 +6,7 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const isAuthenticated = (await checkAuth(req, false, fastify)) != null;
 		return reply.view(
 			'index.ejs',
-			{ name: 'Jonas', isAuthenticated },
+			{ name: 'Jonas', isAuthenticated, t: req.t },
 			{ layout: 'layouts/basic.ejs' }
 		);
 	});

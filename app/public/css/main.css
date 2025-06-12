@@ -68,7 +68,7 @@
 	}
 
 	.scanlines {
-		position: fixed;
+		position: absolute; /* Relativ zum tv-screen-inner */
 		inset: 0;
 		pointer-events: none;
 		background: repeating-linear-gradient(
@@ -84,6 +84,17 @@
 		z-index: 2;
 	}
 
+	#close-all-popups-btn {
+		color: white;
+		text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00,
+			0 0 40px #00ff00;
+		border: 5px double #00ff00;
+	}
+
+	/* #popup-wrapper {
+		position: absolute;
+	} */
+
 	@keyframes scanlines-move {
 		0% {
 			background-position-y: 0;
@@ -94,7 +105,7 @@
 	}
 
 	.vignette {
-		position: fixed;
+		position: absolute; /* Relativ zum tv-screen-inner */
 		inset: 0;
 		pointer-events: none;
 		background: radial-gradient(
@@ -137,26 +148,7 @@
 		justify-content: center;
 		align-items: center;
 		z-index: 0;
-		/* background: radial-gradient(
-			circle at 50% 50%,
-			rgba(255, 172, 172, 0.296) 0%,
-			rgb(72, 27, 0) 100%
-		); */
 		overflow: hidden;
-	}
-
-	/* Inner screen with perspective */
-	.tv-screen-inner {
-		position: relative;
-		width: 90%;
-		height: 90%;
-		transform: scale(1.02);
-		border: 40px solid rgb(43, 43, 43);
-		border-radius: 1%;
-		box-shadow: 0 0 50px rgba(0, 0, 0, 0.858),
-			inset 0 0 20px rgba(0, 0, 0, 0.839);
-		overflow: hidden;
-		transform: scale(1.02) rotateX(5deg);
 	}
 
 	.tv-screen-inner::before {
@@ -165,27 +157,38 @@
 		inset: 0;
 		pointer-events: none;
 		z-index: 60;
-		mix-blend-mode: lighten;
-		background: radial-gradient(
-			circle at 50% 50%,
-			rgba(255, 255, 255, 0.35) 0%,
-			rgba(255, 255, 255, 0.2) 35%,
-			rgba(0, 0, 0, 0.25) 80%,
-			rgba(0, 0, 0, 0.45) 100%
-		);
+		overflow: hidden;
+	}
+
+	.tv-screen-inner {
+		position: relative;
+		width: 90%;
+		height: 90%;
+		border: 40px solid rgb(43, 43, 43);
+		border-radius: 1%;
+		box-shadow: 0 0 50px rgba(0, 0, 0, 0.858),
+			inset 0 0 20px rgba(0, 0, 0, 0.839);
+		overflow-y: auto; /* Enable scrolling for content inside */
+		overflow-x: hidden; /* Prevent horizontal overflow */
+		background-image: url('/static/assets/backgrounds/Smoke_bg.gif');
+		/* background-image: url('/static/assets/backgrounds/clideo_editor_fb8aca8aa527455b8e5f992345b4da4e.gif'); */
+		background-size: cover; /* Ensure the image covers the container */
+		background-repeat: no-repeat; /* Prevent the image from repeating */
+		background-position: center; /* Center the image */
+		background-attachment: fixed; /* Keep the background fixed while scrolling */
 	}
 }
 
 /* Ladebildschirm */
 .loading-screen {
-	position: fixed;
-	inset: 0;
+	position: absolute; /* Relativ zum tv-screen-inner */
+	inset: 0; /* Füllt den gesamten Bereich des Containers */
 	background: #121212; /* Dunkler Hintergrund */
 	display: flex;
 	justify-content: center; /* Horizontal zentrieren */
 	align-items: center; /* Vertikal zentrieren */
 	flex-direction: column; /* Text und Ladebalken untereinander anordnen */
-	z-index: 9999; /* Sicherstellen, dass es über allem liegt */
+	z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
 }
 
 .loading-content {

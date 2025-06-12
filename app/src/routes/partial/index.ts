@@ -7,7 +7,7 @@ const partial: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const menuTemplate = isAuthenticated
 			? 'layouts/menu/loggedin.ejs'
 			: 'layouts/menu/guest.ejs';
-		return reply.view(menuTemplate, { name: 'Freddy' });
+		return reply.view(menuTemplate, { name: 'Freddy', t: req.t });
 	});
 };
 
