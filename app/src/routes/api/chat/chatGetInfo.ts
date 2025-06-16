@@ -43,7 +43,7 @@ export async function getAllChats(fastify: FastifyInstance) {
 			}
 			for (const chat of chats) {
 				console.log('chat is group = ', chat.is_group);
-				if (boolean(chat.is_group) === false) {
+				if (Boolean(chat.is_group) === false) {
 					const parts = await getAllParticipantsFromSql(
 						fastify,
 						chat.id

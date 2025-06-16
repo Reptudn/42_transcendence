@@ -56,7 +56,6 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id } = req.query as MessageQueryChat;
-			console.log('chat_id msg test = ', chat_id);
 			const user = await getUserById(
 				(req.user as { id: number }).id,
 				fastify

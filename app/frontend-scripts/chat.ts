@@ -168,8 +168,8 @@ export async function getMessages(chat_id: string | null) {
 			description: 'Failed to fetch users',
 			color: 'red',
 		});
+		return;
 	}
-	if (!res.ok) return; // TODO Error msg
 	const msgs = (await res.json()) as Msg[];
 
 	const chatMessages = document.getElementById('chatMessages');
