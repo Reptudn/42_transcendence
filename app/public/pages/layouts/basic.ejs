@@ -1,34 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title><%= t('header.page_title') %></title>
+		<title>Transcendence: Home</title>
 		<link rel="stylesheet" href="/static/css/styles.css" />
 		<link rel="stylesheet" href="/static/css/popups.css" />
 		<link href="/static/css/output.css" rel="stylesheet">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 		<link
 			rel="icon"
 			href="/static/assets/favicons/favicon.ico"
 			type="image/x-icon"
 		/>
+		<script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta
 			name="description"
 			content="Transcendence is a web application for the game of the same name."
 		/>
-		<!-- ejs import -->
-		<script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
 	</head>
 
-	<body class="bg-gray-400 text-gray-900">
-		<header class="bg-blue-600 text-white p-4 shadow-md">
-			<div class="container mx-auto flex justify-between items-center">
-				<h1
-					class="text-2xl font-bold"
-					onclick="loadPartialView('index')"
-				>
-					<%= t('header.title') %>
-				</h1>
-				<div id="menu">
+	<body class="glow-green tv-screen">
+		<img src="/static/assets/backgrounds/tapete.jpg" alt="Background" class="video-fallback">
+		<div class="tv-screen-inner absolute overflow-hidden">
+			<!-- Effekte bleiben nur innerhalb des TV-Screens -->
+			<div class="vignette absolute inset-0 z-2"></div>
+			<div class="scanlines absolute inset-0 z-50"></div>
+
+			<div id="loading-screen" class="loading-screen">
+				<div class="loading-content">
+					<div class="loading-text">Loading...</div>
+					<div class="loading-bar-container">
+						<div class="loading-bar"></div>
+					</div>
+				</div>
+			</div>
+			<div id="welcome-screen" class="welcome-screen hidden">
+				<div class="welcome-text">Welcome to Transcendence</div>
+			</div>
+		<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
+		<header class="text-white p-4">
+			<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
+					<h1
+						class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
+						onclick="loadPartialView('index')"
+						id="menu-header"
+					>
+						<%= t('header.title') %>
+					</h1>
+				<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
 					<% if (!isAuthenticated) { %> <%-
 					include('layouts/menu/guest') %> <% } else { %> <%-
 					include('layouts/menu/loggedin') %> <% } %>
@@ -37,39 +58,40 @@
 			</div>
 		</header>
 
-		<main class="container mx-auto p-4">
-			<div id="content" class="bg-white p-6 rounded shadow-md">
+		<main class="container">
+			<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
 				<%- body %>
 			</div>
 			<div
-				id="popup-wrapper"
-				class="fixed bottom-5 left-5 z-50 flex flex-col gap-3 pointer-events-none"
+			id="popup-wrapper"
+			class="fixed bottom-30 pl-10 z-10000"
 			>
-				<div
-					id="popup-container"
-					class="flex flex-col-reverse gap-3"
-				></div>
-				<button
-					id="close-all-popups-btn"
-					class="mt-2 self-start pointer-events-auto bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-				>
-					Close all
-				</button>
+			<div
+			id="popup-container"
+			class="flex flex-col-reverse gap-3 z-10000"
+			></div>
+			<button
+			id="close-all-popups-btn"
+			class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
+			>
+			Close all
+			</button>
 			</div>
 		</main>
+	</div>
 
-		<footer class="bg-gray-800 text-white p-4 mt-4">
-			<div class="container mx-auto text-center">
+		<footer class="text-white p-4 mb-7 text-2xl absolute bottom-20 left-1/2 transform -translate-x-1/2">
+			<div class="container mx-auto text-center glow-green">
 				<div>
 					<h2>
-						<%= t('footer.number.label') %>
+						THE HOLY NUMBER OF DESTINY:
 						<span
 							id="numberDisplay"
-							class="select-none cursor-pointer text-xl font-semibold text-blue-400 hover:text-blue-600 transition-colors"
+							class="select-none cursor-pointer text-2xl glow-blue transition-colors"
 						>
 							0
 						</span>
-						<%= t('footer.number.click') %>
+						- (why don't you click on it?)
 					</h2>
 				</div>
 				<p>&copy; 2025; 42 Transcendence by jkauker, fschuber, ntalmon, lbohm and lglauch</p>
@@ -77,7 +99,9 @@
 		</footer>
 
 		<script type="module" src="/static/js/script.js" defer></script>
+		<script type="module" src="/static/js/events.js" defer></script>
 		<script type="module" src="/static/js/friends.js" defer></script>
+		<script src="/static/js/loading_animation.js" defer></script>
 		<script type="module" src="/static/js/popup.js" defer></script>
 		<script type="module" src="/static/js/alert.js" defer></script>
 	</body>

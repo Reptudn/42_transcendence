@@ -1,4 +1,4 @@
-import { showLocalInfo, showLocalError } from "./alert.js";
+import { showLocalInfo, showLocalError } from './alert.js';
 
 const playersContainer = document.getElementById(
 	'playersContainer'
@@ -27,7 +27,7 @@ export function createPlayerCard(index: number): HTMLElement {
 	const typeDiv = document.createElement('div');
 	typeDiv.className = 'mb-2';
 	const typeLabel = document.createElement('label');
-	typeLabel.className = 'block text-sm font-medium text-gray-700';
+	typeLabel.className = 'block text-sm font-medium text-glow-green-700';
 	typeLabel.textContent = 'Player Type';
 	typeDiv.appendChild(typeLabel);
 
@@ -71,7 +71,7 @@ export function updateAdditionalSettings(
 
 	if (type === 'user') {
 		const label = document.createElement('label');
-		label.className = 'block text-sm font-medium text-gray-700';
+		label.className = 'block text-sm font-medium text-glow-green-700';
 		label.textContent = 'Select Friend';
 		container.appendChild(label);
 
@@ -88,7 +88,7 @@ export function updateAdditionalSettings(
 		container.appendChild(friendSelect);
 	} else if (type === 'local') {
 		const label = document.createElement('label');
-		label.className = 'block text-sm font-medium text-gray-700';
+		label.className = 'block text-sm font-medium text-glow-green-700';
 		label.textContent = 'Control Scheme';
 		container.appendChild(label);
 
@@ -110,7 +110,7 @@ export function updateAdditionalSettings(
 		container.appendChild(nameInput);
 	} else if (type === 'ai') {
 		const label = document.createElement('label');
-		label.className = 'block text-sm font-medium text-gray-700';
+		label.className = 'block text-sm font-medium text-glow-green-700';
 		label.textContent = 'AI Level';
 		container.appendChild(label);
 

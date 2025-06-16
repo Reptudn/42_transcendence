@@ -15,13 +15,13 @@ const editProfileSchema = {
 	properties: {
 		username: {
 			type: 'string',
-			minLength: 3,
-			maxLength: 20,
+			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
+			maxLength: 16,
 		},
 		displayName: {
 			type: 'string',
-			minLength: 3,
-			maxLength: 50,
+			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
+			maxLength: 32,
 		},
 		bio: {
 			type: 'string',
@@ -29,8 +29,8 @@ const editProfileSchema = {
 		},
 		oldPassword: {
 			type: 'string',
-			minLength: 6,
-			maxLength: 100,
+			minLength: 8,
+			maxLength: 32,
 			pattern:
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
@@ -38,8 +38,8 @@ const editProfileSchema = {
 		},
 		newPassword: {
 			type: 'string',
-			minLength: 6,
-			maxLength: 100,
+			minLength: 8,
+			maxLength: 32,
 			pattern:
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
@@ -55,6 +55,7 @@ const editProfileSchema = {
 	additionalProperties: false,
 };
 
+// TODO: only allow titles that actually exist?
 const editTitleSchema = {
 	type: 'object',
 	properties: {
