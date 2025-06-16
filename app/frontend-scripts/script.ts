@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
 
 declare global {
 	interface Window {
@@ -17,9 +17,9 @@ export function updateActiveMenu(selectedPage: string): void {
 	const menuButtons = document.querySelectorAll('nav button[data-page]');
 	for (const button of menuButtons) {
 		if (button.getAttribute('data-page') === selectedPage) {
-			button.classList.add('active');
+			button.classList.add('glow-blue');
 		} else {
-			button.classList.remove('active');
+			button.classList.remove('glow-blue');
 		}
 	}
 	document.head.title = `Transcendence: ${selectedPage}`;
@@ -206,7 +206,9 @@ async function logout(): Promise<void> {
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
-		showLocalError('An error occurred during logout. Do try again, old chap!');
+		showLocalError(
+			'An error occurred during logout. Do try again, old chap!'
+		);
 	}
 }
 
