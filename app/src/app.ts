@@ -11,7 +11,7 @@ const envSchema = {
 		'GOOGLE_OAUTH_CLIENT_ID',
 		'GOOGLE_OAUTH_CLIENT_SECRET',
 		'JWT_SECRET',
-		'HOST_URI'
+		'HOST_URI',
 	],
 	properties: {
 		GOOGLE_OAUTH_CLIENT_ID: { type: 'string' },

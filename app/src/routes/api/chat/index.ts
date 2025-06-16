@@ -1,17 +1,16 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { getUserById } from '../../../services/database/users';
-import { sendMsg } from './send_msg';
+import { sendMsg } from './sendMsg';
 import {
 	getChatFromSql,
 	getMessagesFromSqlByChatId,
 	getParticipantFromSql,
-	getAllChatsFromSqlByUserId,
-	getAllUsersFromSql,
 	createNewChat,
 	addToParticipants,
 	blockUser,
 	checkUserBlocked,
 } from './utils';
+import { getAllChats, getAllUsers } from './chatGetInfo';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -26,19 +25,6 @@ interface MessageQueryBlock {
 	user_id: string;
 }
 
-export interface Chat {
-	id: number;
-	name: string | null;
-	is_group: boolean;
-	created_at: string;
-}
-
-export interface Part {
-	id: number;
-	chat_id: number;
-	user_id: number;
-}
-
 export interface Msg {
 	id: number;
 	chat_id: number;
@@ -50,60 +36,10 @@ export interface Msg {
 	created_at: string;
 }
 
-export interface User {
-	id: number;
-	google_id: string;
-	username: string;
-	password: string;
-	displayname: string;
-	bio: string;
-	profile_picture: string;
-	click_count: number;
-	title_first: number;
-	title_second: number;
-	title_third: number;
-}
-
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
-	fastify.get(
-		'/users',
-		{ preValidation: [fastify.authenticate] },
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const users = await getAllUsersFromSql(fastify);
-			if (!users) {
-				return res.status(400).send({ error: 'Users not Found' });
-			}
-			const updateUsers = users.filter(
-				(user) => user.id !== (req.user as { id: number }).id
-			);
-			res.send(updateUsers);
-		}
-	);
-	fastify.get(
-		'/chats',
-		{ preValidation: [fastify.authenticate] },
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-			const userPart = await getAllChatsFromSqlByUserId(fastify, user.id);
-			if (!userPart) return; // TODO Error msg
-			const chats: Chat[] = [];
-			for (const part of userPart) {
-				const chat = (await fastify.sqlite.get(
-					'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
-					[part.chat_id]
-				)) as Chat;
-				if (chat.id !== 1) chats.push(chat);
-			}
-			res.send(chats);
-		}
-	);
+	getAllUsers(fastify);
+	getAllChats(fastify);
 	fastify.get<{ Querystring: MessageQueryChat }>(
 		'/messages',
 		{

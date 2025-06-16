@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import type { Chat, Part, Msg, User } from './index';
+import type { Msg } from './index';
+import type { Chat, Part } from '../../../types/chat';
 
 interface Blocked {
 	blocker_id: number;

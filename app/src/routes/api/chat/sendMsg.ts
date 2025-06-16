@@ -1,5 +1,4 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getUserById } from '../../../services/database/users';
 import {
 	getChatFromSql,
 	getAllParticipantsFromSql,
@@ -21,17 +20,13 @@ export async function sendMsg(fastify: FastifyInstance) {
 				message: string;
 			};
 
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
+			const user_id = (req.user as { id: number }).id;
+
 			const group = await getChatFromSql(fastify, body.chat);
 			if (!group) {
 				return res.status(400).send({ error: 'Chat not Found' });
 			}
+
 			const partisipants = await getAllParticipantsFromSql(
 				fastify,
 				body.chat
@@ -39,9 +34,10 @@ export async function sendMsg(fastify: FastifyInstance) {
 			if (!partisipants) {
 				return res.status(400).send({ error: 'Users not Found' });
 			}
+
 			const msgId = await fastify.sqlite.run(
 				'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
-				[group.id, user.id, body.message]
+				[group.id, user_id, body.message]
 			);
 
 			if (msgId.changes !== 0 && typeof msgId.lastID === 'number') {
@@ -57,7 +53,7 @@ export async function sendMsg(fastify: FastifyInstance) {
 						const check = await checkUserBlocked(
 							fastify,
 							part.user_id,
-							user.id
+							user_id
 						);
 						if (typeof check === 'undefined') continue;
 						msg.blocked = check;

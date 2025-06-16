@@ -1,0 +1,26 @@
+export interface Chat {
+	id: number;
+	name: string | null;
+	is_group: boolean;
+	created_at: string;
+}
+
+export interface Part {
+	id: number;
+	chat_id: number;
+	user_id: number;
+}
+
+export interface Msg {
+	id: number;
+	chat_id: number;
+	user_id: number;
+	content: string;
+	created_at: string;
+}
+
+export interface Blocked {
+	blocker_id: number;
+	blocked_id: number;
+	created_at: string;
+}
