@@ -87,30 +87,30 @@ searchUser.addEventListener('input', async () => {
 	const userList = document.getElementById('userList');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const user of users) {
-			if (
-				user.displayname.substring(0, input.length).toLowerCase() ===
-				input
-			) {
-				console.log('user Found =', user.displayname);
-				const butt = document.createElement('button');
-				butt.addEventListener('click', async () => {
-					const params = new URLSearchParams();
-					params.append('group_name', user.displayname);
-					params.append('user_id', user.id.toString());
-					const url = `/api/chat/create_dm?${params.toString()}`;
-					const res = await fetch(url);
-					if (!res.ok) return; // TODO Error msg
-					const responseData = await res.json();
-					const newId = responseData.chat_id as string;
-					localStorage.setItem('chat_id', newId);
-					await getMessages(localStorage.getItem('chat_id'));
-				});
-				butt.textContent = user.displayname;
-				butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
-				userList.appendChild(butt);
-			}
-		}
+		// for (const user of users) {
+		// 	if (
+		// 		user.displayname.substring(0, input.length).toLowerCase() ===
+		// 		input
+		// 	) {
+		// 		console.log('user Found =', user.displayname);
+		// 		const butt = document.createElement('button');
+		// 		butt.addEventListener('click', async () => {
+		// 			const params = new URLSearchParams();
+		// 			params.append('group_name', user.displayname);
+		// 			params.append('user_id', user.id.toString());
+		// 			const url = `/api/chat/create_dm?${params.toString()}`;
+		// 			const res = await fetch(url);
+		// 			if (!res.ok) return; // TODO Error msg
+		// 			const responseData = await res.json();
+		// 			const newId = responseData.chat_id as string;
+		// 			localStorage.setItem('chat_id', newId);
+		// 			await getMessages(localStorage.getItem('chat_id'));
+		// 		});
+		// 		butt.textContent = user.displayname;
+		// 		butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+		// 		userList.appendChild(butt);
+		// 	}
+		// }
 		for (const chat of chats) {
 			if (chat.name?.substring(0, input.length).toLowerCase() === input) {
 				console.log('user Found =', chat.name);

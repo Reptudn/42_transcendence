@@ -11,6 +11,12 @@ import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
+import {
+	addToParticipants,
+	createNewChat,
+	removeChat,
+	searchForChatId,
+} from '../chat/utils';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -72,16 +78,28 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fastify
 			);
 			if (pendingRequest) {
-				if (pendingRequest.requested_id == requesterId) {
+				if (pendingRequest.requested_id === requesterId) {
 					await acceptFriendRequest(pendingRequest.id, fastify);
+					const chat_id = await createNewChat(fastify, false, null);
+					if (chat_id) {
+						addToParticipants(
+							fastify,
+							pendingRequest.requester_id,
+							chat_id
+						);
+						addToParticipants(
+							fastify,
+							pendingRequest.requested_id,
+							chat_id
+						);
+					}
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
-				} else {
-					reply
-						.code(400)
-						.send({ message: 'Friend request already sent' });
-					return;
 				}
+				reply
+					.code(400)
+					.send({ message: 'Friend request already sent' });
+				return;
 			}
 
 			try {
@@ -110,6 +128,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						message:
 							'User not connected, sent friend request will be received later.',
 					});
+					return;
 				}
 				reply.code(200).send({ message: 'Friend request sent' });
 			} catch (err: any) {
@@ -130,7 +149,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!request) {
 				return reply.code(404).send({ message: 'Request not found' });
 			}
-			if (request.requested_id != req.user.id) {
+			if (request.requested_id !== req.user.id) {
 				return reply.code(401).send({ message: 'Unauthorized' });
 			}
 			try {
@@ -153,6 +172,11 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 				}
 
+				const chat_id = await createNewChat(fastify, false, null);
+				if (request && chat_id) {
+					addToParticipants(fastify, request.requester_id, chat_id);
+					addToParticipants(fastify, request.requested_id, chat_id);
+				}
 				reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
 				reply.code(400).send({ message: err.message });
@@ -203,8 +227,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ message: 'Friendship not found' });
 			}
 			if (
-				request.requested_id != req.user.id &&
-				request.requester_id != req.user.id
+				request.requested_id !== req.user.id &&
+				request.requester_id !== req.user.id
 			) {
 				return reply.code(401).send({ message: 'Unauthorized' });
 			}
@@ -212,6 +236,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) return reply.code(401).send({ message: 'Unauthorized' });
 			try {
 				await removeFriendship(user.id, friendId, fastify);
+				const chat_id = await searchForChatId(fastify, [
+					request.requested_id,
+					request.requester_id,
+				]);
+				console.log('chat_id = ', chat_id);
+				if (chat_id) {
+					removeChat(fastify, chat_id);
+				}
 				reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				reply.code(400).send({ message: err.message });

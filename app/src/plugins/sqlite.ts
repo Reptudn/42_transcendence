@@ -30,6 +30,7 @@ export default fp(async (fastify) => {
 	// TODO: use migrations?
 
 	const createDatabase = async (fastify: FastifyInstance) => {
+		await fastify.sqlite.exec('PRAGMA foreign_keys = ON');
 		await fastify.sqlite.exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

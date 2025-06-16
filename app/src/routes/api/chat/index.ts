@@ -6,7 +6,6 @@ import {
 	getMessagesFromSqlByChatId,
 	getParticipantFromSql,
 	getAllChatsFromSqlByUserId,
-	getPrivateChatFromSql,
 	getAllUsersFromSql,
 	createNewChat,
 	addToParticipants,
@@ -196,56 +195,6 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (userIdsInt.length <= 2)
 				chat_id = await createNewChat(fastify, false, group_name);
 			else chat_id = await createNewChat(fastify, true, group_name);
-			if (chat_id !== undefined) {
-				for (const id of userIdsInt) {
-					addToParticipants(fastify, id, chat_id);
-				}
-				res.send({ chat_id: chat_id.toString() });
-			}
-		}
-	);
-	fastify.get<{ Querystring: MessageQueryUser }>(
-		'/create_dm',
-		{
-			preValidation: [fastify.authenticate],
-			schema: {
-				querystring: {
-					type: 'object',
-					properties: {
-						user_id: {
-							type: 'array',
-							items: { type: 'string' },
-						},
-					},
-					required: ['user_id', 'group_name'],
-				},
-			},
-		},
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const { group_name, user_id } = req.query as MessageQueryUser;
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-			const userIdsInt = user_id
-				.map((id) => Number.parseInt(id, 10))
-				.filter((id) => !Number.isNaN(id));
-			if (!userIdsInt.includes(user.id)) userIdsInt.push(user.id);
-			let chat_id: number | undefined = 0;
-			const check_id = await getPrivateChatFromSql(
-				fastify,
-				userIdsInt,
-				group_name
-			);
-			if (typeof check_id === 'number') {
-				res.send({ chat_id: check_id.toString() });
-			}
-			if (userIdsInt.length === 2)
-				chat_id = await createNewChat(fastify, false, group_name);
-			else return res.status(400).send({ error: 'Wrong input' }); // TODO Error msg
 			if (chat_id !== undefined) {
 				for (const id of userIdsInt) {
 					addToParticipants(fastify, id, chat_id);

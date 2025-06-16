@@ -1,7 +1,5 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Part, Msg, User } from './index';
-// import { name } from 'ejs';
-// import { group } from 'console';
 
 interface Blocked {
 	blocker_id: number;
@@ -94,39 +92,6 @@ export async function getAllChatsFromSqlByUserId(
 	return chats;
 }
 
-export async function getPrivateChatFromSql(
-	fastify: FastifyInstance,
-	user_ids: number[],
-	group_name: string
-): Promise<number | null> {
-	let chats: Chat[] | null;
-	let parts: Part[] | null;
-	try {
-		chats = (await fastify.sqlite.all(
-			'SELECT id, name, is_group, create_at FROM chats WHERE name = ?',
-			[group_name]
-		)) as Chat[] | null;
-		if (!chats) return null; // TODO Error msg
-		for (const chat of chats) {
-			if (chat.is_group === false) {
-				parts = (await fastify.sqlite.all(
-					'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ?',
-					[chat.id]
-				)) as Part[] | null;
-				if (!parts) return null; // TODO Error msg
-				const partIds = new Set(parts.map((p) => p.user_id));
-				const check = user_ids.every((id) => partIds.has(id));
-				if (!check) continue;
-				return chat.id;
-			}
-		}
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
-	}
-	return null;
-}
-
 export async function getAllUsersFromSql(fastify: FastifyInstance) {
 	let users: User[] | null;
 	try {
@@ -205,6 +170,50 @@ export async function createNewChat(
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 	}
+}
+
+export async function removeChat(fastify: FastifyInstance, chat_id: number) {
+	try {
+		console.log('remove Chat_id = ', chat_id);
+		await fastify.sqlite.run('DELETE FROM chats WHERE id = ?', [chat_id]);
+	} catch (err) {
+		fastify.log.error(err, 'Database error while deleting chat');
+	}
+}
+
+export async function searchForChatId(
+	fastify: FastifyInstance,
+	user_ids: number[]
+): Promise<number | null> {
+	const placeholders = user_ids.map(() => '?').join(',');
+	const count = user_ids.length;
+
+	try {
+		const chat = await fastify.sqlite.get(
+			`
+		SELECT c.id
+		FROM chats c
+		WHERE c.is_group = 0
+		  AND c.id IN (
+		    SELECT chat_id
+		    FROM chat_participants
+		    WHERE user_id IN (${placeholders})
+		    GROUP BY chat_id
+		    HAVING COUNT(*) = ?
+		       AND (
+		         SELECT COUNT(*) FROM chat_participants cp2
+		         WHERE cp2.chat_id = chat_participants.chat_id
+		       ) = ?
+		  )
+		LIMIT 1
+		`,
+			[...user_ids, count, count]
+		);
+		return chat?.id ?? null;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+	return null;
 }
 
 export async function blockUser(
