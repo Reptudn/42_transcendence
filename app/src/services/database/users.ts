@@ -1,11 +1,12 @@
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
+import crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
+import { verify2fa } from './totp.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -88,7 +89,7 @@ export async function registerGoogleUser(
 		);
 		return !user;
 	};
-	let base_username = username;
+	const base_username = username;
 	while (!(await isUniqueUsername(username))) {
 		username += Math.floor(Math.random() * 10);
 		if (username.length > 20) username = base_username;
@@ -137,8 +138,7 @@ export async function loginUser(
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
-	if (!verify2fa(user, totp))
-		throw new Error('Invalid 2fa code');
+	if (!verify2fa(user, totp, fastify)) throw new Error('Invalid 2fa code');
 
 	return user;
 }
@@ -158,7 +158,7 @@ export async function getGoogleUser(
 	google_id: string,
 	fastify: FastifyInstance
 ): Promise<User | null> {
-	let user;
+	let user: any;
 	try {
 		user = await fastify.sqlite.get(
 			'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE google_id = ?',
@@ -238,22 +238,22 @@ export async function updateUserProfile(
 	) {
 		return;
 	}
-	if (username && username != undefined)
+	if (username && username !== undefined)
 		await fastify.sqlite.run('UPDATE users SET username = ? WHERE id = ?', [
 			username,
 			id,
 		]);
-	if (displayname != undefined)
+	if (displayname !== undefined)
 		await fastify.sqlite.run(
 			'UPDATE users SET displayname = ? WHERE id = ?',
 			[displayname, id]
 		);
-	if (bio != undefined)
+	if (bio !== undefined)
 		await fastify.sqlite.run('UPDATE users SET bio = ? WHERE id = ?', [
 			bio,
 			id,
 		]);
-	if (profile_picture != undefined)
+	if (profile_picture !== undefined)
 		await fastify.sqlite.run(
 			'UPDATE users SET profile_picture = ? WHERE id = ?',
 			[profile_picture, id]
