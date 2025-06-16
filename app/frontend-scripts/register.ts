@@ -10,6 +10,13 @@ const registerAction = async () => {
 	).value;
 	const password = (document.querySelector('#password') as HTMLInputElement)
 		.value;
+	const confirmPassword =
+		(document.querySelector('#confirmPassword') as HTMLInputElement)
+			?.value || '';
+	if (password !== confirmPassword) {
+		showLocalError('Die Passwörter stimmen nicht überein!');
+		return;
+	}
 	try {
 		const response = await fetch('/api/auth/register', {
 			method: 'POST',
