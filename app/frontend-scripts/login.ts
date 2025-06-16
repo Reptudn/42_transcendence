@@ -7,13 +7,15 @@ const loginAction = async () => {
 		.value;
 	const password = (document.querySelector('#password') as HTMLInputElement)
 		.value;
+	const totp = (document.querySelector('#totp') as HTMLInputElement)
+		.value;
 	try {
 		const response = await fetch('/api/auth/login', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ username, password }),
+			body: JSON.stringify({ username, password, totp }),
 		});
 		if (response.ok) {
 			updateMenu();

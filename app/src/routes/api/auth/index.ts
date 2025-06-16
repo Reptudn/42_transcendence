@@ -25,6 +25,9 @@ const authSchema = {
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
 		},
+		totp: {
+			type: 'string'
+		}
 	},
 	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
 	additionalProperties: false,
@@ -40,9 +43,9 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/login',
 		{ schema: { body: authSchema } },
 		async (req: any, reply: any) => {
-			const { username, password } = req.body;
+			const { username, password, totp } = req.body;
 			try {
-				const user: User = await loginUser(username, password, fastify);
+				const user: User = await loginUser(username, password, totp, fastify);
 				const token = fastify.jwt.sign(
 					{ username: user.username, id: user.id },
 					{ expiresIn: '10d' }

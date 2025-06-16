@@ -127,6 +127,7 @@ export async function loginGoogleUser(
 export async function loginUser(
 	username: string,
 	password: string,
+	totp: string,
 	fastify: FastifyInstance
 ): Promise<User> {
 	const user = await fastify.sqlite.get(
@@ -135,6 +136,9 @@ export async function loginUser(
 	);
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
+
+	if (!verify2fa(user, totp))
+		throw new Error('Invalid 2fa code');
 
 	return user;
 }

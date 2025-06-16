@@ -18,20 +18,20 @@ const startGameSchema = {
 			players: {
 				type: 'array',
 				items: {
-				type: 'object',
-				required: ['type'],
-				properties: {
-					type: { type: 'string', enum: ['user', 'local', 'ai'] },
-					id: { type: 'integer' }, // for 'user'
-					controlScheme: { type: 'string' }, // for 'local'
-					aiLevel: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 9,
-					}, // for 'ai'
-					aiOrLocalPlayerName: { type: 'string' }, // for 'local' or 'ai'
-				},
-				additionalProperties: false,
+					type: 'object',
+					required: ['type'],
+					properties: {
+						type: { type: 'string', enum: ['user', 'local', 'ai'] },
+						id: { type: 'integer' }, // for 'user'
+						controlScheme: { type: 'string' }, // for 'local'
+						aiLevel: {
+						type: 'integer',
+						minimum: 0,
+						maximum: 9,
+						}, // for 'ai'
+						aiOrLocalPlayerName: { type: 'string' }, // for 'local' or 'ai'
+					},
+					additionalProperties: false,
 				},
 			},
 		},

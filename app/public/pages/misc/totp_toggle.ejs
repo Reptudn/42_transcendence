@@ -1,0 +1,14 @@
+<% if (has_totp) { %>
+<div>
+	<button onclick="enable2fa()" class="bg-[#ff0000] text-white font-bold py-2 px-4 rounded">
+		Disable 2fa
+	</button>
+	<img id="2fa-qr hidden" src=""></img>
+</div>
+<% } else { %>
+<div>
+	<button onclick="disable2fa()" class="bg-[#00ff00] text-white font-bold py-2 px-4 rounded">
+		Enable 2fa
+	</button>
+</div>
+<% } %>
