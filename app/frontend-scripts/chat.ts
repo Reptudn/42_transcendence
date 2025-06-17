@@ -1,15 +1,5 @@
 import { showLocalPopup } from './alert.js';
-
-export interface Msg {
-	id: number;
-	chat_id: number;
-	user_id: number;
-	chatName: string;
-	blocked: boolean;
-	displayname: string;
-	content: string;
-	created_at: string;
-}
+import type { htmlMsg } from '../src/types/chat.js';
 
 export interface Chat {
 	id: string;
@@ -102,33 +92,28 @@ searchUser.addEventListener('input', async () => {
 	}
 });
 
-export function appendToChatBox(message: Msg) {
+export function appendToChatBox(rawMessage: string) {
 	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) return; // TODO Error msg;
+	if (!chatMessages) return; // TODO Error msg
 
-	const id = localStorage.getItem('chat_id');
+	const msg = JSON.parse(rawMessage) as htmlMsg;
 
-	if (!id) return; // TODO Error msg
-	if (Number.parseInt(id) === message.chat_id) {
-		const messageElement = document.createElement('div');
-		if (message.blocked) {
-			message.content = 'Msg blocked';
+	const nowChatId = localStorage.getItem('chat_id');
+	console.log('nowChatId = ', nowChatId);
+	if (nowChatId) {
+		if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
+			const messageElement = document.createElement('div');
+			messageElement.innerHTML = msg.htmlMsg;
+			chatMessages.appendChild(messageElement);
+			chatMessages.scrollTop = chatMessages.scrollHeight;
+			return;
 		}
-		const st = `
-			<div>
-				<p><a href='/partial/pages/profile/${message.displayname}'>${message.displayname}:</a>${message.content}</p>
-			</div>
-			`;
-		messageElement.innerHTML = st;
-		chatMessages.appendChild(messageElement);
-		chatMessages.scrollTop = chatMessages.scrollHeight;
-	} else if (message.chat_id !== 1) {
-		showLocalPopup({
-			title: 'New Msg',
-			description: `You recived a new Msg from ${message.displayname} in Group ${message.chatName}`,
-			color: 'blue',
-		});
 	}
+	showLocalPopup({
+		title: 'New Msg',
+		description: `You recived a new Msg from ${msg.fromUserName} in Group ${msg.chatName}`,
+		color: 'blue',
+	});
 }
 
 async function getUser(): Promise<User[] | null> {
@@ -160,7 +145,7 @@ export async function getChats() {
 }
 
 export async function getMessages(chat_id: string | null) {
-	if (!chat_id) return; // TODO Error msg
+	if (!chat_id || chat_id === '0') return; // TODO Error msg
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	if (!res.ok) {
 		showLocalPopup({
@@ -170,13 +155,13 @@ export async function getMessages(chat_id: string | null) {
 		});
 		return;
 	}
-	const msgs = (await res.json()) as Msg[];
+	const msgs = (await res.json()) as htmlMsg[];
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) return; // TODO Error msg
 
 	chatMessages.innerHTML = '';
 	for (const msg of msgs) {
-		appendToChatBox(msg);
+		appendToChatBox(JSON.stringify(msg));
 	}
 }

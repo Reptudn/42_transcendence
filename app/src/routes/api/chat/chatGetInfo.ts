@@ -1,11 +1,132 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { Chat } from '../../../types/chat';
+import type { Chat, Blocked, htmlMsg } from '../../../types/chat';
 import {
 	getAllUsersFromSql,
 	getAllChatsFromSqlByUserId,
 	getAllParticipantsFromSql,
+	getMessagesFromSqlByChatId,
 } from './utils';
 import { getUserById } from '../../../services/database/users';
+import { createHtmlMsg } from './sendMsg';
+
+interface MessageQueryChat {
+	chat_id: number;
+}
+
+const chatMsgRequestSchema = {
+	querystring: {
+		type: 'object',
+		properties: {
+			chat_id: { type: 'string' },
+		},
+		required: ['chat_id'],
+	},
+};
+
+export async function getAllMsg(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/messages',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { chat_id } = req.query as MessageQueryChat;
+
+			const userId = (req.user as { id: number }).id;
+
+			const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
+			if (!chatMsgs)
+				return res
+					.status(400)
+					.send({ error: 'Chat Messages not found' });
+
+			const blockers = await getAllBlockedUser(fastify, userId);
+			if (!blockers)
+				return res
+					.status(400)
+					.send({ error: 'Blocked Users not found' });
+
+			const blockerId = blockers.map((b) => b.blocker_id);
+
+			const htmlMsgs: htmlMsg[] = [];
+			for (const msg of chatMsgs) {
+				if (blockerId.includes(msg.user_id)) {
+					msg.content = 'Msg blocked';
+				}
+				const user = await getUserById(msg.user_id, fastify);
+				if (!user) continue;
+				htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+			}
+
+			res.send(htmlMsgs);
+		}
+	);
+}
+
+async function getAllBlockedUser(fastify: FastifyInstance, blockedId: number) {
+	try {
+		const blocked = (await fastify.sqlite.all(
+			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocked_id = ?',
+			[blockedId]
+		)) as Blocked[] | null;
+		return blocked;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+	return null;
+}
+
+// export async function getAllMsg(fastify: FastifyInstance) {
+// 	fastify.get<{ Querystring: MessageQueryChat }>(
+// 		'/messages',
+// 		{
+// 			preValidation: [fastify.authenticate],
+// 			schema: { body: chatMsgRequestSchema },
+// 		},
+// 		async (req: FastifyRequest, res: FastifyReply) => {
+// 			const { chat_id } = req.query as MessageQueryChat;
+// 			const user = await getUserById(
+// 				(req.user as { id: number }).id,
+// 				fastify
+// 			);
+// 			if (!user) {
+// 				return res.status(400).send({ error: 'Unknown User' });
+// 			}
+// 			const newChatId = chat_id;
+
+// 			const chat = await getChatFromSql(fastify, newChatId);
+// 			if (!chat) {
+// 				return res.status(400).send({ error: 'Chat not Found' });
+// 			}
+// 			const partisipant = getParticipantFromSql(
+// 				fastify,
+// 				user.id,
+// 				newChatId
+// 			);
+// 			if (!partisipant) {
+// 				return res.status(400).send({ error: 'Partisipant not Found' });
+// 			}
+// 			const messages = await getMessagesFromSqlByChatId(
+// 				fastify,
+// 				newChatId
+// 			);
+// 			if (!messages) {
+// 				return res.status(400).send({ error: 'Messages not Found' });
+// 			}
+// 			for (const msg of messages) {
+// 				const check = await checkUserBlocked(
+// 					fastify,
+// 					user.id,
+// 					msg.user_id
+// 				);
+// 				if (typeof check === 'undefined') continue;
+// 				msg.blocked = check;
+// 			}
+// 			res.send(messages);
+// 		}
+// 	);
+// }
 
 export async function getAllUsers(fastify: FastifyInstance) {
 	fastify.get(

@@ -24,3 +24,10 @@ export interface Blocked {
 	blocked_id: number;
 	created_at: string;
 }
+
+export interface htmlMsg {
+	fromUserName: string;
+	chatName: string;
+	chatId: number;
+	htmlMsg: string;
+}

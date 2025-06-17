@@ -7,8 +7,6 @@ import { loadPartialView } from './script.js';
 
 import { appendToChatBox } from './chat.js';
 
-import type { Msg } from './chat.js';
-
 export let notifyEventSource: EventSource | null = null;
 
 function setupEventSource() {
@@ -68,9 +66,7 @@ function setupEventSource() {
 					acceptGameInvite(data.gameId, data.playerId);
 					break;
 				case 'chat': {
-					const wrapper = JSON.parse(data.message);
-					const msg = wrapper.msg as Msg;
-					appendToChatBox(msg);
+					appendToChatBox(data.message);
 					break;
 				}
 				default:

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Msg } from './index';
+import type { Msg } from '../../../types/chat';
 import type { Chat, Part } from '../../../types/chat';
 
 interface Blocked {
@@ -113,7 +113,7 @@ export async function getMessagesFromSqlByChatId(
 	let msg: Msg[] | null;
 	try {
 		msg = (await fastify.sqlite.all(
-			'SELECT messages.id, messages.chat_id, messages.user_id, users.displayname AS displayname, messages.content, messages.created_at FROM messages JOIN users ON messages.user_id = users.id WHERE chat_id = ? ORDER BY created_at ASC',
+			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
 			[chat_id]
 		)) as Msg[] | null;
 	} catch (err) {
