@@ -1,3 +1,5 @@
+import { showLocalError, showLocalInfo } from './alert.js';
+
 export async function enable2fa()
 {
 	try {
@@ -8,14 +10,14 @@ export async function enable2fa()
 			},
 		});
 
-		if (response.ok) {
-			const qr = (document.querySelector('#2fa-qr') as HTMLImageElement).value;
-			const data = res.json();
+		if (res.ok) {
+			const qr = (document.querySelector('#2fa-qr') as HTMLImageElement);
+			const data = await res.json();
 			qr.src = data.qrcode;
-			qr.innerHtml = data.qrcode;
+			qr.alt = '2FA QR Code';
 			showLocalInfo('You have enabled 2fa successfully');
 		} else {
-			const data = await response.json();
+			const data = await res.json();
 			showLocalError(`Error: ${data.message}`);
 		}
 
@@ -25,7 +27,7 @@ export async function enable2fa()
 	}
 }
 
-export async function disbale2fa()
+export async function disable2fa()
 {
 	try{
 		const res = await fetch('/api/auth/totp/disable', {
@@ -34,9 +36,18 @@ export async function disbale2fa()
 					'Content-Type': 'application/json',
 			},
 		});
+		if (res.ok) {
+			const qr = (document.querySelector('#2fa-qr') as HTMLImageElement);
+			qr.src = '';
+			qr.alt = '';
+			showLocalInfo('You have disabled 2fa successfully');
+		} else {
+			const data = await res.json();
+			showLocalError(`Error: ${data.message}`);
+		}
 	} catch (error) {
 		console.error('Error:', error);
-		showLocalError('Failed to disable 2fa!');
+		window.showLocalError('Failed to disable 2fa!');
 	}
 }
 
@@ -47,5 +58,5 @@ declare global {
 	}
 }
 
-window.disbale2fa = disbale2fa;
+window.disable2fa = disable2fa;
 window.enable2fa = enable2fa;

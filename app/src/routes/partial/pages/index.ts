@@ -12,6 +12,7 @@ import {
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
+import { getUser2faSecret } from '../../../services/database/totp';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -132,6 +133,10 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						connectedClients.has(friend.id)
 					);
 					variables['friends'] = friends;
+				}
+				else if (page === 'edit_profile') {
+					await checkAuth(req, true, fastify);
+					variables['has_totp'] = await getUser2faSecret(req.user.id, fastify) !== '';
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
