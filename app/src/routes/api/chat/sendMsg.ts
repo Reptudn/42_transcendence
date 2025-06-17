@@ -2,12 +2,14 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import {
 	getAllParticipantsFromSql,
 	checkUserBlocked,
+	getChatFromSql,
 } from './utils';
 import {
 	connectedClients,
 	sendSseMessage,
 } from '../../../services/sse/handler';
 import { getUserById } from '../../../services/database/users';
+import { Chat } from '../../../types/chat'
 
 interface htmlMsg {
 	fromUserName: string;
@@ -33,13 +35,16 @@ export async function sendMsg(fastify: FastifyInstance) {
 			const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 			if (!toUsers) return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
+			const chatInfo = await getChatFromSql(fastify, body.chat);
+			if (!chatInfo) return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
+
 			for (const user of toUsers) {
 				if (connectedClients.has(user.user_id)) {
 					let msg: htmlMsg;
 					if (await checkUserBlocked(fastify, user.user_id, fromUser.id)) {
 						body.message = 'Msg blocked';
 					}
-					msg = createHtmlMsg(fromUser, body.message);
+					msg = createHtmlMsg(fromUser, chatInfo, body.message);
 					const toUser = connectedClients.get(user.user_id);
 					if (toUser) sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 					continue;
@@ -58,14 +63,14 @@ async function saveMsgInSql(fastify: FastifyInstance, fromUserId: number, chatId
 	}
 }
 
-function createHtmlMsg(fromUser: User, msgContent: string) {
+function createHtmlMsg(fromUser: User, chatInfo: Chat, msgContent: string) {
 	const msg: htmlMsg = {
 		fromUserName: '',
 		chatName: '',
 		htmlMsg: ''
 	};
 	msg.fromUserName = fromUser.displayname;
-	msg.chatName = 'Hallo';
+	msg.chatName = chatInfo.name ?? '';
 	msg.htmlMsg = `
 		<div>
 			<p><a href='/partial/pages/profile/${fromUser.displayname}'>${fromUser.displayname}:</a>${msgContent}</p>
@@ -73,3 +78,5 @@ function createHtmlMsg(fromUser: User, msgContent: string) {
 		`;
 	return msg;
 }
+
+// TODO Problem with checking toUser is on chat or on another side
