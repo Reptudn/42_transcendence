@@ -9,6 +9,7 @@ import {
 	getUserTitleString,
 	getUserTitle,
 	getUserTitlesForTitle,
+	getUserByUsername,
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
@@ -167,6 +168,67 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 		}
 	);
+
+	fastify.get('/profile/:username', {
+		preValidation: [fastify.authenticate],
+		schema: {
+			params: {
+				type: 'object',
+				properties: {
+					username: { type: 'string', minLength: 1, maxLength: 100 },
+				},
+				required: ['username'],
+			},
+		}
+	}, async (req: any, reply: any) => {
+		const username = req.params.username;
+		const user = await getUserByUsername(username, fastify);
+		if (!user) {
+			return reply.code(404).view('error.ejs', {
+				err_code: 404,
+				err_message: 'User not found',
+				t: req.t,
+			}, { layout: 'layouts/basic.ejs' });
+		}
+
+		if (user.id === req.user.id) {
+			return reply.redirect('/partial/pages/profile');
+		}
+
+		let variables: { [key: string]: any } = {};
+		variables['title'] = await getUserTitleString(
+			user.id,
+			fastify
+		);
+
+		const unlockedAchievements = await getUserAchievements(
+			user.id,
+			fastify
+		);
+		const allAchievements = await getAllAchievements(fastify);
+		const achievements = allAchievements.map((ach) => ({
+			...ach,
+			unlocked: unlockedAchievements.some(
+				(ua) => ua.id === ach.id
+			),
+		}));
+		variables['achievements'] = achievements;
+		variables['unlockedCount'] = unlockedAchievements.length;
+		variables['totalCount'] = allAchievements.length;
+
+		let friends = await getFriends(user.id, fastify);
+		variables['friends'] = friends;
+		variables['isSelf'] = false;
+		variables['user'] = user;
+		variables['isAuthenticated'] = true;
+
+		return reply.view('profile', {
+			...variables
+		}, {
+			layout: 'layouts/basic.ejs',
+			t: req.t
+		});
+	});
 };
 
 export default pages;

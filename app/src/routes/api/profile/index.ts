@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { checkAuth } from '../../../services/auth/auth';
 import { unlockAchievement } from '../../../services/database/achievements';
 import {
-	getUserByUsername,
+	getUserById,
 	updateUserProfile,
 	updateUserPassword,
 	updateUserTitle,
@@ -72,83 +72,21 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	const PROFILE_PIC_OFFSET = Math.floor(
 		Math.random() * DEFAULT_PROFILE_PIC_COUNT
 	);
-
-	fastify.get('/:username', {
-		preValidation: [fastify.authenticate],
-		schema: {
-			params: {
-				type: 'object',
-				properties: { username: { type: 'string' } },
-				required: ['username'],
-			},
-		},
-	}, async (req: any, reply: any) => {
-		let variables: { [key: string]: any } = {};
-		const { username } = req.params;
-		const user = await getUserByUsername(username, fastify);
-		if (!user) {
-			return reply.code(404).send({ message: 'User not found' });
-		}
-
-		let self_id: number | null = user ? user.id : null;
-		let friend_id: number | null = req.params.profile_id
-			? parseInt(req.params.profile_id)
-			: null;
-		if (friend_id == null && self_id == null) {
-			errorCode = 400;
-			throw new Error('No user id provided & not logged in');
-		}
-		let isSelf = profileId === req.user.id;
-		let profile = await getUserById(profileId, fastify);
-		if (!profile) {
-			errorCode = 404;
-			throw new Error('User not found');
-		}
-		profile.profile_picture =
-			'/profile/' + user.username + '/picture';
-		variables['user'] = profile;
-		variables['isSelf'] = isSelf;
-		variables['title'] = await getUserTitleString(
-			profile.id,
-			fastify
-		);
-
-		const unlockedAchievements = await getUserAchievements(
-			profileId,
-			fastify
-		);
-		const allAchievements = await getAllAchievements(fastify);
-		const achievements = allAchievements.map((ach) => ({
-			...ach,
-			unlocked: unlockedAchievements.some(
-				(ua) => ua.id === ach.id
-			),
-		}));
-		variables['achievements'] = achievements;
-		variables['unlockedCount'] = unlockedAchievements.length;
-		variables['totalCount'] = allAchievements.length;
-
-		let friends = await getFriends(profileId, fastify);
-		variables['friends'] = friends;
-
-		return reply.view('profile', variables);
-	});
-
 	fastify.get(
-		'/:username/picture',
+		'/:id/picture',
 		{
 			preValidation: [fastify.authenticate],
 			schema: {
 				params: {
 					type: 'object',
-					properties: { username: { type: 'string' } },
-					required: ['username'],
+					properties: { id: { type: 'string' } },
+					required: ['id'],
 				},
 			},
 		},
 		async (req: any, reply: any) => {
-			const { username } = req.params;
-			const user = await getUserByUsername(username, fastify);
+			const { id } = req.params;
+			const user = await getUserById(parseInt(id), fastify);
 			if (!user) {
 				return reply.code(404).send({ message: 'User not found' });
 			}
