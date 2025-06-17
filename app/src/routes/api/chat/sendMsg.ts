@@ -1,14 +1,19 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import {
-	getChatFromSql,
 	getAllParticipantsFromSql,
-	getMessagesFromSqlByMsgId,
 	checkUserBlocked,
 } from './utils';
 import {
 	connectedClients,
 	sendSseMessage,
 } from '../../../services/sse/handler';
+import { getUserById } from '../../../services/database/users';
+
+interface htmlMsg {
+	fromUserName: string;
+	chatName: string;
+	htmlMsg: string;
+}
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -20,62 +25,51 @@ export async function sendMsg(fastify: FastifyInstance) {
 				message: string;
 			};
 
-			const user_id = (req.user as { id: number }).id;
+			const fromUser = await getUserById((req.user as { id: number }).id, fastify);
+			if (!fromUser) return res.status(400).send({ error: 'User not found' }); // TODO Error msg
 
-			const group = await getChatFromSql(fastify, body.chat);
-			if (!group) {
-				return res.status(400).send({ error: 'Chat not Found' });
-			}
+			saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
 
-			const partisipants = await getAllParticipantsFromSql(
-				fastify,
-				body.chat
-			);
-			if (!partisipants) {
-				return res.status(400).send({ error: 'Users not Found' });
-			}
+			const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
+			if (!toUsers) return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
-			const msgId = await fastify.sqlite.run(
-				'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
-				[group.id, user_id, body.message]
-			);
-
-			if (msgId.changes !== 0 && typeof msgId.lastID === 'number') {
-				const msg = await getMessagesFromSqlByMsgId(
-					fastify,
-					msgId.lastID
-				);
-				if (!msg)
-					return res.status(400).send({ error: 'Message not Found' });
-				for (const part of partisipants) {
-					if (connectedClients.has(part.user_id)) {
-						const client = connectedClients.get(part.user_id);
-						const check = await checkUserBlocked(
-							fastify,
-							part.user_id,
-							user_id
-						);
-						if (typeof check === 'undefined') continue;
-						msg.blocked = check;
-						if (client) {
-							sendSseMessage(
-								client,
-								'chat',
-								JSON.stringify({ msg })
-							);
-						}
-					} else {
-						// TODO store msg send Popup when user is connected
-						/* 
-						{
-							part.user_id;
-							msg.chatName;
-						}
-						*/
+			for (const user of toUsers) {
+				if (connectedClients.has(user.user_id)) {
+					let msg: htmlMsg;
+					if (await checkUserBlocked(fastify, user.user_id, fromUser.id)) {
+						body.message = 'Msg blocked';
 					}
+					msg = createHtmlMsg(fromUser, body.message);
+					const toUser = connectedClients.get(user.user_id);
+					if (toUser) sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+					continue;
 				}
+				// TODO Client is not connected save msg and send later
 			}
-			res.send({ ok: true });
-		}
-	);
+})
+}
+
+async function saveMsgInSql(fastify: FastifyInstance, fromUserId: number, chatId: number, msgContent: string) {
+	try {
+		fastify.sqlite.run('INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)', [chatId, fromUserId, msgContent]);
+	}
+	catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+}
+
+function createHtmlMsg(fromUser: User, msgContent: string) {
+	const msg: htmlMsg = {
+		fromUserName: '',
+		chatName: '',
+		htmlMsg: ''
+	};
+	msg.fromUserName = fromUser.displayname;
+	msg.chatName = 'Hallo';
+	msg.htmlMsg = `
+		<div>
+			<p><a href='/partial/pages/profile/${fromUser.displayname}'>${fromUser.displayname}:</a>${msgContent}</p>
+		</div>
+		`;
+	return msg;
 }

@@ -247,4 +247,5 @@ export async function checkUserBlocked(
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 	}
+	return true;
 }
