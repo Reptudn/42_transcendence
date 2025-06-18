@@ -39,7 +39,7 @@ export async function getAllMsg(fastify: FastifyInstance) {
 			if (!chatMsgs)
 				return res
 					.status(400)
-					.send({ error: 'Chat Messages not found' });
+					.send({ error: 'Chat Messages not f ound' });
 
 			const blockers = await getAllBlockedUser(fastify, userId);
 			if (!blockers)
@@ -64,7 +64,10 @@ export async function getAllMsg(fastify: FastifyInstance) {
 	);
 }
 
-async function getAllBlockedUser(fastify: FastifyInstance, blockedId: number) {
+export async function getAllBlockedUser(
+	fastify: FastifyInstance,
+	blockedId: number
+) {
 	try {
 		const blocked = (await fastify.sqlite.all(
 			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocked_id = ?',
@@ -77,56 +80,21 @@ async function getAllBlockedUser(fastify: FastifyInstance, blockedId: number) {
 	return null;
 }
 
-// export async function getAllMsg(fastify: FastifyInstance) {
-// 	fastify.get<{ Querystring: MessageQueryChat }>(
-// 		'/messages',
-// 		{
-// 			preValidation: [fastify.authenticate],
-// 			schema: { body: chatMsgRequestSchema },
-// 		},
-// 		async (req: FastifyRequest, res: FastifyReply) => {
-// 			const { chat_id } = req.query as MessageQueryChat;
-// 			const user = await getUserById(
-// 				(req.user as { id: number }).id,
-// 				fastify
-// 			);
-// 			if (!user) {
-// 				return res.status(400).send({ error: 'Unknown User' });
-// 			}
-// 			const newChatId = chat_id;
-
-// 			const chat = await getChatFromSql(fastify, newChatId);
-// 			if (!chat) {
-// 				return res.status(400).send({ error: 'Chat not Found' });
-// 			}
-// 			const partisipant = getParticipantFromSql(
-// 				fastify,
-// 				user.id,
-// 				newChatId
-// 			);
-// 			if (!partisipant) {
-// 				return res.status(400).send({ error: 'Partisipant not Found' });
-// 			}
-// 			const messages = await getMessagesFromSqlByChatId(
-// 				fastify,
-// 				newChatId
-// 			);
-// 			if (!messages) {
-// 				return res.status(400).send({ error: 'Messages not Found' });
-// 			}
-// 			for (const msg of messages) {
-// 				const check = await checkUserBlocked(
-// 					fastify,
-// 					user.id,
-// 					msg.user_id
-// 				);
-// 				if (typeof check === 'undefined') continue;
-// 				msg.blocked = check;
-// 			}
-// 			res.send(messages);
-// 		}
-// 	);
-// }
+export async function getAllBlockerUser(
+	fastify: FastifyInstance,
+	blockerId: number
+) {
+	try {
+		const blocked = (await fastify.sqlite.all(
+			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ?',
+			[blockerId]
+		)) as Blocked[] | null;
+		return blocked;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+	return null;
+}
 
 export async function getAllUsers(fastify: FastifyInstance) {
 	fastify.get(

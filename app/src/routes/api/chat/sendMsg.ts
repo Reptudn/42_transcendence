@@ -1,15 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import {
-	getAllParticipantsFromSql,
-	checkUserBlocked,
-	getChatFromSql,
-} from './utils';
+import { getAllParticipantsFromSql, getChatFromSql } from './utils';
 import {
 	connectedClients,
 	sendSseMessage,
 } from '../../../services/sse/handler';
 import { getUserById } from '../../../services/database/users';
-import type { Chat, htmlMsg } from '../../../types/chat';
+import type { Chat, Part, htmlMsg, Blocked } from '../../../types/chat';
+import { getAllBlockerUser } from './chatGetInfo';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -38,28 +35,58 @@ export async function sendMsg(fastify: FastifyInstance) {
 			if (!chatInfo)
 				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
-			for (const user of toUsers) {
-				if (connectedClients.has(user.user_id)) {
-					let msg: htmlMsg;
-					if (
-						await checkUserBlocked(
-							fastify,
-							user.user_id,
-							fromUser.id
-						)
-					) {
-						body.message = 'Msg blocked';
-					}
-					msg = createHtmlMsg(fromUser, chatInfo, body.message);
-					const toUser = connectedClients.get(user.user_id);
-					if (toUser)
-						sendSseMessage(toUser, 'chat', JSON.stringify(msg));
-					continue;
-				}
-				// TODO Client is not connected save msg and send later
-			}
+			const blockers = await getAllBlockerUser(fastify, fromUser.id);
+			if (!blockers)
+				return res
+					.status(400)
+					.send({ error: 'Blocked Users not found' });
+			const blockedId = blockers.map((b) => b.blocked_id);
+
+			if (!chatInfo.is_group && !chatInfo.name) {
+				sendMsgDm(fromUser, toUsers, chatInfo, blockedId, body.message);
+			} else
+				sendMsgGroup(
+					fromUser,
+					toUsers,
+					chatInfo,
+					blockedId,
+					body.message
+				);
 		}
 	);
+}
+
+function sendMsgGroup(
+	fromUser: User,
+	toUsers: Part[],
+	chatInfo: Chat,
+	blockedId: number[],
+	content: string
+) {
+	for (const user of toUsers) {
+		if (connectedClients.has(user.user_id)) {
+			let msg: htmlMsg;
+			if (blockedId.includes(user.user_id))
+				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked');
+			else msg = createHtmlMsg(fromUser, chatInfo, content);
+			const toUser = connectedClients.get(user.user_id);
+			if (toUser) {
+				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+			}
+			// continue;
+		}
+		// TODO Client is not connected save msg and send later
+	}
+}
+
+function sendMsgDm(
+	fromUser: User,
+	toUser: Part[],
+	chatInfo: Chat,
+	blockInfo: number[],
+	content: string
+) {
+	const msg = createHtmlMsg(fromUser, chatInfo, content);
 }
 
 async function saveMsgInSql(
