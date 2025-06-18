@@ -5,7 +5,7 @@ import {
 	sendSseMessage,
 } from '../../../services/sse/handler';
 import { getUserById } from '../../../services/database/users';
-import type { Chat, Part, htmlMsg, Blocked } from '../../../types/chat';
+import type { Chat, Part, htmlMsg } from '../../../types/chat';
 import { getAllBlockerUser } from './chatGetInfo';
 
 export async function sendMsg(fastify: FastifyInstance) {
@@ -83,10 +83,29 @@ function sendMsgDm(
 	fromUser: User,
 	toUser: Part[],
 	chatInfo: Chat,
-	blockInfo: number[],
+	blockedId: number[],
 	content: string
 ) {
 	const msg = createHtmlMsg(fromUser, chatInfo, content);
+
+	const user = toUser.filter((b) => b.user_id !== fromUser.id);
+
+	if (!blockedId.includes(user[0].user_id)) {
+		if (connectedClients.has(user[0].user_id)) {
+			const toUser = connectedClients.get(user[0].user_id);
+			if (toUser) {
+				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+			}
+		} else {
+			// TODO Client is not connected save msg and send later
+		}
+		if (connectedClients.has(fromUser.id)) {
+			const toUser = connectedClients.get(fromUser.id);
+			if (toUser) {
+				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+			}
+		}
+	}
 }
 
 async function saveMsgInSql(
