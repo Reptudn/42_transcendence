@@ -1,26 +1,31 @@
-import type { User } from './chat.js';
 import { getMessages, getChats } from './chat.js';
 import { showLocalPopup } from './alert.js';
 
 let userIds: string[] = [];
 let userIdToBlock = '';
 
+interface Friend {
+	id: number;
+	username: string;
+	displayname: string;
+}
+
 document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/users');
+	const res = await fetch('/api/chat/friends');
 	if (!res.ok) return; // TODO Error msg
-	const users = (await res.json()) as User[];
+	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResults');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const user of users) {
+		for (const friend of friends) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				const pos = userIds.indexOf(user.id.toString());
-				if (pos === -1) userIds.push(user.id.toString());
+				const pos = userIds.indexOf(friend.id.toString());
+				if (pos === -1) userIds.push(friend.id.toString());
 				else userIds.splice(pos, 1);
 			});
-			butt.textContent = user.displayname;
+			butt.textContent = friend.displayname;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
 			userList.appendChild(butt);
 		}
@@ -40,9 +45,8 @@ document
 			});
 			return;
 		}
-		groupName = (
-			document.getElementById('groupNameInput') as HTMLInputElement
-		).value;
+		groupName = (document.getElementById('groupNameInput') as HTMLInputElement)
+			.value;
 		if (groupName === '') {
 			showLocalPopup({
 				title: 'No Groupname',
@@ -68,56 +72,50 @@ document
 		await getChats();
 	});
 
-document
-	.getElementById('closeGroupWindow')
-	?.addEventListener('click', async () => {
-		userIds = [];
-		groupName = '';
-		document.getElementById('groupWindow')?.classList.add('hidden');
-	});
+document.getElementById('closeGroupWindow')?.addEventListener('click', async () => {
+	userIds = [];
+	groupName = '';
+	document.getElementById('groupWindow')?.classList.add('hidden');
+});
 
 // Block User Modal
 
 document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/users');
+	const res = await fetch('/api/chat/friends');
 	if (!res.ok) return; // TODO Error msg
-	const users = (await res.json()) as User[];
+	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToBlock');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const user of users) {
+		for (const friend of friends) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				userIdToBlock = user.id.toString();
+				userIdToBlock = friend.id.toString();
 			});
-			butt.textContent = user.displayname;
+			butt.textContent = friend.displayname;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
 			userList.appendChild(butt);
 		}
 	}
 });
 
-document
-	.getElementById('confirmBlockUser')
-	?.addEventListener('click', async () => {
-		if (userIdToBlock === '') {
-			showLocalPopup({
-				title: 'No user added',
-				description: 'You need to add some users to block',
-				color: 'red',
-			});
-			return;
-		}
-		const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
-		const res = await fetch(url);
-		if (!res.ok) return; // TODO Error msg
-		document.getElementById('closeBlockUser')?.click();
-	});
+document.getElementById('confirmBlockUser')?.addEventListener('click', async () => {
+	if (userIdToBlock === '') {
+		showLocalPopup({
+			title: 'No user added',
+			description: 'You need to add some users to block',
+			color: 'red',
+		});
+		return;
+	}
+	const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
+	const res = await fetch(url);
+	if (!res.ok) return; // TODO Error msg
+	document.getElementById('closeBlockUser')?.click();
+});
 
-document
-	.getElementById('closeBlockUser')
-	?.addEventListener('click', async () => {
-		userIdToBlock = '';
-		document.getElementById('blockUserWindow')?.classList.add('hidden');
-	});
+document.getElementById('closeBlockUser')?.addEventListener('click', async () => {
+	userIdToBlock = '';
+	document.getElementById('blockUserWindow')?.classList.add('hidden');
+});

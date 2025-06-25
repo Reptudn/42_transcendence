@@ -1,12 +1,13 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { getAllParticipantsFromSql, getChatFromSql } from './utils';
-import {
-	connectedClients,
-	sendSseMessage,
-} from '../../../services/sse/handler';
+import { connectedClients, sendSseMessage } from '../../../services/sse/handler';
 import { getUserById } from '../../../services/database/users';
 import type { Chat, Part, htmlMsg } from '../../../types/chat';
-import { getAllBlockerUser } from './chatGetInfo';
+import {
+	saveMsgInSql,
+	getAllBlockerUser,
+	getAllParticipantsFromSql,
+	getChatFromSql,
+} from './utilsSQL';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -22,10 +23,7 @@ export async function sendMsg(fastify: FastifyInstance) {
 				(req.user as { id: number }).id,
 				fastify
 			);
-			if (!fromUser)
-				return res.status(400).send({ error: 'User not found' }); // TODO Error msg
-
-			saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
+			if (!fromUser) return res.status(400).send({ error: 'User not found' }); // TODO Error msg
 
 			const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 			if (!toUsers)
@@ -37,21 +35,16 @@ export async function sendMsg(fastify: FastifyInstance) {
 
 			const blockers = await getAllBlockerUser(fastify, fromUser.id);
 			if (!blockers)
-				return res
-					.status(400)
-					.send({ error: 'Blocked Users not found' });
+				return res.status(400).send({ error: 'Blocked Users not found' });
 			const blockedId = blockers.map((b) => b.blocked_id);
 
 			if (!chatInfo.is_group && !chatInfo.name) {
-				sendMsgDm(fromUser, toUsers, chatInfo, blockedId, body.message);
-			} else
-				sendMsgGroup(
-					fromUser,
-					toUsers,
-					chatInfo,
-					blockedId,
-					body.message
-				);
+				if (sendMsgDm(fromUser, toUsers, chatInfo, blockedId, body.message))
+					saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
+			} else {
+				sendMsgGroup(fromUser, toUsers, chatInfo, blockedId, body.message);
+				saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
+			}
 		}
 	);
 }
@@ -105,23 +98,9 @@ function sendMsgDm(
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
+		return true;
 	}
-}
-
-async function saveMsgInSql(
-	fastify: FastifyInstance,
-	fromUserId: number,
-	chatId: number,
-	msgContent: string
-) {
-	try {
-		fastify.sqlite.run(
-			'INSERT INTO messages (chat_id, user_id, content) VALUES (?, ? ,?)',
-			[chatId, fromUserId, msgContent]
-		);
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-	}
+	return false;
 }
 
 export function createHtmlMsg(

@@ -40,46 +40,46 @@
 			<div id="welcome-screen" class="welcome-screen hidden">
 				<div class="welcome-text">Welcome to Transcendence</div>
 			</div>
-		<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
-		<header class="text-white p-4">
-			<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
-					<h1
-						class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
-						onclick="loadPartialView('index')"
-						id="menu-header"
-					>
-						<%= t('header.title') %>
-					</h1>
-				<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
-					<% if (!isAuthenticated) { %> <%-
-					include('layouts/menu/guest') %> <% } else { %> <%-
-					include('layouts/menu/loggedin') %> <% } %>
+			<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
+			<header class="text-white p-4">
+				<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
+						<h1
+							class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
+							onclick="loadPartialView('index')"
+							id="menu-header"
+						>
+							<%= t('header.title') %>
+						</h1>
+					<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
+						<% if (!isAuthenticated) { %> <%-
+						include('layouts/menu/guest') %> <% } else { %> <%-
+						include('layouts/menu/loggedin') %> <% } %>
+					</div>
+					<%- include('misc/lang_select') %>
 				</div>
-				<%- include('misc/lang_select') %>
-			</div>
-		</header>
+			</header>
 
-		<main class="container">
-			<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
-				<%- body %>
-			</div>
-			<div
-			id="popup-wrapper"
-			class="fixed bottom-30 pl-10 z-10000"
-			>
-			<div
-			id="popup-container"
-			class="flex flex-col-reverse gap-3 z-10000"
-			></div>
-			<button
-			id="close-all-popups-btn"
-			class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
-			>
-			Close all
-			</button>
-			</div>
-		</main>
-	</div>
+			<main class="container">
+				<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
+					<%- body %>
+				</div>
+				<div
+				id="popup-wrapper"
+				class="fixed bottom-30 pl-10 z-10000"
+				>
+				<div
+				id="popup-container"
+				class="flex flex-col-reverse gap-3 z-10000"
+				></div>
+				<button
+				id="close-all-popups-btn"
+				class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
+				>
+				Close all
+				</button>
+				</div>
+			</main>
+		</div>
 
 		<footer class="text-white p-4 mb-7 text-2xl absolute bottom-20 left-1/2 transform -translate-x-1/2">
 			<div class="container mx-auto text-center glow-green">
@@ -99,40 +99,34 @@
 			</div>
 		</footer>
 
-		<!-- Chat-Button -->
-		<button
+		<!-- <button
 			id="chat-button"
 			class="fixed bottom-6 right-6 w-16 h-16 bg-green-600 text-white text-xl rounded hover:bg-green-500 z-50 shadow-lg transition-all duration-300"
 		>
 			💬
 		</button>
 
-		<!-- Chat-Widget -->
 		<div
 			id="chat-widget"
 			class="fixed bottom-6 right-6 w-[28rem] h-[36rem] bg-white text-black rounded-xl shadow-lg hidden z-50 p-0 flex flex-col transition-all duration-300 animate-fade-in"
 		>
-			<!-- Kopfzeile -->
 			<div class="p-2 bg-gray-100 flex justify-between items-center">
 				<span class="font-bold">Chat</span>
 				<button id="chat-close" class="hover:text-red-500">✖️</button>
 			</div>
 
-			<!-- Bereich für Chat-Übersicht (DMs, Gruppenchats etc.) -->
 			<div
 				id="chat-chats"
 				class="max-h-32 overflow-y-auto flex flex-col p-2 gap-2 border-b"
 			>
 			</div>
 
-			<!-- Nachrichtenbereich -->
 			<div
 				id="chat-messages"
 				class="flex-1 overflow-y-auto p-2 text-sm"
 			>
 			</div>
 
-			<!-- Eingabeformular -->
 			<form id="chat-form" class="flex border-t">
 				<input
 					type="text"
@@ -142,9 +136,7 @@
 				/>
 				<button class="p-2 text-blue-600">▶</button>
 			</form>
-		</div>
-
-
+		</div> -->
 
 		<script type="module" src="/static/js/script.js" defer></script>
 		<script type="module" src="/static/js/events.js" defer></script>

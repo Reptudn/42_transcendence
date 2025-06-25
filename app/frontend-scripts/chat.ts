@@ -32,25 +32,23 @@ document.getElementById('globalChat')?.addEventListener('click', async () => {
 	await getMessages(localStorage.getItem('chat_id'));
 });
 
-document
-	.getElementById('sendChatButton')
-	?.addEventListener('click', async () => {
-		const input = document.getElementById('chatInput') as HTMLInputElement;
-		if (input && input.value.trim() !== '') {
-			const msg = input.value.trim();
-			input.value = '';
-			const chat_id = localStorage.getItem('chat_id');
-			if (!chat_id) return; // TODO Error msg
-			await fetch('/api/chat', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					chat: Number.parseInt(chat_id),
-					message: msg,
-				}),
-			});
-		}
-	});
+document.getElementById('sendChatButton')?.addEventListener('click', async () => {
+	const input = document.getElementById('chatInput') as HTMLInputElement;
+	if (input && input.value.trim() !== '') {
+		const msg = input.value.trim();
+		input.value = '';
+		const chat_id = localStorage.getItem('chat_id');
+		if (!chat_id) return; // TODO Error msg
+		await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				chat: Number.parseInt(chat_id),
+				message: msg,
+			}),
+		});
+	}
+});
 
 document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 	if (e.key === 'Enter') {
@@ -58,13 +56,9 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 	}
 });
 
-const searchUser = document.getElementById(
-	'searchForFriend'
-) as HTMLInputElement;
+const searchUser = document.getElementById('searchForFriend') as HTMLInputElement;
 
 searchUser.addEventListener('input', async () => {
-	const users = await getUser();
-	if (!users) return; // TODO Error msg
 	const res = await fetch('/api/chat/chats');
 	if (!res.ok) return; // TODO Error msg
 	const chats = (await res.json()) as Chat[];
@@ -114,13 +108,6 @@ export function appendToChatBox(rawMessage: string) {
 		description: `You recived a new Msg from ${msg.fromUserName} in Group ${msg.chatName}`,
 		color: 'blue',
 	});
-}
-
-async function getUser(): Promise<User[] | null> {
-	const res = await fetch('/api/chat/users');
-	if (!res.ok) return null; // TODO Error msg
-	const users = (await res.json()) as User[];
-	return users;
 }
 
 export async function getChats() {

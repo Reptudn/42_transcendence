@@ -2,7 +2,7 @@ import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { getUserById } from '../../../services/database/users';
 import { sendMsg } from './sendMsg';
 import { createNewChat, addToParticipants, blockUser } from './utils';
-import { getAllChats, getAllUsers, getAllMsg } from './chatGetInfo';
+import { getAllChats, getAllFriends, getAllMsg } from './chatGetInfo';
 
 interface MessageQueryUser {
 	group_name: string;
@@ -15,7 +15,7 @@ interface MessageQueryBlock {
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
-	getAllUsers(fastify);
+	getAllFriends(fastify);
 	getAllChats(fastify);
 	getAllMsg(fastify);
 	fastify.get<{ Querystring: MessageQueryUser }>(
@@ -37,10 +37,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { group_name, user_id } = req.query as MessageQueryUser;
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
+			const user = await getUserById((req.user as { id: number }).id, fastify);
 			if (!user) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
@@ -48,16 +45,13 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				.map((id) => Number.parseInt(id, 10))
 				.filter((id) => !Number.isNaN(id));
 			if (!userIdsInt.includes(user.id)) userIdsInt.push(user.id);
-			let chat_id: number | undefined = 0;
-			if (userIdsInt.length <= 2)
-				chat_id = await createNewChat(fastify, false, group_name);
-			else chat_id = await createNewChat(fastify, true, group_name);
-			if (chat_id !== undefined) {
+			const chat_id = await createNewChat(fastify, true, group_name);
+			if (chat_id >= 0) {
 				for (const id of userIdsInt) {
 					addToParticipants(fastify, id, chat_id);
 				}
 				res.send({ chat_id: chat_id.toString() });
-			}
+			} else res.status(400).send({ error: 'Unknown User' });
 		}
 	);
 	fastify.get<{ Querystring: MessageQueryBlock }>(
@@ -76,10 +70,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { user_id } = req.query as MessageQueryBlock;
-			const user = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
+			const user = await getUserById((req.user as { id: number }).id, fastify);
 			if (!user) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}

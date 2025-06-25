@@ -1,12 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Msg } from '../../../types/chat';
-import type { Chat, Part } from '../../../types/chat';
-
-interface Blocked {
-	blocker_id: number;
-	blocked_id: number;
-	created_at: string;
-}
+import type { Part, Blocked } from '../../../types/chat';
+import { getChatFromSql } from './utilsSQL';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -22,23 +17,6 @@ export async function inviteUserToChat(
 		createNewChat(fastify, true, null);
 	}
 	addToParticipants(fastify, user_id, chat_id);
-}
-
-export async function getChatFromSql(
-	fastify: FastifyInstance,
-	chat_id: number
-): Promise<Chat | null> {
-	let chat: Chat | null;
-	try {
-		chat = (await fastify.sqlite.get(
-			'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
-			[chat_id]
-		)) as Chat | null;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
-	}
-	return chat;
 }
 
 export async function getParticipantFromSql(
@@ -57,40 +35,6 @@ export async function getParticipantFromSql(
 		return null;
 	}
 	return user;
-}
-
-export async function getAllParticipantsFromSql(
-	fastify: FastifyInstance,
-	chat_id: number
-): Promise<Part[] | null> {
-	let user: Part[] | null;
-	try {
-		user = (await fastify.sqlite.all(
-			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ?',
-			[chat_id]
-		)) as Part[] | null;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
-	}
-	return user;
-}
-
-export async function getAllChatsFromSqlByUserId(
-	fastify: FastifyInstance,
-	user_id: number
-) {
-	let chats: Part[] | null;
-	try {
-		chats = (await fastify.sqlite.all(
-			'SELECT id, chat_id, user_id FROM chat_participants WHERE user_id = ?',
-			[user_id]
-		)) as Part[] | null;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
-	}
-	return chats;
 }
 
 export async function getAllUsersFromSql(fastify: FastifyInstance) {
@@ -168,8 +112,10 @@ export async function createNewChat(
 		);
 		if (chat.changes !== 0 && typeof chat.lastID === 'number')
 			return chat.lastID;
+		return -1;
 	} catch (err) {
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return -1;
 	}
 }
 

@@ -1,13 +1,14 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { Chat, Blocked, htmlMsg } from '../../../types/chat';
-import {
-	getAllUsersFromSql,
-	getAllChatsFromSqlByUserId,
-	getAllParticipantsFromSql,
-	getMessagesFromSqlByChatId,
-} from './utils';
+import type { htmlMsg } from '../../../types/chat';
+import { getMessagesFromSqlByChatId } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
+import { getFriends } from '../../../services/database/friends';
+import {
+	getAllChatsFromSqlByUserId,
+	getFriendsDisplayname,
+	getAllBlockedUserId,
+} from './utilsSQL';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -37,15 +38,11 @@ export async function getAllMsg(fastify: FastifyInstance) {
 
 			const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 			if (!chatMsgs)
-				return res
-					.status(400)
-					.send({ error: 'Chat Messages not f ound' });
+				return res.status(400).send({ error: 'Chat Messages not f ound' });
 
-			const blockers = await getAllBlockedUser(fastify, userId);
+			const blockers = await getAllBlockedUserId(fastify, userId);
 			if (!blockers)
-				return res
-					.status(400)
-					.send({ error: 'Blocked Users not found' });
+				return res.status(400).send({ error: 'Blocked Users not found' });
 
 			const blockerId = blockers.map((b) => b.blocker_id);
 
@@ -64,51 +61,16 @@ export async function getAllMsg(fastify: FastifyInstance) {
 	);
 }
 
-export async function getAllBlockedUser(
-	fastify: FastifyInstance,
-	blockedId: number
-) {
-	try {
-		const blocked = (await fastify.sqlite.all(
-			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocked_id = ?',
-			[blockedId]
-		)) as Blocked[] | null;
-		return blocked;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-	}
-	return null;
-}
-
-export async function getAllBlockerUser(
-	fastify: FastifyInstance,
-	blockerId: number
-) {
-	try {
-		const blocked = (await fastify.sqlite.all(
-			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ?',
-			[blockerId]
-		)) as Blocked[] | null;
-		return blocked;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-	}
-	return null;
-}
-
-export async function getAllUsers(fastify: FastifyInstance) {
+export async function getAllFriends(fastify: FastifyInstance) {
 	fastify.get(
-		'/users',
+		'/friends',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const users = await getAllUsersFromSql(fastify);
-			if (!users) {
-				return res.status(400).send({ error: 'Users not Found' });
-			}
-			const updateUsers = users.filter(
-				(user) => user.id !== (req.user as { id: number }).id
-			);
-			res.send(updateUsers);
+			const userId = (req.user as { id: number }).id;
+
+			const friends = await getFriends(userId, fastify);
+
+			res.send(friends);
 		}
 	);
 }
@@ -118,46 +80,23 @@ export async function getAllChats(fastify: FastifyInstance) {
 		'/chats',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const user_id = (req.user as { id: number }).id;
-			const userPart = await getAllChatsFromSqlByUserId(fastify, user_id);
-			if (!userPart)
+			const userId = (req.user as { id: number }).id;
+
+			const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
+			if (userChats.length === 0)
 				return res.status(400).send({ error: 'No Partispants found' }); // TODO Error msg
-			const chats: Chat[] = [];
-			for (const part of userPart) {
-				const chat = (await fastify.sqlite.get(
-					'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
-					[part.chat_id]
-				)) as Chat;
-				if (chat.id !== 1) chats.push(chat);
-			}
-			for (const chat of chats) {
-				console.log('chat is group = ', chat.is_group);
+
+			for (const chat of userChats) {
 				if (Boolean(chat.is_group) === false) {
-					const parts = await getAllParticipantsFromSql(
+					const name = await getFriendsDisplayname(
 						fastify,
-						chat.id
+						chat.id,
+						userId
 					);
-					if (!parts)
-						return res
-							.status(400)
-							.send({ error: 'No Partispants found' }); // TODO Error msg
-					for (const part of parts) {
-						if (part.user_id !== user_id) {
-							const user = await getUserById(
-								part.user_id,
-								fastify
-							);
-							if (!user)
-								return res
-									.status(400)
-									.send({ error: 'User not Found' }); // TODO Error msg
-							chat.name = user.displayname;
-							console.log('chat name = ', chat.name);
-						}
-					}
+					if (name) chat.name = name.displayname;
 				}
 			}
-			res.send(chats);
+			res.send(userChats);
 			return;
 		}
 	);
