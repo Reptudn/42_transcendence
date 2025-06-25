@@ -129,7 +129,7 @@ export async function searchForChatId(
 	return null;
 }
 
-export async function blockUser(
+export async function addToBlockedUsers(
 	fastify: FastifyInstance,
 	blocker_id: number,
 	blocked_id: number

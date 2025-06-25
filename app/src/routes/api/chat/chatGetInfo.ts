@@ -1,11 +1,12 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { htmlMsg } from '../../../types/chat';
-import { getMessagesFromSqlByChatId } from './utils';
-import { saveNewChatInfo, addToParticipants } from './utilsSQL'
+import { getMessagesFromSqlByChatId, addToBlockedUsers } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
 import {
+	saveNewChatInfo,
+	addToParticipants,
 	getAllChatsFromSqlByUserId,
 	getFriendsDisplayname,
 	getAllBlockedUserId,
@@ -18,6 +19,10 @@ interface MessageQueryChat {
 interface MessageQueryUser {
 	group_name: string;
 	user_id: string[];
+}
+
+interface MessageQueryBlock {
+	user_id: string;
 }
 
 const chatMsgRequestSchema = {
@@ -40,8 +45,18 @@ const chatCreateRequestSchema = {
 			},
 		},
 		required: ['user_id', 'group_name'],
-	}
-}
+	},
+};
+
+const chatBlockRequestSchema = {
+	querystring: {
+		type: 'object',
+		properties: {
+			user_id: { type: 'string' },
+		},
+		required: ['user_id'],
+	},
+};
 
 export async function getAllMsg(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryChat }>(
@@ -148,10 +163,29 @@ export async function createNewChat(fastify: FastifyInstance) {
 					addToParticipants(fastify, id, chat_id);
 				}
 				res.send({ chat_id: chat_id.toString() });
-			}
-			else if (chat_id === -1) {
+			} else if (chat_id === -1) {
 				fastify.log.info('Not able to create a new Group'); // TODO
 			}
+		}
+	);
+}
+
+export async function blockUsers(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryBlock }>(
+		'/block_user',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatBlockRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { user_id } = req.query as MessageQueryBlock;
+
+			const user = await getUserById((req.user as { id: number }).id, fastify);
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+
+			addToBlockedUsers(fastify, user.id, Number.parseInt(user_id));
 		}
 	);
 }

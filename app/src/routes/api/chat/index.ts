@@ -1,12 +1,12 @@
-import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-import { getUserById } from '../../../services/database/users';
+import type { FastifyPluginAsync } from 'fastify';
 import { sendMsg } from './sendMsg';
-import { blockUser } from './utils';
-import { getAllChats, getAllFriends, getAllMsg, createNewChat } from './chatGetInfo';
-
-interface MessageQueryBlock {
-	user_id: string;
-}
+import {
+	getAllChats,
+	getAllFriends,
+	getAllMsg,
+	createNewChat,
+	blockUsers,
+} from './chatGetInfo';
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
@@ -14,29 +14,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	getAllChats(fastify);
 	getAllMsg(fastify);
 	createNewChat(fastify);
-	fastify.get<{ Querystring: MessageQueryBlock }>(
-		'/block_user',
-		{
-			preValidation: [fastify.authenticate],
-			schema: {
-				querystring: {
-					type: 'object',
-					properties: {
-						user_id: { type: 'string' },
-					},
-					required: ['user_id'],
-				},
-			},
-		},
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryBlock;
-			const user = await getUserById((req.user as { id: number }).id, fastify);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-			blockUser(fastify, user.id, Number.parseInt(user_id));
-		}
-	);
+	blockUsers(fastify);
 };
 
 export default chat;
@@ -44,4 +22,7 @@ export default chat;
 // TODO Problem with checking toUser is on chat or on another side
 // TODO Unblock User
 // TODO invite to chat group
-// TODO delete chat group
+// TODO left chat group
+// TODO bei block_user created_at überprüfen damit nur nach dem blocken die nachrichten unkentlich gemacht werden im gruppen chat
+// TODO bei block_user im einzelchat die person die geblocked wurde kann noch schreiben und sieht nicht das sie geblockt wurde
+// TODO aber die person die geblocked hat kann nicht mehr schreiben und bekommt auch keine neune nachrichten
