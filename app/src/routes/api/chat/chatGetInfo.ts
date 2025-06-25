@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { htmlMsg } from '../../../types/chat';
 import { getMessagesFromSqlByChatId } from './utils';
+import { saveNewChatInfo, addToParticipants } from './utilsSQL'
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
@@ -14,6 +15,11 @@ interface MessageQueryChat {
 	chat_id: number;
 }
 
+interface MessageQueryUser {
+	group_name: string;
+	user_id: string[];
+}
+
 const chatMsgRequestSchema = {
 	querystring: {
 		type: 'object',
@@ -23,6 +29,19 @@ const chatMsgRequestSchema = {
 		required: ['chat_id'],
 	},
 };
+
+const chatCreateRequestSchema = {
+	querystring: {
+		type: 'object',
+		properties: {
+			user_id: {
+				type: 'array',
+				items: { type: 'string' },
+			},
+		},
+		required: ['user_id', 'group_name'],
+	}
+}
 
 export async function getAllMsg(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryChat }>(
@@ -98,6 +117,41 @@ export async function getAllChats(fastify: FastifyInstance) {
 			}
 			res.send(userChats);
 			return;
+		}
+	);
+}
+
+export async function createNewChat(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryUser }>(
+		'/create',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatCreateRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { group_name, user_id } = req.query as MessageQueryUser;
+
+			const user = await getUserById((req.user as { id: number }).id, fastify);
+			if (!user) {
+				return res.status(400).send({ error: 'Unknown User' });
+			}
+
+			const userIdsInt = user_id
+				.map((id) => Number.parseInt(id, 10))
+				.filter((id) => !Number.isNaN(id));
+
+			userIdsInt.push(user.id);
+
+			const chat_id = await saveNewChatInfo(fastify, true, group_name);
+			if (chat_id >= 0) {
+				for (const id of userIdsInt) {
+					addToParticipants(fastify, id, chat_id);
+				}
+				res.send({ chat_id: chat_id.toString() });
+			}
+			else if (chat_id === -1) {
+				fastify.log.info('Not able to create a new Group'); // TODO
+			}
 		}
 	);
 }

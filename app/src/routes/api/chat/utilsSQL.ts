@@ -114,3 +114,37 @@ export async function getChatFromSql(
 	}
 	return chat;
 }
+
+export async function saveNewChatInfo(
+	fastify: FastifyInstance,
+	is_group: boolean,
+	groupName: string | null
+) {
+	try {
+		const chat = await fastify.sqlite.run(
+			'INSERT INTO chats (name, is_group) VALUES (?, ?)',
+			[groupName, is_group]
+		);
+		if (chat.changes !== 0 && typeof chat.lastID === 'number')
+			return chat.lastID;
+		return -1;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return -2;
+	}
+}
+
+export function addToParticipants(
+	fastify: FastifyInstance,
+	userId: number,
+	chatId: number
+) {
+	try {
+		fastify.sqlite.run(
+			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
+			[chatId, userId]
+		);
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+}

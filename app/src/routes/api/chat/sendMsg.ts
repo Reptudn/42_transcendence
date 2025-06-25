@@ -125,4 +125,3 @@ export function createHtmlMsg(
 	return msg;
 }
 
-// TODO Problem with checking toUser is on chat or on another side

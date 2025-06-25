@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Msg } from '../../../types/chat';
 import type { Part, Blocked } from '../../../types/chat';
-import { getChatFromSql } from './utilsSQL';
+import { getChatFromSql, saveNewChatInfo, addToParticipants } from './utilsSQL';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -14,7 +14,7 @@ export async function inviteUserToChat(
 			fastify.log.info('Error:', 'Chat not Found');
 			return;
 		}
-		createNewChat(fastify, true, null);
+		saveNewChatInfo(fastify, true, null);
 	}
 	addToParticipants(fastify, user_id, chat_id);
 }
@@ -83,40 +83,6 @@ export async function getMessagesFromSqlByMsgId(
 		return null;
 	}
 	return msg;
-}
-
-export function addToParticipants(
-	fastify: FastifyInstance,
-	user_id: number,
-	chat_id: number
-) {
-	try {
-		fastify.sqlite.run(
-			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
-			[chat_id, user_id]
-		);
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-	}
-}
-
-export async function createNewChat(
-	fastify: FastifyInstance,
-	is_group: boolean,
-	groupName: string | null
-) {
-	try {
-		const chat = await fastify.sqlite.run(
-			'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-			[groupName, is_group]
-		);
-		if (chat.changes !== 0 && typeof chat.lastID === 'number')
-			return chat.lastID;
-		return -1;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return -1;
-	}
 }
 
 export async function removeChat(fastify: FastifyInstance, chat_id: number) {

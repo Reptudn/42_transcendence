@@ -1,13 +1,8 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { getUserById } from '../../../services/database/users';
 import { sendMsg } from './sendMsg';
-import { createNewChat, addToParticipants, blockUser } from './utils';
-import { getAllChats, getAllFriends, getAllMsg } from './chatGetInfo';
-
-interface MessageQueryUser {
-	group_name: string;
-	user_id: string[];
-}
+import { blockUser } from './utils';
+import { getAllChats, getAllFriends, getAllMsg, createNewChat } from './chatGetInfo';
 
 interface MessageQueryBlock {
 	user_id: string;
@@ -18,42 +13,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	getAllFriends(fastify);
 	getAllChats(fastify);
 	getAllMsg(fastify);
-	fastify.get<{ Querystring: MessageQueryUser }>(
-		'/create',
-		{
-			preValidation: [fastify.authenticate],
-			schema: {
-				querystring: {
-					type: 'object',
-					properties: {
-						user_id: {
-							type: 'array',
-							items: { type: 'string' },
-						},
-					},
-					required: ['user_id', 'group_name'],
-				},
-			},
-		},
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const { group_name, user_id } = req.query as MessageQueryUser;
-			const user = await getUserById((req.user as { id: number }).id, fastify);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-			const userIdsInt = user_id
-				.map((id) => Number.parseInt(id, 10))
-				.filter((id) => !Number.isNaN(id));
-			if (!userIdsInt.includes(user.id)) userIdsInt.push(user.id);
-			const chat_id = await createNewChat(fastify, true, group_name);
-			if (chat_id >= 0) {
-				for (const id of userIdsInt) {
-					addToParticipants(fastify, id, chat_id);
-				}
-				res.send({ chat_id: chat_id.toString() });
-			} else res.status(400).send({ error: 'Unknown User' });
-		}
-	);
+	createNewChat(fastify);
 	fastify.get<{ Querystring: MessageQueryBlock }>(
 		'/block_user',
 		{
@@ -80,3 +40,8 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 };
 
 export default chat;
+
+// TODO Problem with checking toUser is on chat or on another side
+// TODO Unblock User
+// TODO invite to chat group
+// TODO delete chat group

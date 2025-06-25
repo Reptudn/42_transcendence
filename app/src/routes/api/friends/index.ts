@@ -1,4 +1,4 @@
-import { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import {
 	getFriendRequest,
 	acceptFriendRequest,
@@ -11,12 +11,8 @@ import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
-import {
-	addToParticipants,
-	createNewChat,
-	removeChat,
-	searchForChatId,
-} from '../chat/utils';
+import { removeChat, searchForChatId } from '../chat/utils';
+import { addToParticipants, saveNewChatInfo } from '../chat/utilsSQL';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -80,7 +76,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (pendingRequest) {
 				if (pendingRequest.requested_id === requesterId) {
 					await acceptFriendRequest(pendingRequest.id, fastify);
-					const chat_id = await createNewChat(fastify, false, null);
+					const chat_id = await saveNewChatInfo(fastify, false, null);
 					if (chat_id) {
 						addToParticipants(
 							fastify,
@@ -96,9 +92,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
-				reply
-					.code(400)
-					.send({ message: 'Friend request already sent' });
+				reply.code(400).send({ message: 'Friend request already sent' });
 				return;
 			}
 
@@ -163,16 +157,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						`Your friend request was accepted by <a href="/partial/pages/profile/${
 							request.requested_id
 						}" target="_blank">User ${
-							(await getNameForUser(
-								request.requested_id,
-								fastify
-							)) || request.requested_id
+							(await getNameForUser(request.requested_id, fastify)) ||
+							request.requested_id
 						}</a>!`,
 						'blue'
 					);
 				}
 
-				const chat_id = await createNewChat(fastify, false, null);
+				const chat_id = await saveNewChatInfo(fastify, false, null);
 				if (request && chat_id) {
 					addToParticipants(fastify, request.requester_id, chat_id);
 					addToParticipants(fastify, request.requested_id, chat_id);
@@ -216,15 +208,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: any, reply: any) => {
 			const { friendId } = req.body;
-			const request = await getFriendRequest(
-				req.user.id,
-				friendId,
-				fastify
-			);
+			const request = await getFriendRequest(req.user.id, friendId, fastify);
 			if (!request) {
-				return reply
-					.code(404)
-					.send({ message: 'Friendship not found' });
+				return reply.code(404).send({ message: 'Friendship not found' });
 			}
 			if (
 				request.requested_id !== req.user.id &&
