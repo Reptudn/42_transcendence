@@ -60,7 +60,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						throw new Error('No user id provided & not logged in');
 					}
 					let profileId: number = friend_id ?? self_id!;
-					let isSelf = profileId === req.user.id;
+					let isSelf = profileId === profile.id;
 					
 					profile.profile_picture =
 						'/profile/' + profileId + '/picture';
@@ -72,7 +72,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 
 					const unlockedAchievements = await getUserAchievements(
-						profileId,
+						profile.id,
 						fastify
 					);
 					const allAchievements = await getAllAchievements(fastify);
@@ -86,7 +86,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['unlockedCount'] = unlockedAchievements.length;
 					variables['totalCount'] = allAchievements.length;
 
-					let friends = await getFriends(profileId, fastify);
+					let friends = await getFriends(profile.id, fastify);
 					variables['friends'] = friends;
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);
