@@ -13,7 +13,7 @@ export async function saveMsgInSql(
 			[chatId, fromUserId, msgContent]
 		);
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error saveMsgInSql'); //TODO Error msg;
 	}
 }
 
@@ -28,7 +28,7 @@ export async function getAllChatsFromSqlByUserId(
 		)) as Chat[];
 		return chats;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getAllChatsFromSqlByUserId'); //TODO Error msg;
 		return [];
 	}
 }
@@ -45,12 +45,12 @@ export async function getFriendsDisplayname(
 		)) as { displayname: string };
 		return name;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getFriendsDisplayname'); //TODO Error msg;
 		return null;
 	}
 }
 
-export async function getAllBlockedUserId(
+export async function getAllBlockedUser(
 	fastify: FastifyInstance,
 	blockedId: number
 ) {
@@ -61,7 +61,7 @@ export async function getAllBlockedUserId(
 		)) as Blocked[] | null;
 		return blocked;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getAllBlockedUser'); //TODO Error msg;
 	}
 	return null;
 }
@@ -77,7 +77,7 @@ export async function getAllBlockerUser(
 		)) as Blocked[] | null;
 		return blocked;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getAllBlockerUser'); //TODO Error msg;
 	}
 	return null;
 }
@@ -93,7 +93,7 @@ export async function getAllParticipantsFromSql(
 		)) as Part[];
 		return user;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getAllParticipantsFromSql'); //TODO Error msg;
 		return [];
 	}
 }
@@ -109,7 +109,7 @@ export async function getChatFromSql(
 			[chatId]
 		)) as Chat | null;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error getChatFromSql'); //TODO Error msg;
 		return null;
 	}
 	return chat;
@@ -129,7 +129,7 @@ export async function saveNewChatInfo(
 			return chat.lastID;
 		return -1;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error saveNewChatInfo'); //TODO Error msg;
 		return -2;
 	}
 }
@@ -139,12 +139,58 @@ export function addToParticipants(
 	userId: number,
 	chatId: number
 ) {
+	// TODO error when user already in chat_participants
 	try {
 		fastify.sqlite.run(
 			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 			[chatId, userId]
 		);
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		fastify.log.info(err, 'Database error addToParticipants'); //TODO Error msg;
+	}
+}
+
+export async function addToBlockedUsers(
+	fastify: FastifyInstance,
+	blocker_id: number,
+	blocked_id: number
+) {
+	try {
+		await fastify.sqlite.run(
+			'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
+			[blocker_id, blocked_id]
+		);
+	} catch (err) {
+		fastify.log.info(err, 'Database error addToBlockedUsers'); //TODO Error msg;
+	}
+}
+
+export async function deleteFromBlockedUsers(
+	fastify: FastifyInstance,
+	blocker_id: number,
+	blocked_id: number
+) {
+	try {
+		await fastify.sqlite.run(
+			'DELETE FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
+			[blocker_id, blocked_id]
+		);
+	} catch (err) {
+		fastify.log.info(err, 'Database error deleteFromBlockedUsers'); //TODO Error msg;
+	}
+}
+
+export async function deleteUserFromChaParticipants(
+	fastify: FastifyInstance,
+	userId: number,
+	chatId: number
+) {
+	try {
+		await fastify.sqlite.run(
+			'DELETE FROM chat_participants WHERE chat_id = ? AND user_id = ?',
+			[chatId, userId]
+		);
+	} catch (err) {
+		fastify.log.info(err, 'Database error deleteUserFromChaParticipants'); //TODO Error msg;
 	}
 }

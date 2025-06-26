@@ -33,10 +33,11 @@ export async function sendMsg(fastify: FastifyInstance) {
 			if (!chatInfo)
 				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
-			const blockers = await getAllBlockerUser(fastify, fromUser.id);
-			if (!blockers)
+			// sind alle user die ich geblockt habe
+			const blocked = await getAllBlockerUser(fastify, fromUser.id);
+			if (!blocked)
 				return res.status(400).send({ error: 'Blocked Users not found' });
-			const blockedId = blockers.map((b) => b.blocked_id);
+			const blockedId = blocked.map((b) => b.blocked_id);
 
 			if (!chatInfo.is_group && !chatInfo.name) {
 				if (sendMsgDm(fromUser, toUsers, chatInfo, blockedId, body.message))
@@ -119,9 +120,8 @@ export function createHtmlMsg(
 	msg.chatId = chatInfo ? chatInfo.id : 0;
 	msg.htmlMsg = `
 		<div>
-			<p><a href='/partial/pages/profile/${fromUser.displayname}'>${fromUser.displayname}:</a>${msgContent}</p>
+			<p><a href='/partial/pages/profile/${fromUser.username}'>${fromUser.displayname}:</a>${msgContent}</p>
 		</div>
 		`;
 	return msg;
 }
-

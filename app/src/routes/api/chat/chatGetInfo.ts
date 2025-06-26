@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { htmlMsg } from '../../../types/chat';
-import { getMessagesFromSqlByChatId, addToBlockedUsers } from './utils';
+import { getMessagesFromSqlByChatId, inviteUserToChat } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
@@ -9,7 +9,10 @@ import {
 	addToParticipants,
 	getAllChatsFromSqlByUserId,
 	getFriendsDisplayname,
-	getAllBlockedUserId,
+	getAllBlockedUser,
+	addToBlockedUsers,
+	deleteFromBlockedUsers,
+	deleteUserFromChaParticipants,
 } from './utilsSQL';
 
 interface MessageQueryChat {
@@ -23,6 +26,11 @@ interface MessageQueryUser {
 
 interface MessageQueryBlock {
 	user_id: string;
+}
+
+interface MessageQueryInvite {
+	chat_id: number;
+	user_id: string[];
 }
 
 const chatMsgRequestSchema = {
@@ -58,6 +66,19 @@ const chatBlockRequestSchema = {
 	},
 };
 
+const chatInviteRequestSchema = {
+	querystring: {
+		type: 'object',
+		properties: {
+			user_id: {
+				type: 'array',
+				items: { type: 'string' },
+			},
+		},
+		required: ['user_id', 'chat_id'],
+	},
+};
+
 export async function getAllMsg(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryChat }>(
 		'/messages',
@@ -72,9 +93,9 @@ export async function getAllMsg(fastify: FastifyInstance) {
 
 			const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 			if (!chatMsgs)
-				return res.status(400).send({ error: 'Chat Messages not f ound' });
+				return res.status(400).send({ error: 'Chat Messages not found' });
 
-			const blockers = await getAllBlockedUserId(fastify, userId);
+			const blockers = await getAllBlockedUser(fastify, userId);
 			if (!blockers)
 				return res.status(400).send({ error: 'Blocked Users not found' });
 
@@ -164,11 +185,13 @@ export async function createNewChat(fastify: FastifyInstance) {
 				}
 				res.send({ chat_id: chat_id.toString() });
 			} else if (chat_id === -1) {
-				fastify.log.info('Not able to create a new Group'); // TODO
+				fastify.log.info('Not able to create a new Group');
 			}
 		}
 	);
 }
+
+// TODO function after this need to get checkt
 
 export async function blockUsers(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryBlock }>(
@@ -180,12 +203,60 @@ export async function blockUsers(fastify: FastifyInstance) {
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { user_id } = req.query as MessageQueryBlock;
 
-			const user = await getUserById((req.user as { id: number }).id, fastify);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
+			const blockerId = (req.user as { id: number }).id;
 
-			addToBlockedUsers(fastify, user.id, Number.parseInt(user_id));
+			addToBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+		}
+	);
+}
+
+export async function unblockUsers(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryBlock }>(
+		'/unblock_user',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatBlockRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { user_id } = req.query as MessageQueryBlock;
+
+			const blockerId = (req.user as { id: number }).id;
+
+			deleteFromBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+		}
+	);
+}
+
+export async function inviteUser(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryInvite }>(
+		'/invite_user',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatInviteRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { chat_id, user_id } = req.query as MessageQueryInvite;
+
+			for (const user of user_id) {
+				inviteUserToChat(fastify, Number.parseInt(user), chat_id);
+			}
+		}
+	);
+}
+
+export async function leftUserFromChat(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/left_user',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			const { chat_id } = req.query as MessageQueryChat;
+
+			const userId = (req.user as { id: number }).id;
+
+			deleteUserFromChaParticipants(fastify, userId, chat_id);
 		}
 	);
 }

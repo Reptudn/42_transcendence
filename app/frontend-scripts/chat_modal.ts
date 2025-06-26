@@ -119,3 +119,106 @@ document.getElementById('closeBlockUser')?.addEventListener('click', async () =>
 	userIdToBlock = '';
 	document.getElementById('blockUserWindow')?.classList.add('hidden');
 });
+
+// Unblock User Modal
+
+document.getElementById('unblockUser')?.addEventListener('click', async () => {
+	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
+	const res = await fetch('/api/chat/friends');
+	if (!res.ok) return; // TODO Error msg
+	const friends = (await res.json()) as Friend[];
+	const userList = document.getElementById('searchResultsToUnblock');
+	if (userList) {
+		userList.innerHTML = '';
+		for (const friend of friends) {
+			const butt = document.createElement('button');
+			butt.addEventListener('click', async () => {
+				userIdToBlock = friend.id.toString();
+			});
+			butt.textContent = friend.displayname;
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(butt);
+		}
+	}
+});
+
+document
+	.getElementById('confirmUnblockUser')
+	?.addEventListener('click', async () => {
+		if (userIdToBlock === '') {
+			showLocalPopup({
+				title: 'No user added',
+				description: 'You need to add some users to  unblock',
+				color: 'red',
+			});
+			return;
+		}
+		const url = `/api/chat/unblock_user?user_id=${userIdToBlock}`;
+		const res = await fetch(url);
+		if (!res.ok) return; // TODO Error msg
+		document.getElementById('closeUnblockUser')?.click();
+	});
+
+document.getElementById('closeUnblockUser')?.addEventListener('click', async () => {
+	userIdToBlock = '';
+	document.getElementById('unblockUserWindow')?.classList.add('hidden');
+});
+
+// Invite User Modal
+
+document.getElementById('inviteUser')?.addEventListener('click', async () => {
+	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
+	const res = await fetch('/api/chat/friends');
+	if (!res.ok) return; // TODO Error msg
+	const friends = (await res.json()) as Friend[];
+	const userList = document.getElementById('searchResultsToInvite');
+	if (userList) {
+		userList.innerHTML = '';
+		for (const friend of friends) {
+			const butt = document.createElement('button');
+			butt.addEventListener('click', async () => {
+				const pos = userIds.indexOf(friend.id.toString());
+				if (pos === -1) userIds.push(friend.id.toString());
+				else userIds.splice(pos, 1);
+			});
+			butt.textContent = friend.displayname;
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(butt);
+		}
+	}
+});
+
+document.getElementById('confirmInviteUser')?.addEventListener('click', async () => {
+	if (userIds.length === 0) {
+		showLocalPopup({
+			title: 'No user added',
+			description: 'You need to add some users to  Invite',
+			color: 'red',
+		});
+		return;
+	}
+	const params = new URLSearchParams();
+	for (const id of userIds) {
+		params.append('user_id', id.toString());
+	}
+	const url = `/api/chat/invite_user?chat_id=${localStorage.getItem(
+		'chat_id'
+	)}&${params.toString()}`;
+	const res = await fetch(url);
+	if (!res.ok) return; // TODO Error msg
+	document.getElementById('closeInviteUser')?.click();
+});
+
+document.getElementById('closeInviteUser')?.addEventListener('click', async () => {
+	userIds = [];
+	document.getElementById('inviteUserWindow')?.classList.add('hidden');
+});
+
+// Left User Modal
+
+document.getElementById('leftUser')?.addEventListener('click', async () => {
+	const res = await fetch(
+		`/api/chat/left_user?chat_id=${localStorage.getItem('chat_id')}`
+	);
+	if (!res.ok) return; // TODO Error msg
+});

@@ -129,21 +129,6 @@ export async function searchForChatId(
 	return null;
 }
 
-export async function addToBlockedUsers(
-	fastify: FastifyInstance,
-	blocker_id: number,
-	blocked_id: number
-) {
-	try {
-		await fastify.sqlite.run(
-			'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
-			[blocker_id, blocked_id]
-		);
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-	}
-}
-
 export async function checkUserBlocked(
 	fastify: FastifyInstance,
 	blocker_id: number,
