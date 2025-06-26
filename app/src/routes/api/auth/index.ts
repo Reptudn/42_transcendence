@@ -13,7 +13,7 @@ const authSchema = {
 			errorMessage: {
 				type: 'Username must be a string.',
 				minLength:
-					'Username must be at least 3 characters in production or 1 in development.',
+					'Username must be at least 3 characters.',
 				maxLength: 'Username can have a maximum of 16 characters.',
 				pattern:
 					'Username can only contain alphanumeric characters and underscores.',
@@ -30,7 +30,7 @@ const authSchema = {
 			errorMessage: {
 				type: 'Password must be a string.',
 				minLength:
-					'Password must be at least 8 characters in production or 1 in development.',
+					'Password must be at least 8 characters.',
 				maxLength: 'Password can have a maximum of 32 characters.',
 				pattern:
 					'Password must include at least one uppercase letter, one lowercase letter, one digit, and one special character.',

@@ -10,6 +10,7 @@ export default fp(async (fastify: FastifyInstance) => {
   });
 
   ajvErrors(ajv);
-
+  
   fastify.setValidatorCompiler(({ schema }: { schema: any }) => ajv.compile(schema));
 });
+

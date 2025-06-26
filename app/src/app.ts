@@ -46,6 +46,25 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
 	await fastify.register(ajvPlugin);
 
+	fastify.setErrorHandler((error, request, reply) => {
+		if (error.validation) {
+			const formattedErrors = error.validation.map((err) => {
+				const field = err.instancePath.replace(/^\/?/, '') || err.params?.missingProperty || 'unknown';
+				const message = err.message || 'Invalid input';
+				return `${field}: ${message}`;
+			});
+
+			return reply.status(400).send({
+					statusCode: 400,
+					error: 'Bad Request',
+					message: formattedErrors.join('<br>'),
+				});
+		}
+
+		// fallback for other errors
+		reply.send(error);
+	});
+
 	// Do not touch the following lines
 
 	// This loads all plugins defined in plugins

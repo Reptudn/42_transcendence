@@ -30,7 +30,6 @@ const registerAction = async () => {
 			showLocalInfo('You have registered successfully');
 			loadPartialView('login');
 		} else {
-			alert(data.message);
 			showLocalError(`${data.message}`);
 		}
 	} catch (error) {
