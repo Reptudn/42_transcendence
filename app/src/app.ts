@@ -4,6 +4,7 @@ import type { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
 import i18next from './middleware/localization';
 import middleware from 'i18next-http-middleware';
+import ajvPlugin from './plugins/ajv';
 
 const envSchema = {
 	type: 'object',
@@ -11,7 +12,7 @@ const envSchema = {
 		'GOOGLE_OAUTH_CLIENT_ID',
 		'GOOGLE_OAUTH_CLIENT_SECRET',
 		'JWT_SECRET',
-		'HOST_URI'
+		'HOST_URI',
 	],
 	properties: {
 		GOOGLE_OAUTH_CLIENT_ID: { type: 'string' },
@@ -42,6 +43,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	fastify.log.info('Registering i18next');
 	fastify.register(middleware.plugin, { i18next });
 	fastify.log.info('Registered i18next');
+
+	await fastify.register(ajvPlugin);
 
 	// Do not touch the following lines
 
