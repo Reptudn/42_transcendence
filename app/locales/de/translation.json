@@ -35,6 +35,7 @@
 		"username": "Benutzername",
 		"displayname": "Anzeigename",
 		"password": "Passwort",
+		"confirm_password": "Passwort bestätigen",
 		"register_button": "Registrieren",
 		"google_button": "Mit Google registrieren"
 	},
