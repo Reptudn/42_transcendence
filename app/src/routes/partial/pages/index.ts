@@ -35,7 +35,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const user = await checkAuth(req, false, fastify);
 
 			let variables: { [key: string]: any } = {};
-			variables['isAuthenticated'] = user != null;
+			variables['isAuthenticated'] = (user != null);
 			if (user != null)
 				variables['name'] = user.displayname || user.username;
 			else variables['name'] = 'Guest';
@@ -223,7 +223,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		variables['isAuthenticated'] = true;
 
 		return reply.view('profile', {
-			...variables
+			...variables, isAuthenticated: true
 		}, {
 			layout: 'layouts/basic.ejs',
 			t: req.t
