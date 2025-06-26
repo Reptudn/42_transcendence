@@ -39,8 +39,8 @@
 				class="flex flex-col items-center p-4 rounded-lg shadow-sm"
 			>
 				<!-- TODO: make this a load partial view call -->
-				<a
-					href="/partial/pages/profile/<%= friend.username %>"
+				<button
+					onclick="loadPartialView('profile', true, '<%= friend.username %>')"
 					class="cursor-pointer flex flex-col items-center"
 				>
 					<img
@@ -56,7 +56,7 @@
 							@<%= friend.username %>
 						</div>
 					</div>
-				</a>
+				</button>
 				<% if (isSelf) { %>
 				<button
 					onclick="removeFriendRequest(<%= friend.id %>); loadPartialView('profile');"
