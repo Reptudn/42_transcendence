@@ -107,9 +107,15 @@ export async function loadPartialView(
 
 		if (pushState) {
 			console.info('pushing state: ', url);
-			subroute
-				? history.pushState({ page, subroute }, '', url)
-				: history.pushState({ page }, '', url);
+			history.pushState(
+				{
+					page: page,
+					pushState: false,
+					subroute: subroute ? subroute : null,
+				},
+				'',
+				url
+			);
 		}
 	} catch (error) {
 		console.error('Error fetching partial view:', error);
@@ -118,8 +124,13 @@ export async function loadPartialView(
 
 // history change event
 window.addEventListener('popstate', (event: PopStateEvent) => {
+	const state = event.state;
 	if (event.state && typeof event.state.page === 'string') {
-		loadPartialView(event.state.page, false);
+		loadPartialView(
+			state.page,
+			false,
+			state.subroute ? state.subroute : null
+		);
 	}
 });
 
