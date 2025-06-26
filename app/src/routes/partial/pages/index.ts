@@ -189,6 +189,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: any, reply: any) => {
 			const username = req.params.username;
+			const loadpartial = req.headers['loadpartial'] === 'true';
+			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await getUserByUsername(username, fastify);
 			if (!user) {
 				return reply.code(404).view(
@@ -235,7 +237,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					isAuthenticated: true,
 				},
 				{
-					// layout: 'layouts/basic.ejs',
+					layout: layoutOption,
 					t: req.t,
 				}
 			);
