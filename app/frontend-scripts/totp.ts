@@ -1,17 +1,16 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 
-export async function enable2fa()
-{
+export async function enable2fa() {
 	try {
 		const res = await fetch('/api/auth/totp/enable', {
 			method: 'POST',
-			headers: {
-					'Content-Type': 'application/json',
-			},
+			// headers: {
+			// 		'Content-Type': 'application/json',
+			// },
 		});
 
 		if (res.ok) {
-			const qr = (document.querySelector('#2fa-qr') as HTMLImageElement);
+			const qr = document.querySelector('#2fa-qr') as HTMLImageElement;
 			const data = await res.json();
 			qr.src = data.qrcode;
 			qr.alt = '2FA QR Code';
@@ -20,24 +19,22 @@ export async function enable2fa()
 			const data = await res.json();
 			showLocalError(`Error: ${data.message}`);
 		}
-
 	} catch (error) {
 		console.error('Error:', error);
 		showLocalError('Failed to enable 2fa!');
 	}
 }
 
-export async function disable2fa()
-{
-	try{
+export async function disable2fa() {
+	try {
 		const res = await fetch('/api/auth/totp/disable', {
 			method: 'POST',
-			headers: {
-					'Content-Type': 'application/json',
-			},
+			// headers: {
+			// 		'Content-Type': 'application/json',
+			// },
 		});
 		if (res.ok) {
-			const qr = (document.querySelector('#2fa-qr') as HTMLImageElement);
+			const qr = document.querySelector('#2fa-qr') as HTMLImageElement;
 			qr.src = '';
 			qr.alt = '';
 			showLocalInfo('You have disabled 2fa successfully');

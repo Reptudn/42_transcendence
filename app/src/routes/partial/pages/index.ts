@@ -125,6 +125,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						profile.id,
 						fastify
 					);
+					variables['has_totp'] =
+						(await getUser2faSecret(profile, fastify)) !== '';
 				} else if (page === 'game_setup') {
 					await checkAuth(req, true, fastify);
 					const user_id = req.user.id;
@@ -133,10 +135,10 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						connectedClients.has(friend.id)
 					);
 					variables['friends'] = friends;
-				}
-				else if (page === 'edit_profile') {
+				} else if (page === 'edit_profile') {
 					await checkAuth(req, true, fastify);
-					variables['has_totp'] = await getUser2faSecret(req.user.id, fastify) !== '';
+					variables['has_totp'] =
+						(await getUser2faSecret(req.user.id, fastify)) !== '';
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
