@@ -21,9 +21,26 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				params: {
 					type: 'object',
 					properties: {
-						page: { type: 'string', minLength: 1, maxLength: 100 },
+						page: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 100,
+							errorMessage: {
+								type: 'Page must be a string.',
+								minLength: 'Page must not be empty.',
+								maxLength:
+									'Page must not exceed 100 characters.',
+							},
+						},
 					},
 					required: ['page'],
+					errorMessage: {
+						required: {
+							page: 'Page parameter is required.',
+						},
+						additionalProperties:
+							'No additional properties are allowed in parameters.',
+					},
 				},
 			},
 		},

@@ -15,13 +15,76 @@ import {
 const sendServerNotificationSchema = {
 	type: 'object',
 	properties: {
-		title: { type: 'string', minLength: 1, maxLength: 100 },
-		description: { type: 'string', minLength: 1, maxLength: 500 },
-		color: { type: 'string', minLength: 1, maxLength: 20 },
-		callback1: { type: 'string', minLength: 1, maxLength: 100 },
-		buttonName1: { type: 'string', minLength: 1, maxLength: 50 },
-		callback2: { type: 'string', minLength: 1, maxLength: 100 },
-		buttonName2: { type: 'string', minLength: 1, maxLength: 50 },
+		title: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 100,
+			errorMessage: {
+				type: 'Title must be a string.',
+				minLength: 'Title must not be empty.',
+				maxLength: 'Title must not exceed 100 characters.',
+			},
+		},
+		description: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 500,
+			errorMessage: {
+				type: 'Description must be a string.',
+				minLength: 'Description must not be empty.',
+				maxLength: 'Description must not exceed 500 characters.',
+			},
+		},
+		color: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 20,
+			errorMessage: {
+				type: 'Color must be a string.',
+				minLength: 'Color must not be empty.',
+				maxLength: 'Color must not exceed 20 characters.',
+			},
+		},
+		callback1: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 100,
+			errorMessage: {
+				type: 'Callback1 must be a string.',
+				minLength: 'Callback1 must not be empty.',
+				maxLength: 'Callback1 must not exceed 100 characters.',
+			},
+		},
+		buttonName1: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 50,
+			errorMessage: {
+				type: 'ButtonName1 must be a string.',
+				minLength: 'ButtonName1 must not be empty.',
+				maxLength: 'ButtonName1 must not exceed 50 characters.',
+			},
+		},
+		callback2: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 100,
+			errorMessage: {
+				type: 'Callback2 must be a string.',
+				minLength: 'Callback2 must not be empty.',
+				maxLength: 'Callback2 must not exceed 100 characters.',
+			},
+		},
+		buttonName2: {
+			type: 'string',
+			minLength: 1,
+			maxLength: 50,
+			errorMessage: {
+				type: 'ButtonName2 must be a string.',
+				minLength: 'ButtonName2 must not be empty.',
+				maxLength: 'ButtonName2 must not exceed 50 characters.',
+			},
+		},
 	},
 	required: [
 		'title',
@@ -33,6 +96,18 @@ const sendServerNotificationSchema = {
 		'buttonName2',
 	],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			title: 'Title is required.',
+			description: 'Description is required.',
+			color: 'Color is required.',
+			callback1: 'Callback1 is required.',
+			buttonName1: 'ButtonName1 is required.',
+			callback2: 'Callback2 is required.',
+			buttonName2: 'ButtonName2 is required.',
+		},
+		additionalProperties: 'No additional properties are allowed.',
+	},
 };
 
 const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
