@@ -258,7 +258,13 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
 				if (error instanceof Error) {
-					return reply.code(500).send({ message: error.message });
+					// return reply.code(500).send({ message: error.message });
+					return reply
+						.code(500)
+						.send({
+							message:
+								'An error occured while trying to edit the profile.',
+						});
 				} else {
 					return reply
 						.code(500)
@@ -294,7 +300,8 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
 				if (error instanceof Error) {
-					return reply.code(500).send({ message: error.message });
+					// return reply.code(500).send({ message: error.message });
+					return reply.code(500).send({ message: 'An error occured while editing your title.' });
 				} else {
 					return reply.code(500).send({
 						message: 'An unknown error occurred',
@@ -361,7 +368,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(200).send({ message: 'Profile deleted' });
 			} catch (error) {
 				if (error instanceof Error) {
-					return reply.code(500).send({ message: error.message });
+					return reply.code(500).send({ message: 'An error occured while trying to delete your profile.' });
 				} else {
 					return reply
 						.code(500)
