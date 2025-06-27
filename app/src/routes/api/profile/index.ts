@@ -85,13 +85,9 @@ const editProfileSchema = {
 			},
 		},
 	},
-	required: ['username', 'displayName'],
+	// required: ['username', 'dispayName'],
 	additionalProperties: false,
 	errorMessage: {
-		required: {
-			username: 'Username is required',
-			displayName: 'Display name is required',
-		},
 		additionalProperties: 'No additional properties are allowed',
 	},
 };

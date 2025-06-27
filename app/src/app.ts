@@ -40,25 +40,26 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		}
 	});
 
-	fastify.log.info('Registering i18next');
 	fastify.register(middleware.plugin, { i18next });
-	fastify.log.info('Registered i18next');
 
 	await fastify.register(ajvPlugin);
 
 	fastify.setErrorHandler((error, request, reply) => {
 		if (error.validation) {
 			const formattedErrors = error.validation.map((err) => {
-				const field = err.instancePath.replace(/^\/?/, '') || err.params?.missingProperty || 'unknown';
+				const field =
+					err.instancePath.replace(/^\/?/, '') ||
+					err.params?.missingProperty ||
+					'Unknown';
 				const message = err.message || 'Invalid input';
 				return `${field}: ${message}`;
 			});
 
 			return reply.status(400).send({
-					statusCode: 400,
-					error: 'Bad Request',
-					message: formattedErrors.join('<br>'),
-				});
+				statusCode: 400,
+				error: 'Bad Request',
+				message: formattedErrors.join('<br>'),
+			});
 		}
 
 		// fallback for other errors
