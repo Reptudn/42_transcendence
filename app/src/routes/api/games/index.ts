@@ -9,36 +9,110 @@ import { checkAuth } from '../../../services/auth/auth';
 const startGameSchema = {
 	body: {
 		type: 'object',
-		required: ['map', 'playerLives', 'gameDifficulty', 'powerups', 'players'],
+		required: [
+			'map',
+			'playerLives',
+			'gameDifficulty',
+			'powerups',
+			'players',
+		],
 		properties: {
-			map: { type: 'string' },
-			playerLives: { type: 'integer', minimum: 0 },
-			gameDifficulty: { type: 'integer', minimum: 0 },
-			powerups: { type: 'boolean' },
+			map: {
+				type: 'string',
+				errorMessage: {
+					type: 'Map must be a string.',
+				},
+			},
+			playerLives: {
+				type: 'integer',
+				minimum: 0,
+				errorMessage: {
+					type: 'Player lives must be an integer.',
+					minimum: 'Player lives cannot be negative.',
+				},
+			},
+			gameDifficulty: {
+				type: 'integer',
+				minimum: 0,
+				errorMessage: {
+					type: 'Game difficulty must be an integer.',
+					minimum: 'Game difficulty must be at least 0.',
+				},
+			},
+			powerups: {
+				type: 'boolean',
+				errorMessage: {
+					type: 'Powerups must be a boolean value.',
+				},
+			},
 			players: {
 				type: 'array',
-				items: {
-				type: 'object',
-				required: ['type'],
-				properties: {
-					type: { type: 'string', enum: ['user', 'local', 'ai'] },
-					id: { type: 'integer' }, // for 'user'
-					controlScheme: { type: 'string' }, // for 'local'
-					aiLevel: {
-					type: 'integer',
-					minimum: 0,
-					maximum: 9,
-					}, // for 'ai'
-					aiOrLocalPlayerName: { type: 'string' }, // for 'local' or 'ai'
+				errorMessage: {
+					type: 'Players must be an array.',
 				},
-				additionalProperties: false,
+				items: {
+					type: 'object',
+					required: ['type'],
+					properties: {
+						type: {
+							type: 'string',
+							enum: ['user', 'local', 'ai'],
+							errorMessage: {
+								type: 'Player type must be a string.',
+								enum: 'Player type must be one of: user, local, ai.',
+							},
+						},
+						id: {
+							type: 'integer',
+							errorMessage: {
+								type: 'For a user, id must be an integer.',
+							},
+						},
+						controlScheme: {
+							type: 'string',
+							errorMessage: {
+								type: 'For a local player, controlScheme must be a string.',
+							},
+						},
+						aiLevel: {
+							type: 'integer',
+							minimum: 0,
+							maximum: 9,
+							errorMessage: {
+								type: 'For an AI player, aiLevel must be an integer.',
+								minimum: 'AI level cannot be less than 0.',
+								maximum: 'AI level cannot exceed 9.',
+							},
+						},
+						aiOrLocalPlayerName: {
+							type: 'string',
+							errorMessage: {
+								type: 'For a local or AI player, aiOrLocalPlayerName must be a string.',
+							},
+						},
+					},
+					additionalProperties: false,
+					errorMessage: {
+						additionalProperties:
+							'Player object contains disallowed properties.',
+					},
 				},
 			},
 		},
 		additionalProperties: false,
+		errorMessage: {
+			required: {
+				map: 'Map is required.',
+				playerLives: 'Player lives are required.',
+				gameDifficulty: 'Game difficulty is required.',
+				powerups: 'Powerups flag is required.',
+				players: 'Players array is required.',
+			},
+			additionalProperties:
+				'No additional properties are allowed in game settings.',
+		},
 	},
 };
-
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(

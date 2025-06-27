@@ -25,7 +25,8 @@ const google_callback: FastifyPluginAsync = async (
 				user = await getGoogleProfile(token.access_token);
 			} catch (error) {
 				fastify.log.error('Error getting Google Profile', error);
-				reply.send(error);
+				// reply.send(error);
+				reply.send({ message: "Failed to get google user." });
 				return;
 			}
 
@@ -35,7 +36,8 @@ const google_callback: FastifyPluginAsync = async (
 				dbUser = await getGoogleUser(user.id, fastify);
 			} catch (error) {
 				fastify.log.error('Error getting Google User', error);
-				reply.send(error);
+				// reply.send(error);
+				reply.send({ message: "Failed to get google user from db." });
 				return;
 			}
 			if (dbUser === null) {
@@ -44,7 +46,8 @@ const google_callback: FastifyPluginAsync = async (
 					await registerGoogleUser(user, fastify);
 				} catch (error) {
 					fastify.log.error('Error Google Register', error);
-					reply.send(error);
+					// reply.send(error);
+					reply.send({ message: "Failed to register google user." });
 					return;
 				}
 			}
@@ -74,11 +77,13 @@ const google_callback: FastifyPluginAsync = async (
 				reply.redirect('/partial/pages/profile');
 			} catch (error) {
 				fastify.log.error('Error trying to login google user', error);
-				reply.send(error);
+				// reply.send(error);
+				reply.send({ message: "Failed to login you as a google user." })
 			}
 		} catch (error) {
 			fastify.log.error('Error Google Login', error);
-			reply.send(error);
+			// reply.send(error);
+			reply.send({ message: "There was an error whilst trying to log you in as a google user." })
 		}
 	});
 };
