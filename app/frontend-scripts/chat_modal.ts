@@ -214,11 +214,11 @@ document.getElementById('closeInviteUser')?.addEventListener('click', async () =
 	document.getElementById('inviteUserWindow')?.classList.add('hidden');
 });
 
-// Left User Modal
+// Leave User Modal
 
-document.getElementById('leftUser')?.addEventListener('click', async () => {
+document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const res = await fetch(
-		`/api/chat/left_user?chat_id=${localStorage.getItem('chat_id')}`
+		`/api/chat/leave_user?chat_id=${localStorage.getItem('chat_id')}`
 	);
 	if (!res.ok) return; // TODO Error msg
 });

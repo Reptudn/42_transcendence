@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Chat, Blocked, Part } from '../../../types/chat';
+import type { Chat, Blocked, Part, Msg } from '../../../types/chat';
 
 export async function saveMsgInSql(
 	fastify: FastifyInstance,
@@ -134,13 +134,14 @@ export async function saveNewChatInfo(
 	}
 }
 
-export function addToParticipants(
+export async function addToParticipants(
 	fastify: FastifyInstance,
 	userId: number,
 	chatId: number
 ) {
-	// TODO error when user already in chat_participants
 	try {
+		const check = await getParticipantFromSql(fastify, userId, chatId);
+		if (check) return; //TODO Error msg User already in Groupchat
 		fastify.sqlite.run(
 			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 			[chatId, userId]
@@ -150,18 +151,56 @@ export function addToParticipants(
 	}
 }
 
+export async function getParticipantFromSql(
+	fastify: FastifyInstance,
+	user_id: number,
+	chat_id: number
+): Promise<Part | null> {
+	let user: Part | null;
+	try {
+		user = (await fastify.sqlite.get(
+			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ? AND user_id = ?',
+			[chat_id, user_id]
+		)) as Part | null;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return null;
+	}
+	return user;
+}
+
 export async function addToBlockedUsers(
 	fastify: FastifyInstance,
 	blocker_id: number,
 	blocked_id: number
 ) {
 	try {
-		await fastify.sqlite.run(
-			'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
-			[blocker_id, blocked_id]
-		);
+		if (!(await checkUserBlocked(fastify, blocker_id, blocked_id))) {
+			await fastify.sqlite.run(
+				'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
+				[blocker_id, blocked_id]
+			);
+		}
 	} catch (err) {
 		fastify.log.info(err, 'Database error addToBlockedUsers'); //TODO Error msg;
+	}
+}
+
+export async function checkUserBlocked(
+	fastify: FastifyInstance,
+	blocker_id: number,
+	blocked_id: number
+) {
+	try {
+		const blocked = (await fastify.sqlite.get(
+			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
+			[blocker_id, blocked_id]
+		)) as Blocked | null;
+		if (!blocked) return false;
+		return true;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return false;
 	}
 }
 
@@ -192,5 +231,21 @@ export async function deleteUserFromChaParticipants(
 		);
 	} catch (err) {
 		fastify.log.info(err, 'Database error deleteUserFromChaParticipants'); //TODO Error msg;
+	}
+}
+
+export async function getMessagesFromSqlByChatId(
+	fastify: FastifyInstance,
+	chat_id: number
+) {
+	try {
+		const msg = (await fastify.sqlite.all(
+			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
+			[chat_id]
+		)) as Msg[] | null;
+		return msg;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+		return null;
 	}
 }

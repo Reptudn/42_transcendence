@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { htmlMsg } from '../../../types/chat';
-import { getMessagesFromSqlByChatId, inviteUserToChat } from './utils';
+import type { Blocked, htmlMsg, Msg } from '../../../types/chat';
+import { inviteUserToChat } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
@@ -9,10 +9,12 @@ import {
 	addToParticipants,
 	getAllChatsFromSqlByUserId,
 	getFriendsDisplayname,
-	getAllBlockedUser,
+	getAllBlockerUser,
 	addToBlockedUsers,
 	deleteFromBlockedUsers,
 	deleteUserFromChaParticipants,
+	getMessagesFromSqlByChatId,
+	getChatFromSql,
 } from './utilsSQL';
 
 interface MessageQueryChat {
@@ -95,25 +97,82 @@ export async function getAllMsg(fastify: FastifyInstance) {
 			if (!chatMsgs)
 				return res.status(400).send({ error: 'Chat Messages not found' });
 
-			const blockers = await getAllBlockedUser(fastify, userId);
-			if (!blockers)
+			const chat = await getChatFromSql(fastify, chat_id);
+			if (!chat) return res.status(400).send({ error: 'Chat not found' });
+
+			// sind alle user die ich geblockt habe
+			const blocked = await getAllBlockerUser(fastify, userId);
+			if (!blocked)
 				return res.status(400).send({ error: 'Blocked Users not found' });
+			const blockedId = blocked.map((b) => b.blocked_id);
 
-			const blockerId = blockers.map((b) => b.blocker_id);
+			let htmlMsgs: htmlMsg[] = [];
 
-			const htmlMsgs: htmlMsg[] = [];
-			for (const msg of chatMsgs) {
-				if (blockerId.includes(msg.user_id)) {
-					msg.content = 'Msg blocked';
-				}
-				const user = await getUserById(msg.user_id, fastify);
-				if (!user) continue;
-				htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+			if (Boolean(chat.is_group) === false && chat.name === null) {
+				htmlMsgs = await getMsgForDm(fastify, chatMsgs, blocked, blockedId);
+			} else {
+				htmlMsgs = await getMsgForGroup(
+					fastify,
+					chatMsgs,
+					blocked,
+					blockedId
+				);
 			}
 
 			res.send(htmlMsgs);
 		}
 	);
+}
+
+async function getMsgForGroup(
+	fastify: FastifyInstance,
+	chatMsgs: Msg[],
+	blocked: Blocked[],
+	blockedId: number[]
+) {
+	// wenn ich geblocket wurde bekomme ich alle nachrichten normal
+	// wenn ich ihn geblockt habe bekomme ich die nachrichten mit Msg blocked aber erst zum zeitpunkt des blocks
+
+	const htmlMsgs: htmlMsg[] = [];
+
+	for (const msg of chatMsgs) {
+		const user = await getUserById(msg.user_id, fastify);
+		if (!user) continue;
+		if (!blockedId.includes(user.id))
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+		else {
+			const pos = blockedId.indexOf(user.id);
+			if (blocked[pos].created_at <= msg.created_at) {
+				htmlMsgs.push(createHtmlMsg(user, null, 'Msg blocked'));
+			} else htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+		}
+	}
+	return htmlMsgs;
+}
+
+async function getMsgForDm(
+	fastify: FastifyInstance,
+	chatMsgs: Msg[],
+	blocked: Blocked[],
+	blockedId: number[]
+) {
+	// wenn ich geblocket wurde bekomme ich alle nachrichten
+	// wenn ich ihn geblockt habe bekomme ich nur die nachrichten bis zum block
+
+	const htmlMsgs: htmlMsg[] = [];
+
+	for (const msg of chatMsgs) {
+		const user = await getUserById(msg.user_id, fastify);
+		if (!user) continue;
+		if (!blockedId.includes(user.id))
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+		else {
+			const pos = blockedId.indexOf(user.id);
+			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
+		}
+	}
+	return htmlMsgs;
 }
 
 export async function getAllFriends(fastify: FastifyInstance) {
@@ -237,6 +296,14 @@ export async function inviteUser(fastify: FastifyInstance) {
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id, user_id } = req.query as MessageQueryInvite;
 
+			const chat = await getChatFromSql(fastify, chat_id);
+			if (!chat) return res.status(400).send({ error: 'Chat not found' });
+
+			if (Boolean(chat.is_group) && chat.name === null)
+				return res.status(400).send({
+					error: 'You not able to invite a user to the private chat',
+				}); //TODO Error msg
+
 			for (const user of user_id) {
 				inviteUserToChat(fastify, Number.parseInt(user), chat_id);
 			}
@@ -244,15 +311,26 @@ export async function inviteUser(fastify: FastifyInstance) {
 	);
 }
 
-export async function leftUserFromChat(fastify: FastifyInstance) {
+export async function leaveUserFromChat(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryChat }>(
-		'/left_user',
+		'/leave_user',
 		{
 			preValidation: [fastify.authenticate],
 			schema: { querystring: chatMsgRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id } = req.query as MessageQueryChat;
+
+			const chat = await getChatFromSql(fastify, chat_id);
+			if (!chat) return res.status(400).send({ error: 'Chat not found' });
+
+			if (
+				(Boolean(chat.is_group) === false && chat.name === null) ||
+				chat.id === 1
+			)
+				return res
+					.status(400)
+					.send({ error: 'You not able to leave the private chat' }); //TODO Error msg
 
 			const userId = (req.user as { id: number }).id;
 

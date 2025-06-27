@@ -4,6 +4,7 @@ import { getUserById } from '../../../services/database/users';
 import type { Chat, Part, htmlMsg } from '../../../types/chat';
 import {
 	saveMsgInSql,
+	getAllBlockedUser,
 	getAllBlockerUser,
 	getAllParticipantsFromSql,
 	getChatFromSql,
@@ -39,11 +40,26 @@ export async function sendMsg(fastify: FastifyInstance) {
 				return res.status(400).send({ error: 'Blocked Users not found' });
 			const blockedId = blocked.map((b) => b.blocked_id);
 
+			// sind all user die mich blockiert haben
+			const blocker = await getAllBlockedUser(fastify, fromUser.id);
+			if (!blocker)
+				return res.status(400).send({ error: 'Blocked Users not found' });
+			const blockerId = blocker.map((b) => b.blocker_id);
+
 			if (!chatInfo.is_group && !chatInfo.name) {
-				if (sendMsgDm(fromUser, toUsers, chatInfo, blockedId, body.message))
+				if (
+					sendMsgDm(
+						fromUser,
+						toUsers,
+						chatInfo,
+						blockedId,
+						blockerId,
+						body.message
+					)
+				)
 					saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
 			} else {
-				sendMsgGroup(fromUser, toUsers, chatInfo, blockedId, body.message);
+				sendMsgGroup(fromUser, toUsers, chatInfo, blockerId, body.message);
 				saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
 			}
 		}
@@ -54,15 +70,17 @@ function sendMsgGroup(
 	fromUser: User,
 	toUsers: Part[],
 	chatInfo: Chat,
-	blockedId: number[],
+	blockerId: number[],
 	content: string
 ) {
+	// wenn fromUser die Person blockiert hat kommt sende ich die nachricht normal
+	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
 		if (connectedClients.has(user.user_id)) {
 			let msg: htmlMsg;
-			if (blockedId.includes(user.user_id))
+			if (blockerId.includes(user.user_id)) {
 				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked');
-			else msg = createHtmlMsg(fromUser, chatInfo, content);
+			} else msg = createHtmlMsg(fromUser, chatInfo, content);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
@@ -78,20 +96,24 @@ function sendMsgDm(
 	toUser: Part[],
 	chatInfo: Chat,
 	blockedId: number[],
+	blockerId: number[],
 	content: string
 ) {
-	const msg = createHtmlMsg(fromUser, chatInfo, content);
-
+	// wenn der fromUser die person blockiert hat kann man fromUser keine nachrichten mehr senden
+	// wenn fromUser blockiert wurde von der person kann er die nachricht noch in den chat schreiben aber toUser bekommt sie nicht
 	const user = toUser.filter((b) => b.user_id !== fromUser.id);
 
 	if (!blockedId.includes(user[0].user_id)) {
-		if (connectedClients.has(user[0].user_id)) {
-			const toUser = connectedClients.get(user[0].user_id);
-			if (toUser) {
-				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+		const msg = createHtmlMsg(fromUser, chatInfo, content);
+		if (!blockerId.includes(user[0].user_id)) {
+			if (connectedClients.has(user[0].user_id)) {
+				const toUser = connectedClients.get(user[0].user_id);
+				if (toUser) {
+					sendSseMessage(toUser, 'chat', JSON.stringify(msg));
+				}
+			} else {
+				// TODO Client is not connected save msg and send later
 			}
-		} else {
-			// TODO Client is not connected save msg and send later
 		}
 		if (connectedClients.has(fromUser.id)) {
 			const toUser = connectedClients.get(fromUser.id);
