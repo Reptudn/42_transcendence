@@ -115,7 +115,7 @@ document
 					loadPartialView('profile');
 				}
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(`${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -181,7 +181,7 @@ document
 				loadPartialView('profile');
 			} else {
 				console.log(data.message);
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(`${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
