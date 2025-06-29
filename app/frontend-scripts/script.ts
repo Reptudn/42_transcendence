@@ -27,14 +27,19 @@ export function updateActiveMenu(selectedPage: string): void {
 
 export async function loadPartialView(
 	page: string,
-	pushState = true
+	pushState = true,
+	subroute: string | null = null
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers.Authorization = `Bearer ${token}`;
 
+	const url = subroute
+		? `/partial/pages/${page}/${subroute}`
+		: `/partial/pages/${page}`;
+
 	try {
-		const response: Response = await fetch(`/partial/pages/${page}`, {
+		const response: Response = await fetch(url, {
 			method: 'GET',
 			headers: headers,
 		});
@@ -101,8 +106,16 @@ export async function loadPartialView(
 		updateActiveMenu(page);
 
 		if (pushState) {
-			console.info('pushing state');
-			history.pushState({ page }, '', `/partial/pages/${page}`);
+			console.info('pushing state: ', url);
+			history.pushState(
+				{
+					page: page,
+					pushState: false,
+					subroute: subroute ? subroute : null,
+				},
+				'',
+				url
+			);
 		}
 	} catch (error) {
 		console.error('Error fetching partial view:', error);
@@ -111,8 +124,13 @@ export async function loadPartialView(
 
 // history change event
 window.addEventListener('popstate', (event: PopStateEvent) => {
+	const state = event.state;
 	if (event.state && typeof event.state.page === 'string') {
-		loadPartialView(event.state.page, false);
+		loadPartialView(
+			state.page,
+			false,
+			state.subroute ? state.subroute : null
+		);
 	}
 });
 
