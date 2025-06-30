@@ -235,7 +235,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 				reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
-				reply.code(400).send({ message: err.message });
+				// reply.code(400).send({ message: err.message });
+				reply.code(400).send({ message: 'Failed to remove the friend!' });
 			}
 		}
 	);

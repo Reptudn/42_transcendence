@@ -40,24 +40,25 @@
 			<div id="welcome-screen" class="welcome-screen hidden">
 				<div class="welcome-text">Welcome to Transcendence</div>
 			</div>
-			<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
-			<header class="text-white p-4">
-				<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
-						<h1
-							class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
-							onclick="loadPartialView('index')"
-							id="menu-header"
-						>
-							<%= t('header.title') %>
-						</h1>
-					<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
-						<% if (!isAuthenticated) { %> <%-
-						include('layouts/menu/guest') %> <% } else { %> <%-
+		<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
+		<header class="text-white p-4">
+			<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
+					<h1
+						class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
+						onclick="loadPartialView('index')"
+						id="menu-header"
+					>
+						<%= t('header.title') %>
+					</h1>
+				<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
+					<% if (!isAuthenticated) { %> <%-
+						include('layouts/menu/guest') %>
+					<% } else { %> <%-
 						include('layouts/menu/loggedin') %> <% } %>
-					</div>
-					<%- include('misc/lang_select') %>
 				</div>
-			</header>
+				<%- include('misc/lang_select') %>
+			</div>
+		</header>
 
 			<main class="container">
 				<div id="content" class="absolute left-1/2 transform -translate-x-1/2">

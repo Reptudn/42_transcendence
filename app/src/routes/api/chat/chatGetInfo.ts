@@ -52,11 +52,16 @@ const chatCreateRequestSchema = {
 		type: 'object',
 		properties: {
 			user_id: {
-				type: 'array',
-				items: { type: 'string' },
+				oneOf: [
+					{ type: 'string' },
+					{ type: 'array', items: { type: 'string' } },
+				],
+			},
+			group_name: {
+				type: 'string',
 			},
 		},
-		required: ['user_id', 'group_name'],
+		required: ['group_name', 'user_id'],
 	},
 };
 
@@ -75,8 +80,13 @@ const chatInviteRequestSchema = {
 		type: 'object',
 		properties: {
 			user_id: {
-				type: 'array',
-				items: { type: 'string' },
+				oneOf: [
+					{ type: 'string' },
+					{ type: 'array', items: { type: 'string' } },
+				],
+			},
+			chat_id: {
+				type: 'string',
 			},
 		},
 		required: ['user_id', 'chat_id'],
