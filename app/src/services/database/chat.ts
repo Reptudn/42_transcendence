@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Chat, Blocked, Part, Msg } from '../../../types/chat';
+import type { Chat, Blocked, Part, Msg } from '../../types/chat';
 
 export async function saveMsgInSql(
 	fastify: FastifyInstance,
@@ -248,4 +248,47 @@ export async function getMessagesFromSqlByChatId(
 		fastify.log.info(err, 'Database error'); //TODO Error msg;
 		return null;
 	}
+}
+
+export async function removeChat(fastify: FastifyInstance, chat_id: number) {
+	try {
+		await fastify.sqlite.run('DELETE FROM chats WHERE id = ?', [chat_id]);
+	} catch (err) {
+		fastify.log.error(err, 'Database error while deleting chat');
+	}
+}
+
+export async function searchForChatId(
+	fastify: FastifyInstance,
+	user_ids: number[]
+): Promise<number | null> {
+	const placeholders = user_ids.map(() => '?').join(',');
+	const count = user_ids.length;
+
+	try {
+		const chat = await fastify.sqlite.get(
+			`
+		SELECT c.id
+		FROM chats c
+		WHERE c.is_group = 0
+		  AND c.id IN (
+		    SELECT chat_id
+		    FROM chat_participants
+		    WHERE user_id IN (${placeholders})
+		    GROUP BY chat_id
+		    HAVING COUNT(*) = ?
+		       AND (
+		         SELECT COUNT(*) FROM chat_participants cp2
+		         WHERE cp2.chat_id = chat_participants.chat_id
+		       ) = ?
+		  )
+		LIMIT 1
+		`,
+			[...user_ids, count, count]
+		);
+		return chat?.id ?? null;
+	} catch (err) {
+		fastify.log.info(err, 'Database error'); //TODO Error msg;
+	}
+	return null;
 }

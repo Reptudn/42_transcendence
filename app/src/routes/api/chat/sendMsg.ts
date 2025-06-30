@@ -8,7 +8,7 @@ import {
 	getAllBlockerUser,
 	getAllParticipantsFromSql,
 	getChatFromSql,
-} from './utilsSQL';
+} from '../../../services/database/chat';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(

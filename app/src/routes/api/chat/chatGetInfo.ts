@@ -15,7 +15,9 @@ import {
 	deleteUserFromChaParticipants,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
-} from './utilsSQL';
+	getAllParticipantsFromSql,
+	removeChat,
+} from '../../../services/database/chat';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -335,6 +337,11 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 			const userId = (req.user as { id: number }).id;
 
 			deleteUserFromChaParticipants(fastify, userId, chat_id);
+
+			const check = await getAllParticipantsFromSql(fastify, chat_id);
+			if (check.length === 0) {
+				removeChat(fastify, chat_id);
+			}
 		}
 	);
 }

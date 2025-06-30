@@ -11,8 +11,12 @@ import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
-import { removeChat, searchForChatId } from '../chat/utils';
-import { addToParticipants, saveNewChatInfo } from '../chat/utilsSQL';
+import {
+	removeChat,
+	searchForChatId,
+	saveNewChatInfo,
+	addToParticipants,
+} from '../../../services/database/chat';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -226,7 +230,6 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					request.requested_id,
 					request.requester_id,
 				]);
-				console.log('chat_id = ', chat_id);
 				if (chat_id) {
 					removeChat(fastify, chat_id);
 				}
