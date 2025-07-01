@@ -1,5 +1,11 @@
-import { closeAllPopups, popupContainer, updateCloseAllVisibility } from "./popup.js";
-import { loadPartialView } from "./script.js";
+import {
+	closeAllPopups,
+	popupContainer,
+	updateCloseAllVisibility,
+} from './popup.js';
+import { loadPartialView } from './script.js';
+
+import { appendToChatBox } from './chat.js';
 
 export let notifyEventSource: EventSource | null = null;
 
@@ -36,7 +42,10 @@ function setupEventSource() {
 					break;
 				case 'popup':
 					if (popupContainer) {
-						popupContainer.insertAdjacentHTML('beforeend', data.html);
+						popupContainer.insertAdjacentHTML(
+							'beforeend',
+							data.html
+						);
 						updateCloseAllVisibility();
 					} else {
 						console.error('❌ popup-container not found in DOM!');
@@ -56,12 +65,15 @@ function setupEventSource() {
 				case 'game_admin_request':
 					acceptGameInvite(data.gameId, data.playerId);
 					break;
+				case 'chat': {
+					appendToChatBox(data.message);
+					break;
+				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
 					console.log(data);
 					break;
 			}
-
 		} catch (err) {
 			console.error('Error parsing event data:', err);
 		}

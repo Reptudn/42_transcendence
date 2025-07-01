@@ -4,6 +4,7 @@
 		<title>Transcendence: Home</title>
 		<link rel="stylesheet" href="/static/css/styles.css" />
 		<link rel="stylesheet" href="/static/css/popups.css" />
+		<link rel="stylesheet" href="/static/css/chat.css" />
 		<link href="/static/css/output.css" rel="stylesheet">
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,27 +60,27 @@
 			</div>
 		</header>
 
-		<main class="container">
-			<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
-				<%- body %>
-			</div>
-			<div
-			id="popup-wrapper"
-			class="fixed bottom-30 pl-10 z-10000"
-			>
-			<div
-			id="popup-container"
-			class="flex flex-col-reverse gap-3 z-10000"
-			></div>
-			<button
-			id="close-all-popups-btn"
-			class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
-			>
-			Close all
-			</button>
-			</div>
-		</main>
-	</div>
+			<main class="container">
+				<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
+					<%- body %>
+				</div>
+				<div
+				id="popup-wrapper"
+				class="fixed bottom-30 pl-10 z-10000"
+				>
+				<div
+				id="popup-container"
+				class="flex flex-col-reverse gap-3 z-10000"
+				></div>
+				<button
+				id="close-all-popups-btn"
+				class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
+				>
+				Close all
+				</button>
+				</div>
+			</main>
+		</div>
 
 		<footer class="text-white p-4 mb-7 text-2xl absolute bottom-20 left-1/2 transform -translate-x-1/2">
 			<div class="container mx-auto text-center glow-green">
@@ -105,5 +106,6 @@
 		<script src="/static/js/loading_animation.js" defer></script>
 		<script type="module" src="/static/js/popup.js" defer></script>
 		<script type="module" src="/static/js/alert.js" defer></script>
+
 	</body>
 </html>
