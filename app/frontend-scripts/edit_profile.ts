@@ -204,7 +204,7 @@ document
 			formData.oldPassword = oldPasswordField.value;
 			formData.newPassword = newPasswordField.value;
 		} else {
-			alert('Please fill in both fields to change password.');
+			showLocalError('Please fill in both fields to change password.');
 			return;
 		}
 
