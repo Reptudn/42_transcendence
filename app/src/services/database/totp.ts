@@ -5,12 +5,18 @@ export async function getUser2faSecret(
 	user: User,
 	fastify: FastifyInstance
 ): Promise<string> {
-	const secret = await fastify.sqlite.run(
+	const row = await fastify.sqlite.get(
 		'SELECT totp_secret FROM users WHERE id = ?',
 		[user.id]
 	);
-	if (!secret) fastify.log.info(`No secret for ${user.username}`);
-	return secret.toString() || '';
+
+	if (!row || !row.totp_secret) {
+		fastify.log.info(`No secret for ${user.username}`);
+		return '';
+		}
+
+	fastify.log.info("Secret get: ", row.totp_secret);
+	return row.totp_secret.toString();
 }
 
 // returns the rescue code of the secret
@@ -54,7 +60,14 @@ export async function verify2fa(
 	code: string,
 	fastify: FastifyInstance
 ): Promise<boolean> {
+	console.log("User: ", user);
+	console.log("Code: ", code);
 	const secret = await getUser2faSecret(user, fastify);
-	if (!secret) return false;
-	return fastify.totp.verify({ secret, code });
+	if (!secret) {
+		console.log("Error in verify");
+		return false;
+	}
+	const verfied: boolean = fastify.totp.verify({ secret, code });
+	console.log("totp verfify return: ", verfied);
+	return verfied;
 }

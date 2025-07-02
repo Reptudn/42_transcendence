@@ -1,6 +1,8 @@
+import { loadPartialView } from './script.js';
 import { showLocalError, showLocalInfo } from './alert.js';
 
 export async function enable2fa() {
+	console.log('Start');
 	try {
 		const res = await fetch('/api/auth/totp/enable', {
 			method: 'POST',
@@ -9,13 +11,24 @@ export async function enable2fa() {
 			// },
 		});
 
+		// console.log('response: ', res.error);
+		console.log('response: ', res.status);
+
 		if (res.ok) {
-			const qr = document.querySelector('#2fa-qr') as HTMLImageElement;
+			console.log('res.ok');
+			const qr = document.getElementById('2fa-qr');
+			// alert('qr selected');
 			const data = await res.json();
-			qr.src = data.qrcode;
-			qr.alt = '2FA QR Code';
-			showLocalInfo('You have enabled 2fa successfully');
+			if (qr) {
+				(qr as HTMLImageElement).src = data.qrcode;
+				(qr as HTMLImageElement).alt = '2FA QR Code';
+			}
+			// if (qr) {
+			// 	qr.innerHTML = data.qrcode;
+			// }
+			// showLocalInfo('You have enabled 2fa successfully');
 		} else {
+			console.log('else');
 			const data = await res.json();
 			showLocalError(`Error: ${data.message}`);
 		}
@@ -34,10 +47,12 @@ export async function disable2fa() {
 			// },
 		});
 		if (res.ok) {
-			const qr = document.querySelector('#2fa-qr') as HTMLImageElement;
-			qr.src = '';
-			qr.alt = '';
+			const qr = document.getElementById('2fa-qr');
+			if (qr) {
+				qr.innerHTML = 'Disabled';
+			}
 			showLocalInfo('You have disabled 2fa successfully');
+			loadPartialView('edit_profile');
 		} else {
 			const data = await res.json();
 			showLocalError(`Error: ${data.message}`);
