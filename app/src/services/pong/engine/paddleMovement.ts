@@ -1,4 +1,3 @@
-import { Point, GameState } from './engineFormats.js';
 import {
 	distance,
 	normalize,

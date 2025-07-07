@@ -1,6 +1,5 @@
 import { Game, PlayerType } from '../games/gameFormats.js';
 import { distance } from './pointUtils.js';
-import { Point } from './engineFormats.js';
 
 export function projectPointOnPolyline(
 	pt: Point,

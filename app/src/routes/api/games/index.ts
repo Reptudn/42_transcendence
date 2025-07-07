@@ -3,7 +3,7 @@ import { WebSocket as WSWebSocket } from 'ws';
 import {
 	startGame,
 	runningGames,
-} from '../../../services/games/pong/games/games';
+} from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
 
 const startGameSchema = {
@@ -232,6 +232,19 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			});
 		}
 	);
+
+	fastify.get('/all', {
+		preValidation: [fastify.authenticate]
+	}, async (request, reply) => {
+		// get all games from the database
+	});
+
+	fastify.get('/game/:id', {
+		preValidation: [fastify.authenticate]
+	}, async (request, reply) => {
+		// get all games from the database
+	});
+
 };
 
 export default games;

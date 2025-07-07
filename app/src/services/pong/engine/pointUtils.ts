@@ -1,5 +1,3 @@
-import { Point } from './engineFormats';
-
 export function distance(a: Point, b: Point): number {
 	return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }

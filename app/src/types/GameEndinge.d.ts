@@ -24,3 +24,4 @@ interface GameState {
 	};
 	objects: GameObject[];
 }
+

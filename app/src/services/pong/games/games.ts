@@ -5,13 +5,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 const defaultBotNames = JSON.parse(
 	fs.readFileSync(
-		path.resolve(__dirname, '../../../../../data/defaultBotNames.json'),
+		path.resolve(__dirname, '../../../../data/defaultBotNames.json'),
 		'utf-8'
 	)
 );
-import { getUserTitleString, getUserById } from '../../../database/users.js';
+import { getUserTitleString, getUserById } from '../../database/users.js';
 import { FastifyInstance } from 'fastify';
-import { connectedClients, sendSseRawByUserId } from '../../../sse/handler.js';
+import { connectedClients, sendSseRawByUserId } from '../../sse/handler.js';
 function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }

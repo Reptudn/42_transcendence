@@ -1,4 +1,3 @@
-import { Point, GameState } from './engineFormats.js';
 import { distance, normalize, subtractPoints } from './pointUtils.js';
 
 // Determine if a point is within a polygon (ray-casting algorithm).

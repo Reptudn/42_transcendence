@@ -1,6 +1,5 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { GameState } from '../engine/engineFormats.js';
 
 export async function getMapAsInitialGameState(
 	settings: GameSettings

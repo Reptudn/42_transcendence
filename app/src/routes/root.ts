@@ -1,6 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
 import { checkAuth } from '../services/auth/auth';
-import { error } from 'console';
 
 const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
