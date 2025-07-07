@@ -12,6 +12,7 @@ import {
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
+import { getUserGames } from '../../../services/database/games';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -21,7 +22,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				params: {
 					type: 'object',
 					properties: {
-						username: { type: 'string', minLength: 1, maxLength: 100 },
+						username: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 100,
+						},
 						page: {
 							type: 'string',
 							minLength: 1,
@@ -78,7 +83,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 					let profileId: number = friend_id ?? self_id!;
 					let isSelf = profileId === profile.id;
-					
+
 					profile.profile_picture =
 						'/profile/' + profileId + '/picture';
 					variables['user'] = profile;
@@ -144,6 +149,19 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						profile.id,
 						fastify
 					);
+				} else if (page === 'game_page') {
+					await checkAuth(req, true, fastify);
+					const user_id = req.user.id;
+					variables['user_id'] = user_id;
+
+					let recentGames = await getUserGames(user_id, fastify);
+					recentGames.sort(
+						(a, b) =>
+							new Date(b.created_at).getTime() -
+							new Date(a.created_at).getTime()
+					);
+					variables['recent_games'] = recentGames;
+					variables['user_id'] = req.user.id;
 				} else if (page === 'game_setup') {
 					await checkAuth(req, true, fastify);
 					const user_id = req.user.id;

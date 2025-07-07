@@ -1,4 +1,5 @@
 import type { WebSocket as WSWebSocket } from 'ws';
+import { connectedClients } from '../../sse/handler';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -10,6 +11,7 @@ export class Game {
 	status: GameStatus;
 	players: Player[];
 	gameState: GameState;
+	gameSettings: GameSettings;
 	powerups: boolean;
 
 	constructor(
@@ -24,6 +26,26 @@ export class Game {
 		this.gameState = gameState;
 		console.log(this.gameState);
 		this.powerups = gameSettings.powerups;
+		this.gameSettings = gameSettings;
+	}
+
+	updateGameSettings(gameSettings: GameSettings) {
+		if (this.status !== GameStatus.WAITING) return;
+
+		this.gameSettings = gameSettings;
+
+		for (const player of this.players) {
+			const id = player.userId;
+			if (!id) continue;
+
+			connectedClients.get(id)?.send(
+				JSON.stringify({
+					type: 'game_settings_update',
+					gameId: this.gameId,
+					gameSettings: this.gameSettings,
+				})
+			);
+		}
 	}
 
 	isReady() {
@@ -39,6 +61,7 @@ export enum PlayerType {
 	USER = 'user',
 	AI = 'ai',
 	LOCAL = 'local',
+	SPECTATOR = 'spectator',
 }
 export class Player {
 	type: PlayerType;

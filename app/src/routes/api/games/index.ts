@@ -1,10 +1,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { WebSocket as WSWebSocket } from 'ws';
-import {
-	startGame,
-	runningGames,
-} from '../../../services/pong/games/games';
+import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
+import { createGameInDB } from '../../../services/database/games';
 
 const startGameSchema = {
 	body: {
@@ -115,6 +113,35 @@ const startGameSchema = {
 };
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+	fastify.post(
+		'/create',
+		{
+			preValidation: [fastify.authenticate],
+			schema: {},
+		},
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+			fastify.log.info('Creating a new game for user:', user.id);
+			try {
+				const { id, code } = await createGameInDB(user.id, fastify);
+				fastify.log.info(
+					`Game created with ID: ${id} and code ${code}`
+				);
+				return reply.view('game_setup_new', {
+					gameId: id,
+					gameCode: code,
+					owner: true,
+				});
+			} catch (err) {
+				fastify.log.error('Error creating game:', err);
+				return reply.code(500).send({ error: 'Failed to create game' });
+			}
+		}
+	);
+
 	fastify.post(
 		'/start',
 		{
@@ -233,18 +260,25 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	fastify.get('/all', {
-		preValidation: [fastify.authenticate]
-	}, async (request, reply) => {
-		// get all games from the database
-	});
+	fastify.get(
+		'/all',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			// get all games from the database
+		}
+	);
 
-	fastify.get('/game/:id', {
-		preValidation: [fastify.authenticate]
-	}, async (request, reply) => {
-		// get all games from the database
-	});
-
+	fastify.get(
+		'/game/:id',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			// get all games from the database
+		}
+	);
 };
 
 export default games;

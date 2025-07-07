@@ -86,24 +86,19 @@ export default fp(async (fastify) => {
 			CREATE TABLE IF NOT EXISTS games (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			state TEXT CHECK(state IN ('Lobby', 'Running', 'Ended')) NOT NULL DEFAULT 'Lobby',
 			owner_id INTEGER NOT NULL,
-			winner_id INTEGER DEFAULT -1
-			FOREIGN KEY (winner_id) REFERENCES users(id)
 			FOREIGN KEY (owner_id) REFERENCES users(id)
 			)
 		`);
-
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS game_participants (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			game_id INTEGER NOT NULL,
 			user_id INTEGER NOT NULL,
-			score INTEGER DEFAULT 0,
-			joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			place INTEGER DEFAULT 0, --which place on podium (1st is best)
 			FOREIGN KEY (game_id) REFERENCES games(id),
 			FOREIGN KEY (user_id) REFERENCES users(id),
-			UNIQUE(game_id, user_id) -- ensures user joins a game only once
+			UNIQUE(game_id, user_id)
 			)
 		`);
 
