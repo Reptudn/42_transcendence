@@ -1,5 +1,5 @@
 import { getMessages, getChats } from './chat.js';
-import { showLocalPopup } from './alert.js';
+import { showLocalError, showLocalPopup } from './alert.js';
 
 let userIds: string[] = [];
 let userIdToBlock = '';
@@ -13,7 +13,10 @@ interface Friend {
 document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to fetch friends');
+		return;
+	};
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResults');
 	if (userList) {
@@ -62,7 +65,10 @@ document
 		}
 		const url = `/api/chat/create?${params.toString()}`;
 		const res = await fetch(url);
-		if (!res.ok) return; // TODO Error msg
+		if (!res.ok) {
+			showLocalError(`Failed to create chat: ${groupName}`);
+			return;
+		};
 		const responseData = await res.json();
 
 		const newId = responseData.chat_id as string;
@@ -83,7 +89,9 @@ document.getElementById('closeGroupWindow')?.addEventListener('click', async () 
 document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to load friends in block user modal');
+	};
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToBlock');
 	if (userList) {
@@ -111,7 +119,10 @@ document.getElementById('confirmBlockUser')?.addEventListener('click', async () 
 	}
 	const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
 	const res = await fetch(url);
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to block user');
+		return;
+	};
 	document.getElementById('closeBlockUser')?.click();
 });
 
@@ -125,7 +136,10 @@ document.getElementById('closeBlockUser')?.addEventListener('click', async () =>
 document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to fetch friends');
+		return;
+	};
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToUnblock');
 	if (userList) {
@@ -155,7 +169,11 @@ document
 		}
 		const url = `/api/chat/unblock_user?user_id=${userIdToBlock}`;
 		const res = await fetch(url);
-		if (!res.ok) return; // TODO Error msg
+		if (!res.ok) {
+			showLocalError('Failed to unblock user');
+			console.error('Failed to unblock user:', res.status, res.statusText);
+			return;
+		}
 		document.getElementById('closeUnblockUser')?.click();
 	});
 
@@ -169,7 +187,11 @@ document.getElementById('closeUnblockUser')?.addEventListener('click', async () 
 document.getElementById('inviteUser')?.addEventListener('click', async () => {
 	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to fetch friends');
+		console.error('Failed to fetch friends:', res.status, res.statusText);
+		return;
+	};
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToInvite');
 	if (userList) {
@@ -205,7 +227,11 @@ document.getElementById('confirmInviteUser')?.addEventListener('click', async ()
 		'chat_id'
 	)}&${params.toString()}`;
 	const res = await fetch(url);
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to invite user');
+		console.error('Failed to invite user:', res.status, res.statusText);
+		return;
+	}
 	document.getElementById('closeInviteUser')?.click();
 });
 
@@ -220,5 +246,9 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const res = await fetch(
 		`/api/chat/leave_user?chat_id=${localStorage.getItem('chat_id')}`
 	);
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to leave chat');
+		console.error('Failed to leave chat:', res.status, res.statusText);
+		return;
+	};
 });

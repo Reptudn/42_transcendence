@@ -1,4 +1,4 @@
-import { showLocalPopup } from './alert.js';
+import { showLocalError, showLocalPopup } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
 
 export interface Chat {
@@ -38,7 +38,11 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		const msg = input.value.trim();
 		input.value = '';
 		const chat_id = localStorage.getItem('chat_id');
-		if (!chat_id) return; // TODO Error msg
+		if (!chat_id) {
+			showLocalError('Chat ID not found');
+			console.error('Chat ID not found in localStorage');
+			return;
+		}
 		await fetch('/api/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -58,9 +62,13 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 
 const searchUser = document.getElementById('searchForFriend') as HTMLInputElement;
 
-searchUser.addEventListener('input', async () => {
+searchUser?.addEventListener('input', async () => {
 	const res = await fetch('/api/chat/chats');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to fetch chats');
+		console.error('Failed to fetch chats:', res.status, res.statusText);
+		return;
+	}
 	const chats = (await res.json()) as Chat[];
 	const input = searchUser.value.trim().toLowerCase();
 	console.log('input = ', input);
@@ -69,26 +77,33 @@ searchUser.addEventListener('input', async () => {
 		return;
 	}
 	const userList = document.getElementById('userList');
-	if (userList) {
-		userList.innerHTML = '';
-		for (const chat of chats) {
-			if (chat.name?.substring(0, input.length).toLowerCase() === input) {
-				const butt = document.createElement('button');
-				butt.addEventListener('click', async () => {
-					localStorage.setItem('chat_id', chat.id);
-					await getMessages(chat.id);
-				});
-				butt.textContent = chat.name;
-				butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
-				userList.appendChild(butt);
-			}
+	if (!userList) {
+		showLocalError('User list element not found');
+		console.error('User list element not found');
+		return;
+	}
+	userList.innerHTML = '';
+	for (const chat of chats) {
+		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
+			const butt = document.createElement('button');
+			butt.addEventListener('click', async () => {
+				localStorage.setItem('chat_id', chat.id);
+				await getMessages(chat.id);
+			});
+			butt.textContent = chat.name;
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			userList.appendChild(butt);
 		}
 	}
 });
 
 export function appendToChatBox(rawMessage: string) {
 	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) return; // TODO Error msg
+	if (!chatMessages) {
+		showLocalError('Chat messages element not found');
+		console.error('Chat messages element not found');
+		return;
+	}
 
 	const msg = JSON.parse(rawMessage) as htmlMsg;
 
@@ -112,7 +127,11 @@ export function appendToChatBox(rawMessage: string) {
 
 export async function getChats() {
 	const res = await fetch('/api/chat/chats');
-	if (!res.ok) return; // TODO Error msg
+	if (!res.ok) {
+		showLocalError('Failed to fetch chats');
+		console.error('Failed to fetch chats:', res.status, res.statusText);
+		return;
+	}
 	const chats = (await res.json()) as Chat[];
 	const userList = document.getElementById('userList');
 	if (userList) {
@@ -132,7 +151,11 @@ export async function getChats() {
 }
 
 export async function getMessages(chat_id: string | null) {
-	if (!chat_id || chat_id === '0') return; // TODO Error msg
+	if (!chat_id || chat_id === '0') {
+		showLocalError('Invalid chat ID');
+		console.error('Invalid chat ID:', chat_id);
+		return;
+	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	if (!res.ok) {
 		showLocalPopup({
@@ -145,7 +168,10 @@ export async function getMessages(chat_id: string | null) {
 	const msgs = (await res.json()) as htmlMsg[];
 
 	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) return; // TODO Error msg
+	if (!chatMessages) {
+		showLocalError('Failed to get the chat messages element');
+		return;
+	};
 
 	chatMessages.innerHTML = '';
 	for (const msg of msgs) {

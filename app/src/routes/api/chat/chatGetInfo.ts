@@ -210,7 +210,7 @@ export async function getAllChats(fastify: FastifyInstance) {
 
 			const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
 			if (userChats.length === 0)
-				return res.status(400).send({ error: 'No Partispants found' }); // TODO Error msg
+				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
 			for (const chat of userChats) {
 				if (Boolean(chat.is_group) === false) {
