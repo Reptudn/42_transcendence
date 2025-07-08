@@ -68,6 +68,7 @@ function isMapConditionFulfilled(
 	target: number
 ): boolean {
 	let numVal: number = 0;
+	if (!settings.players) return false;
 	if (variable === 'player_count') numVal = settings.players.length + 1;
 	// gamesettings players dont contain the admin
 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;

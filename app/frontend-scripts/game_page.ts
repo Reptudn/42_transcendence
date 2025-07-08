@@ -1,3 +1,5 @@
-document.getElementById('create_game_btn')?.addEventListener('click', (event) => {
-	const response = await fetch('/api/games/create');
-});
+document
+	.getElementById('create_game_btn')
+	?.addEventListener('click', async (event) => {
+		// const response = await fetch('/api/games/create');
+	});

@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { WebSocket as WSWebSocket } from 'ws';
 import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
-import { createGameInDB } from '../../../services/database/games';
+// import { createGameInDB } from '../../../services/database/games';
 
 const startGameSchema = {
 	body: {
@@ -113,34 +113,35 @@ const startGameSchema = {
 };
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-	fastify.post(
-		'/create',
-		{
-			preValidation: [fastify.authenticate],
-			schema: {},
-		},
-		async (request, reply) => {
-			const user = await checkAuth(request, false, fastify);
-			if (!user) {
-				return reply.code(401).send({ error: 'Unauthorized' });
-			}
-			fastify.log.info('Creating a new game for user:', user.id);
-			try {
-				const { id, code } = await createGameInDB(user.id, fastify);
-				fastify.log.info(
-					`Game created with ID: ${id} and code ${code}`
-				);
-				return reply.view('game_setup_new', {
-					gameId: id,
-					gameCode: code,
-					owner: true,
-				});
-			} catch (err) {
-				fastify.log.error('Error creating game:', err);
-				return reply.code(500).send({ error: 'Failed to create game' });
-			}
-		}
-	);
+	// fastify.post(
+	// 	'/create',
+	// 	{
+	// 		preValidation: [fastify.authenticate],
+	// 		schema: {},
+	// 	},
+	// 	async (request, reply) => {
+	// 		const user = await checkAuth(request, false, fastify);
+	// 		if (!user) {
+	// 			return reply.code(401).send({ error: 'Unauthorized' });
+	// 		}
+	// 		fastify.log.info('Creating a new game for user:', user.id);
+	// 		try {
+	// 			// const { id, code } = await createGameInDB(user.id, fastify);
+	// 			// fastify.log.info(
+	// 			// 	`Game created with ID: ${id} and code ${code}`
+	// 			// );
+	// 			return reply.view('game_setup', {
+	// 				// gameId: id,
+	// 				owner: true,
+	// 				t: req.t,
+	// 				// friends: await
+	// 			});
+	// 		} catch (err) {
+	// 			fastify.log.error('Error creating game:', err);
+	// 			return reply.code(500).send({ error: 'Failed to create game' });
+	// 		}
+	// 	}
+	// );
 
 	fastify.post(
 		'/start',
@@ -186,10 +187,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.get(
-		'/join/:gameId/:playerId',
+		'/join/:gameId',
 		{ websocket: true },
 		(socket, req) => {
-			const { gameId, playerId } = req.params as {
+			const { gameId } = req.params as {
 				gameId: string;
 				playerId: string;
 			};
@@ -259,6 +260,22 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			});
 		}
 	);
+
+	fastify.post('/kick/:userId', {
+		preValidation: [fastify.authenticate],
+	}, async (request, reply) => {
+		const userToKick: User | null = await getUserById(req.params.userId);
+		if (!userToKick)
+			return reply.send({ message: `No such player with id ${req.params.userId} found` });  
+		const user = await checkAuth();
+		if (!user)
+			return reply.send({ message: 'Unauthorized' });
+
+		let game: Game | null = null;
+		runningGames.forEach(game => {
+			// when a game with the current user exists as admin then remove the other player from the player list and send him back to the home screen and send a pop up message that they have beeb kicked
+		});
+	});
 
 	fastify.get(
 		'/all',

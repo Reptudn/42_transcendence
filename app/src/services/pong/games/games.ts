@@ -25,7 +25,11 @@ export async function startGame(
 	gameSettings: GameSettings,
 	fastify: FastifyInstance
 ) {
-	if (gameSettings.players.length > 3) {
+	if (!gameSettings.players) {
+		throw new Error('No players specified');
+	}
+
+	if (gameSettings.players.length > gameSettings.maxPlayers) {
 		throw new Error('Too many players');
 	}
 

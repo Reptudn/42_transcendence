@@ -170,6 +170,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						connectedClients.has(friend.id)
 					);
 					variables['friends'] = friends;
+					variables['owner'] = true;
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
