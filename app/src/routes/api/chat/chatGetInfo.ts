@@ -4,6 +4,7 @@ import { inviteUserToChat } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
+import { sendPopupToClient } from '../../../services/sse/popup';
 import {
 	saveNewChatInfo,
 	addToParticipants,
@@ -209,7 +210,7 @@ export async function getAllChats(fastify: FastifyInstance) {
 			const userId = (req.user as { id: number }).id;
 
 			const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
-			if (userChats.length === 0)
+			if (!userChats)
 				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
 
 			for (const chat of userChats) {
@@ -256,7 +257,12 @@ export async function createNewChat(fastify: FastifyInstance) {
 				}
 				res.send({ chat_id: chat_id.toString() });
 			} else if (chat_id === -1) {
-				fastify.log.info('Not able to create a new Group');
+				return sendPopupToClient(
+					user.id,
+					'INFO',
+					'Not able to create a new group',
+					'red'
+				);
 			}
 		}
 	);
@@ -311,10 +317,19 @@ export async function inviteUser(fastify: FastifyInstance) {
 			const chat = await getChatFromSql(fastify, chat_id);
 			if (!chat) return res.status(400).send({ error: 'Chat not found' });
 
-			if (Boolean(chat.is_group) && chat.name === null)
-				return res.status(400).send({
-					error: 'You not able to invite a user to the private chat',
-				}); //TODO Error msg
+			const myId = (req.user as { id: number }).id;
+
+			if (chat.name === null) {
+				let chatName: string;
+				if (chat.is_group) chatName = 'global';
+				else chatName = 'private';
+				return sendPopupToClient(
+					myId,
+					'INFO',
+					`You not able to invite a user to the ${chatName} chat`,
+					'red'
+				);
+			}
 
 			for (const user of user_id) {
 				inviteUserToChat(fastify, Number.parseInt(user), chat_id);
@@ -336,15 +351,19 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 			const chat = await getChatFromSql(fastify, chat_id);
 			if (!chat) return res.status(400).send({ error: 'Chat not found' });
 
-			if (
-				(Boolean(chat.is_group) === false && chat.name === null) ||
-				chat.id === 1
-			)
-				return res
-					.status(400)
-					.send({ error: 'You not able to leave the private chat' }); //TODO Error msg
-
 			const userId = (req.user as { id: number }).id;
+
+			if (chat.name === null) {
+				let chatName: string;
+				if (chat.is_group) chatName = 'global';
+				else chatName = 'private';
+				return sendPopupToClient(
+					userId,
+					'INFO',
+					`You not able to leave the ${chatName} chat`,
+					'red'
+				);
+			}
 
 			deleteUserFromChaParticipants(fastify, userId, chat_id);
 

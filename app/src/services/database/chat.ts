@@ -29,7 +29,7 @@ export async function getAllChatsFromSqlByUserId(
 		return chats;
 	} catch (err) {
 		fastify.log.info(err, 'Database error getAllChatsFromSqlByUserId'); //TODO Error msg;
-		return [];
+		return null;
 	}
 }
 
