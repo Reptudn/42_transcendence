@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Blocked, Part, Msg } from '../../types/chat';
+import { sendPopupToClient } from '../sse/popup';
 
 export async function saveMsgInSql(
 	fastify: FastifyInstance,
@@ -136,12 +137,22 @@ export async function saveNewChatInfo(
 
 export async function addToParticipants(
 	fastify: FastifyInstance,
+	fromUser: number,
 	userId: number,
 	chatId: number
 ) {
 	try {
 		const check = await getParticipantFromSql(fastify, userId, chatId);
-		if (check) return; //TODO Error msg User already in Groupchat
+		if (check) {
+			sendPopupToClient(
+				fastify,
+				fromUser,
+				'INFO',
+				'User already in chat',
+				'red'
+			);
+			return;
+		}
 		fastify.sqlite.run(
 			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 			[chatId, userId]

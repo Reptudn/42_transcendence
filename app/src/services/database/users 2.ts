@@ -52,25 +52,16 @@ export async function registerUser(
 		throw new Error('Username and password cannot contain spaces');
 	}
 	const titleFirst = Math.floor(Math.random() * default_titles_first.length);
-	const titleSecond = Math.floor(
-		Math.random() * default_titles_second.length
-	);
+	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
 	const hashedPassword: string = await bcrypt.hash(password, 10);
 	const user = await fastify.sqlite.run(
 		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
-		[
-			username,
-			hashedPassword,
-			displayname,
-			titleFirst,
-			titleSecond,
-			titleThird,
-		]
+		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
 	);
 	if (user.changes !== 0 && typeof user.lastID === 'number') {
-		inviteUserToChat(fastify, user.lastID, 1);
+		inviteUserToChat(fastify, user.lastID, user.lastID, 1);
 	}
 }
 
@@ -79,9 +70,7 @@ export async function registerGoogleUser(
 	fastify: FastifyInstance
 ) {
 	const titleFirst = Math.floor(Math.random() * default_titles_first.length);
-	const titleSecond = Math.floor(
-		Math.random() * default_titles_second.length
-	);
+	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
 	let username = googleUser.name.replace(' ', '_').trim().toLowerCase();
@@ -197,10 +186,7 @@ export async function verifyUserPassword(
 	password: string,
 	fastify: FastifyInstance
 ): Promise<boolean> {
-	const user = await fastify.sqlite.get(
-		'SELECT * FROM users WHERE id = ?',
-		id
-	);
+	const user = await fastify.sqlite.get('SELECT * FROM users WHERE id = ?', id);
 	if (!user) return false;
 
 	const passwordMatch = await bcrypt.compare(password, user.password);
@@ -255,15 +241,12 @@ export async function updateUserProfile(
 			id,
 		]);
 	if (displayname != undefined)
-		await fastify.sqlite.run(
-			'UPDATE users SET displayname = ? WHERE id = ?',
-			[displayname, id]
-		);
-	if (bio != undefined)
-		await fastify.sqlite.run('UPDATE users SET bio = ? WHERE id = ?', [
-			bio,
+		await fastify.sqlite.run('UPDATE users SET displayname = ? WHERE id = ?', [
+			displayname,
 			id,
 		]);
+	if (bio != undefined)
+		await fastify.sqlite.run('UPDATE users SET bio = ? WHERE id = ?', [bio, id]);
 	if (profile_picture != undefined)
 		await fastify.sqlite.run(
 			'UPDATE users SET profile_picture = ? WHERE id = ?',
@@ -279,22 +262,22 @@ export async function updateUserTitle(
 	fastify: FastifyInstance
 ) {
 	if (firstTitle >= 0) {
-		await fastify.sqlite.run(
-			'UPDATE users SET title_first = ? WHERE id = ?',
-			[firstTitle, id]
-		);
+		await fastify.sqlite.run('UPDATE users SET title_first = ? WHERE id = ?', [
+			firstTitle,
+			id,
+		]);
 	}
 	if (secondTitle >= 0) {
-		await fastify.sqlite.run(
-			'UPDATE users SET title_second = ? WHERE id = ?',
-			[secondTitle, id]
-		);
+		await fastify.sqlite.run('UPDATE users SET title_second = ? WHERE id = ?', [
+			secondTitle,
+			id,
+		]);
 	}
 	if (thirdTitle >= 0) {
-		await fastify.sqlite.run(
-			'UPDATE users SET title_third = ? WHERE id = ?',
-			[thirdTitle, id]
-		);
+		await fastify.sqlite.run('UPDATE users SET title_third = ? WHERE id = ?', [
+			thirdTitle,
+			id,
+		]);
 	}
 }
 
@@ -313,18 +296,13 @@ export async function updateUserPassword(
 		);
 	}
 	if (newPassword.length < 8 || newPassword.length > 32) {
-		throw new Error(
-			'New password must be between 8 and 32 characters long'
-		);
+		throw new Error('New password must be between 8 and 32 characters long');
 	}
 	if (/\s/.test(newPassword)) {
 		throw new Error('New password cannot contain spaces');
 	}
 
-	const user = await fastify.sqlite.get(
-		'SELECT * FROM users WHERE id = ?',
-		id
-	);
+	const user = await fastify.sqlite.get('SELECT * FROM users WHERE id = ?', id);
 	if (!user) throw new Error('User not found');
 
 	if (!(await verifyUserPassword(user.id, oldPassword, fastify)))
@@ -419,10 +397,7 @@ export async function getUserTitle(
 	return '';
 }
 
-export async function getUserTitleString(
-	userId: number,
-	fastify: FastifyInstance
-) {
+export async function getUserTitleString(userId: number, fastify: FastifyInstance) {
 	return (
 		(await getUserTitle(userId, 1, fastify)) +
 		' ' +

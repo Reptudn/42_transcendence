@@ -37,4 +37,4 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 export default chat;
 
 // TODO Problem with checking toUser is on chat or on another side
-// TODO wenn freundschaft endet muss auch der private chat gelöscht werden
+// TODO Error handling

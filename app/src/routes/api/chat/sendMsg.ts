@@ -9,9 +9,7 @@ import {
 	getAllParticipantsFromSql,
 	getChatFromSql,
 } from '../../../services/database/chat';
-
-import { invite } from './chatGetInfo';
-import { getUserByUsername } from '../../../services/database/users 2';
+import { checkCmd } from './commands';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -30,8 +28,8 @@ export async function sendMsg(fastify: FastifyInstance) {
 
 			if (!fromUser) return res.status(400).send({ error: 'User not found' }); // TODO Error msg
 
-			if (body.message !== '' && body.message[0] === '/')
-				return checkCmd(fastify, body, fromUser.id);
+			if (body.message.startsWith('/'))
+				return await checkCmd(fastify, body, fromUser.id);
 
 			const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 			if (!toUsers)
@@ -154,53 +152,3 @@ export function createHtmlMsg(
 		`;
 	return msg;
 }
-
-async function checkCmd(
-	fastify: FastifyInstance,
-	body: { chat: number; message: string },
-	fromUser: number
-) {
-	const parts = body.message.trim().split(' ');
-	const cmd = parts[0];
-
-	if (!cmd.startsWith('/')) return;
-
-	const args = parts.slice(1, parts.length);
-
-	console.log('cmd = ', cmd);
-	console.log('args = ', args);
-
-	switch (cmd) {
-		case '/invite':
-			if (args.length === 1) {
-				const toUser = await getUserByUsername(args[0], fastify);
-				if (!toUser) break; //TODO error
-				await invite(fastify, body.chat, fromUser, toUser.id);
-			} else {
-				break; //TODO error
-			}
-			break; // TODO great succes;
-		case '/msg':
-			break; // TODO great succes;
-		default:
-			// invalid command
-			break;
-	}
-
-	if (body.message.includes('/msg')) {
-	}
-	if (body.message.includes('/leave')) {
-	}
-	if (body.message.includes('/whois')) {
-	}
-	if (body.message.includes('/help')) {
-	}
-}
-
-// TODO Commands
-
-// /invite username
-// /msg username message
-// /leave
-// /whois username
-// /help

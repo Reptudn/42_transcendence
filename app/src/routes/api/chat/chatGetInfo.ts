@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { Blocked, htmlMsg, Msg } from '../../../types/chat';
-import { inviteUserToChat } from './utils';
+import { invite, leave } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
@@ -13,11 +13,8 @@ import {
 	getAllBlockerUser,
 	addToBlockedUsers,
 	deleteFromBlockedUsers,
-	deleteUserFromChaParticipants,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
-	getAllParticipantsFromSql,
-	removeChat,
 } from '../../../services/database/chat';
 
 interface MessageQueryChat {
@@ -258,7 +255,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 			const chat_id = await saveNewChatInfo(fastify, true, group_name);
 			if (chat_id >= 0) {
 				for (const id of userIdsInt) {
-					addToParticipants(fastify, id, chat_id);
+					addToParticipants(fastify, user.id, id, chat_id);
 				}
 				res.send({ chat_id: chat_id.toString() });
 			} else if (chat_id === -1) {
@@ -331,47 +328,8 @@ export async function inviteUser(fastify: FastifyInstance) {
 				userIdsInt.push(Number.parseInt(user_id));
 			}
 
-			invite(fastify, chat_id, myId, userIdsInt);
+			await invite(fastify, chat_id, myId, userIdsInt);
 		}
-	);
-}
-
-export async function invite(
-	fastify: FastifyInstance,
-	chat_id: number,
-	fromUser: number,
-	toUser: number | number[]
-) {
-	const chat = await getChatFromSql(fastify, chat_id);
-	if (!chat) return null;
-
-	if (chat.name === null) {
-		let chatName: string;
-		if (chat.is_group) chatName = 'global';
-		else chatName = 'private';
-		return sendPopupToClient(
-			fastify,
-			fromUser,
-			'INFO',
-			`You not able to invite a user to the ${chatName} chat`,
-			'red'
-		);
-	}
-
-	if (typeof toUser === 'object') {
-		for (const user of toUser) {
-			inviteUserToChat(fastify, user, chat_id);
-		}
-	} else {
-		inviteUserToChat(fastify, toUser, chat_id);
-	}
-
-	sendPopupToClient(
-		fastify,
-		fromUser,
-		'User Invitation',
-		'User gets successfully invited',
-		'green'
 	);
 }
 
@@ -385,30 +343,9 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id } = req.query as MessageQueryChat;
 
-			const chat = await getChatFromSql(fastify, chat_id);
-			if (!chat) return res.status(400).send({ error: 'Chat not found' });
-
 			const userId = (req.user as { id: number }).id;
 
-			if (chat.name === null) {
-				let chatName: string;
-				if (chat.is_group) chatName = 'global';
-				else chatName = 'private';
-				return sendPopupToClient(
-					fastify,
-					userId,
-					'INFO',
-					`You not able to leave the ${chatName} chat`,
-					'red'
-				);
-			}
-
-			deleteUserFromChaParticipants(fastify, userId, chat_id);
-
-			const check = await getAllParticipantsFromSql(fastify, chat_id);
-			if (check.length === 0) {
-				removeChat(fastify, chat_id);
-			}
+			await leave(fastify, chat_id, userId);
 		}
 	);
 }
