@@ -138,7 +138,12 @@ export async function loginUser(
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
-	if (!verify2fa(user, totp, fastify)) throw new Error('Invalid 2fa code');
+	fastify.log.info(`User login: ${user.username}`);
+	fastify.log.info(`TOTP login: ${totp}`);
+	if ((await verify2fa(user, totp, fastify)) === false) {
+		fastify.log.info('False 2fa code when login');
+		throw new Error('Invalid 2fa code');
+	}
 
 	return user;
 }

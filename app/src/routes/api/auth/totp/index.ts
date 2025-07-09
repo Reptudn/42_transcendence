@@ -20,7 +20,7 @@ const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const secret = await getUser2faSecret(user, fastify);
 			fastify.log.info("Secret: ", secret);
 			if (secret !== ''){
-				fastify.log.info("Im secret chcek");
+				fastify.log.info("Im secret check");
 				return reply.code(300).send({ error: '2fa already enabled!' });
 			}
 

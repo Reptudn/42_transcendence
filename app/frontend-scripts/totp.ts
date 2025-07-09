@@ -2,7 +2,6 @@ import { loadPartialView } from './script.js';
 import { showLocalError, showLocalInfo } from './alert.js';
 
 export async function enable2fa() {
-	console.log('Start');
 	try {
 		const res = await fetch('/api/auth/totp/enable', {
 			method: 'POST',
@@ -11,22 +10,17 @@ export async function enable2fa() {
 			// },
 		});
 
-		// console.log('response: ', res.error);
-		console.log('response: ', res.status);
-
 		if (res.ok) {
 			console.log('res.ok');
 			const qr = document.getElementById('2fa-qr');
-			// alert('qr selected');
-			const data = await res.json();
+			const data = (await res.json()) as {
+				qrcode: string;
+				rescue: string;
+			};
 			if (qr) {
 				(qr as HTMLImageElement).src = data.qrcode;
 				(qr as HTMLImageElement).alt = '2FA QR Code';
-				// (qr as HTMLImageElement).
-				// showLocalInfo(qr as HTMLImageElement);
 			}
-			// const enable_button = document.getElementById('2fa-enabled');
-			// (enable_button as HTMLButtonElement).innerText = '2fa enabled';
 		} else {
 			console.log('else');
 			loadPartialView('edit_profile');
