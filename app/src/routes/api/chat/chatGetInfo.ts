@@ -244,10 +244,6 @@ export async function createNewChat(fastify: FastifyInstance) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
 
-			console.log('groupName', group_name);
-			console.log('userId', user_id);
-			console.log('userId Type = ', typeof user_id);
-
 			let userIdsInt: number[] = [];
 			if (typeof user_id === 'object') {
 				userIdsInt = user_id
@@ -324,28 +320,58 @@ export async function inviteUser(fastify: FastifyInstance) {
 		async (req: FastifyRequest, res: FastifyReply) => {
 			const { chat_id, user_id } = req.query as MessageQueryInvite;
 
-			const chat = await getChatFromSql(fastify, chat_id);
-			if (!chat) return res.status(400).send({ error: 'Chat not found' });
-
 			const myId = (req.user as { id: number }).id;
 
-			if (chat.name === null) {
-				let chatName: string;
-				if (chat.is_group) chatName = 'global';
-				else chatName = 'private';
-				return sendPopupToClient(
-					fastify,
-					myId,
-					'INFO',
-					`You not able to invite a user to the ${chatName} chat`,
-					'red'
-				);
+			let userIdsInt: number[] = [];
+			if (typeof user_id === 'object') {
+				userIdsInt = user_id
+					.map((id) => Number.parseInt(id, 10))
+					.filter((id) => !Number.isNaN(id));
+			} else {
+				userIdsInt.push(Number.parseInt(user_id));
 			}
 
-			for (const user of user_id) {
-				inviteUserToChat(fastify, Number.parseInt(user), chat_id);
-			}
+			invite(fastify, chat_id, myId, userIdsInt);
 		}
+	);
+}
+
+export async function invite(
+	fastify: FastifyInstance,
+	chat_id: number,
+	fromUser: number,
+	toUser: number | number[]
+) {
+	const chat = await getChatFromSql(fastify, chat_id);
+	if (!chat) return null;
+
+	if (chat.name === null) {
+		let chatName: string;
+		if (chat.is_group) chatName = 'global';
+		else chatName = 'private';
+		return sendPopupToClient(
+			fastify,
+			fromUser,
+			'INFO',
+			`You not able to invite a user to the ${chatName} chat`,
+			'red'
+		);
+	}
+
+	if (typeof toUser === 'object') {
+		for (const user of toUser) {
+			inviteUserToChat(fastify, user, chat_id);
+		}
+	} else {
+		inviteUserToChat(fastify, toUser, chat_id);
+	}
+
+	sendPopupToClient(
+		fastify,
+		fromUser,
+		'User Invitation',
+		'User gets successfully invited',
+		'green'
 	);
 }
 
