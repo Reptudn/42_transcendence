@@ -22,14 +22,14 @@ export interface User {
 	title_third: number;
 }
 
-if (!localStorage.getItem('chat_id')) localStorage.setItem('chat_id', '1');
+if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
 await getChats();
-await getMessages(localStorage.getItem('chat_id'));
+await getMessages(sessionStorage.getItem('chat_id'));
 
 document.getElementById('globalChat')?.addEventListener('click', async () => {
-	localStorage.setItem('chat_id', '1');
-	await getMessages(localStorage.getItem('chat_id'));
+	sessionStorage.setItem('chat_id', '1');
+	await getMessages(sessionStorage.getItem('chat_id'));
 });
 
 document.getElementById('sendChatButton')?.addEventListener('click', async () => {
@@ -37,10 +37,10 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 	if (input && input.value.trim() !== '') {
 		const msg = input.value.trim();
 		input.value = '';
-		const chat_id = localStorage.getItem('chat_id');
+		const chat_id = sessionStorage.getItem('chat_id');
 		if (!chat_id) {
 			showLocalError('Chat ID not found');
-			console.error('Chat ID not found in localStorage');
+			console.error('Chat ID not found in sessionStorage');
 			return;
 		}
 		await fetch('/api/chat', {
@@ -87,7 +87,7 @@ searchUser?.addEventListener('input', async () => {
 		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				localStorage.setItem('chat_id', chat.id);
+				sessionStorage.setItem('chat_id', chat.id);
 				await getMessages(chat.id);
 			});
 			butt.textContent = chat.name;
@@ -107,7 +107,7 @@ export function appendToChatBox(rawMessage: string) {
 
 	const msg = JSON.parse(rawMessage) as htmlMsg;
 
-	const nowChatId = localStorage.getItem('chat_id');
+	const nowChatId = sessionStorage.getItem('chat_id');
 	console.log('nowChatId = ', nowChatId);
 	if (nowChatId) {
 		if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
@@ -139,7 +139,7 @@ export async function getChats() {
 		for (const chat of chats) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				localStorage.setItem('chat_id', chat.id);
+				sessionStorage.setItem('chat_id', chat.id);
 				await getMessages(chat.id);
 			});
 			if (chat.name === null) butt.textContent = chat.id;
@@ -171,7 +171,7 @@ export async function getMessages(chat_id: string | null) {
 	if (!chatMessages) {
 		showLocalError('Failed to get the chat messages element');
 		return;
-	};
+	}
 
 	chatMessages.innerHTML = '';
 	for (const msg of msgs) {

@@ -16,7 +16,7 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		return;
-	};
+	}
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResults');
 	if (userList) {
@@ -68,11 +68,11 @@ document
 		if (!res.ok) {
 			showLocalError(`Failed to create chat: ${groupName}`);
 			return;
-		};
+		}
 		const responseData = await res.json();
 
 		const newId = responseData.chat_id as string;
-		localStorage.setItem('chat_id', newId);
+		sessionStorage.setItem('chat_id', newId);
 		document.getElementById('closeGroupWindow')?.click();
 		await getMessages(newId);
 		await getChats();
@@ -91,7 +91,7 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 	const res = await fetch('/api/chat/friends');
 	if (!res.ok) {
 		showLocalError('Failed to load friends in block user modal');
-	};
+	}
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToBlock');
 	if (userList) {
@@ -122,7 +122,7 @@ document.getElementById('confirmBlockUser')?.addEventListener('click', async () 
 	if (!res.ok) {
 		showLocalError('Failed to block user');
 		return;
-	};
+	}
 	document.getElementById('closeBlockUser')?.click();
 });
 
@@ -139,7 +139,7 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		return;
-	};
+	}
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToUnblock');
 	if (userList) {
@@ -191,7 +191,7 @@ document.getElementById('inviteUser')?.addEventListener('click', async () => {
 		showLocalError('Failed to fetch friends');
 		console.error('Failed to fetch friends:', res.status, res.statusText);
 		return;
-	};
+	}
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToInvite');
 	if (userList) {
@@ -223,7 +223,7 @@ document.getElementById('confirmInviteUser')?.addEventListener('click', async ()
 	for (const id of userIds) {
 		params.append('user_id', id.toString());
 	}
-	const url = `/api/chat/invite_user?chat_id=${localStorage.getItem(
+	const url = `/api/chat/invite_user?chat_id=${sessionStorage.getItem(
 		'chat_id'
 	)}&${params.toString()}`;
 	const res = await fetch(url);
@@ -244,11 +244,11 @@ document.getElementById('closeInviteUser')?.addEventListener('click', async () =
 
 document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const res = await fetch(
-		`/api/chat/leave_user?chat_id=${localStorage.getItem('chat_id')}`
+		`/api/chat/leave_user?chat_id=${sessionStorage.getItem('chat_id')}`
 	);
 	if (!res.ok) {
 		showLocalError('Failed to leave chat');
 		console.error('Failed to leave chat:', res.status, res.statusText);
 		return;
-	};
+	}
 });

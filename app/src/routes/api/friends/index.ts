@@ -109,6 +109,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 				if (connectedClients && connectedClients.has(requestedId)) {
 					sendPopupToClient(
+						fastify,
 						requestedId,
 						'Friend Request',
 						`<a href="/partial/pages/profile/${requesterId}" target="_blank">User ${
@@ -156,6 +157,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				const request = await getFriendRequestById(requestId, fastify);
 				if (request) {
 					sendPopupToClient(
+						fastify,
 						request.requester_id,
 						'Friend Request Accepted',
 						`Your friend request was accepted by <a href="/partial/pages/profile/${

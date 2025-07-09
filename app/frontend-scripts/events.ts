@@ -5,8 +5,6 @@ import {
 } from './popup.js';
 import { loadPartialView } from './script.js';
 
-import { appendToChatBox } from './chat.js';
-
 export let notifyEventSource: EventSource | null = null;
 
 function setupEventSource() {
@@ -66,7 +64,9 @@ function setupEventSource() {
 					acceptGameInvite(data.gameId, data.playerId);
 					break;
 				case 'chat': {
-					appendToChatBox(data.message);
+					import('./chat.js').then(({ appendToChatBox }) => {
+						appendToChatBox(data.message);
+					});
 					break;
 				}
 				default:

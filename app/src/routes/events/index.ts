@@ -134,6 +134,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			connectedClients.set(user.id, reply);
 
 			sendPopupToClient(
+				fastify,
 				user.id,
 				'BEEP BOOP BEEEEEP ~011001~ Server Connection established',
 				"-> it's pongin' time!",
@@ -151,15 +152,14 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				if (requester) {
 					sendPopupToClient(
+						fastify,
 						user.id,
 						'Friend Request',
 						`<a href="/partial/pages/profile/${
 							request.requester_id
 						}" target="_blank">User ${
-							(await getNameForUser(
-								request.requester_id,
-								fastify
-							)) || requester.username
+							(await getNameForUser(request.requester_id, fastify)) ||
+							requester.username
 						}</a> wishes to be your friend!`,
 						'blue',
 						`acceptFriendRequest(${request.id})`,
@@ -168,9 +168,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						'Decline'
 					);
 				} else {
-					console.error(
-						`User with id ${request.requester_id} not found.`
-					);
+					console.error(`User with id ${request.requester_id} not found.`);
 					removeFriendship(
 						request.requester_id,
 						request.requested_id,
@@ -221,6 +219,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				buttonName2: string;
 			};
 			sendPopupToClient(
+				fastify,
 				user.id,
 				title,
 				description,

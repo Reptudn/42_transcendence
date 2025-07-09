@@ -26,7 +26,7 @@ interface MessageQueryChat {
 
 interface MessageQueryUser {
 	group_name: string;
-	user_id: string[];
+	user_id: string[] | string;
 }
 
 interface MessageQueryBlock {
@@ -244,9 +244,18 @@ export async function createNewChat(fastify: FastifyInstance) {
 				return res.status(400).send({ error: 'Unknown User' });
 			}
 
-			const userIdsInt = user_id
-				.map((id) => Number.parseInt(id, 10))
-				.filter((id) => !Number.isNaN(id));
+			console.log('groupName', group_name);
+			console.log('userId', user_id);
+			console.log('userId Type = ', typeof user_id);
+
+			let userIdsInt: number[] = [];
+			if (typeof user_id === 'object') {
+				userIdsInt = user_id
+					.map((id) => Number.parseInt(id, 10))
+					.filter((id) => !Number.isNaN(id));
+			} else {
+				userIdsInt.push(Number.parseInt(user_id));
+			}
 
 			userIdsInt.push(user.id);
 
@@ -258,6 +267,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 				res.send({ chat_id: chat_id.toString() });
 			} else if (chat_id === -1) {
 				return sendPopupToClient(
+					fastify,
 					user.id,
 					'INFO',
 					'Not able to create a new group',
@@ -324,6 +334,7 @@ export async function inviteUser(fastify: FastifyInstance) {
 				if (chat.is_group) chatName = 'global';
 				else chatName = 'private';
 				return sendPopupToClient(
+					fastify,
 					myId,
 					'INFO',
 					`You not able to invite a user to the ${chatName} chat`,
@@ -358,6 +369,7 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 				if (chat.is_group) chatName = 'global';
 				else chatName = 'private';
 				return sendPopupToClient(
+					fastify,
 					userId,
 					'INFO',
 					`You not able to leave the ${chatName} chat`,
