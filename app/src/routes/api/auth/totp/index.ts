@@ -5,6 +5,7 @@ import {
 	createUser2faSecret,
 	removeUser2fa,
 } from '../../../../services/database/totp';
+import { sendPopupToClient } from '../../../../services/sse/popup';
 
 const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -25,6 +26,10 @@ const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const totp: User2FASetup = await createUser2faSecret(user, fastify);
 			fastify.log.info("Jonas schlecht in battlefield 1");
+			sendPopupToClient(user.id, 'Your 2fa QR Code', `<img src="${totp.qrcode}"></img>`);
+			fastify.log.info("Jonas schlecht in battlefield 5");
+			sendPopupToClient(user.id, 'Your Rescue code (write this one down somewhere)', totp.rescue)
+			fastify.log.info("Jonas schlecht in battlefield 2042");
 			return reply.code(200).send({
 				qrcode: totp.qrcode,
 				rescue: totp.rescue,

@@ -13,9 +13,9 @@ export async function getUser2faSecret(
 	if (!row || !row.totp_secret) {
 		fastify.log.info(`No secret for ${user.username}`);
 		return '';
-		}
+	}
 
-	fastify.log.info("Secret get: ", row.totp_secret);
+	fastify.log.info('Secret get: ', row.totp_secret);
 	return row.totp_secret.toString();
 }
 
@@ -60,14 +60,14 @@ export async function verify2fa(
 	code: string,
 	fastify: FastifyInstance
 ): Promise<boolean> {
-	console.log("User: ", user);
-	console.log("Code: ", code);
+	fastify.log.info('User: ', user);
+	fastify.log.info('Code: ', code);
 	const secret = await getUser2faSecret(user, fastify);
 	if (!secret) {
-		console.log("Error in verify");
+		fastify.log.info('Error in verify');
 		return false;
 	}
 	const verfied: boolean = fastify.totp.verify({ secret, code });
-	console.log("totp verfify return: ", verfied);
+	fastify.log.info('totp verfify return: ', verfied);
 	return verfied;
 }

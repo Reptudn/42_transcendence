@@ -22,18 +22,18 @@ export async function enable2fa() {
 			if (qr) {
 				(qr as HTMLImageElement).src = data.qrcode;
 				(qr as HTMLImageElement).alt = '2FA QR Code';
+				// (qr as HTMLImageElement).
+				// showLocalInfo(qr as HTMLImageElement);
 			}
-			// if (qr) {
-			// 	qr.innerHTML = data.qrcode;
-			// }
-			// showLocalInfo('You have enabled 2fa successfully');
+			// const enable_button = document.getElementById('2fa-enabled');
+			// (enable_button as HTMLButtonElement).innerText = '2fa enabled';
 		} else {
 			console.log('else');
+			loadPartialView('edit_profile');
 			const data = await res.json();
-			showLocalError(`Error: ${data.message}`);
+			showLocalError(`${data.message}`);
 		}
 	} catch (error) {
-		console.error('Error:', error);
 		showLocalError('Failed to enable 2fa!');
 	}
 }

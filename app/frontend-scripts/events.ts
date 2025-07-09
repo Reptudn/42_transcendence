@@ -23,7 +23,6 @@ function setupEventSource() {
 		// console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
-
 			switch (data.type) {
 				case 'log':
 					console.log(data.message);
