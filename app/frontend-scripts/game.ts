@@ -47,6 +47,11 @@ ws.onmessage = (event) => {
 					data.state.meta.size_y
 				);
 			}
+		} else if (data.type === 'change_lobby_settings') {
+			const settings = document.getElementById('lobbySettings');
+			if (settings) {
+				settings.innerHTML = JSON.stringify(data.settings);
+			}
 		} else {
 			showLocalInfo(`Unknown data received from websocket: ${data}`);
 		}

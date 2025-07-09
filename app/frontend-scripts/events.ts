@@ -1,9 +1,16 @@
+// import { updateGameSettings } from "./lobby.js";
 import { closeAllPopups, popupContainer, updateCloseAllVisibility } from "./popup.js";
 import { loadPartialView } from "./script.js";
 
 export let notifyEventSource: EventSource | null = null;
 
 function setupEventSource() {
+
+	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
+		// console.warn('EventSource not set up because user is not logged in');
+		return;
+	}
+
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
@@ -56,6 +63,12 @@ function setupEventSource() {
 				case 'game_admin_request':
 					acceptGameInvite(data.gameId, data.playerId);
 					break;
+				case 'game_settings_update': // includes settings and ready player updates
+					import('./lobby.js').then(({ updateGameSettings }) => {
+						console.log('Game settings updated:', data.settings);
+						updateGameSettings(data.settings);
+					});
+					break;
 				default:
 					console.error('❌ Unknown event type:', data.type);
 					console.log(data);
@@ -67,14 +80,14 @@ function setupEventSource() {
 		}
 	};
 }
-setupEventSource();
-// loop every 5 secs if notifyEventSource is null
+ // setupEventSource();
+// loop every 100 ms if notifyEventSource is null
 setInterval(() => {
 	if (!notifyEventSource) {
-		console.log('Attempting to reconnect to EventSource...');
+		// console.log('Attempting to connect to EventSource...');
 		setupEventSource();
 	}
-}, 5000);
+}, window.sessionStorage.getItem('loggedIn') === 'true' ? 100 : 5000);
 
 function sendPopup(
 	title: string,

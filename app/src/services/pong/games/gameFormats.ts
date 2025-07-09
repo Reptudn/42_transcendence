@@ -6,27 +6,33 @@ export enum GameStatus {
 	RUNNING = 'running',
 }
 
+const defaultGameSettings: GameSettings = {
+	map: 'default_map',
+	playerLives: 3,
+	gameDifficulty: 1,
+	powerups: true,
+	maxPlayers: 4, // max players in a game
+	players: null, // no players set by default
+};
+
 export class Game {
 	gameId: number;
-	status: GameStatus;
-	players: Player[];
-	gameState: GameState;
+	status: GameStatus = GameStatus.WAITING;
+	admin: User;
+	players: Player[] = [];
+	// gameState: GameState = {};
 	gameSettings: GameSettings;
-	powerups: boolean;
 
 	constructor(
 		gameId: number,
-		players: Player[],
-		gameSettings: GameSettings,
-		gameState: GameState
+		admin: User,
+		gameSettings: GameSettings = defaultGameSettings,
 	) {
 		this.gameId = gameId;
+		this.admin = admin;
 		this.status = GameStatus.WAITING;
-		this.players = players;
-		this.gameState = gameState;
-		console.log(this.gameState);
-		this.powerups = gameSettings.powerups;
 		this.gameSettings = gameSettings;
+		// push admin as first player
 	}
 
 	updateGameSettings(gameSettings: GameSettings) {
@@ -43,6 +49,28 @@ export class Game {
 					type: 'game_settings_update',
 					gameId: this.gameId,
 					gameSettings: this.gameSettings,
+				})
+			);
+		}
+	}
+
+	addPlayer(player: Player) {
+		if (this.status !== GameStatus.WAITING) return;
+
+		player.playerId = this.players.length;
+		this.players.push(player);
+
+		if (
+			player.userId &&
+			player.type === PlayerType.USER &&
+			player.userId !== this.admin.id &&
+			connectedClients.has(player.userId)
+		) {
+			connectedClients.get(player.userId)?.send(
+				JSON.stringify({
+					type: 'game_request',
+					gameId: this.gameId,
+					playerId: player.playerId,
 				})
 			);
 		}
@@ -89,6 +117,8 @@ export class Player {
 	movementDirection: number = 0; // -1 | 0 | 1
 	// aiMoveCoolDown: number = aiLevel;
 
+	joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
+
 	constructor(
 		type: PlayerType,
 		playerId: number,
@@ -119,6 +149,13 @@ export class Player {
 	}
 
 	isReady(game: Game) {
+
+		if (!this.joined) return false;
+
+		if (this.type === PlayerType.SPECTATOR) {
+			return true; // spectators are always ready
+		}
+
 		switch (this.type) {
 			case PlayerType.USER:
 				return this.wsocket !== null;

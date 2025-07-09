@@ -1,4 +1,5 @@
 import { showLocalInfo, showLocalError } from './alert.js';
+import { loadPartialView } from './script.js';
 
 const playersContainer = document.getElementById(
 	'playersContainer'
@@ -13,6 +14,43 @@ const startGameButton = document.getElementById(
 	'startGameButton'
 ) as HTMLButtonElement;
 const maxPlayers = 4;
+
+let gameId: number | undefined = undefined;
+const res = await fetch('/api/games/create', {
+	method: 'POST',
+	headers: { 'Content-Type': 'application/json' },
+	body: JSON.stringify({}) // Sending an empty body for creation
+});
+if (!res.ok) {
+	showLocalError('Failed to create game');
+	loadPartialView('profile');
+	throw new Error('Failed to create game'); // Stop execution here
+}
+
+const data = await res.json();
+gameId = data.gameId;
+showLocalInfo(`Game created with ID: ${gameId}`);
+
+const friends: Friend[] = await fetch('/api/friends/online')
+	.then((response) => {
+		if (!response.ok) {
+			showLocalError('Failed to fetch friends');
+			throw new Error('Failed to fetch friends list');
+		}
+		return response.json();
+	})
+	.then((data) => {
+		if (!Array.isArray(data)) {
+			showLocalError('Invalid friends data format');
+			throw new Error('Invalid friends data format');
+		}
+		return data;
+	})
+	.catch((error) => {
+		console.error('Error fetching friends:', error);
+		showLocalError('Failed to load friends list. Please try again later.');
+		return [];
+	});
 
 export function createPlayerCard(index: number): HTMLElement {
 	const card = document.createElement('div');
@@ -61,8 +99,6 @@ interface Friend {
 	displayname: string;
 }
 
-declare const friends: Friend[];
-
 export function updateAdditionalSettings(
 	type: string,
 	container: HTMLElement
@@ -78,13 +114,27 @@ export function updateAdditionalSettings(
 		const friendSelect = document.createElement('select');
 		friendSelect.className =
 			'friend-select mt-1 block w-full rounded-md border-gray-300 shadow-sm';
-		friendSelect.innerHTML = `<option value="">-- Choose a friend --</option>`;
+		
+		if (friends.length === 0)  friendSelect.innerHTML = `<option value="">-- No friends online --</option>`;
+		else friendSelect.innerHTML = `<option value="">-- Choose a friend --</option>`;
 		for (const friend of friends) {
 			const option = document.createElement('option');
 			option.value = friend.id.toString();
 			option.textContent = `${friend.displayname} (@${friend.username})`;
 			friendSelect.appendChild(option);
 		}
+		friendSelect.addEventListener('change', async (event) => {
+			const selectedFriendId = (event.target as HTMLSelectElement).value;
+			if (selectedFriendId) {
+				try {
+					await inviteFriend(Number.parseInt(selectedFriendId));
+				} catch (error) {
+					showLocalError(`Failed to invite friend: ${error.message}`);
+				}
+			} else {
+				showLocalInfo('No friend selected.');
+			}
+		});
 		container.appendChild(friendSelect);
 	} else if (type === 'local') {
 		const label = document.createElement('label');
@@ -152,6 +202,20 @@ removePlayerButton.addEventListener('click', () => {
 	playersContainer.removeChild(currentPlayers[currentPlayers.length - 1]);
 });
 
+async function inviteFriend(friendId: number): Promise<void> {
+	const response = await fetch(`/api/games/invite/${friendId}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+	});
+	if (!response.ok) {
+		const error = await response.json();
+		showLocalError(`Failed to invite friend: ${error.error}`);
+		throw new Error(`Failed to invite friend: ${error.error}`);
+	}
+	showLocalInfo(`Friend invited successfully!`);
+	console.log(`Friend ${friendId} invited successfully.`);
+}
+
 startGameButton.addEventListener('click', () => {
 	const map = (document.getElementById('map') as HTMLSelectElement).value;
 	const lives =
@@ -177,7 +241,7 @@ startGameButton.addEventListener('click', () => {
 
 	const players: Player[] = [];
 
-	playerCards.forEach((card, index) => {
+	for (const [index, card] of playerCards.entries()) {
 		// no data needed for first player
 		if (index > 0) {
 			const type = (
@@ -194,6 +258,7 @@ startGameButton.addEventListener('click', () => {
 					throw new Error('Friend not selected');
 				}
 				playerData.id = Number.parseInt(friendId);
+
 			} else if (type === 'local') {
 				const controlScheme = (
 					card.querySelector('.control-scheme') as HTMLSelectElement
@@ -219,7 +284,7 @@ startGameButton.addEventListener('click', () => {
 			}
 			players.push(playerData);
 		}
-	});
+	};
 
 	const data = {
 		map,

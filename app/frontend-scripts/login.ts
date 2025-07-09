@@ -19,6 +19,7 @@ const loginAction = async () => {
 			updateMenu();
 			loadPartialView('profile');
 			showLocalInfo('You have logged in successfully');
+			window.sessionStorage.setItem("loggedIn", "true");
 		} else {
 			const data = await response.json();
 			showLocalError(`Error: ${data.message}`);

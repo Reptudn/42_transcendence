@@ -212,12 +212,12 @@ async function logout(): Promise<void> {
 	try {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
-			// Update your menu and load the home view
 			updateMenu();
 			loadPartialView('index');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');
+			window.sessionStorage.setItem("loggedIn", "false");
 		} else {
 			const data = await response.json();
 			showLocalError(`Error during logout: ${data.message}`);

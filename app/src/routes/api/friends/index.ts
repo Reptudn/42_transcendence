@@ -6,6 +6,7 @@ import {
 	getFriendRequestById,
 	rejectFriendRequest,
 	removeFriendship,
+	getFriends,
 } from '../../../services/database/friends';
 import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
@@ -49,6 +50,30 @@ const declineFriendRequestSchema = {
 };
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+
+	fastify.get('/', { preValidation: [fastify.authenticate] }, async (req, reply) => {
+		const user = await checkAuth(req, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
+
+		const friendsList = await getFriends(user.id, fastify);
+		reply.send(friendsList);
+	});
+
+	fastify.get('/online', { preValidation: [fastify.authenticate] }, async (req, reply) => {
+		const user = await checkAuth(req, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
+
+		const friendsList = await getFriends(user.id, fastify);
+		const onlineFriends = friendsList.filter(friend => 
+			connectedClients && connectedClients.has(friend.id)
+		);
+		reply.send(onlineFriends);
+	});
+
 	fastify.post(
 		'/request',
 		{

@@ -1,4 +1,4 @@
-import { Game } from '../games/gameFormats.js';
+import { Game } from '../games/engineClasses.js';
 import { movePaddle } from './paddleMovement.js';
 import { moveBall } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
