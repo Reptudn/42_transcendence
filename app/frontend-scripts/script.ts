@@ -230,6 +230,23 @@ async function logout(): Promise<void> {
 	}
 }
 
+function setRandomBgPicture(): void {
+	const tvScreenInner = document.getElementsByClassName('tv-screen-inner')[0];
+	if (tvScreenInner) {
+		const randomIndex = Math.floor(Math.random() * 28) + 1;
+		tvScreenInner.setAttribute(
+			'style',
+			`background-image: url(/static/assets/backgrounds/gifs/${randomIndex}.gif);`
+		);
+	}
+}
+setRandomBgPicture();
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'g' || event.key === 'G') {
+		setRandomBgPicture();
+	}
+});
+
 window.updateActiveMenu = updateActiveMenu;
 window.loadPartialView = loadPartialView;
 window.updateMenu = updateMenu;
