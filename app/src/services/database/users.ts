@@ -7,6 +7,7 @@ import { getUserAchievements } from './achievements.js';
 import { getImageFromLink } from '../google/user.js';
 import type { FastifyInstance } from 'fastify';
 import { verify2fa } from './totp.js';
+import {getUser2faSecret} from './totp.js'
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -140,9 +141,13 @@ export async function loginUser(
 
 	fastify.log.info(`User login: ${user.username}`);
 	fastify.log.info(`TOTP login: ${totp}`);
-	if ((await verify2fa(user, totp, fastify)) === false) {
-		fastify.log.info('False 2fa code when login');
-		throw new Error('Invalid 2fa code');
+	const two_fa = await getUser2faSecret(user, fastify);
+	fastify.log.info(`2fa secret: ${two_fa}`);
+	if (two_fa !== ''){
+		if ((await verify2fa(user, totp, fastify)) === false) {
+			fastify.log.info('False 2fa code when login');
+			throw new Error('Invalid 2fa code');
+		}
 	}
 
 	return user;
