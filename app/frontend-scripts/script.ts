@@ -212,6 +212,24 @@ async function logout(): Promise<void> {
 	}
 }
 
+function setRandomBgPicture(): void {
+	const tvScreenInner = document.getElementById('background-image');
+	if (tvScreenInner) {
+		const totalGifs = 29; // Update this value if the number of GIFs changes
+		const randomIndex = Math.floor(Math.random() * totalGifs) + 1;
+		tvScreenInner.setAttribute(
+			'src',
+			`/static/assets/backgrounds/gifs/${randomIndex}.gif`
+		);
+	}
+}
+setRandomBgPicture();
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'g' || event.key === 'G' || event.key === 'b' || event.key === 'B') {
+		setRandomBgPicture();
+	}
+});
+
 window.updateActiveMenu = updateActiveMenu;
 window.loadPartialView = loadPartialView;
 window.updateMenu = updateMenu;
