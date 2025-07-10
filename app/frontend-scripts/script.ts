@@ -233,7 +233,8 @@ async function logout(): Promise<void> {
 function setRandomBgPicture(): void {
 	const tvScreenInner = document.getElementsByClassName('tv-screen-inner')[0];
 	if (tvScreenInner) {
-		const randomIndex = Math.floor(Math.random() * 28) + 1;
+		const totalGifs = 29; // Update this value if the number of GIFs changes
+		const randomIndex = Math.floor(Math.random() * totalGifs) + 1;
 		tvScreenInner.setAttribute(
 			'style',
 			`background-image: url(/static/assets/backgrounds/gifs/${randomIndex}.gif);`
