@@ -179,6 +179,10 @@
 	}
 }
 
+#content {
+	background-color: #12121246;
+}
+
 /* Ladebildschirm */
 .loading-screen {
 	position: absolute; /* Relativ zum tv-screen-inner */
