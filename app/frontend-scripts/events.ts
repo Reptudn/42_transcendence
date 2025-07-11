@@ -79,7 +79,7 @@ setInterval(() => {
 		// console.log('Attempting to connect to EventSource...');
 		setupEventSource();
 	}
-}, window.sessionStorage.getItem('loggedIn') === 'true' ? 100 : 5000);
+}, window.sessionStorage.getItem('loggedIn') === 'true' ? 1000 : 5000);
 
 function sendPopup(
 	title: string,
