@@ -4,7 +4,6 @@ import type { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import fastifyEnv from '@fastify/env';
 import i18next from './middleware/localization';
 import middleware from 'i18next-http-middleware';
-import ajvPlugin from './plugins/ajv';
 
 const envSchema = {
 	type: 'object',
@@ -40,31 +39,9 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		}
 	});
 
+	fastify.log.info('Registering i18next');
 	fastify.register(middleware.plugin, { i18next });
-
-	await fastify.register(ajvPlugin);
-
-	fastify.setErrorHandler((error, request, reply) => {
-		if (error.validation) {
-			const formattedErrors = error.validation.map((err) => {
-				const field =
-					err.instancePath.replace(/^\/?/, '') ||
-					err.params?.missingProperty ||
-					'Unknown';
-				const message = err.message || 'Invalid input';
-				return `${field}: ${message}`;
-			});
-
-			return reply.status(400).send({
-				statusCode: 400,
-				error: 'Bad Request',
-				message: formattedErrors.join('<br>'),
-			});
-		}
-
-		// fallback for other errors
-		reply.send(error);
-	});
+	fastify.log.info('Registered i18next');
 
 	// Do not touch the following lines
 

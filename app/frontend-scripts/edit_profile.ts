@@ -85,9 +85,7 @@ document
 			if (error instanceof Error) {
 				showLocalError(`Image conversion error: ${error.message}`);
 			} else {
-				showLocalError(
-					'An unknown error occurred during image conversion.'
-				);
+				showLocalError('An unknown error occurred during image conversion.');
 			}
 			return;
 		}
@@ -115,14 +113,12 @@ document
 					loadPartialView('profile');
 				}
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				`An error occurred while updating your profile: ${
-					error instanceof Error ? error.message : 'Unknown error'
-				}`
+				'An error occurred while updating your profile. Please try again.'
 			);
 		}
 	});
@@ -180,8 +176,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				loadPartialView('profile');
 			} else {
-				console.log(data.message);
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -276,7 +271,7 @@ document
 				loadPartialView('register');
 				updateMenu();
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
