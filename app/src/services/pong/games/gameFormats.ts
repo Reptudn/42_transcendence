@@ -6,13 +6,23 @@ export enum GameStatus {
 	RUNNING = 'running',
 }
 
+export enum PlayerType {
+	USER = 'user',
+	AI = 'ai',
+	LOCAL = 'local',
+	SPECTATOR = 'spectator',
+}
+
 const defaultGameSettings: GameSettings = {
 	map: 'default_map',
 	playerLives: 3,
 	gameDifficulty: 1,
 	powerups: true,
 	maxPlayers: 4, // max players in a game
-	players: null, // no players set by default
+	players: [{
+		type: PlayerType.USER,
+		id: -1,
+	}], // at least one player as required by the type
 };
 
 export class Game {
@@ -85,12 +95,7 @@ export class Game {
 		return true;
 	}
 }
-export enum PlayerType {
-	USER = 'user',
-	AI = 'ai',
-	LOCAL = 'local',
-	SPECTATOR = 'spectator',
-}
+
 export class Player {
 	type: PlayerType;
 	playerId: number; // unique within a game, not to be confused with user id system

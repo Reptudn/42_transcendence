@@ -17,9 +17,7 @@ const maxPlayers = 4;
 
 let gameId: number | undefined = undefined;
 const res = await fetch('/api/games/create', {
-	method: 'POST',
-	headers: { 'Content-Type': 'application/json' },
-	body: JSON.stringify({}) // Sending an empty body for creation
+	method: 'POST'
 });
 if (!res.ok) {
 	showLocalError('Failed to create game');
@@ -31,10 +29,12 @@ const data = await res.json();
 gameId = data.gameId;
 showLocalInfo(`Game created with ID: ${gameId}`);
 
+do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
+
 const friends: Friend[] = await fetch('/api/friends/online')
-	.then((response) => {
+	.then(async (response) => {
 		if (!response.ok) {
-			showLocalError('Failed to fetch friends');
+			showLocalError(await response.json().then(err => err.error || 'Failed to fetch friends'));
 			throw new Error('Failed to fetch friends list');
 		}
 		return response.json();
@@ -128,8 +128,11 @@ export function updateAdditionalSettings(
 			if (selectedFriendId) {
 				try {
 					await inviteFriend(Number.parseInt(selectedFriendId));
+					showLocalInfo('Friend invited successfully!');
+					friendSelect.disabled = true; // Disable the select after inviting
 				} catch (error) {
-					showLocalError(`Failed to invite friend: ${error.message}`);
+					showLocalError(`Failed to invite friend: ${error}`);
+					friendSelect.disabled = true;
 				}
 			} else {
 				showLocalInfo('No friend selected.');

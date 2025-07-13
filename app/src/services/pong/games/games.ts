@@ -1,6 +1,6 @@
 import { Game, Player, PlayerType, GameStatus } from './gameFormats.js';
-import { getMapAsInitialGameState } from './rawMapHandler.js';
-import { tickEngine } from '../engine/engine.js';
+// import { getMapAsInitialGameState } from './rawMapHandler.js';
+// import { tickEngine } from '../engine/engine.js';
 import * as fs from 'fs';
 import * as path from 'path';
 const defaultBotNames = JSON.parse(
@@ -182,7 +182,7 @@ setInterval(() => {
 		}
 		if (game.status === GameStatus.WAITING) continue;
 
-		tickEngine(game);
+		// tickEngine(game);
 
 		// send updated game state to clients
 		for (const player of game.players) {

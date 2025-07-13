@@ -45,9 +45,10 @@ export function updateGameSettings(settings: GameSettings) {
 
 	const playersList = document.getElementById('playerList');
 	if (playersList && settings.players) {
-		playersList.innerHTML = settings.players
-			.map(
-				(player) => `
+
+			playersList.innerHTML = settings.players
+				.map(
+					(player) => `
 			<div>
 				<h2>${player.aiOrLocalPlayerName || `Player ${player.id}`}</h2>
 				<p>Type: ${player.type}</p>
@@ -55,7 +56,7 @@ export function updateGameSettings(settings: GameSettings) {
 			</div>
 		`
 			)
-			.join('');
+			.join('\n');
 	}
 }
 
@@ -80,4 +81,4 @@ declare global {
 		updateGameSettings: (settings: any) => void;
 		// toggleReady: () => void;
 	}
-}
+};
