@@ -15,10 +15,12 @@ const defaultGameSettings: GameSettings = {
 	gameDifficulty: 1,
 	powerups: true,
 	maxPlayers: 4, // max players in a game
-	players: [{
-		type: 'user',
-		id: -1,
-	}], // at least one player as required by the type
+	players: [
+		{
+			type: 'user',
+			id: -1,
+		},
+	], // at least one player as required by the type
 };
 
 export class Game {
@@ -35,7 +37,7 @@ export class Game {
 		gameId: number,
 		admin: User,
 		fastify: FastifyInstance,
-		config: GameSettings = defaultGameSettings,
+		config: GameSettings = defaultGameSettings
 	) {
 		this.gameId = gameId;
 		this.admin = admin;
@@ -46,95 +48,125 @@ export class Game {
 		// this.players.push(new UserPlayer(admin, this, null, 0, "User Player"));
 	}
 
-	async addUserPlayer(user: User)
-	{
+	async addUserPlayer(user: User) {
 		if (this.status !== GameStatus.WAITING)
-			throw new Error("Game already running!");
+			throw new Error('Game already running!');
 
-		if (this.players.length >= this.config.maxPlayers) throw new Error("Game max player amount already reached!");
+		if (this.players.length >= this.config.maxPlayers)
+			throw new Error('Game max player amount already reached!');
 
-		if (this.players.find((player) => player instanceof UserPlayer && (player.user.id === user.id)))
+		if (
+			this.players.find(
+				(player) =>
+					player instanceof UserPlayer && player.user.id === user.id
+			)
+		)
 			throw new Error(`${user.displayname} already in this game!`);
 
-		this.players.push(new UserPlayer(user, this, null, this.players.length + 1, await getUserTitleString(user.id, this.fastify)));
+		this.players.push(
+			new UserPlayer(
+				user,
+				this,
+				null,
+				this.players.length + 1,
+				await getUserTitleString(user.id, this.fastify)
+			)
+		);
 		this.updatePlayers();
 	}
 
-	async addAiPlayer(name: string, aiLevel: number)
-	{
+	async addAiPlayer(name: string, aiLevel: number) {
 		if (this.status !== GameStatus.WAITING)
-			throw new Error("Game already running!");
+			throw new Error('Game already running!');
 
 		if (this.players.length >= this.config.maxPlayers)
-			throw new Error("Game max player amount already reached!");
+			throw new Error('Game max player amount already reached!');
 
-		this.players.push(new AiPlayer(this.players.length + 1, this, name, "AI", aiLevel));
+		this.players.push(
+			new AiPlayer(this.players.length + 1, this, name, 'AI', aiLevel)
+		);
 		this.updatePlayers();
 	}
 
-	addLocalPlayer(owner: UserPlayer)
-	{
+	addLocalPlayer(owner: UserPlayer) {
 		if (this.status !== GameStatus.WAITING)
-			throw new Error("Game already running!");
+			throw new Error('Game already running!');
 
 		if (this.players.length >= this.config.maxPlayers)
-			throw new Error("Game max player amount already reached!");
+			throw new Error('Game max player amount already reached!');
 
-		this.players.push(new LocalPlayer(this.players.length + 1, owner, this));
+		this.players.push(
+			new LocalPlayer(this.players.length + 1, owner, this)
+		);
 		this.updatePlayers();
 	}
 
-	removePlayer(playerId: number)
-	{
-		if (this.status !== GameStatus.WAITING) throw new Error("Game already running!");
+	removePlayer(playerId: number) {
+		if (this.status !== GameStatus.WAITING)
+			throw new Error('Game already running!');
 
-		const playerToRemove: Player | undefined = this.players.find((player) => player.playerId === playerId);
-		if (!playerToRemove) throw new Error("Player not found!");
+		const playerToRemove: Player | undefined = this.players.find(
+			(player) => player.playerId === playerId
+		);
+		if (!playerToRemove) throw new Error('Player not found!');
 
-		this.players = this.players.filter((player) => player.playerId !== playerId);
-		if (playerToRemove instanceof UserPlayer)
-		{
-			if (playerToRemove.user == this.admin)
-			{
-				const newAdmin: UserPlayer | undefined = this.players.find((player) => player instanceof UserPlayer && player.user.id !== this.admin.id) as UserPlayer | undefined;
+		this.players = this.players.filter(
+			(player) => player.playerId !== playerId
+		);
+		if (playerToRemove instanceof UserPlayer) {
+			if (playerToRemove.user == this.admin) {
+				const newAdmin: UserPlayer | undefined = this.players.find(
+					(player) =>
+						player instanceof UserPlayer &&
+						player.user.id !== this.admin.id
+				) as UserPlayer | undefined;
 				if (newAdmin) {
 					this.admin = newAdmin.user;
-					this.fastify.log.info(`New admin ${newAdmin.user.username}`);
+					this.fastify.log.info(
+						`New admin ${newAdmin.user.username}`
+					);
 				}
 				// TODO: when no user is found anymore check that the game is also deleted fully
 			}
 			playerToRemove.disconnect();
-			this.players = this.players.filter((player) => player instanceof LocalPlayer && (player.owner === playerToRemove));
-			this.fastify.log.info(`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`);
+			this.players = this.players.filter(
+				(player) =>
+					player instanceof LocalPlayer &&
+					player.owner === playerToRemove
+			);
+			this.fastify.log.info(
+				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
+			);
 		}
 
-		if (this.players.length === 0)
-		{
-			const index = runningGames.findIndex((game) => game.gameId === this.gameId);
-			if (index !== -1)
-				runningGames.splice(index, 1);
-			this.fastify.log.info(`Deleted Game ${this.gameId} because no players are left!`);
+		if (this.players.length === 0) {
+			const index = runningGames.findIndex(
+				(game) => game.gameId === this.gameId
+			);
+			if (index !== -1) runningGames.splice(index, 1);
+			this.fastify.log.info(
+				`Deleted Game ${this.gameId} because no players are left!`
+			);
 		}
 	}
 
-	private updatePlayers()
-	{
-		for (const player of this.players)
-		{
+	private updatePlayers() {
+		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
 			connectedClients.get(player.user.id)?.send(
 				JSON.stringify({
 					type: 'game_player_update',
 					game_id: this.gameId,
-					players: this.players
+					players: this.players,
 				})
 			);
 		}
 	}
 
 	updateGameSettings(gameSettings: GameSettings) {
-		if (this.status !== GameStatus.WAITING) throw new Error("Game already running!");
+		if (this.status !== GameStatus.WAITING)
+			throw new Error('Game already running!');
 
 		this.config = gameSettings;
 
@@ -198,7 +230,7 @@ export abstract class Player {
 		playerId: number,
 		lives: number,
 		displayName: string,
-		playerTitle: string,
+		playerTitle: string
 	) {
 		this.playerId = playerId;
 		this.lives = lives;
@@ -209,34 +241,45 @@ export abstract class Player {
 	abstract isReady(): boolean;
 }
 
-export class UserPlayer extends Player{
-
+export class UserPlayer extends Player {
 	public user: User;
 	public wsocket: WSWebSocket | null;
 
-	constructor(user: User, game: Game, wsocket: WSWebSocket | null, id: number, playerTitle: string) {
+	constructor(
+		user: User,
+		game: Game,
+		wsocket: WSWebSocket | null,
+		id: number,
+		playerTitle: string
+	) {
 		super(id, game.config.playerLives, user.displayname, playerTitle);
 		this.user = user;
 		this.wsocket = wsocket;
 	}
 
-	isReady() : boolean
-	{
-		return this.wsocket !== null && this.wsocket.readyState === WSWebSocket.OPEN;
+	isReady(): boolean {
+		return (
+			this.wsocket !== null &&
+			this.wsocket.readyState === WSWebSocket.OPEN
+		);
 	}
 
-	disconnect()
-	{
+	disconnect() {
 		this.wsocket?.close();
 	}
 }
 
-export class AiPlayer extends Player{
-
+export class AiPlayer extends Player {
 	public aiMoveCoolDown: number;
 	// data: AIBrainData;
 
-	constructor (id: number, game: Game, name: string, title: string, aiLevel: number) {
+	constructor(
+		id: number,
+		game: Game,
+		name: string,
+		title: string,
+		aiLevel: number
+	) {
 		super(id, game.config.playerLives, name, title);
 		this.aiMoveCoolDown = aiLevel;
 	}
@@ -247,16 +290,20 @@ export class AiPlayer extends Player{
 }
 
 export class LocalPlayer extends Player {
-
 	owner: UserPlayer; // the actual user that created this local player
 
 	// TODO: better way to handle local player with custom names
 	constructor(id: number, owner: UserPlayer, game: Game) {
-		super(id, game.config.playerLives, `${owner.displayName} (Local)`, "Local");
+		super(
+			id,
+			game.config.playerLives,
+			`${owner.displayName} (Local)`,
+			'Local'
+		);
 		this.owner = owner;
 	}
 
-	isReady() : boolean {
+	isReady(): boolean {
 		return this.owner.isReady();
 	}
 }

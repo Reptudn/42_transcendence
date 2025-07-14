@@ -2,7 +2,11 @@ import { FastifyPluginAsync } from 'fastify';
 // import { WebSocket as WSWebSocket } from 'ws';
 // import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
-import { Game, GameStatus, UserPlayer} from '../../../services/pong/games/gameFormats';
+import {
+	Game,
+	GameStatus,
+	UserPlayer,
+} from '../../../services/pong/games/gameFormats';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
@@ -131,13 +135,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
-				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin or normal user
+				let existingGame = runningGames.find(
+					(g) => g.admin.id === user.id
+				); // find game where user is in either as admin or normal user
 				if (existingGame) {
-					return reply.code(400).send({ error: 'User already has a game' });
+					return reply
+						.code(400)
+						.send({ error: 'User already has a game' });
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				const game = new Game(id, user, fastify)
+				const game = new Game(id, user, fastify);
 				runningGames.push(game);
 				await game.addUserPlayer(user); // Adding the admin player
 
@@ -145,7 +153,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 				return reply.code(200).send({
 					message: 'Game created successfully',
-					gameId: id
+					gameId: id,
 				});
 			} catch (err) {
 				fastify.log.error(`Error creating game: ${err}`);
@@ -154,50 +162,70 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	fastify.post('/invite/:userId', {
-		preValidation: [fastify.authenticate],
-	}, async (request, reply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
+	fastify.post(
+		'/invite/:userId',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+			const { userId } = request.params as { userId: string };
+			const parsedUserId = Number.parseInt(userId, 10);
+
+			const inviteUser = await getUserById(parsedUserId, fastify);
+			if (!inviteUser)
+				return reply.code(404).send({ error: `No such user found!` });
+
+			const game = runningGames.find((g) => g.admin.id === user.id);
+			fastify.log.info(
+				`User ${user.username} is inviting user with ID ${parsedUserId} to their game.`
+			);
+			if (!game) {
+				return reply
+					.code(404)
+					.send({ error: 'No game found for the user' });
+			}
+
+			fastify.log.info(
+				`Game found: ${game.gameId} for user ${user.username}`
+			);
+			if (
+				game.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === parsedUserId
+				)
+			) {
+				return reply
+					.code(400)
+					.send({ error: 'User is already invited to the game' });
+			}
+
+			fastify.log.info(
+				`Sending game invite to user with ID ${parsedUserId} for game ${game.gameId}`
+			);
+			// TODO: add the user to the game that they have been invited but not joined
+
+			try {
+				game.addUserPlayer(inviteUser);
+			} catch (err) {
+				return reply.code(404).send({ error: err });
+			}
+
+			sendSseRawByUserId(
+				parsedUserId,
+				`data: ${JSON.stringify({
+					type: 'game_invite',
+					gameId: game.gameId,
+				})}\n\n`
+			);
+
+			return reply.code(200).send({
+				message: `Game invite sent to ${inviteUser!.displayname}`,
+			});
 		}
-		const { userId } = request.params as { userId: string };
-		const parsedUserId = Number.parseInt(userId, 10);
-
-		const inviteUser = await getUserById(parsedUserId, fastify);
-		if (!inviteUser)
-			return reply.code(404).send({ error: `No such user found!`});
-
-		const game = runningGames.find((g) => g.admin.id === user.id);
-		fastify.log.info(`User ${user.username} is inviting user with ID ${parsedUserId} to their game.`);
-		if (!game) {
-			return reply.code(404).send({ error: 'No game found for the user' });
-		}
-
-		fastify.log.info(`Game found: ${game.gameId} for user ${user.username}`);
-		if (game.players.find((p) => p instanceof UserPlayer && p.user.id === parsedUserId)) {
-			return reply.code(400).send({ error: 'User is already invited to the game' });
-		}
-
-		fastify.log.info(`Sending game invite to user with ID ${parsedUserId} for game ${game.gameId}`);
-		// TODO: add the user to the game that they have been invited but not joined
-
-		try {
-			game.addUserPlayer(inviteUser);
-		} catch (err) {
-			return reply.code(404).send({ error: err });
-		}
-
-		sendSseRawByUserId(
-			parsedUserId,
-			`data: ${JSON.stringify({
-				type: 'game_invite',
-				gameId: game.gameId
-			})}\n\n`
-		);
-
-		return reply.code(200).send({ message: `Game invite sent to ${inviteUser!.displayname}` });
-	});
+	);
 
 	// fastify.post(
 	// 	'/start',
@@ -256,18 +284,33 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		if (game.status !== GameStatus.WAITING)
-			return reply.code(404).send({ error: 'The game you are trying to join has already started!' })
+			return reply.code(404).send({
+				error: 'The game you are trying to join has already started!',
+			});
 
-		if (game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)) {
-			if (game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)?.joined) {
-				return reply.code(400).send({ error: 'You are already in the game!' });
+		if (
+			game.players.find(
+				(p) => p instanceof UserPlayer && p.user.id === user.id
+			)
+		) {
+			if (
+				game.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === user.id
+				)?.joined
+			) {
+				return reply
+					.code(400)
+					.send({ error: 'You are already in the game!' });
 			}
-			game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)!.joined = true;
+			game.players.find(
+				(p) => p instanceof UserPlayer && p.user.id === user.id
+			)!.joined = true;
 		}
 
-		return reply.code(200).view('game_lobby', {
+		return reply.code(200).view('lobby', {
 			gameId: game.gameId,
-			gameSettings: game.config
+			gameSettings: game.config,
+			players: game.players,
 		});
 	});
 
