@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 // import { WebSocket as WSWebSocket } from 'ws';
 // import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
-import { Game, Player, PlayerType} from '../../../services/pong/games/gameFormats';
+import { Game, GameStatus, UserPlayer} from '../../../services/pong/games/gameFormats';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
@@ -128,19 +128,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
+
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
-				const existingGame = runningGames.find((g) => g.admin.id === user.id);
+				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin or normal user
 				if (existingGame) {
 					return reply.code(400).send({ error: 'User already has a game' });
 				}
+
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				runningGames.push({
-					gameId: id,
-					admin: user,
-					fastify: fastify
-				} as Game);
-				const game = runningGames[id];
+				const game = new Game(id, user, fastify)
+				runningGames.push(game);
 				await game.addUserPlayer(user); // Adding the admin player
 
 				fastify.log.info(`Game created with ID: ${id}`);
@@ -177,26 +175,24 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		fastify.log.info(`Game found: ${game.gameId} for user ${user.username}`);
-		if (game.players.find((p) => p.userId === parsedUserId)) {
+		if (game.players.find((p) => p instanceof UserPlayer && p.user.id === parsedUserId)) {
 			return reply.code(400).send({ error: 'User is already invited to the game' });
 		}
 
 		fastify.log.info(`Sending game invite to user with ID ${parsedUserId} for game ${game.gameId}`);
 		// TODO: add the user to the game that they have been invited but not joined
 
-		const id: number | undefined = game ? game.gameId : undefined;
-
-		if (id === undefined) {
-			return reply.code(404).send({ error: 'Game not found' });
+		try {
+			game.addUserPlayer(inviteUser);
+		} catch (err) {
+			return reply.code(404).send({ error: err });
 		}
-
-
 
 		sendSseRawByUserId(
 			parsedUserId,
 			`data: ${JSON.stringify({
 				type: 'game_invite',
-				gameId: id
+				gameId: game.gameId
 			})}\n\n`
 		);
 
@@ -246,34 +242,34 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// 	}
 	// );
 
-	// fastify.get('/join/:gameId', {}, async (request, reply) => {
-	// 	const user = await checkAuth(request, false, fastify);
-	// 	if (!user) {
-	// 		return reply.code(401).send({ error: 'Unauthorized' });
-	// 	}
-	// 	const { gameId } = request.params as { gameId: string };
-	// 	const parsedGameId = Number.parseInt(gameId, 10);
+	fastify.get('/join/:gameId', {}, async (request, reply) => {
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+		const { gameId } = request.params as { gameId: string };
+		const parsedGameId = Number.parseInt(gameId, 10);
 
-	// 	const game = runningGames.find((g) => g.gameId === parsedGameId);
-	// 	if (!game) {
-	// 		return reply.code(404).send({ error: 'Game not found' });
-	// 	}
+		const game = runningGames.find((g) => g.gameId === parsedGameId);
+		if (!game) {
+			return reply.code(404).send({ error: 'Game not found' });
+		}
 
-	// 	if (game.status !== 'waiting')
-	// 		return reply.code(404).send({ error: 'The game you are trying to join has already started!' })
+		if (game.status !== GameStatus.WAITING)
+			return reply.code(404).send({ error: 'The game you are trying to join has already started!' })
 
-	// 	if (game.players.find((p) => p.userId === user.id)) {
-	// 		if (game.players.find((p) => p.userId === user.id)?.joined) {
-	// 			return reply.code(400).send({ error: 'You are already in the game!' });
-	// 		}
-	// 		game.players.find((p) => p.userId === user.id)!.joined = true;
-	// 	}
+		if (game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)) {
+			if (game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)?.joined) {
+				return reply.code(400).send({ error: 'You are already in the game!' });
+			}
+			game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id)!.joined = true;
+		}
 
-	// 	return reply.code(200).view('game_lobby', {
-	// 		gameId: game.gameId,
-	// 		gameSettings: game.gameSettings
-	// 	});
-	// });
+		return reply.code(200).view('game_lobby', {
+			gameId: game.gameId,
+			gameSettings: game.config
+		});
+	});
 
 	// fastify.get(
 	// 	'/join/:gameId/:playerId',
