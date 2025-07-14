@@ -120,6 +120,17 @@
 		color: inherit;
 	}
 
+	#header-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100px; /* Höhe des Headers */
+		background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+		pointer-events: none; /* Verhindert Interaktionen */
+		z-index: 999; /* Über dem Inhalt */
+	}
+
 	/* #popup-wrapper {
 		position: absolute;
 	} */
