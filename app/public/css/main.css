@@ -91,6 +91,35 @@
 		border: 5px double #00ff00;
 	}
 
+	.alert {
+		pointer-events: auto;
+		animation: slideIn 0.3s ease-in-out;
+		padding: 1rem;
+		border-left-width: 4px;
+		border-radius: 0.5rem;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		position: relative;
+	}
+
+	.alert-red {
+		border-color: #ef4444; /* Red */
+	}
+
+	.alert-yellow {
+		border-color: #facc15; /* Yellow */
+	}
+
+	.alert-green {
+		border-color: #10b981; /* Green */
+	}
+
+	.close-icon {
+		fill: currentColor;
+		width: 1.5rem;
+		height: 1.5rem;
+		color: inherit;
+	}
+
 	/* #popup-wrapper {
 		position: absolute;
 	} */

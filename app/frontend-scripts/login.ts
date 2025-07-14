@@ -21,10 +21,10 @@ const loginAction = async () => {
 			showLocalInfo('You have logged in successfully');
 		} else {
 			const data = await response.json();
-			showLocalError(`Error: ${data.message}`);
+			showLocalError(`${data.message}`);
 		}
 	} catch (error) {
-		console.error('Error:', error);
+		console.error(error);
 		showLocalError('An error occurred. Please try again.');
 	}
 };
