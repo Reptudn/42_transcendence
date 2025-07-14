@@ -1,16 +1,12 @@
-import type { WebSocket as WSWebSocket } from 'ws';
+import { WebSocket as WSWebSocket } from 'ws';
 import { connectedClients } from '../../sse/handler';
+import { getUserTitleString } from '../../database/users';
+import { FastifyInstance } from 'fastify';
+import { runningGames } from './games';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
-}
-
-export enum PlayerType {
-	USER = 'user',
-	AI = 'ai',
-	LOCAL = 'local',
-	SPECTATOR = 'spectator',
 }
 
 const defaultGameSettings: GameSettings = {
@@ -20,7 +16,7 @@ const defaultGameSettings: GameSettings = {
 	powerups: true,
 	maxPlayers: 4, // max players in a game
 	players: [{
-		type: PlayerType.USER,
+		type: 'user',
 		id: -1,
 	}], // at least one player as required by the type
 };
@@ -31,64 +27,155 @@ export class Game {
 	admin: User;
 	players: Player[] = [];
 	// gameState: GameState = {};
-	gameSettings: GameSettings;
+	config: GameSettings;
+
+	fastify: FastifyInstance;
 
 	constructor(
 		gameId: number,
 		admin: User,
-		gameSettings: GameSettings = defaultGameSettings,
+		fastify: FastifyInstance,
+		config: GameSettings = defaultGameSettings,
 	) {
 		this.gameId = gameId;
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
-		this.gameSettings = gameSettings;
-		// push admin as first player
+		this.fastify = fastify;
+		this.config = config;
+		this.players = [];
+		// this.players.push(new UserPlayer(admin, this, null, 0, "User Player"));
+	}
+
+	async addUserPlayer(user: User)
+	{
+		if (this.status !== GameStatus.WAITING)
+			throw new Error("Game already running!");
+
+		if (this.players.length >= this.config.maxPlayers) throw new Error("Game max player amount already reached!");
+
+		if (this.players.find((player) => player instanceof UserPlayer && (player.user.id === user.id)))
+			throw new Error(`${user.displayname} already in this game!`);
+
+		this.players.push(new UserPlayer(user, this, null, this.players.length + 1, await getUserTitleString(user.id, this.fastify)));
+		this.updatePlayers();
+	}
+
+	async addAiPlayer(name: string, aiLevel: number)
+	{
+		if (this.status !== GameStatus.WAITING)
+			throw new Error("Game already running!");
+
+		if (this.players.length >= this.config.maxPlayers)
+			throw new Error("Game max player amount already reached!");
+
+		this.players.push(new AiPlayer(this.players.length + 1, this, name, "AI", aiLevel));
+		this.updatePlayers();
+	}
+
+	addLocalPlayer(owner: UserPlayer)
+	{
+		if (this.status !== GameStatus.WAITING)
+			throw new Error("Game already running!");
+
+		if (this.players.length >= this.config.maxPlayers)
+			throw new Error("Game max player amount already reached!");
+
+		this.players.push(new LocalPlayer(this.players.length + 1, owner, this));
+		this.updatePlayers();
+	}
+
+	removePlayer(playerId: number)
+	{
+		if (this.status !== GameStatus.WAITING) throw new Error("Game already running!");
+
+		const playerToRemove: Player | undefined = this.players.find((player) => player.playerId === playerId);
+		if (!playerToRemove) throw new Error("Player not found!");
+
+		this.players = this.players.filter((player) => player.playerId !== playerId);
+		if (playerToRemove instanceof UserPlayer)
+		{
+			if (playerToRemove.user == this.admin)
+			{
+				const newAdmin: UserPlayer | undefined = this.players.find((player) => player instanceof UserPlayer && player.user.id !== this.admin.id) as UserPlayer | undefined;
+				if (newAdmin) {
+					this.admin = newAdmin.user;
+					this.fastify.log.info(`New admin ${newAdmin.user.username}`);
+				}
+				// TODO: when no user is found anymore check that the game is also deleted fully
+			}
+			playerToRemove.disconnect();
+			this.players = this.players.filter((player) => player instanceof LocalPlayer && (player.owner === playerToRemove));
+			this.fastify.log.info(`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`);
+		}
+
+		if (this.players.length === 0)
+		{
+			const index = runningGames.findIndex((game) => game.gameId === this.gameId);
+			if (index !== -1)
+				runningGames.splice(index, 1);
+			this.fastify.log.info(`Deleted Game ${this.gameId} because no players are left!`);
+		}
+	}
+
+	private updatePlayers()
+	{
+		for (const player of this.players)
+		{
+			if (!(player instanceof UserPlayer)) continue;
+
+			connectedClients.get(player.user.id)?.send(
+				JSON.stringify({
+					type: 'game_player_update',
+					game_id: this.gameId,
+					players: this.players
+				})
+			);
+		}
 	}
 
 	updateGameSettings(gameSettings: GameSettings) {
-		if (this.status !== GameStatus.WAITING) return;
+		if (this.status !== GameStatus.WAITING) throw new Error("Game already running!");
 
-		this.gameSettings = gameSettings;
+		this.config = gameSettings;
 
 		for (const player of this.players) {
-			const id = player.userId;
-			if (!id) continue;
+			if (!(player instanceof UserPlayer)) continue;
 
-			connectedClients.get(id)?.send(
+			connectedClients.get(player.user.id)?.send(
 				JSON.stringify({
 					type: 'game_settings_update',
 					gameId: this.gameId,
-					gameSettings: this.gameSettings,
+					gameSettings: this.config,
 				})
 			);
 		}
 	}
 
-	addPlayer(player: Player) {
-		if (this.status !== GameStatus.WAITING) return;
+	// addPlayer(player: Player) {
+	// 	if (this.status !== GameStatus.WAITING) return;
 
-		player.playerId = this.players.length;
-		this.players.push(player);
+	// 	player.playerId = this.players.length;
+	// 	this.players.push(player);
 
-		if (
-			player.userId &&
-			player.type === PlayerType.USER &&
-			player.userId !== this.admin.id &&
-			connectedClients.has(player.userId)
-		) {
-			connectedClients.get(player.userId)?.send(
-				JSON.stringify({
-					type: 'game_request',
-					gameId: this.gameId,
-					playerId: player.playerId,
-				})
-			);
-		}
-	}
+	// 	if (
+	// 		player.userId &&
+	// 		player.type === PlayerType.USER &&
+	// 		player.userId !== this.admin.id &&
+	// 		connectedClients.has(player.userId)
+	// 	) {
+	// 		connectedClients.get(player.userId)?.send(
+	// 			JSON.stringify({
+	// 				type: 'game_request',
+	// 				gameId: this.gameId,
+	// 				playerId: player.playerId,
+	// 			})
+	// 		);
+	// 	}
+	// }
 
 	isReady() {
 		for (const player of this.players) {
-			if (!player.isReady(this)) {
+			if (!player.isReady()) {
 				return false;
 			}
 		}
@@ -96,88 +183,84 @@ export class Game {
 	}
 }
 
-export class Player {
-	type: PlayerType;
-	playerId: number; // unique within a game, not to be confused with user id system
+export abstract class Player {
+	public playerId: number; // unique within a game, not to be confused with user id system
 
-	// PlayerType.USER
-	wsocket: WSWebSocket | null;
-	userId: number | null;
-	username: string | null;
-	displayName: string | null;
-	playerTitle: string | null;
+	public displayName: string;
+	public playerTitle: string;
 
-	// PlayerType.AI
-	aiLevel: number | null;
-	aiName: string | null;
-	aiBrainData: AIBrainData | null;
+	public lives = 3;
+	public movementDirection: number = 0; // -1 | 0 | 1
 
-	// PlayerType.LOCAL
-	// for local players, userId saves admin user id
-	localPlayerId: number | null;
-	localPlayerName: string | null;
-
-	// live game data
-	lives = 3;
-	movementDirection: number = 0; // -1 | 0 | 1
-	// aiMoveCoolDown: number = aiLevel;
-
-	joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
+	public joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
 
 	constructor(
-		type: PlayerType,
 		playerId: number,
 		lives: number,
-		userId: number | null = null,
-		wsocket: WSWebSocket | null = null,
-		aiLevel: number | null = null,
-		localPlayerId: number | null = null,
-		username: string | null = null,
-		displayName: string | null = null,
-		playerTitle: string | null = null,
-		aiName: string | null = null,
-		localPlayerName: string | null = null
+		displayName: string,
+		playerTitle: string,
 	) {
-		this.type = type;
 		this.playerId = playerId;
 		this.lives = lives;
-		this.userId = userId;
-		this.wsocket = wsocket;
-		this.aiLevel = aiLevel;
-		this.aiBrainData = null;
-		this.localPlayerId = localPlayerId;
-		this.username = username;
 		this.displayName = displayName;
 		this.playerTitle = playerTitle;
-		this.aiName = aiName;
-		this.localPlayerName = localPlayerName;
 	}
 
-	isReady(game: Game) {
+	abstract isReady(): boolean;
+}
 
-		if (!this.joined) return false;
+export class UserPlayer extends Player{
 
-		if (this.type === PlayerType.SPECTATOR) {
-			return true; // spectators are always ready
-		}
+	public user: User;
+	public wsocket: WSWebSocket | null;
 
-		switch (this.type) {
-			case PlayerType.USER:
-				return this.wsocket !== null;
+	constructor(user: User, game: Game, wsocket: WSWebSocket | null, id: number, playerTitle: string) {
+		super(id, game.config.playerLives, user.displayname, playerTitle);
+		this.user = user;
+		this.wsocket = wsocket;
+	}
 
-			case PlayerType.AI:
-				return true;
+	isReady() : boolean
+	{
+		return this.wsocket !== null && this.wsocket.readyState === WSWebSocket.OPEN;
+	}
 
-			case PlayerType.LOCAL: {
-				const adminPlayer = game.players.find(
-					(player) => player.userId === this.userId
-				);
-
-				return adminPlayer?.wsocket !== null;
-			}
-		}
+	disconnect()
+	{
+		this.wsocket?.close();
 	}
 }
+
+export class AiPlayer extends Player{
+
+	public aiMoveCoolDown: number;
+	// data: AIBrainData;
+
+	constructor (id: number, game: Game, name: string, title: string, aiLevel: number) {
+		super(id, game.config.playerLives, name, title);
+		this.aiMoveCoolDown = aiLevel;
+	}
+
+	isReady(): boolean {
+		return true;
+	}
+}
+
+export class LocalPlayer extends Player {
+
+	owner: UserPlayer; // the actual user that created this local player
+
+	// TODO: better way to handle local player with custom names
+	constructor(id: number, owner: UserPlayer, game: Game) {
+		super(id, game.config.playerLives, `${owner.displayName} (Local)`, "Local");
+		this.owner = owner;
+	}
+
+	isReady() : boolean {
+		return this.owner.isReady();
+	}
+}
+
 export interface AIBrainData {
 	aiLastBallDistance: number;
 	aiDelayCounter: number;

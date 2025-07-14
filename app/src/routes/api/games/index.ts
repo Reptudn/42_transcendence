@@ -5,6 +5,7 @@ import { checkAuth } from '../../../services/auth/auth';
 import { Game, Player, PlayerType} from '../../../services/pong/games/gameFormats';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
+import { getUserById } from '../../../services/database/users';
 // import { createGameInDB } from '../../../services/database/games';
 
 // const startGameSchema = {
@@ -134,25 +135,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					return reply.code(400).send({ error: 'User already has a game' });
 				}
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				fastify.log.info(`Game created with ID: ${id}`);
 				runningGames.push({
 					gameId: id,
-					admin: user
+					admin: user,
+					fastify: fastify
 				} as Game);
 				const game = runningGames[id];
+				await game.addUserPlayer(user); // Adding the admin player
 
-				// TODO: find a better approach for this
-				game.players.splice(0, game.players.length); // Clear players array
-				game.players.push(new Player(
-					PlayerType.USER,
-					0,
-					3
-				));
-				game.players[0].userId = user.id;
-				game.players[0].joined = true;
-				game.admin = user;
-
-				// ---------
+				fastify.log.info(`Game created with ID: ${id}`);
 
 				return reply.code(200).send({
 					message: 'Game created successfully',
@@ -174,6 +165,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 		const { userId } = request.params as { userId: string };
 		const parsedUserId = Number.parseInt(userId, 10);
+
+		const inviteUser = await getUserById(parsedUserId, fastify);
+		if (!inviteUser)
+			return reply.code(404).send({ error: `No such user found!`});
+
 		const game = runningGames.find((g) => g.admin.id === user.id);
 		fastify.log.info(`User ${user.username} is inviting user with ID ${parsedUserId} to their game.`);
 		if (!game) {
@@ -181,9 +177,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		fastify.log.info(`Game found: ${game.gameId} for user ${user.username}`);
-		// if (game.players.find((p) => p.userId === parsedUserId)) {
-		// 	return reply.code(400).send({ error: 'User is already invited to the game' });
-		// }
+		if (game.players.find((p) => p.userId === parsedUserId)) {
+			return reply.code(400).send({ error: 'User is already invited to the game' });
+		}
 
 		fastify.log.info(`Sending game invite to user with ID ${parsedUserId} for game ${game.gameId}`);
 		// TODO: add the user to the game that they have been invited but not joined
@@ -194,6 +190,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			return reply.code(404).send({ error: 'Game not found' });
 		}
 
+
+
 		sendSseRawByUserId(
 			parsedUserId,
 			`data: ${JSON.stringify({
@@ -202,7 +200,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			})}\n\n`
 		);
 
-		return reply.code(200).send({ message: 'Game invite sent' });
+		return reply.code(200).send({ message: `Game invite sent to ${inviteUser!.displayname}` });
 	});
 
 	// fastify.post(
