@@ -25,6 +25,24 @@ export function updateActiveMenu(selectedPage: string): void {
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
+let was_in_game = false;
+async function leaveGame()
+{
+	if (!was_in_game) return;
+
+	const response = await fetch('/api/games/leave', {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		showLocalError(`Failed to leave game: ${response.statusText}`);
+		return;
+	}
+
+	was_in_game = false;
+	showLocalInfo('You have left the game successfully.');
+}
+
 export async function loadPartialView(
 	page: string,
 	pushState = true,
@@ -103,7 +121,12 @@ export async function loadPartialView(
 			console.warn('Content element not found');
 		}
 
+		if (was_in_game)
+			await leaveGame();
+	
 		updateActiveMenu(page);
+		if (page === 'game' || page === 'lobby' || page === 'game_setup')
+			was_in_game = true;
 
 		if (pushState) {
 			console.info('pushing state: ', url);

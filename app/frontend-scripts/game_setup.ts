@@ -31,7 +31,7 @@ showLocalInfo(`Game created with ID: ${gameId}`);
 
 do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
 
-const friends: Friend[] = await fetch('/api/friends/online')
+const friends: Friend[] = await fetch('/api/friends/online', { method: 'POST' })
 	.then(async (response) => {
 		if (!response.ok) {
 			showLocalError(await response.json().then(err => err.error || 'Failed to fetch friends'));

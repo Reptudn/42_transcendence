@@ -114,20 +114,6 @@ export class Game {
 			(player) => player.playerId !== playerId
 		);
 		if (playerToRemove instanceof UserPlayer) {
-			if (playerToRemove.user == this.admin) {
-				const newAdmin: UserPlayer | undefined = this.players.find(
-					(player) =>
-						player instanceof UserPlayer &&
-						player.user.id !== this.admin.id
-				) as UserPlayer | undefined;
-				if (newAdmin) {
-					this.admin = newAdmin.user;
-					this.fastify.log.info(
-						`New admin ${newAdmin.user.username}`
-					);
-				}
-				// TODO: when no user is found anymore check that the game is also deleted fully
-			}
 			playerToRemove.disconnect();
 			this.players = this.players.filter(
 				(player) =>
@@ -137,6 +123,20 @@ export class Game {
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
+		}
+
+		if (playerToRemove instanceof UserPlayer && playerToRemove.user.id == this.admin.id) {
+			for (const player of this.players) {
+				if (!(player instanceof UserPlayer)) continue;
+				player.disconnect();
+				connectedClients.get(player.user.id)?.send(
+					JSON.stringify({
+						type: 'game_closed',
+						message: 'Game admin left, game closed.',
+					})
+				);
+			}
+			this.players = [];
 		}
 
 		if (this.players.length === 0) {

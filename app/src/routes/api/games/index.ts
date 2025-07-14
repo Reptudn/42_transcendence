@@ -227,6 +227,52 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
+	fastify.post('/leave', {
+		preValidation: [fastify.authenticate],
+	}, async (request, reply) => {
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+
+		const game = runningGames.find((g) => g.admin.id === user.id);
+		if (!game) {
+			return reply.code(404).send({ error: 'No game found for the user' });
+		}
+
+		try {
+			game.removePlayer(user.id);
+		} catch (err) {
+			return reply.code(500).send({ error: err });
+		}
+		return reply.code(200).send({ message: 'Left game successfully' });
+	});
+
+	fastify.post('/kick/:playerId', {
+		preValidation: [fastify.authenticate],
+	}, async (request, reply) => {
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+
+		const { userId } = request.params as { userId: string };
+		const parsedUserId = Number.parseInt(userId, 10);
+
+		const game = runningGames.find((g) => g.admin.id === user.id);
+		if (!game) {
+			return reply.code(404).send({ error: 'No game found for the user' });
+		}
+
+		const playerToKick = game.players.find((p) => p.playerId === parsedUserId);
+		if (!playerToKick) {
+			return reply.code(404).send({ error: 'No such player found in the game' });
+		}
+
+		game.removePlayer(parsedUserId);
+		return reply.code(200).send({ message: `Player ${playerToKick.displayName} kicked from the game` });
+	});
+
 	// fastify.post(
 	// 	'/start',
 	// 	{
