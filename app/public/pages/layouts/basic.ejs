@@ -48,8 +48,9 @@
 					</h1>
 				<div id="menu" class="order-last flex justify-center lg:justify-end items-center w-full lg:w-auto">
 					<% if (!isAuthenticated) { %> <%-
-					include('layouts/menu/guest') %> <% } else { %> <%-
-					include('layouts/menu/loggedin') %> <% } %>
+						include('layouts/menu/guest') %>
+					<% } else { %> <%-
+						include('layouts/menu/loggedin') %> <% } %>
 				</div>
 				<%- include('misc/lang_select') %>
 			</div>

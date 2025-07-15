@@ -88,6 +88,9 @@ document
 				showLocalError(
 					'An unknown error occurred during image conversion.'
 				);
+				showLocalError(
+					'An unknown error occurred during image conversion.'
+				);
 			}
 			return;
 		}
@@ -120,7 +123,9 @@ document
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				'An error occurred while updating your profile. Please try again.'
+				`An error occurred while updating your profile: ${
+					error instanceof Error ? error.message : 'Unknown error'
+				}`
 			);
 		}
 	});
@@ -178,6 +183,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				loadPartialView('profile');
 			} else {
+				console.log(data.message);
 				showLocalError(`${data.message}`);
 			}
 		} catch (error) {
@@ -206,7 +212,7 @@ document
 			formData.oldPassword = oldPasswordField.value;
 			formData.newPassword = newPasswordField.value;
 		} else {
-			alert('Please fill in both fields to change password.');
+			showLocalError('Please fill in both fields to change password.');
 			return;
 		}
 
