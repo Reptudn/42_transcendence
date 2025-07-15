@@ -31,7 +31,7 @@ showLocalInfo(`Game created with ID: ${gameId}`);
 
 do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
 
-const friends: Friend[] = await fetch('/api/friends/online', { method: 'POST' })
+const friends: Friend[] = await fetch('/api/friends/online', { method: 'GET' })
 	.then(async (response) => {
 		if (!response.ok) {
 			showLocalError(await response.json().then(err => err.error || 'Failed to fetch friends'));
@@ -50,7 +50,8 @@ const friends: Friend[] = await fetch('/api/friends/online', { method: 'POST' })
 		console.error('Error fetching friends:', error);
 		showLocalError('Failed to load friends list. Please try again later.');
 		return [];
-	});
+	}
+);
 
 export function createPlayerCard(index: number): HTMLElement {
 	const card = document.createElement('div');
