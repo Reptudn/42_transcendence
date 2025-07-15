@@ -3,7 +3,7 @@ import { showLocalError, showLocalInfo } from './alert.js';
 declare global {
 	interface Window {
 		updateActiveMenu: (selectedPage: string) => void;
-		loadPartialView: (page: string, pushState?: boolean) => Promise<void>;
+		loadPartialView: (page: string, pushState?: boolean, subroute?: string | null, isPartial?: boolean) => Promise<void>;
 		updateMenu: () => Promise<void>;
 		logout: () => Promise<void>;
 		fetchNumber: () => Promise<void>;
@@ -46,15 +46,21 @@ async function leaveGame()
 export async function loadPartialView(
 	page: string,
 	pushState = true,
-	subroute: string | null = null
+	subroute: string | null = null,
+	isPartial: boolean = true
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers.Authorization = `Bearer ${token}`;
 
-	const url = subroute
-		? `/partial/pages/${page}/${subroute}`
-		: `/partial/pages/${page}`;
+	let url: string;
+	if (isPartial)
+		url = subroute
+			? `/partial/pages/${page}/${subroute}`
+			: `/partial/pages/${page}`;
+	else url = subroute
+			? `/${page}/${subroute}`
+			: `${page}`;
 
 	try {
 		const response: Response = await fetch(url, {
@@ -146,10 +152,10 @@ export async function loadPartialView(
 }
 
 // history change event
-window.addEventListener('popstate', (event: PopStateEvent) => {
+window.addEventListener('popstate', async (event: PopStateEvent) => {
 	const state = event.state;
 	if (event.state && typeof event.state.page === 'string') {
-		loadPartialView(
+		await loadPartialView(
 			state.page,
 			false,
 			state.subroute ? state.subroute : null
@@ -236,7 +242,7 @@ async function logout(): Promise<void> {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			updateMenu();
-			loadPartialView('index');
+			await loadPartialView('index');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');

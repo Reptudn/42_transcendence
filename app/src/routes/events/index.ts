@@ -219,17 +219,24 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				callback2: string;
 				buttonName2: string;
 			};
-			sendPopupToClient(
-				user.id,
-				title,
-				description,
-				color,
-				callback1,
-				buttonName1,
-				callback2,
-				buttonName2
-			);
-			return reply.send({ message: 'Popup sent' });
+			try {
+				fastify.log.info("before send popup");
+				sendPopupToClient(
+					user.id,
+					title,
+					description,
+					color,
+					callback1,
+					buttonName1,
+					callback2,
+					buttonName2
+				);
+				fastify.log.info("after send popup");
+				return reply.code(200).send({ message: 'Popup sent' });
+			} catch (err) {
+				console.error('Error sending popup:', err);
+				return reply.code(500).send({ message: 'Error sending popup' });
+			}
 		}
 	);
 };

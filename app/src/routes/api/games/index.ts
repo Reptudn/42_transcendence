@@ -235,8 +235,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			fastify.log.info(
 				`Sending game invite to user with ID ${parsedUserId} for game ${game.gameId}`
 			);
-			// TODO: add the user to the game that they have been invited but not joined
-
+			if (game.status !== GameStatus.WAITING) {
+				return reply.code(400).send({
+					error: 'Cannot invite players to a game that has already started',
+				});
+			}
 			try {
 				game.addUserPlayer(inviteUser);
 			} catch (err) {
@@ -244,7 +247,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			sendSseRawByUserId(
-				parsedUserId,
+				inviteUser.id,
 				`data: ${JSON.stringify({
 					type: 'game_invite',
 					gameId: game.gameId,
@@ -384,9 +387,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 
 		return reply.code(200).view('lobby', {
-			gameId: game.gameId,
-			gameSettings: game.config,
-			players: game.players,
+			ownerName: game.admin.displayname,
+			gameSettings: JSON.stringify(game.config),
+			players: JSON.stringify(game.players),
 		});
 	});
 

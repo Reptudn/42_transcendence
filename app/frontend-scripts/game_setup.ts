@@ -129,7 +129,6 @@ export function updateAdditionalSettings(
 			if (selectedFriendId) {
 				try {
 					await inviteFriend(Number.parseInt(selectedFriendId));
-					showLocalInfo('Friend invited successfully!');
 					friendSelect.disabled = true; // Disable the select after inviting
 				} catch (error) {
 					showLocalError(`Failed to invite friend: ${error}`);
@@ -197,6 +196,7 @@ addPlayerButton.addEventListener('click', () => {
 	playersContainer.appendChild(newCard);
 });
 
+// correctly remove the invite  / kick user from game
 removePlayerButton.addEventListener('click', () => {
 	const currentPlayers = playersContainer.querySelectorAll('.player-card');
 	if (currentPlayers.length <= 1) {
@@ -209,14 +209,14 @@ removePlayerButton.addEventListener('click', () => {
 async function inviteFriend(friendId: number): Promise<void> {
 	const response = await fetch(`/api/games/invite/${friendId}`, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
 	});
 	if (!response.ok) {
 		const error = await response.json();
-		showLocalError(`Failed to invite friend: ${error.error}`);
+		showLocalError(`${error.error}`);
 		throw new Error(`Failed to invite friend: ${error.error}`);
 	}
-	showLocalInfo(`Friend invited successfully!`);
+	const data = await response.json() as { message: string };
+	showLocalInfo(`${data.message}`);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
 

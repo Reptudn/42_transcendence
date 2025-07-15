@@ -8,7 +8,7 @@ const playerId = urlParams.get('playerId');
 
 if (!gameId || !playerId) {
 	showLocalError('Missing game ID or player ID. Please join via the chat setup.');
-	loadPartialView('chat_setup');
+	await loadPartialView('chat_setup');
 }
 
 console.log(
