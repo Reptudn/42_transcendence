@@ -1,4 +1,4 @@
-<div class="max-w-7xl p-6 rounded-lg shadow-md glow-green text-2xl">
+<div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
 	<% if (isSelf) { %>
 	<div class="flex justify-end ">
 		<a
@@ -36,7 +36,7 @@
 		<div class="flex flex-wrap gap-4">
 			<% friends.forEach(friend=> { %>
 			<div
-				class="flex flex-col items-center p-4 rounded-lg shadow-sm"
+				class="flex flex-col items-center p-4 rounded-lg"
 			>
 				<a
 					href="/partial/pages/profile/<%= friend.id %>"
@@ -68,7 +68,7 @@
 			</div>
 			<% }) %> <% if (isSelf) { %>
 			<div
-				class="flex flex-col items-center p-4 rounded-lg shadow-sm"
+				class="flex flex-col items-center p-4 rounded-lg"
 			>
 				<a
 					onclick="loadPartialView('add_friends')"

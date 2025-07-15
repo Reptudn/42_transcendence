@@ -91,6 +91,47 @@
 		border: 5px double #00ff00;
 	}
 
+	#popup-container {
+		max-height: 80vh; /* Begrenze die Höhe des Containers */
+		overflow-y: auto; /* Ermöglicht vertikales Scrollen */
+		scrollbar-width: none;
+	}
+
+	/* Für Webkit-basierte Browser (Chrome, Edge, etc.) */
+	#popup-container::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	#popup-container::-webkit-scrollbar-thumb {
+		background-color: #00ff00; /* Farbe der Scrollbar */
+		border-radius: 4px;
+	}
+
+	#popup-container::-webkit-scrollbar-track {
+		background-color: #1a1a1a; /* Hintergrund der Scrollbar */
+	}
+
+	/* Für Webkit-basierte Browser (Chrome, Edge, etc.) */
+	html::-webkit-scrollbar {
+		width: 12px; /* Breite der Scrollbar */
+	}
+
+	html::-webkit-scrollbar-thumb {
+		background-color: #00ff00; /* Farbe der Scrollbar */
+		border-radius: 6px; /* Abgerundete Ecken */
+		border: 2px solid #1a1a1a; /* Rand um die Scrollbar */
+	}
+
+	html::-webkit-scrollbar-track {
+		background-color: #1a1a1a; /* Hintergrund der Scrollbar */
+	}
+
+	/* Für Firefox */
+	html {
+		scrollbar-width: thin; /* Dünne Scrollbar */
+		scrollbar-color: #00ff00 #1a1a1a; /* Farbe der Scrollbar und des Hintergrunds */
+	}
+
 	.alert {
 		pointer-events: auto;
 		animation: slideIn 0.3s ease-in-out;
@@ -130,10 +171,6 @@
 		pointer-events: none; /* Verhindert Interaktionen */
 		z-index: 999; /* Über dem Inhalt */
 	}
-
-	/* #popup-wrapper {
-		position: absolute;
-	} */
 
 	@keyframes scanlines-move {
 		0% {
