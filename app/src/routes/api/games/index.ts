@@ -162,6 +162,36 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
+	// TODO: add schema verification for correct settings
+	fastify.post('/settings', {
+		preValidation: [fastify.authenticate],
+		schema: {
+			body: {
+				type: 'object',
+				properties: {
+					settings: {
+						type: 'string'
+					}
+				}
+			}
+		}
+	}, async (request, reply) => {
+		const { settings } = request.body as { settings: GameSettings };
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+
+		const game = runningGames.find((g) => g.admin.id === user.id);
+		if (!game) {
+			return reply.code(404).send({ error: 'No game found for the user' });
+		}
+
+		game.updateGameSettings(settings);
+		return reply.code(200).send({ message: 'Game settings updated successfully' });
+	});
+
+	// TODO: add invite cancel
 	fastify.post(
 		'/invite/:userId',
 		{

@@ -1,5 +1,5 @@
 import { WebSocket as WSWebSocket } from 'ws';
-import { connectedClients } from '../../sse/handler';
+import { connectedClients, sendSseRawByUserId } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { runningGames } from './games';
@@ -154,13 +154,11 @@ export class Game {
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
-			connectedClients.get(player.user.id)?.send(
-				JSON.stringify({
-					type: 'game_player_update',
-					game_id: this.gameId,
-					players: this.players,
-				})
-			);
+			sendSseRawByUserId(player.user.id, JSON.stringify({
+				type: 'game_player_update',
+				game_id: this.gameId,
+				players: this.players,
+			}));
 		}
 	}
 

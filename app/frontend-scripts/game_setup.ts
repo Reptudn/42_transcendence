@@ -20,7 +20,7 @@ const res = await fetch('/api/games/create', {
 	method: 'POST'
 });
 if (!res.ok) {
-	showLocalError('Failed to create game');
+	showLocalError(`Failed to create game: ${res.statusText}`);
 	loadPartialView('profile');
 	throw new Error('Failed to create game'); // Stop execution here
 }
