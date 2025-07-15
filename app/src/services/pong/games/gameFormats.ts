@@ -49,6 +49,9 @@ export class Game {
 	}
 
 	async addUserPlayer(user: User) {
+		if (!connectedClients.get(user.id))
+			throw new Error("Can't invite a user which is offline!");
+
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 

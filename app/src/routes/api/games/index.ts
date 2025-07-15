@@ -10,6 +10,7 @@ import {
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
+import { getFriends } from '../../../services/database/friends';
 // import { createGameInDB } from '../../../services/database/games';
 
 // const startGameSchema = {
@@ -192,6 +193,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	});
 
 	// TODO: add invite cancel
+	// this invites another user
 	fastify.post(
 		'/invite/:userId',
 		{
@@ -208,6 +210,14 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const inviteUser = await getUserById(parsedUserId, fastify);
 			if (!inviteUser)
 				return reply.code(404).send({ error: `No such user found!` });
+
+			const friends = await getFriends(user.id, fastify);
+			if (friends)
+			{
+				const isFriend = friends.find((f) => f.id === inviteUser.id);
+				if (!isFriend)
+					return reply.code(401).send({ error: 'Cant invite user because they are not friends with you!' });
+			}
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
@@ -260,6 +270,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
+	// this is there to leave a game for a UserPlayer
 	fastify.post('/leave', {
 		preValidation: [fastify.authenticate],
 	}, async (request, reply) => {
@@ -281,6 +292,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		return reply.code(200).send({ message: 'Left game successfully' });
 	});
 
+	// this can simply remove any player
 	fastify.post('/kick/:playerId', {
 		preValidation: [fastify.authenticate],
 	}, async (request, reply) => {
@@ -304,6 +316,55 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 		game.removePlayer(parsedUserId);
 		return reply.code(200).send({ message: `Player ${playerToKick.displayName} kicked from the game` });
+	});
+
+	// this is for the UserPlayers to add LocalPlayers and for the Admin to add AIPlayer
+	fastify.post('/players/add/:type', {
+		preValidation: [fastify.authenticate]
+	}, async (request,reply) => {
+		
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+
+		const { type } = request.params as { type: string };
+		if (!type)
+			return reply.code(401).send({ error: 'Missing player type' });
+
+		const game = runningGames.find((g) => 
+			g.players.some((p) => 
+				p instanceof UserPlayer && 
+				p.user.id === user.id && 
+				p.joined === true
+			)
+		);
+		if (!game) {
+			return reply.code(404).send({ error: 'No game found to add Player where User is joined' });
+		}
+
+		try {
+			if (type === 'ai')
+			{
+				if (user.id === game.admin.id)
+					await game.addAiPlayer("Sample AI Bot", 3);
+				else
+					return reply.code(401).send({ error: 'Only the admin is allowed to add an AI Player!' });
+			}
+			else if (type === 'local')
+			{
+				const owner = game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
+				if (owner)
+					game.addLocalPlayer(owner as UserPlayer);
+				else
+					return reply.code(404).send({ error: 'No owner found for local Player!' });
+			}
+			else
+				return reply.code(404).send({ error: 'Invalid Player type... only "ai" or "local" allowed!' });
+		} catch (err) {
+			return reply.code(404).send({ error: err });
+		}
+
 	});
 
 	// fastify.post(
@@ -497,25 +558,25 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// 	return reply.send({ message: `Player ${userToKick.username} has been kicked from the game` });
 	// });
 
-	fastify.get(
-		'/all',
-		{
-			preValidation: [fastify.authenticate],
-		},
-		async (request, reply) => {
-			// get all games from the database
-		}
-	);
+	// fastify.get(
+	// 	'/all',
+	// 	{
+	// 		preValidation: [fastify.authenticate],
+	// 	},
+	// 	async (request, reply) => {
+	// 		// get all games from the database
+	// 	}
+	// );
 
-	fastify.get(
-		'/game/:id',
-		{
-			preValidation: [fastify.authenticate],
-		},
-		async (request, reply) => {
-			// get all games from the database
-		}
-	);
+	// fastify.get(
+	// 	'/game/:id',
+	// 	{
+	// 		preValidation: [fastify.authenticate],
+	// 	},
+	// 	async (request, reply) => {
+	// 		// get all games from the database
+	// 	}
+	// );
 };
 
 export default games;

@@ -17,11 +17,13 @@ function setupEventSource() {
 		console.info('notifyEventSource.close', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		showLocalInfo("Server connection closed");
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		showLocalError("A server connection error occured!");
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
@@ -60,6 +62,7 @@ function setupEventSource() {
 					// 	`acceptGameInvite(${data.gameId})`,
 					// 	'Accept'
 					// );
+					// TODO: make this a sendPopupCall with actual buttons
 					showLocalInfo(`<button onclick="acceptGameInvite(${data.gameId})">You have been invited to a game! (ID: ${data.gameId})</button>`);
 					break;
 				case 'game_admin_request':
