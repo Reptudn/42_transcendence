@@ -158,7 +158,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						g.admin.id === user!.id || 
 						g.players.find((u) => u instanceof UserPlayer && u.user.id === user!.id && u.joined)
 					);
-
+					variables['initial'] = true;
 					if (existingGame && existingGame.admin.id !== user!.id)
 					{
 						variables['game'] = existingGame;

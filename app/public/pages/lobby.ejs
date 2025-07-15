@@ -1,13 +1,37 @@
 <div class="lobby">
 	<h1><%= ownerName %>'s Game</h1>
-	<%= gameSettings %>
+	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
 	<div class="settings">
 		<h2>Lobby Settings</h2>
-		<div id="lobbySettings"></div>
+		<div id="lobbySettings">
+			<h3>Power-ups:</h3>
+			<% if (gameSettings.powerupsEnabled) { %>
+				<% for (const powerup of gameSettings.powerups) { %>
+					<div class="powerup">
+						<span class="powerup-name"><%= powerup.name %></span>
+						<span class="powerup-description"><%= powerup.description %></span>
+					</div>
+				<% } %>
+			<% } else { %>
+				<p>Power-ups are disabled.</p>
+			<% } %>
+		</div>
 	</div>
+	<br>
 	<div class="players">
-		<h2>Players</h2>
-		<div id="playerList"></div>
+		<h2>Players:</h2>
+		<div id="playerList">
+			<% for (const player of players) { %>
+				<div class="<%- player.joined ? 'border-green-500' : 'border-red-500' %>">
+					<span class=""><%= player.displayName %></span>
+					<span class=""><%= player.playerTitle %></span>
+					<span class=""><%= player.joined ? "Joined" : "Not Joined" %></span>
+				</div>
+			<% } %>
+		</div>
 	</div>
-	<%= players %>
 </div>
+
+<% if (initial) { %>
+<script src="/static/js/lobby.js" type="module"></script>
+<% } %>

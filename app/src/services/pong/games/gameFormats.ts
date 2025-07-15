@@ -11,16 +11,10 @@ export enum GameStatus {
 
 const defaultGameSettings: GameSettings = {
 	map: 'default_map',
-	playerLives: 3,
-	gameDifficulty: 1,
-	powerups: true,
+	powerupsEnabled: false,
+	powerups: [],
+	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
-	players: [
-		{
-			type: 'user',
-			id: -1,
-		},
-	], // at least one player as required by the type
 };
 
 export class Game {
@@ -158,9 +152,11 @@ export class Game {
 			if (!(player instanceof UserPlayer)) continue;
 
 			sendSseRawByUserId(player.user.id, JSON.stringify({
-				type: 'game_player_update',
-				game_id: this.gameId,
+				type: 'game_settings_update',
+				gameId: this.gameId,
 				players: this.players,
+				gameSettings: this.config,
+				initial: false,
 			}));
 		}
 	}
@@ -179,6 +175,8 @@ export class Game {
 					type: 'game_settings_update',
 					gameId: this.gameId,
 					gameSettings: this.config,
+					players: this.players,
+					initial: false,
 				})
 			);
 		}

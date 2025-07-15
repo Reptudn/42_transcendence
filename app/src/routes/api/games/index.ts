@@ -451,6 +451,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			ownerName: game.admin.displayname,
 			gameSettings: JSON.stringify(game.config),
 			players: JSON.stringify(game.players),
+			initial: true, // to load the lobby script
 		});
 	});
 
