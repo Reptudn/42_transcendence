@@ -21,12 +21,9 @@
 		/>
 	</head>
 
-	<body class="glow-green tv-screen">
-		<img src="/static/assets/backgrounds/tapete.jpg" alt="Background" class="video-fallback">
-		<div class="tv-screen-inner absolute overflow-hidden">
-			<!-- Effekte bleiben nur innerhalb des TV-Screens -->
-			<div class="vignette absolute inset-0 z-2"></div>
-			<div class="scanlines absolute inset-0 z-50"></div>
+	<body class="glow-green">
+			<!-- <div class="vignette absolute inset-0 z-2"></div>
+			<div class="scanlines absolute inset-0 z-50"></div> -->
 
 			<div id="loading-screen" class="loading-screen">
 				<div class="loading-content">
@@ -39,9 +36,9 @@
 			<div id="welcome-screen" class="welcome-screen hidden">
 				<div class="welcome-text">Welcome to Transcendence</div>
 			</div>
-		<!-- <img src="/static/assets/backgrounds/Smoke_bg.gif" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" /> -->
-		<header class="text-white p-4">
-			<div class="flex flex-col lg:flex-row items-center lg:items-start w-full max-w-screen-lg mx-auto justify-between">
+		<img src="/static/assets/backgrounds/Smoke_bg.gif" id="background-image" alt="background image" class="fixed inset-0 object-cover w-full h-full z-[-1]" />
+		<header class="text-white p-4 backdrop-blur-sm rounded border-[#00ff00] border">
+			<div class="flex items-center w-full mx-auto justify-between">
 					<h1
 						class="text-6xl font-bold cursor-pointer hover:glow-red hover:scale-110 text-center z-10"
 						onclick="loadPartialView('index')"
@@ -59,29 +56,20 @@
 			</div>
 		</header>
 
-			<main class="container">
-				<div id="content" class="absolute left-1/2 transform -translate-x-1/2">
-					<%- body %>
-				</div>
-				<div
-				id="popup-wrapper"
-				class="fixed bottom-30 pl-10 z-10000"
-				>
-				<div
-				id="popup-container"
-				class="flex flex-col-reverse gap-3 z-10000"
-				></div>
-				<button
-				id="close-all-popups-btn"
-				class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000"
-				>
+		<main>
+			<div id="content" class="flex justify-center backdrop-blur-sm rounded border-[#00ff00] border mr-[25%] ml-[25%] mt-10">
+				<%- body %>
+			</div>
+		</main>
+		<div id="popup-wrapper" class="fixed bottom-8 pl-10 z-10000">
+			<div id="popup-container" class="flex flex-col-reverse gap-3 z-10000"></div>
+			<button id="close-all-popups-btn" class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000">
 				Close all
-				</button>
-				</div>
-			</main>
+			</button>
 		</div>
+	</div>
 
-		<footer class="text-white p-4 mb-7 text-2xl absolute bottom-20 left-1/2 transform -translate-x-1/2">
+		<footer class="text-white text-2xl">
 			<div class="container mx-auto text-center glow-green">
 				<div>
 					<h2>

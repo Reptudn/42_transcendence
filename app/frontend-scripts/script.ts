@@ -218,6 +218,7 @@ async function logout(): Promise<void> {
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');
+			window.sessionStorage.setItem("loggedIn", "false");
 		} else {
 			const data = await response.json();
 			showLocalError(`Error during logout: ${data.message}`);
@@ -229,6 +230,24 @@ async function logout(): Promise<void> {
 		);
 	}
 }
+
+function setRandomBgPicture(): void {
+	const tvScreenInner = document.getElementById('background-image');
+	if (tvScreenInner) {
+		const totalGifs = 29; // Update this value if the number of GIFs changes
+		const randomIndex = Math.floor(Math.random() * totalGifs) + 1;
+		tvScreenInner.setAttribute(
+			'src',
+			`/static/assets/backgrounds/gifs/${randomIndex}.gif`
+		);
+	}
+}
+setRandomBgPicture();
+document.addEventListener('keydown', (event) => {
+	if (event.key === 'g' || event.key === 'G' || event.key === 'b' || event.key === 'B') {
+		setRandomBgPicture();
+	}
+});
 
 window.updateActiveMenu = updateActiveMenu;
 window.loadPartialView = loadPartialView;

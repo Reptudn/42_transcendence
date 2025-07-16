@@ -1,6 +1,6 @@
-<div class="max-w-7xl p-6 rounded-lg shadow-md glow-green text-2xl">
+<div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
 	<% if (isSelf) { %>
-	<div class="flex justify-end ">
+	<div class="flex justify-end -mb-[45px]">
 		<a
 			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
 			onclick="loadPartialView('edit_profile')"
@@ -10,7 +10,7 @@
 	</div>
 	<% } %>
 
-	<div class="flex items-center space-x-4 mt-4">
+	<div class="flex items-center space-x-4">
 		<img
 			src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
 			alt="Profile Picture"
@@ -36,7 +36,7 @@
 		<div class="flex flex-wrap gap-4">
 			<% friends.forEach(friend=> { %>
 			<div
-				class="flex flex-col items-center p-4 rounded-lg shadow-sm"
+				class="flex flex-col items-center p-4 rounded-lg"
 			>
 				<button
 					onclick="loadPartialView('profile', true, '<%= friend.username %>')"
@@ -51,7 +51,7 @@
 						<div class="text-lg font-bold">
 							<%= friend.displayname %>
 						</div>
-						<div class="text-2xl text-gray-600">
+						<div class="text-2xl">
 							@<%= friend.username %>
 						</div>
 					</div>
@@ -67,7 +67,7 @@
 			</div>
 			<% }) %> <% if (isSelf) { %>
 			<div
-				class="flex flex-col items-center p-4 rounded-lg shadow-sm"
+				class="flex flex-col items-center p-4 rounded-lg"
 			>
 				<a
 					onclick="loadPartialView('add_friends')"

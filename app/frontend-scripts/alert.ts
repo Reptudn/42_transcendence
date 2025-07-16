@@ -13,14 +13,14 @@ interface LocalAlertData {
 
 export function showLocalPopup(data: LocalAlertData) {
 	const template = `
-<div class="popup pointer-events-auto animate-slideIn bg-<%= color %>-100 border-l-4 border-<%= color %>-500 text-<%= color %>-700 px-4 py-3 rounded shadow-md"
+<div class="popup pointer-events-auto animate-slideIn alert alert-<%= color %>"
 	role="alert">
 	<div class="flex-1">
 		<strong class="font-bold mr-8"><%- title %></strong>
 		<span class="block"><%- description %></span>
 	</div>
 	<span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="dismissPopup(this)">
-		<svg class="fill-current h-6 w-6 text-<%= color %>-500" role="button" xmlns="http://www.w3.org/2000/svg"
+		<svg class="fill-current h-6 w-6 close-icon" role="button" xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 20 20">
 			<title>Close</title>
 			<path
