@@ -5,30 +5,48 @@ import {
 } from '../../../services/database/achievements';
 import { getFriends } from '../../../services/database/friends';
 import {
-	getUserById,
 	getUserTitleString,
 	getUserTitle,
 	getUserTitlesForTitle,
+	getUserByUsername,
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
 import { connectedClients } from '../../../services/sse/handler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
-		'/:page',
+		'/:page/:username?',
 		{
 			schema: {
 				params: {
 					type: 'object',
 					properties: {
-						page: { type: 'string', minLength: 1, maxLength: 100 },
+						username: { type: 'string', minLength: 1, maxLength: 100 },
+						page: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 100,
+							errorMessage: {
+								type: 'Page must be a string.',
+								minLength: 'Page must not be empty.',
+								maxLength:
+									'Page must not exceed 100 characters.',
+							},
+						},
 					},
 					required: ['page'],
+					errorMessage: {
+						required: {
+							page: 'Page parameter is required.',
+						},
+						additionalProperties:
+							'No additional properties are allowed in parameters.',
+					},
 				},
 			},
 		},
 		async (req: any, reply: any) => {
-			const page = req.params.page;
+			const { page, username } = req.params;
 			const loadpartial = req.headers['loadpartial'] === 'true';
 			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await checkAuth(req, false, fastify);
@@ -43,7 +61,13 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			try {
 				if (page === 'profile') {
-					await checkAuth(req, true, fastify);
+					const profile = username
+						? await getUserByUsername(username, fastify)
+						: await checkAuth(req, true, fastify);
+					if (!profile) {
+						errorCode = 404;
+						throw new Error('User not found');
+					}
 					let self_id: number | null = user ? user.id : null;
 					let friend_id: number | null = req.params.profile_id
 						? parseInt(req.params.profile_id)
@@ -53,12 +77,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						throw new Error('No user id provided & not logged in');
 					}
 					let profileId: number = friend_id ?? self_id!;
-					let isSelf = profileId === req.user.id;
-					let profile = await getUserById(profileId, fastify);
-					if (!profile) {
-						errorCode = 404;
-						throw new Error('User not found');
-					}
+					let isSelf = profileId === profile.id;
+					
 					profile.profile_picture =
 						'/profile/' + profileId + '/picture';
 					variables['user'] = profile;
@@ -69,7 +89,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 
 					const unlockedAchievements = await getUserAchievements(
-						profileId,
+						profile.id,
 						fastify
 					);
 					const allAchievements = await getAllAchievements(fastify);
@@ -83,7 +103,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['unlockedCount'] = unlockedAchievements.length;
 					variables['totalCount'] = allAchievements.length;
 
-					let friends = await getFriends(profileId, fastify);
+					let friends = await getFriends(profile.id, fastify);
 					variables['friends'] = friends;
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);

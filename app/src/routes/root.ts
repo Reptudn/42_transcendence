@@ -15,6 +15,20 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			);
 		}
 	);
+
+	fastify.setNotFoundHandler(async (req, reply) => {
+		const isAuthenticated = (await checkAuth(req, false, fastify)) != null;
+		return reply.code(404).view(
+			'error.ejs',
+			{
+				err_code: 404,
+				err_message: 'Page not found',
+				isAuthenticated,
+				t: req.t,
+			},
+			{ layout: 'layouts/basic.ejs' }
+		);
+	});
 };
 
 export default root;

@@ -35,6 +35,7 @@
 		"username": "Nom d'utilisateur",
 		"displayname": "Nom d'affichage",
 		"password": "Mot de passe",
+		"confirm_password": "Confirmer le mot de passe",
 		"register_button": "S'inscrire",
 		"google_button": "S'inscrire avec Google"
 	},
