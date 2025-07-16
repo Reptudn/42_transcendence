@@ -1,0 +1,112 @@
+<div class="flex flex-row h-80 space-x-8">
+	<!-- Linke Spalte: Suche & Userliste -->
+	<div class="flex flex-col space-y-2">
+		<input id="searchForFriend" class="flex h-8 w-64 border border-gray-300 px-4 py-2" type="text" placeholder="Search">
+		<div id="userList" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto max-h-64">
+		</div>
+	</div>
+
+	<!-- Mitte: Chat -->
+	<div class="flex flex-col flex-1 space-y-4">
+		<div id="chatMessages" class="flex-1 border h-80 border-gray-300 overflow-y-auto"></div>
+		<input id="chatInput" type="text" class="border border-gray-300 px-4 py-2" placeholder="Type a message...">
+		<button id="sendChatButton" class="bg-blue-500 text-white px-4 py-2 rounded">Send</button>
+	</div>
+
+	<!-- Rechte Spalte: Buttons -->
+	<div class="flex flex-col space-y-4">
+		<button id="globalChat" class="bg-green-500 text-white px-4 py-2 rounded">Global Chat</button>
+		<button id="createGroup" class="bg-purple-500 text-white px-4 py-2 rounded">Neue Gruppe erstellen</button>
+		<button id="blockUser" class="bg-purple-500 text-white px-4 py-2 rounded">Neue User blockiern</button>
+		<button id="unblockUser" class="bg-purple-500 text-white px-4 py-2 rounded">Neue User unblockiern</button>
+		<button id="inviteUser" class="bg-purple-500 text-white px-4 py-2 rounded">Invite User to Chat</button>
+		<button id="leaveUser" class="bg-purple-500 text-white px-4 py-2 rounded">Leave User from Chat</button>
+	</div>
+</div>
+
+<!-- Modal für Gruppen-Erstellung -->
+<div id="groupWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
+	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">Neue Gruppe erstellen</h2>
+
+		<!-- Gruppenname-Eingabefeld -->
+		<input id="groupNameInput" type="text" class="w-full border px-3 py-2" placeholder="Gruppenname eingeben...">
+
+		<!-- Personensuche -->
+		<input id="groupSearchInput" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<!-- Suchergebnisse -->
+		<div id="searchResults" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex justify-end space-x-2">
+			<button id="closeGroupWindow" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmCreateGroup" class="bg-blue-600 text-white px-4 py-2 rounded">Gruppe erstellen</button>
+		</div>
+	</div>
+</div>
+
+<!-- Modal für Block-User -->
+<div id="blockUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
+	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">BlockUser</h2>
+
+		<!-- Personensuche -->
+		<input id="searchUserToBlock" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<!-- Suchergebnisse -->
+		<div id="searchResultsToBlock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex justify-end space-x-2">
+			<button id="closeBlockUser" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmBlockUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
+		</div>
+	</div>
+</div>
+
+<!-- Modal für Unblock-User -->
+<div id="unblockUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
+	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">UnblockUser</h2>
+
+		<!-- Personensuche -->
+		<input id="searchUserToUnblock" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<!-- Suchergebnisse -->
+		<div id="searchResultsToUnblock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex justify-end space-x-2">
+			<button id="closeUnblockUser" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmUnblockUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
+		</div>
+	</div>
+</div>
+
+<!-- Modal für invite-User -->
+<div id="inviteUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
+	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+		<h2 class="text-lg font-semibold">InviteUser</h2>
+
+		<!-- Personensuche -->
+		<input id="searchUserToInvite" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+
+		<!-- Suchergebnisse -->
+		<div id="searchResultsToInvite" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+		</div>
+
+		<!-- Buttons -->
+		<div class="flex justify-end space-x-2">
+			<button id="closeInviteUser" class="px-4 py-2 border">Abbrechen</button>
+			<button id="confirmInviteUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
+		</div>
+	</div>
+</div>
+
+<script type="module" src="/static/js/chat.js" defer></script>
+<script type="module" src="/static/js/chat_modal.js" defer></script>
+ 

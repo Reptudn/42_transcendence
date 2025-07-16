@@ -6,8 +6,7 @@
 		"outDir": "app/dist",
 		"sourceMap": true,
 		"strict": true,
-		"resolveJsonModule": true,
-		"typeRoots": ["./node_modules/@types", "./app/src/types"]
+		"resolveJsonModule": true
 	},
 	"include": ["app/src/**/*.ts"],
 	"exclude": ["app/frontend-scripts/**/*.ts"]

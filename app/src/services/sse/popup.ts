@@ -1,8 +1,10 @@
 import ejs from 'ejs';
 import path from 'path';
 import { connectedClients, sendSseHtml, sendSseMessage } from './handler';
+import type { FastifyInstance } from 'fastify';
 
 export function sendPopupToClient(
+	fastify: FastifyInstance,
 	id: number,
 	title: string = 'Info',
 	description: string = '',
@@ -14,7 +16,7 @@ export function sendPopupToClient(
 ) {
 	let reply = connectedClients.get(id);
 	if (!reply) {
-		console.error(`Client with id ${id} not found in connected users.`);
+		fastify.log.info(`Client with id ${id} not found in connected users.`);
 		return;
 	}
 	try {
