@@ -269,7 +269,7 @@
 	justify-content: center; /* Horizontal zentrieren */
 	align-items: center; /* Vertikal zentrieren */
 	flex-direction: column; /* Text und Ladebalken untereinander anordnen */
-	z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
+	z-index: 10002; /* Sicherstellen, dass es über anderen Inhalten liegt */
 }
 
 .loading-content {
@@ -322,7 +322,7 @@
 	justify-content: center;
 	align-items: center;
 	background: black; /* Schwarzer Hintergrund */
-	z-index: 9999; /* Über allem */
+	z-index: 10002; /* Über allem */
 }
 
 .welcome-text {

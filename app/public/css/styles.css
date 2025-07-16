@@ -15,6 +15,7 @@ header {
 	position: sticky;
 	top: 0;
 	z-index: 10001;
+	background-color: #12121246;
 }
 
 main {
@@ -22,7 +23,7 @@ main {
 }
 
 footer {
-	margin-top: auto;
+	margin-top: 40px;
 }
 
 body.dark {
