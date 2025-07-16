@@ -165,33 +165,41 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	// TODO: add schema verification for correct settings
-	fastify.post('/settings', {
-		preValidation: [fastify.authenticate],
-		schema: {
-			body: {
-				type: 'object',
-				properties: {
-					settings: {
-						type: 'string'
-					}
-				}
+	fastify.post(
+		'/settings',
+		{
+			preValidation: [fastify.authenticate],
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						settings: {
+							type: 'string',
+						},
+					},
+				},
+			},
+		},
+		async (request, reply) => {
+			const { settings } = request.body as { settings: GameSettings };
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
 			}
-		}
-	}, async (request, reply) => {
-		const { settings } = request.body as { settings: GameSettings };
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
 
-		const game = runningGames.find((g) => g.admin.id === user.id);
-		if (!game) {
-			return reply.code(404).send({ error: 'No game found for the user' });
-		}
+			const game = runningGames.find((g) => g.admin.id === user.id);
+			if (!game) {
+				return reply
+					.code(404)
+					.send({ error: 'No game found for the user' });
+			}
 
-		game.updateGameSettings(settings);
-		return reply.code(200).send({ message: 'Game settings updated successfully' });
-	});
+			game.updateGameSettings(settings);
+			return reply
+				.code(200)
+				.send({ message: 'Game settings updated successfully' });
+		}
+	);
 
 	// TODO: add invite cancel
 	// this invites another user
@@ -213,11 +221,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(404).send({ error: `No such user found!` });
 
 			const friends = await getFriends(user.id, fastify);
-			if (friends)
-			{
+			if (friends) {
 				const isFriend = friends.find((f) => f.id === inviteUser.id);
 				if (!isFriend)
-					return reply.code(401).send({ error: 'Cant invite user because they are not friends with you!' });
+					return reply.code(401).send({
+						error: 'Cant invite user because they are not friends with you!',
+					});
 			}
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
@@ -272,107 +281,134 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	// this is there to leave a game for a UserPlayer
-	fastify.post('/leave', {
-		preValidation: [fastify.authenticate],
-	}, async (request, reply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
+	fastify.post(
+		'/leave',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
 
-		const game = runningGames.find((g) => g.admin.id === user.id);
-		if (!game) {
-			return reply.code(404).send({ error: 'No game found for the user' });
-		}
+			const game = runningGames.find((g) => g.admin.id === user.id);
+			if (!game) {
+				return reply
+					.code(404)
+					.send({ error: 'No game found for the user' });
+			}
 
-		try {
-			game.removePlayer(user.id);
-		} catch (err) {
-			return reply.code(500).send({ error: err });
+			try {
+				game.removePlayer(user.id);
+			} catch (err) {
+				return reply.code(500).send({ error: err });
+			}
+			return reply.code(200).send({ message: 'Left game successfully' });
 		}
-		return reply.code(200).send({ message: 'Left game successfully' });
-	});
+	);
 
 	// this can simply remove any player
-	fastify.post('/kick/:playerId', {
-		preValidation: [fastify.authenticate],
-	}, async (request, reply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
+	fastify.post(
+		'/kick/:playerId',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+
+			const { userId } = request.params as { userId: string };
+			const parsedUserId = Number.parseInt(userId, 10);
+
+			const game = runningGames.find((g) => g.admin.id === user.id);
+			if (!game) {
+				return reply
+					.code(404)
+					.send({ error: 'No game found for the user' });
+			}
+
+			const playerToKick = game.players.find(
+				(p) => p.playerId === parsedUserId
+			);
+			if (!playerToKick) {
+				return reply
+					.code(404)
+					.send({ error: 'No such player found in the game' });
+			}
+
+			game.removePlayer(parsedUserId);
+			return reply.code(200).send({
+				message: `Player ${playerToKick.displayName} kicked from the game`,
+			});
 		}
-
-		const { userId } = request.params as { userId: string };
-		const parsedUserId = Number.parseInt(userId, 10);
-
-		const game = runningGames.find((g) => g.admin.id === user.id);
-		if (!game) {
-			return reply.code(404).send({ error: 'No game found for the user' });
-		}
-
-		const playerToKick = game.players.find((p) => p.playerId === parsedUserId);
-		if (!playerToKick) {
-			return reply.code(404).send({ error: 'No such player found in the game' });
-		}
-
-		game.removePlayer(parsedUserId);
-		return reply.code(200).send({ message: `Player ${playerToKick.displayName} kicked from the game` });
-	});
+	);
 
 	// this is for the UserPlayers to add LocalPlayers and for the Admin to add AIPlayer
-	fastify.post('/players/add/:type', {
-		preValidation: [fastify.authenticate]
-	}, async (request,reply) => {
-		
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
-
-		const { type } = request.params as { type: string };
-		if (!type)
-			return reply.code(401).send({ error: 'Missing player type' });
-
-		const game = runningGames.find((g) => 
-			g.players.some((p) => 
-				p instanceof UserPlayer && 
-				p.user.id === user.id && 
-				p.joined === true
-			)
-		);
-		if (!game) {
-			return reply.code(404).send({ error: 'No game found to add Player where User is joined' });
-		}
-
-		try {
-			if (type === 'ai')
-			{
-				if (user.id === game.admin.id)
-				{
-					await game.addAiPlayer("Sample AI Bot", 3);
-					return reply.code(200).send({ message: 'AI Player added successfully!' });
-				}
-				else
-					return reply.code(401).send({ error: 'Only the admin is allowed to add an AI Player!' });
+	fastify.post(
+		'/players/add/:type',
+		{
+			preValidation: [fastify.authenticate],
+		},
+		async (request, reply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
 			}
-			else if (type === 'local')
-			{
-				const owner = game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
-				if (owner)
-				{
-					game.addLocalPlayer(owner as UserPlayer);
-					return reply.code(200).send({ message: 'Local Player added successfully!' });
-				}
-				else
-					return reply.code(404).send({ error: 'No owner found for local Player!' });
-			}
-			else
-				return reply.code(404).send({ error: 'Invalid Player type... only "ai" or "local" allowed!' });
-		} catch (err) {
-			return reply.code(404).send({ error: err });
-		}
 
-	});
+			const { type } = request.params as { type: string };
+			if (!type)
+				return reply.code(401).send({ error: 'Missing player type' });
+
+			const game = runningGames.find((g) =>
+				g.players.some(
+					(p) =>
+						p instanceof UserPlayer &&
+						p.user.id === user.id &&
+						p.joined === true
+				)
+			);
+			if (!game) {
+				return reply.code(404).send({
+					error: 'No game found to add Player where User is joined',
+				});
+			}
+
+			try {
+				if (type === 'ai') {
+					if (user.id === game.admin.id) {
+						await game.addAiPlayer('Sample AI Bot', 3);
+						return reply
+							.code(200)
+							.send({ message: 'AI Player added successfully!' });
+					} else
+						return reply.code(401).send({
+							error: 'Only the admin is allowed to add an AI Player!',
+						});
+				} else if (type === 'local') {
+					const owner = game.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === user.id
+					);
+					if (owner) {
+						game.addLocalPlayer(owner as UserPlayer);
+						return reply.code(200).send({
+							message: 'Local Player added successfully!',
+						});
+					} else
+						return reply.code(404).send({
+							error: 'No owner found for local Player!',
+						});
+				} else
+					return reply.code(404).send({
+						error: 'Invalid Player type... only "ai" or "local" allowed!',
+					});
+			} catch (err) {
+				return reply.code(404).send({ error: err });
+			}
+		}
+	);
 
 	// fastify.post(
 	// 	'/start',
@@ -417,54 +453,63 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// 	}
 	// );
 
-	fastify.get('/join/:gameId/:accepted', { preValidation: [ fastify.authenticate ] }, async (request, reply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
-		const { gameId, accepted } = request.params as { gameId: string, accepted: string };
-		const parsedGameId = Number.parseInt(gameId, 10);
+	fastify.get(
+		'/join/:gameId/:accepted',
+		{ preValidation: [fastify.authenticate] },
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+			const { gameId, accepted } = request.params as {
+				gameId: string;
+				accepted: string;
+			};
+			const parsedGameId = Number.parseInt(gameId, 10);
 
-		const game = runningGames.find((g) => g.gameId === parsedGameId);
-		if (!game) {
-			return reply.code(404).send({ error: 'Game not found' });
-		}
+			const game = runningGames.find((g) => g.gameId === parsedGameId);
+			if (!game) {
+				return reply.code(404).send({ error: 'Game not found' });
+			}
 
-		if (game.status !== GameStatus.WAITING)
-			return reply.code(404).send({
-				error: 'The game you are trying to join has already started!',
-			});
+			if (game.status !== GameStatus.WAITING)
+				return reply.code(404).send({
+					error: 'The game you are trying to join has already started!',
+				});
 
-		const player = game.players.find(
+			const player = game.players.find(
 				(p) => p instanceof UserPlayer && p.user.id === user.id
 			);
 
-		if (player) {
+			if (player) {
+				if (accepted === 'false') {
+					game.removePlayer(user.id);
+					return reply.code(200).send({
+						message: 'You have declined the game invitation.',
+					});
+				}
 
-			if (accepted === 'false') {
-				game.removePlayer(user.id);
-				return reply.code(200).send({ message: 'You have declined the game invitation.' });
-			}
-
-			if ( player.joined ) {
+				if (player.joined) {
+					return reply
+						.code(400)
+						.send({ error: 'You are already in the game!' });
+				}
+				game.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === user.id
+				)!.joined = true;
+			} else
 				return reply
-					.code(400)
-					.send({ error: 'You are already in the game!' });
-			}
-			game.players.find(
-				(p) => p instanceof UserPlayer && p.user.id === user.id
-			)!.joined = true;
-		}
-		else
-			return reply.code(404).send({ error: 'You are not invited to this game!' });
+					.code(404)
+					.send({ error: 'You are not invited to this game!' });
 
-		return reply.code(200).view('lobby', {
-			ownerName: game.admin.displayname,
-			gameSettings: JSON.stringify(game.config),
-			players: JSON.stringify(game.players),
-			initial: true, // to load the lobby script
-		});
-	});
+			return reply.code(200).view('lobby', {
+				ownerName: game.admin.displayname,
+				gameSettings: JSON.stringify(game.config),
+				players: JSON.stringify(game.players),
+				initial: true, // to load the lobby script
+			});
+		}
+	);
 
 	// fastify.get(
 	// 	'/join/:gameId/:playerId',

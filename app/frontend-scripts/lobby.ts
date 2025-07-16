@@ -1,4 +1,4 @@
-import { showLocalInfo } from "./alert";
+import { showLocalInfo } from './alert';
 
 const lobbyElement = document.getElementById('lobby') as HTMLElement | null;
 
@@ -11,49 +11,40 @@ export function updateGameSettings(settings: string) {
 	showLocalInfo('Game settings have been updated!');
 }
 
-const addLocalPlayerBtn = document.getElementById('addLocalPlayerBtn') as HTMLButtonElement | null;
-if (addLocalPlayerBtn) {
-	addLocalPlayerBtn.addEventListener('click', async () => {
-		// const playerName = prompt('Enter local player name:');
-		// if (!playerName) {
-		// 	showLocalInfo('No player name provided.');
-		// 	return;
-		// }
-
-		const res = await fetch('/api/games/players/add/local', { method: 'POST' });
-		if (res.ok) {
-			const data = await res.json();
-			console.log('Local player added:', data);
-			showLocalInfo(`${data.message || 'Local player added successfully!'}`);
-		} else {
-			const error = await res.json();
-			console.error('Error adding local player:', error);
-			showLocalInfo(`${error.error || 'Failed to add local player: Unknown error'}`);
-		}
-	});
-} else {
-	console.error('Add Local Player button not found!');
+export async function addLocalPlayer() {
+	const res = await fetch('/api/games/players/add/local', { method: 'POST' });
+	if (res.ok) {
+		const data = await res.json();
+		console.log('Local player added:', data);
+		showLocalInfo(`${data.message || 'Local player added successfully!'}`);
+	} else {
+		const error = await res.json();
+		console.error('Error adding local player:', error);
+		showLocalInfo(
+			`${error.error || 'Failed to add local player: Unknown error'}`
+		);
+	}
 }
 
-// export async function toggleReady()
-// {
-// 	const result = await fetch('/game/toggleReady', {
-// 		method: 'POST'
-// 	});
-
-// 	if (result.ok) {
-// 		const data = await result.json();
-// 		console.log('Toggle ready response:', data);
-// 		showLocalInfo(data.message);
-// 	} else {
-// 		console.error('Error toggling ready state:', result.statusText);
-// 		showLocalError('Failed to toggle ready state!');
-// 	}
-// }
+export async function leaveGame() {
+	const res = await fetch('/api/games/leave', { method: 'POST' });
+	if (res.ok) {
+		const data = await res.json();
+		console.log('Left game:', data);
+		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+	} else {
+		const error = await res.json();
+		console.error('Error leaving game:', error);
+		showLocalInfo(
+			`${error.error || 'Failed to leave game: Unknown error'}`
+		);
+	}
+}
 
 declare global {
 	interface Window {
 		updateGameSettings: (settings: string) => void;
+		addLocalPlayer: () => Promise<void>;
 		// toggleReady: () => void;
 	}
-};
+}
