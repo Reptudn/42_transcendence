@@ -2,4 +2,8 @@
 	<label for="totp" class="block font-bold mb-2 text-2xl">2fa token</label>
 	<input type="totp" id="totp" name="2FA" placeholder="> ____________"
 		class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+	<div class="text-center">
+			<button id="loginButton" type="button" onclick="twofa_login()"
+				class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
+		</div>
 </div>

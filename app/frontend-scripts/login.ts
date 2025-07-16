@@ -7,18 +7,23 @@ const loginAction = async () => {
 		.value;
 	const password = (document.querySelector('#password') as HTMLInputElement)
 		.value;
-	const totp = (document.querySelector('#totp') as HTMLInputElement).value;
+
 	try {
 		const response = await fetch('/api/auth/login', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${totp}`,
 			},
-			body: JSON.stringify({ username, password, totp }),
+			body: JSON.stringify({ username, password /*totp*/ }),
 		});
 
 		if (response.ok) {
+			const responseData = await response.json();
+			if (responseData.twofa_status === true) {
+				window.user_id = responseData.user_id as number;
+				loadPartialView('2fa_code');
+				return;
+			}
 			updateMenu();
 			loadPartialView('profile');
 			showLocalInfo('You have logged in successfully');
@@ -40,4 +45,10 @@ if (loginButton) {
 	});
 } else {
 	console.error('loginButton not found');
+}
+
+declare global {
+	interface window {
+		user_id: number;
+	}
 }

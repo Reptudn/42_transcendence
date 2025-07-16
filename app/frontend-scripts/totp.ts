@@ -11,7 +11,6 @@ export async function enable2fa() {
 		});
 
 		if (res.ok) {
-			console.log('res.ok');
 			const qr = document.getElementById('2fa-qr');
 			const data = (await res.json()) as {
 				qrcode: string;
@@ -22,7 +21,6 @@ export async function enable2fa() {
 				(qr as HTMLImageElement).alt = '2FA QR Code';
 			}
 		} else {
-			console.log('else');
 			loadPartialView('edit_profile');
 			const data = await res.json();
 			showLocalError(`${data.message}`);
@@ -52,7 +50,6 @@ export async function disable2fa() {
 			showLocalError(`Error: ${data.message}`);
 		}
 	} catch (error) {
-		console.error('Error:', error);
 		window.showLocalError('Failed to disable 2fa!');
 	}
 }

@@ -6,8 +6,8 @@ import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
 import type { FastifyInstance } from 'fastify';
-import { verify2fa } from './totp.js';
-import {getUser2faSecret} from './totp.js'
+// import { verify2fa } from './totp.js';
+// import { getUser2faSecret } from './totp.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -129,7 +129,7 @@ export async function loginGoogleUser(
 export async function loginUser(
 	username: string,
 	password: string,
-	totp: string,
+	/*totp: string,*/
 	fastify: FastifyInstance
 ): Promise<User> {
 	const user = await fastify.sqlite.get(
@@ -139,17 +139,13 @@ export async function loginUser(
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
-	fastify.log.info(`User login: ${user.username}`);
-	fastify.log.info(`TOTP login: ${totp}`);
-	const two_fa = await getUser2faSecret(user, fastify);
-	fastify.log.info(`2fa secret: ${two_fa}`);
-	if (two_fa !== ''){
+	/*const two_fa = await getUser2faSecret(user, fastify);
+	if (two_fa !== '') {
 		if ((await verify2fa(user, totp, fastify)) === false) {
 			fastify.log.info('False 2fa code when login');
 			throw new Error('Invalid 2fa code');
 		}
-	}
-
+	}*/
 	return user;
 }
 

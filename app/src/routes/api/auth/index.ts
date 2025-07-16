@@ -1,6 +1,11 @@
-import { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { unlockAchievement } from '../../../services/database/achievements';
-import { loginUser, registerUser } from '../../../services/database/users';
+import {
+	getUserById,
+	loginUser,
+	registerUser,
+} from '../../../services/database/users';
+import { getUser2faSecret, verify2fa } from '../../../services/database/totp';
 
 const authSchema = {
 	type: 'object',
@@ -38,30 +43,44 @@ const registerSchema = {
 	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
 };
 
+const users_2fa: number[] = [];
+
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/login',
 		{ schema: { body: authSchema } },
-		async (req: any, reply: any) => {
-			const { username, password, totp } = req.body;
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { username, password /*totp*/ } = req.body as {
+				username: string;
+				password: string;
+			};
 			try {
 				const user: User = await loginUser(
 					username,
 					password,
-					totp,
+					/*totp*/
 					fastify
 				);
+				if ((await getUser2faSecret(user, fastify)) !== '') {
+					users_2fa.push(user.id);
+					return reply.send({
+						twofa_status: true,
+						userid: user.id,
+					});
+				}
 				const token = fastify.jwt.sign(
 					{ username: user.username, id: user.id },
 					{ expiresIn: '10d' }
 				);
 				await unlockAchievement(user.id, 'login', fastify);
-				reply.setCookie('token', token, {
-					httpOnly: true,
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
-					path: '/',
-				});
+				return reply
+					.setCookie('token', token, {
+						httpOnly: true,
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'strict',
+						path: '/',
+					})
+					.send({ message: 'Login successful!' });
 			} catch (error) {
 				if (error instanceof Error) {
 					reply.code(400).send({ message: error.message });
@@ -74,15 +93,22 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
-	fastify.post('/logout', async (req: any, reply: any) => {
-		reply.clearCookie('token', { path: '/' });
-		reply.send({ message: 'Logged out successfully' });
-	});
+	fastify.post(
+		'/logout',
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			reply.clearCookie('token', { path: '/' });
+			reply.send({ message: 'Logged out successfully' });
+		}
+	);
 	fastify.post(
 		'/register',
 		{ schema: { body: registerSchema } },
-		async (req: any, reply: any) => {
-			const { username, password, displayname } = req.body;
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { username, password, displayname } = req.body as {
+				username: string;
+				password: string;
+				displayname: string;
+			};
 			try {
 				await registerUser(username, password, displayname, fastify);
 				reply.code(200).send({ message: 'User registered' });
@@ -96,6 +122,37 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 				return;
 			}
+		}
+	);
+	fastify.post(
+		'/2fa',
+		{},
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { userid, fa_token } = req.body as {
+				userid: number;
+				fa_token: string;
+			};
+			if (!userid || !fa_token)
+				return reply.code(401).send('Invalid 2fa code!');
+			const user = await getUserById(userid, fastify);
+			if (!user) return reply.code(401).send('Invalid 2fa code!');
+			const index = users_2fa.findIndex((id) => id === userid);
+			if (index === -1) return reply.code(401).send('Invalid 2fa code!');
+			if ((await verify2fa(user, fa_token, fastify)) === false)
+				return reply.code(401).send('Invalid 2fa code!');
+			const token = fastify.jwt.sign(
+				{ username: user.username, id: user.id },
+				{ expiresIn: '10d' }
+			);
+			await unlockAchievement(user.id, 'login', fastify);
+			return reply
+				.setCookie('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/',
+				})
+				.send({ message: 'Login successful with 2fa!' });
 		}
 	);
 };
