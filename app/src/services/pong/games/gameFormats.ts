@@ -3,6 +3,7 @@ import { connectedClients, sendSseRawByUserId } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { runningGames } from './games';
+import ejs from 'ejs';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -126,14 +127,12 @@ export class Game {
 			for (const player of this.players) {
 				if (!(player instanceof UserPlayer)) continue;
 				player.disconnect();
-				connectedClients.get(player.user.id)?.send(
-					JSON.stringify({
-						type: 'game_closed',
-						message: 'Game admin left, game closed.',
-					})
-				);
+				sendSseRawByUserId(player.user.id, JSON.stringify({
+					type: 'game_closed',
+					message: 'Game admin left, game closed.',
+				}));
 			}
-			this.players = [];
+			this.players.splice(0, this.players.length); // clear all players
 		}
 
 		if (this.players.length === 0) {
@@ -148,16 +147,32 @@ export class Game {
 	}
 
 	private updatePlayers() {
+
+		// const adminHtml = ejs.render('game_setup', {
+		// 	players: this.players,
+		// 	gameSettings: this.config,
+		// 	initial: false,
+		// });
+
+		const lobbyHtml = ejs.render('lobby', {
+			players: this.players,
+			gameSettings: this.config,
+			initial: false,
+		});
+
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
-			sendSseRawByUserId(player.user.id, JSON.stringify({
-				type: 'game_settings_update',
-				gameId: this.gameId,
-				players: this.players,
-				gameSettings: this.config,
-				initial: false,
-			}));
+			if (player.user.id === this.admin.id) continue;
+				// sendSseRawByUserId(player.user.id, JSON.stringify({
+				// 	type: 'game_setup_settings_update',
+				// 	html: adminHtml
+				// }));
+			else
+				sendSseRawByUserId(player.user.id, JSON.stringify({
+					type: 'game_settings_update',
+					html: lobbyHtml
+				}));
 		}
 	}
 
@@ -165,20 +180,33 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
+		const adminHtml = ejs.render('game_setup', {
+			players: this.players,
+			gameSettings: gameSettings,
+			initial: false,
+		});
+
+		const lobbyHtml = ejs.render('lobby', {
+			players: this.players,
+			gameSettings: this.config,
+			initial: false,
+		});
+
 		this.config = gameSettings;
 
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
-			connectedClients.get(player.user.id)?.send(
-				JSON.stringify({
+			if (player.user.id === this.admin.id)
+				sendSseRawByUserId(player.user.id, JSON.stringify({
 					type: 'game_settings_update',
-					gameId: this.gameId,
-					gameSettings: this.config,
-					players: this.players,
-					initial: false,
-				})
-			);
+					html: adminHtml
+				}));
+			else
+				sendSseRawByUserId(player.user.id, JSON.stringify({
+					type: 'game_settings_update',
+					html: lobbyHtml
+				}));
 		}
 	}
 

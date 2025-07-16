@@ -148,6 +148,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				const id: number = runningGames.length + 1; // Temporary ID generation
 				const game = new Game(id, user, fastify);
 				runningGames.push(game);
+				game.players.splice(0, game.players.length);
 				await game.addUserPlayer(user); // Adding the admin player
 
 				fastify.log.info(`Game created with ID: ${id}`);
@@ -347,7 +348,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (type === 'ai')
 			{
 				if (user.id === game.admin.id)
+				{
 					await game.addAiPlayer("Sample AI Bot", 3);
+					return reply.code(200).send({ message: 'AI Player added successfully!' });
+				}
 				else
 					return reply.code(401).send({ error: 'Only the admin is allowed to add an AI Player!' });
 			}
@@ -355,7 +359,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			{
 				const owner = game.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
 				if (owner)
+				{
 					game.addLocalPlayer(owner as UserPlayer);
+					return reply.code(200).send({ message: 'Local Player added successfully!' });
+				}
 				else
 					return reply.code(404).send({ error: 'No owner found for local Player!' });
 			}
@@ -410,12 +417,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// 	}
 	// );
 
-	fastify.get('/join/:gameId', {}, async (request, reply) => {
+	fastify.get('/join/:gameId/:accepted', { preValidation: [ fastify.authenticate ] }, async (request, reply) => {
 		const user = await checkAuth(request, false, fastify);
 		if (!user) {
 			return reply.code(401).send({ error: 'Unauthorized' });
 		}
-		const { gameId } = request.params as { gameId: string };
+		const { gameId, accepted } = request.params as { gameId: string, accepted: string };
 		const parsedGameId = Number.parseInt(gameId, 10);
 
 		const game = runningGames.find((g) => g.gameId === parsedGameId);
@@ -428,16 +435,18 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				error: 'The game you are trying to join has already started!',
 			});
 
-		if (
-			game.players.find(
+		const player = game.players.find(
 				(p) => p instanceof UserPlayer && p.user.id === user.id
-			)
-		) {
-			if (
-				game.players.find(
-					(p) => p instanceof UserPlayer && p.user.id === user.id
-				)?.joined
-			) {
+			);
+
+		if (player) {
+
+			if (accepted === 'false') {
+				game.removePlayer(user.id);
+				return reply.code(200).send({ message: 'You have declined the game invitation.' });
+			}
+
+			if ( player.joined ) {
 				return reply
 					.code(400)
 					.send({ error: 'You are already in the game!' });
@@ -446,6 +455,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				(p) => p instanceof UserPlayer && p.user.id === user.id
 			)!.joined = true;
 		}
+		else
+			return reply.code(404).send({ error: 'You are not invited to this game!' });
 
 		return reply.code(200).view('lobby', {
 			ownerName: game.admin.displayname,

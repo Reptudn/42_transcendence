@@ -28,7 +28,7 @@ function setupEventSource() {
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
 	};
-	notifyEventSource.onmessage = (event) => {
+	notifyEventSource.onmessage = async (event) => {
 		// console.log('EventSource message received:', event);
 		// console.log('EventSource data:', event.data);
 		try {
@@ -63,18 +63,24 @@ function setupEventSource() {
 					// 	'Accept'
 					// );
 					// TODO: make this a sendPopupCall with actual buttons
-					showLocalInfo(`<button onclick="acceptGameInvite(${data.gameId})">You have been invited to a game! (ID: ${data.gameId})</button>`);
+					showLocalInfo(`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><button onclick="declineInvite(${data.gameId})">Decline</button>`);
 					break;
 				case 'game_admin_request':
-					acceptGameInvite(data.gameId);
+					await acceptGameInvite(data.gameId);
 					break;
 				case 'game_settings_update': // includes settings and ready player updates
+					alert ('Game settings updated!'); // TODO: remove this alert
+					console.log('Game settings updated:', data.html);
 					import('./lobby.js').then(({ updateGameSettings }) => {
-						console.log('Game settings updated:', data.html);
 						updateGameSettings(data.html);
 					}).catch((error) => {
 						console.error('Error importing updateGameSettings:', error);
 					});
+					break;
+				case 'game_closed':
+					console.log('Game closed:', data.message);
+					showLocalInfo(data.message);
+					await loadPartialView('profile', true, null, true);
 					break;
 				default:
 					console.error('❌ Unknown event type:', data.type);
@@ -139,7 +145,24 @@ export async function acceptGameInvite(gameId: number) {
 		'Accepting game invite for gameId',
 		gameId
 	);
-	await loadPartialView('api', true, `games/join/${gameId}`, false);
+	await loadPartialView('api', true, `games/join/${gameId}/true`, false);
+}
+
+export async function declineGameInvite(gameId: number) {
+	console.log(
+		'Declining game invite for gameId',
+		gameId
+	);
+	const res = await fetch(`/api/games/join/${gameId}/false`, {
+		method: 'GET',
+	});
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`Failed to decline game invite: ${error.error}`);
+		throw new Error(`Failed to decline game invite: ${error.error}`);
+	}
+	const data = await res.json();
+	showLocalInfo(`${data.message}`);
 }
 
 declare global {
