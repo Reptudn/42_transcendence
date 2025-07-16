@@ -153,6 +153,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 				}
 				else if (page === 'game_setup') {
+					page = 'game_setup_new';
 					const user = await checkAuth(req, true, fastify);
 					const existingGame = runningGames.find((g) => 
 						g.admin.id === user!.id || 

@@ -1,6 +1,12 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './script.js';
 
+interface Friend {
+	id: number;
+	username: string;
+	displayname: string;
+}
+
 const playersContainer = document.getElementById(
 	'playersContainer'
 ) as HTMLElement;
@@ -92,12 +98,6 @@ export function createPlayerCard(index: number): HTMLElement {
 	});
 
 	return card;
-}
-
-interface Friend {
-	id: number;
-	username: string;
-	displayname: string;
 }
 
 export function updateAdditionalSettings(

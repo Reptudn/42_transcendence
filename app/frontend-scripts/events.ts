@@ -167,7 +167,8 @@ export async function declineGameInvite(gameId: number) {
 
 declare global {
 	interface Window {
-		acceptGameInvite: (gameId: number, playerId: number) => void;
+		acceptGameInvite: (gameId: number, playerId: number) => Promise<void>;
+		declineGameInvite: (gameId: number, playerId: number) => Promise<void>;
 		notifyEventSource: EventSource | null;
 	}
 }

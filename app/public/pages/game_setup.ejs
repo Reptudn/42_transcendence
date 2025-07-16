@@ -1,4 +1,3 @@
-
 <div class="max-w-4xl p-6 rounded-lg shadow-md glow-green">
 	<h1 class="text-4xl font-bold mb-6 text-center"><%= t('game_setup.game_setup') %></h1>
 
@@ -63,5 +62,7 @@
 	</div>
 </div>
 <% if (initial) { %>
+<button onclick="addAIPlayer()">Add AI</button>
+<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
 <script type="module" src="/static/js/game_setup.js"></script>
 <% } %>
