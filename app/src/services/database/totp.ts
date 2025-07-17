@@ -17,6 +17,18 @@ export async function getUser2faSecret(
 	return row.totp_secret.toString();
 }
 
+export async function getUser2faRescue(user: User, fastify: FastifyInstance): Promise<string> {
+	const row = await fastify.sqlite.get(
+		'SELECT totp_rescue FROM users WHERE id = ?',
+		[user.id]
+	);
+
+	if (!row || !row.totp_rescue) {
+		return '';
+	}
+	return row.totp_rescue.toString();
+}
+
 // returns the rescue code of the secret
 export async function createUser2faSecret(
 	user: User,

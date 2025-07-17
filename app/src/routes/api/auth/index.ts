@@ -5,7 +5,7 @@ import {
 	loginUser,
 	registerUser,
 } from '../../../services/database/users';
-import { getUser2faSecret, verify2fa } from '../../../services/database/totp';
+import { getUser2faRescue, getUser2faSecret, removeUser2fa, verify2fa } from '../../../services/database/totp';
 
 const authSchema = {
 	type: 'object',
@@ -163,22 +163,56 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 	fastify.post(
 		'/2fa',
-		{},
+		{
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						rescue_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 22,
+							errorMessage: {
+					type: 'Wrong rescue code',
+					minLength: 'Wrong rescue code',
+					maxLength: 'Wrong rescue code',
+				},
+						},
+						fa_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 6,
+							errorMessage: {
+					type: 'Wrong 2fa code',
+					minLength: 'Wrong 2fa code',
+					maxLength: 'Wrong 2fa code',
+				},
+						},
+					}
+				}
+			}
+		},
 		async (req: FastifyRequest, reply: FastifyReply) => {
-			const { userid, fa_token } = req.body as {
+			const { userid, fa_token, rescue_token } = req.body as {
 				userid: number;
 				fa_token: string;
+				rescue_token: string;
 			};
-			if (!userid || !fa_token)
-				return reply.code(401).send({error: 'Invalid 2fa code!'});
 			const user = await getUserById(userid, fastify);
 			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
-			const index = users_2fa.findIndex((id) => id === userid);
-			if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
-			if ((await verify2fa(user, fa_token, fastify)) === false){
-				return reply.code(401).send({error: 'Invalid 2fa code!'});
+			if (rescue_token !== await getUser2faRescue(user, fastify)){
+				if (!userid || !fa_token)
+					return reply.code(401).send({error: 'Invalid 2fa code!'});
+				const index = users_2fa.findIndex((id) => id === userid);
+				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
+				if ((await verify2fa(user, fa_token, fastify)) === false){
+					return reply.code(401).send({error: 'Invalid 2fa code!'});
+				}
 			}
 			users_2fa = users_2fa.filter((id) => id !== user.id);
+			if(rescue_token === await getUser2faRescue(user, fastify)){
+				await removeUser2fa(user, fastify);
+			}
 			const token = fastify.jwt.sign(
 				{ username: user.username, id: user.id },
 				{ expiresIn: '10d' }
@@ -197,3 +231,4 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 };
 
 export default auth;
+

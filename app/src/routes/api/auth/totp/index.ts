@@ -47,29 +47,6 @@ const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			return reply.code(200).send({ message: '2fa disabled!' });
 		}
 	);
-	fastify.post(
-		'/rescue',
-		{
-			preValidation: [fastify.authenticate],
-			schema: {
-				body: {
-					type: 'object',
-					required: ['rescue_token'],
-					additionalProperties: false,
-					properties: {
-						rescue_token: {
-							type: 'string',
-							minLength: 10,
-							maxLength: 10,
-						},
-					},
-				},
-			},
-		},
-		async (request, reply) => {
-			// use recovery code when 2fa has errors or stigg like that
-		}
-	);
 };
 
 export default totp;
