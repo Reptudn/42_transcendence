@@ -1,33 +1,13 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './script.js';
 
-let isInitialized = false;
-
 interface Friend {
 	id: number;
 	username: string;
 	displayname: string;
 }
 
-let gameId: number | undefined = undefined;
-if (!isInitialized) {
-	const res = await fetch('/api/games/create', {
-		method: 'POST',
-	});
-	if (!res.ok) {
-		const data = await res.json();
-		showLocalError(data.error);
-		loadPartialView('profile');
-		throw new Error('Failed to create game'); // Stop execution here
-	}
-
-	const data = await res.json();
-	gameId = data.gameId;
-	showLocalInfo(`${data.message} (${data.gameId})`);
-	isInitialized = true;
-}
-
-do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
+window.was_in_game = true;
 
 export async function refreshOnlineFriends() {
 	
@@ -72,11 +52,12 @@ export async function refreshOnlineFriends() {
 
 }
 
+// TODO: doesnt work yet either
 export async function updateSettings(newSettings: any)
 {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
-		body: newSettings
+		body: JSON.stringify(newSettings)
 	});
 
 	if (!res.ok)
@@ -99,14 +80,15 @@ powerupsToggle?.addEventListener('change', async (event) => {
 	await updateSettings({ powerupsEnabled: isChecked });
 });
 
-const maxPlayerSlider = document.getElementById('players-input') as HTMLInputElement | null;
+const maxPlayerSlider = document.getElementById('difficulty-input') as HTMLInputElement | null;
 maxPlayerSlider?.addEventListener('change', async (event) => {
 	const newValue = (event.target as HTMLInputElement).value;
-	await updateSettings({ maxPlayers: Number(newValue) });
+	await updateSettings({ gameDifficulty: Number(newValue) });
 });
 
 export async function addPowerUp() {
 	console.log('Adding power-up...');
+	alert("Not implemented")
 }
 
 export async function addAIPlayer() {
@@ -147,9 +129,9 @@ export async function addLocalPlayer() {
 	const res = await fetch('/api/games/players/add/local', { method: 'POST' });
 
 	if (!res.ok) {
-		const error = await res.json();
+		const data = await res.json();
 		showLocalError(
-			`${error.error || 'Failed to add Local player: Unknown error'}`
+			`${data.error || 'Failed to add Local player: Unknown error'}`
 		);
 		return;
 	}
@@ -158,6 +140,7 @@ export async function addLocalPlayer() {
 	showLocalInfo(`${data.message || 'Local player added successfully!'}`);
 }
 
+// TODO: doesnt work
 export async function kickPlayer(playerId: number) {
 	console.log(`Kicking player with ID: ${playerId}`);
 
@@ -179,6 +162,19 @@ export async function kickPlayer(playerId: number) {
 
 export async function leaveGame() {
 	console.log('Leaving game...');
+	const res = await fetch('/api/games/leave', { method: 'POST' });
+	if (res.ok) {
+		const data = await res.json();
+		console.log('Left game:', data);
+		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+	} else {
+		const error = await res.json();
+		console.error('Error leaving game:', error);
+		showLocalInfo(
+			`${error.error || 'Failed to leave game: Unknown error'}`
+		);
+	}
+	window.was_in_game = false;
 	await loadPartialView('profile');
 }
 
@@ -201,6 +197,7 @@ declare global {
 		kickPlayer: (playerId: number) => Promise<void>;
 		addLocalPlayer: () => Promise<void>;
 		addUserPlayer: (friendId: number) => Promise<void>;
+		addAIPlayer: () => Promise<void>;
 	}
 }
 
@@ -210,3 +207,4 @@ window.updatePage = updatePage;
 window.kickPlayer = kickPlayer;
 window.addLocalPlayer = addLocalPlayer;
 window.addUserPlayer = addUserPlayer;
+window.addAIPlayer = addAIPlayer;

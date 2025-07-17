@@ -11,6 +11,7 @@ export enum GameStatus {
 }
 
 const defaultGameSettings: GameSettings = {
+	gameDifficulty: 5,
 	map: 'default_map',
 	powerupsEnabled: false,
 	powerups: [],
@@ -70,7 +71,7 @@ export class Game {
 				await getUserTitleString(user.id, this.fastify)
 			)
 		);
-		await this.updatePlayers();
+		await this.updateLobbyState();
 	}
 
 	async addAiPlayer(name: string, aiLevel: number) {
@@ -80,10 +81,10 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		this.players.push(
-			new AiPlayer(this.players.length + 1, this, name, 'AI', aiLevel)
-		);
-		await this.updatePlayers();
+		const aiPlayer = new AiPlayer(this.players.length + 1, this, name, 'AI', aiLevel);
+		aiPlayer.joined = true; // AI players are always considered joined
+		this.players.push(aiPlayer);
+		await this.updateLobbyState();
 	}
 
 	async addLocalPlayer(owner: UserPlayer) {
@@ -93,10 +94,10 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		this.players.push(
-			new LocalPlayer(this.players.length + 1, owner, this)
-		);
-		await this.updatePlayers();
+		const localPlayer = new LocalPlayer(this.players.length + 1, owner, this);
+		localPlayer.joined = true; // Local players are always considered joined
+		this.players.push(localPlayer);
+		await this.updateLobbyState();
 	}
 
 	async removePlayer(playerId: number) {
@@ -121,6 +122,10 @@ export class Game {
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
+			sendSseRawByUserId(playerToRemove.user.id, JSON.stringify({
+				type: 'game_closed',
+				message: `You got kicked from the game (${this.gameId}).`,
+			}));
 		}
 
 		if (playerToRemove instanceof UserPlayer && playerToRemove.user.id == this.admin.id) {
@@ -144,12 +149,12 @@ export class Game {
 				`Deleted Game ${this.gameId} because no players are left!`
 			);
 		}
-		await this.updatePlayers();
+		await this.updateLobbyState();
 	}
 
-	async updatePlayers() {
+	// this updates the lobby state for everyone
+	async updateLobbyState() {
 
-		// TODO: fix path issues here
 		const adminHtml = await ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
 			players: this.players,
 			gameSettings: this.config,
@@ -157,7 +162,6 @@ export class Game {
 			ownerName: this.admin.displayname
 		});
 
-		// TODO: fix path issues here
 		const lobbyHtml = await ejs.renderFile('./app/public/pages/lobby.ejs', {
 			players: this.players,
 			gameSettings: this.config,
@@ -166,53 +170,12 @@ export class Game {
 		});
 
 		for (const player of this.players) {
-			if (!(player instanceof UserPlayer)) continue;
+			if (!(player instanceof UserPlayer) || !player.joined) continue;
 
 			if (player.user.id === this.admin.id)
 				sendSseHtmlByUserId(player.user.id, 'game_setup_settings_update', adminHtml);
 			else
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_settings_update',
-					html: lobbyHtml
-				}));
-		}
-	}
-
-	updateGameSettings(gameSettings: GameSettings) {
-		if (this.status !== GameStatus.WAITING)
-			throw new Error('Game already running!');
-
-		// TODO: fix path issues here
-		const adminHtml = ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
-			players: this.players,
-			gameSettings: this.config,
-			initial: false,
-			ownerName: this.admin.displayname
-		});
-
-		// TODO: fix path issues here
-		const lobbyHtml = ejs.renderFile('./app/public/pages/lobby.ejs', {
-			players: this.players,
-			gameSettings: this.config,
-			initial: false,
-			ownerName: this.admin.displayname
-		});
-
-		this.config = gameSettings;
-
-		for (const player of this.players) {
-			if (!(player instanceof UserPlayer)) continue;
-
-			if (player.user.id === this.admin.id)
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_setup_settings_update',
-					html: adminHtml
-				}));
-			else
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_settings_update',
-					html: lobbyHtml
-				}));
+				sendSseHtmlByUserId(player.user.id, 'game_settings_update', lobbyHtml);
 		}
 	}
 

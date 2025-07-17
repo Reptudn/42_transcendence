@@ -76,7 +76,7 @@ function setupEventSource() {
 						console.error('Error importing updateGameSettings:', error);
 					});
 					break;
-				case 'game_settings_update': // includes settings and ready player updates
+				case 'game_settings_update': // TODO: dont get anything in here
 					console.log('Game settings updated:', data.html);
 					import('./lobby.js').then(({ updatePage }) => {
 						updatePage(data.html);
@@ -84,8 +84,7 @@ function setupEventSource() {
 						console.error('Error importing updateGameSettings:', error);
 					});
 					break;
-				case 'game_closed':
-					console.log('Game closed:', data.message);
+				case 'game_closed': // TODO: when being kicked from a game nothing gets here
 					showLocalInfo(data.message);
 					await loadPartialView('profile', true, null, true);
 					break;

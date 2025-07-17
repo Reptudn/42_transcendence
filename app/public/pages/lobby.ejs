@@ -3,10 +3,10 @@
 <script src="/static/js/lobby.js" type="module"></script>
 <div id="lobby">
 <% } %>
-	<h1><%= ownerName %>'s Game</h1>
+	<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
 	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
 	<div class="settings">
-		<h2>Lobby Settings</h2>
+		<h2 class="text-3xl">Lobby Settings</h2>
 		<div id="lobbySettings">
 			<h3>Power-ups:</h3>
 			<% if (gameSettings.powerupsEnabled) { %>
@@ -24,15 +24,15 @@
 	<br>
 	<button onclick="addLocalPlayer()">Add Local Player</button>
 	<div class="players">
-		<h2>Players:</h2>
-		<div id="playerList" class="flex">
+		<h2 class="text-3xl">Players:</h2>
+		<div id="playerList">
 			<% if (!players || players.length === 0) { %>
 				<p>No players joined.</p>
 			<% } else { %>
 				<% for (const player of players) { %>
-					<div class="<%- player.joined ? 'border-green-500' : 'border-red-500' %>">
-						<span class="glow-green"><%= player.displayName %></span>
-						<span class="glow-red"><%= player.playerTitle %></span>
+					<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+						<span class="glow-green"><%= player.displayName || 'Unknown Player' %></span>
+						<span class="glow-red"><%= player.playerTitle || 'Unknown Title' %></span>
 						<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
 					</div>
 					<br>

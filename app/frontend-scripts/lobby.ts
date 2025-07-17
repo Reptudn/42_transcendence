@@ -1,4 +1,6 @@
-import { showLocalError, showLocalInfo } from './alert';
+import { showLocalError, showLocalInfo } from './alert.js';
+
+// TODO: handle leave when user just clicks on a different page
 
 export function updatePage(html: string)
 {
@@ -41,8 +43,12 @@ export async function leaveGame() {
 
 declare global {
 	interface Window {
-		updateGameSettings: (settings: string) => void;
+		updatePage: (html: string) => void;
 		addLocalPlayer: () => Promise<void>;
-		// toggleReady: () => void;
+		leaveGame: () => Promise<void>;
 	}
 }
+
+window.updatePage = updatePage;
+window.addLocalPlayer = addLocalPlayer;
+window.leaveGame = leaveGame;

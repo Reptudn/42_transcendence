@@ -11,6 +11,7 @@ declare global {
 		abortController: AbortController | null;
 		notifyEventSource: EventSource | null;
 		createGame: () => Promise<void>;
+		was_in_game: boolean;
 	}
 }
 
@@ -42,7 +43,8 @@ export async function createGame()
 	await loadPartialView('game_setup_new', true, null, true);
 }
 
-let was_in_game = false;
+export let was_in_game = false;
+window.was_in_game = was_in_game;
 async function leaveGame()
 {
 	if (!was_in_game) return;

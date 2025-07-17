@@ -163,7 +163,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	// TODO: add schema verification for correct settings
 	fastify.post(
 		'/settings',
 		{
@@ -171,11 +170,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {} // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { powerupsEnabled, powerups, playerLives, maxPlayers } = request.body as {
-				powerupsEnabled: boolean | null;
-				powerups: Powerups[] | null;
-				playerLives: number | null;
-				maxPlayers: number | null;
+			const { powerupsEnabled, powerups, playerLives, gameDifficulty } = request.body as {
+				powerupsEnabled?: boolean;
+				powerups?: Powerups[];
+				playerLives?: number;
+				gameDifficulty?: number;
 			};
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
@@ -189,12 +188,40 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ error: 'No game found for the user' });
 			}
 
-			if (powerupsEnabled !== null) game.config.powerupsEnabled = powerupsEnabled;
-			if (powerups !== null) game.config.powerups = powerups;
-			if (playerLives !== null)game.config.playerLives = playerLives;
-			if (maxPlayers !== null) game.config.maxPlayers = maxPlayers;
+			if (game.status !== GameStatus.WAITING)
+				return reply.code(401).send({ error: 'You cant update the settings while this game is already running!' });
 
-			game.updateGameSettings(game.config);
+			if (powerupsEnabled) {
+				fastify.log.info(`Updating game settings for game ${game.gameId} by user ${user.username}`);
+				game.config.powerupsEnabled = powerupsEnabled;
+			}
+			if (powerups) {
+				if (!game.config.powerupsEnabled) {
+					return reply.code(400).send({
+						error: 'Powerups are not enabled for this game. Turn on powerups first.',
+					});
+				}
+				fastify.log.info(`Updating powerups for game ${game.gameId} by user ${user.username}`);
+				game.config.powerups = powerups;
+			}
+			if (playerLives) {
+				fastify.log.info(`Updating player lives for game ${game.gameId} by user ${user.username}`);
+				game.config.playerLives = playerLives;
+			}
+
+			if (gameDifficulty) {
+
+				if (gameDifficulty < 1 || gameDifficulty > 10) {
+					return reply.code(400).send({
+						error: 'Game difficulty must be between 1 and 10.',
+					});
+				}
+
+				fastify.log.info(`Updating game difficulty for game ${game.gameId} by user ${user.username}`);
+				game.config.gameDifficulty = gameDifficulty;
+			}
+
+			game.updateLobbyState();
 			fastify.log.info(
 				`Game settings updated for game ${game.gameId} by user ${user.username}`
 			);
@@ -456,6 +483,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	// 	}
 	// );
 
+	// TODO: make it redirect and load the full page when nothing to join exists
 	fastify.get(
 		'/join/:gameId/:accepted',
 		{ preValidation: [fastify.authenticate] },
@@ -501,11 +529,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-			game.updatePlayers();
+			game.updateLobbyState();
 			return reply.code(200).view('lobby', {
 				ownerName: game.admin.displayname,
-				gameSettings: JSON.stringify(game.config),
-				players: JSON.stringify(game.players),
+				gameSettings: game.config,
+				players: game.players,
 				initial: true, // to load the lobby script
 			});
 		}

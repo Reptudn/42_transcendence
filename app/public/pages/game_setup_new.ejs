@@ -1,12 +1,11 @@
 <% if (initial) { %>
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
-	<h1><%= ownerName %>'s Game</h1>
+	<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
 	<button onclick="addAIPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add AI</button>
 	<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Local Player</button>
-	<button onclick="addUserPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Invite Player</button>
 	<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
 	<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
-	<input type="number" name="Players" id="players-input" min="2" max="10" value="4">Max Players</input>
+	<input type="number" name="Difficulty" id="difficulty-input" min="2" max="10" value="5">Game Difficulty</input>
 	<br>
 	<div>
 		<h2>Online Friends:</h2>
@@ -19,11 +18,11 @@
 	<br>
 	<div id="lobby">
 <% } %>
-	<p>Players: <%= players.length %> / <%= `${gameSettings.maxPlayers}` %></p>
+	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
 	<div class="settings">
-		<h2>Lobby Settings</h2>
+		<h2 class="text-3xl">Lobby Settings</h2>
 		<div id="lobbySettings">
-			<h3>Power-ups:</h3>
+			<h3 class="text-2xl">Power-ups:</h3>
 			<% if (gameSettings.powerupsEnabled) { %>
 				<button onclick="addPowerUp()">Add Power Up</button>
 				<% for (const powerup of gameSettings.powerups) { %>
@@ -41,15 +40,15 @@
 	<br>
 	<br>
 	<div class="players">
-		<h2>Players:</h2>
-		<div id="playerList flex">
+		<h2 class="text-3xl">Players:</h2>
+		<div id="playerList">
 			<% if (!players || players.length === 0) { %>
 				<p>No players joined.</p>
 			<% } else { %>
 				<% for (const player of players) { %>
-					<div class="<%- player.joined ? 'border-green-500' : 'border-red-500' %>">
-						<h3 class="glow-green"><%= player.displayName %></h3>
-						<h3 class="glow-red"><%= player.playerTitle %></h3>
+					<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+						<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+						<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
 						<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
 						<button onclick="kickPlayer(player.playerId)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 					</div>
