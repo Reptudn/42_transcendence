@@ -1,6 +1,7 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import './script.js';
 import { updateMenu, loadPartialView } from './script.js';
+import { initTwofaLogin } from './2fa_login.js';
 
 const loginAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement)
@@ -21,11 +22,14 @@ const loginAction = async () => {
 			const responseData = await response.json();
 			if (responseData.twofa_status === true) {
 				window.user_id = responseData.user_id as number;
-				loadPartialView('2fa_code');
+				await loadPartialView('2fa_code');
+				console.log('after login in 2facode');
+				initTwofaLogin();
+				console.log('buttin initialized');
 				return;
 			}
 			updateMenu();
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			showLocalInfo('You have logged in successfully');
 		} else {
 			const data = await response.json();

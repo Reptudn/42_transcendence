@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { closeAllPopups } from './popup.js';
 
 declare global {
 	interface Window {
@@ -198,7 +199,8 @@ async function logout(): Promise<void> {
 			updateMenu();
 			loadPartialView('index');
 			window.notifyEventSource?.close();
-			window.notifyEventSource = null;
+			window.notifyEventSource = null
+			closeAllPopups();
 			showLocalInfo('You have been logged out with impeccable style!');
 		} else {
 			const data = await response.json();
