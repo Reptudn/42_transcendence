@@ -4,12 +4,12 @@
 <div id="lobby">
 <% } %>
 	<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
-	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
+	<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 	<div class="settings">
 		<h2 class="text-3xl">Lobby Settings</h2>
 		<div id="lobbySettings">
 			<h3>Power-ups:</h3>
-			<% if (gameSettings.powerupsEnabled) { %>
+			<% if (gameSettings.powerupsEnabled && gameSettings.powerups.length > 0) { %>
 				<% for (const powerup of gameSettings.powerups) { %>
 					<div class="powerup">
 						<span class="powerup-name"><%= powerup.name %></span>
@@ -18,7 +18,10 @@
 				<% } %>
 			<% } else { %>
 				<p>Power-ups are disabled.</p>
+				<br>
 			<% } %>
+			<h3>Player Lives: <%= gameSettings.playerLives %></h3>
+			<h3>Game Difficulty: <%= gameSettings.gameDifficulty %></h3>
 		</div>
 	</div>
 	<br>

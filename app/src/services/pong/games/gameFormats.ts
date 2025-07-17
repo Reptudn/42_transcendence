@@ -117,7 +117,7 @@ export class Game {
 			this.players = this.players.filter(
 				(player) =>
 					player instanceof LocalPlayer &&
-					player.owner === playerToRemove
+					player.owner !== playerToRemove
 			);
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
@@ -159,7 +159,7 @@ export class Game {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
-			ownerName: this.admin.displayname
+			ownerName: this.admin.displayname,
 		});
 
 		const lobbyHtml = await ejs.renderFile('./app/public/pages/lobby.ejs', {

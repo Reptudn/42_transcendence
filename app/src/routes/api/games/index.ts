@@ -191,11 +191,14 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (game.status !== GameStatus.WAITING)
 				return reply.code(401).send({ error: 'You cant update the settings while this game is already running!' });
 
-			if (powerupsEnabled) {
+			let changed = false;
+
+			if (powerupsEnabled !== undefined) {
 				fastify.log.info(`Updating game settings for game ${game.gameId} by user ${user.username}`);
 				game.config.powerupsEnabled = powerupsEnabled;
+				changed = true;
 			}
-			if (powerups) {
+			if (powerups !== undefined) {
 				if (!game.config.powerupsEnabled) {
 					return reply.code(400).send({
 						error: 'Powerups are not enabled for this game. Turn on powerups first.',
@@ -203,13 +206,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 				fastify.log.info(`Updating powerups for game ${game.gameId} by user ${user.username}`);
 				game.config.powerups = powerups;
+				changed = true;
 			}
-			if (playerLives) {
+			if (playerLives !== undefined) {
 				fastify.log.info(`Updating player lives for game ${game.gameId} by user ${user.username}`);
 				game.config.playerLives = playerLives;
+				changed = true;
 			}
 
-			if (gameDifficulty) {
+			if (gameDifficulty !== undefined) {
 
 				if (gameDifficulty < 1 || gameDifficulty > 10) {
 					return reply.code(400).send({
@@ -219,15 +224,20 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 				fastify.log.info(`Updating game difficulty for game ${game.gameId} by user ${user.username}`);
 				game.config.gameDifficulty = gameDifficulty;
+				changed = true;
 			}
 
-			game.updateLobbyState();
+			if (changed)
+			{
+				await game.updateLobbyState();
 			fastify.log.info(
 				`Game settings updated for game ${game.gameId} by user ${user.username}`
 			);
 			return reply
 				.code(200)
-				.send({ message: 'Game settings updated successfully' });
+				.send({ message: 'Game settings updated successfully!' });
+			} else
+				return reply.code(200).send({ message: 'No game settings changed!' });
 		}
 	);
 
@@ -340,7 +350,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	// this can simply remove any player
 	fastify.post(
-		'/kick/:playerId',
+		'/players/kick/:playerId',
 		{
 			preValidation: [fastify.authenticate],
 		},
@@ -350,8 +360,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
-			const { userId } = request.params as { userId: string };
-			const parsedUserId = Number.parseInt(userId, 10);
+			const { playerId } = request.params as { playerId: string };
+			const parsedPlayerId = Number.parseInt(playerId, 10);
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			if (!game) {
@@ -361,18 +371,27 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			const playerToKick = game.players.find(
-				(p) => p.playerId === parsedUserId
+				(p) => p.playerId === parsedPlayerId
 			);
 			if (!playerToKick) {
 				return reply
 					.code(404)
 					.send({ error: 'No such player found in the game' });
 			}
-
-			await game.removePlayer(parsedUserId);
-			return reply.code(200).send({
-				message: `Player ${playerToKick.displayName} kicked from the game`,
-			});
+			const self = game.players.find(p => p instanceof UserPlayer && p.user.id === user.id);
+			if (playerToKick.playerId && self && self instanceof UserPlayer && self.user.id === user.id)
+				return reply.code(404).send({ error: 'You cant kick yourself ( Just leave.. kicking yourself is not cool :c )' });
+			try {
+				await game.removePlayer(parsedPlayerId);
+				return reply.code(200).send({
+					message: `Player ${playerToKick.displayName} kicked from the game`,
+				});
+			}
+			catch (err) {
+				if (err instanceof Error)
+					return reply.code(404).send({ error: err.message });
+				return reply.code(404).send({ error: 'Unknown error' }); 
+			}
 		}
 	);
 
@@ -435,7 +454,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						error: 'Invalid Player type... only "ai" or "local" allowed!',
 					});
 			} catch (err) {
-				return reply.code(404).send({ error: err });
+				if (err instanceof Error)
+					return reply.code(404).send({ error: err.message });
+				return reply.code(404).send({ error: 'Unknown error' });
 			}
 		}
 	);

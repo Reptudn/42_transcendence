@@ -18,7 +18,7 @@
 	<br>
 	<div id="lobby">
 <% } %>
-	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
+	<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 	<div class="settings">
 		<h2 class="text-3xl">Lobby Settings</h2>
 		<div id="lobbySettings">
@@ -50,7 +50,9 @@
 						<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
 						<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
 						<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
-						<button onclick="kickPlayer(player.playerId)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+						<% if (player.playerId !== 1) { %> <!-- 1 is the admin -->
+							<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+						<% } %>
 					</div>
 				<% } %>
 			<% } %>

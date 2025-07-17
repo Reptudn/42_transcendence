@@ -57,6 +57,9 @@ export async function updateSettings(newSettings: any)
 {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
 		body: JSON.stringify(newSettings)
 	});
 
@@ -149,9 +152,9 @@ export async function kickPlayer(playerId: number) {
 	});
 
 	if (!res.ok) {
-		const error = await res.json();
+		const data = await res.json();
 		showLocalError(
-			`${error.error || 'Failed to kick player: Unknown error'}`
+			`${data.error || 'Failed to kick player: Unknown error'}`
 		);
 		return;
 	}
