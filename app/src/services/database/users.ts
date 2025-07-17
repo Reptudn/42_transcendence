@@ -160,6 +160,17 @@ export async function getUserById(
 	return user || null;
 }
 
+export async function getUserByUsername(
+	username: string,
+	fastify: FastifyInstance
+): Promise<User | null> {
+	const user = await fastify.sqlite.get(
+		'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE username = ?',
+		username
+	);
+	return user || null;
+}
+
 export async function getGoogleUser(
 	google_id: string,
 	fastify: FastifyInstance

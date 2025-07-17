@@ -14,7 +14,15 @@ const authSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 16,
-			pattern: '^[a-zA-Z0-9_]+$', // Nur alphanumerische Zeichen und Unterstriche
+			pattern: '^[a-zA-Z0-9_]+$', // Only alphanumeric characters and underscores
+			errorMessage: {
+				type: 'Username must be a string.',
+				minLength:
+					'Username must be at least 3 characters.',
+				maxLength: 'Username can have a maximum of 16 characters.',
+				pattern:
+					'Username can only contain alphanumeric characters and underscores.',
+			},
 		},
 		password: {
 			type: 'string',
@@ -24,26 +32,55 @@ const authSchema = {
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
 					: '',
+			errorMessage: {
+				type: 'Password must be a string.',
+				minLength:
+					'Password must be at least 8 characters.',
+				maxLength: 'Password can have a maximum of 32 characters.',
+				pattern:
+					'Password must include at least one uppercase letter, one lowercase letter, one digit, and one special character.',
+			},
 		},
 		displayname: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			errorMessage: {
+				type: 'Display name must be a string.',
+				minLength:
+					'Display name must be at least 3 characters in production or 1 in development.',
+				maxLength: 'Display name can have a maximum of 32 characters.',
+			},
 		},
 		totp: {
 			type: 'string',
 		},
 	},
-	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
+	required: ['username', 'password'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			username: 'Username is required.',
+			password: 'Password is required.',
+		},
+		additionalProperties: 'No additional properties are allowed.',
+	},
 };
 
 const registerSchema = {
 	...authSchema,
-	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
+	required: [...authSchema.required, 'displayname'],
+	errorMessage: {
+		required: {
+			username: 'Username is required.',
+			password: 'Password is required.',
+			displayname: 'Display name is required for registration.',
+		},
+		additionalProperties: 'No additional properties are allowed.',
+	},
 };
 
-const users_2fa: number[] = [];
+let users_2fa: number[] = [];
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -133,13 +170,15 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fa_token: string;
 			};
 			if (!userid || !fa_token)
-				return reply.code(401).send('Invalid 2fa code!');
+				return reply.code(401).send({error: 'Invalid 2fa code!'});
 			const user = await getUserById(userid, fastify);
-			if (!user) return reply.code(401).send('Invalid 2fa code!');
+			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
 			const index = users_2fa.findIndex((id) => id === userid);
-			if (index === -1) return reply.code(401).send('Invalid 2fa code!');
-			if ((await verify2fa(user, fa_token, fastify)) === false)
-				return reply.code(401).send('Invalid 2fa code!');
+			if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
+			if ((await verify2fa(user, fa_token, fastify)) === false){
+				return reply.code(401).send({error: 'Invalid 2fa code!'});
+			}
+			users_2fa = users_2fa.filter((id) => id !== user.id);
 			const token = fastify.jwt.sign(
 				{ username: user.username, id: user.id },
 				{ expiresIn: '10d' }

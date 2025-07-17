@@ -33,7 +33,7 @@ export function createPlayerCard(index: number): HTMLElement {
 
 	const typeSelect = document.createElement('select');
 	typeSelect.className =
-		'player-type mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+		'player-type mt-1 block w-full rounded-md border-gray-300';
 	typeSelect.innerHTML = `
 		<option value="user">Friend (User)</option>
 		<option value="local">Local Player</option>
@@ -77,7 +77,7 @@ export function updateAdditionalSettings(
 
 		const friendSelect = document.createElement('select');
 		friendSelect.className =
-			'friend-select mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+			'friend-select mt-1 block w-full rounded-md border-gray-300';
 		friendSelect.innerHTML = `<option value="">-- Choose a friend --</option>`;
 		for (const friend of friends) {
 			const option = document.createElement('option');
@@ -94,7 +94,7 @@ export function updateAdditionalSettings(
 
 		const controlSelect = document.createElement('select');
 		controlSelect.className =
-			'control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+			'control-scheme mt-1 block w-full rounded-md border-gray-300';
 		controlSelect.innerHTML = `
 			<option value="wasd">WASD</option>
 			<option value="arrows">Arrow Keys</option>
@@ -105,7 +105,7 @@ export function updateAdditionalSettings(
 		const nameInput = document.createElement('input');
 		nameInput.type = 'text';
 		nameInput.className =
-			'local-name mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+			'local-name mt-1 block w-full rounded-md border-gray-300';
 		nameInput.placeholder = 'Enter player name';
 		container.appendChild(nameInput);
 	} else if (type === 'ai') {
@@ -117,7 +117,7 @@ export function updateAdditionalSettings(
 		const aiLevelInput = document.createElement('input');
 		aiLevelInput.type = 'number';
 		aiLevelInput.className =
-			'ai-level mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+			'ai-level mt-1 block w-full rounded-md border-gray-300';
 		aiLevelInput.min = '1';
 		aiLevelInput.max = '10';
 		aiLevelInput.value = '5';
@@ -126,7 +126,7 @@ export function updateAdditionalSettings(
 		const nameInput = document.createElement('input');
 		nameInput.type = 'text';
 		nameInput.className =
-			'ai-name mt-1 block w-full rounded-md border-gray-300 shadow-sm';
+			'ai-name mt-1 block w-full rounded-md border-gray-300';
 		nameInput.placeholder = 'Enter AI name';
 		container.appendChild(nameInput);
 	}
