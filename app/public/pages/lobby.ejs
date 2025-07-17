@@ -1,4 +1,8 @@
-<div class="lobby">
+<% if (initial)  {%>
+<button onclick="leaveGame()">Leave Game</button>
+<script src="/static/js/lobby.js" type="module"></script>
+<div id="lobby">
+<% } %>
 	<h1><%= ownerName %>'s Game</h1>
 	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
 	<div class="settings">
@@ -21,19 +25,22 @@
 	<button onclick="addLocalPlayer()">Add Local Player</button>
 	<div class="players">
 		<h2>Players:</h2>
-		<div id="playerList">
-			<% for (const player of players) { %>
-				<div class="<%- player.joined ? 'border-green-500' : 'border-red-500' %>">
-					<span class=""><%= player.displayName %></span>
-					<span class=""><%= player.playerTitle %></span>
-					<span class=""><%= player.joined ? "Joined" : "Not Joined" %></span>
-				</div>
+		<div id="playerList" class="flex">
+			<% if (!players || players.length === 0) { %>
+				<p>No players joined.</p>
+			<% } else { %>
+				<% for (const player of players) { %>
+					<div class="<%- player.joined ? 'border-green-500' : 'border-red-500' %>">
+						<span class="glow-green"><%= player.displayName %></span>
+						<span class="glow-red"><%= player.playerTitle %></span>
+						<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
+					</div>
+					<br>
+				<% } %>
 			<% } %>
 		</div>
 	</div>
-</div>
-
+	
 <% if (initial) { %>
-	<button onclick="leaveGame()">Leave Game</button>
-	<script src="/static/js/lobby.js" type="module"></script>
+	</div>
 <% } %>

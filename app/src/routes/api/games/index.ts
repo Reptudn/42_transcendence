@@ -168,19 +168,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/settings',
 		{
 			preValidation: [fastify.authenticate],
-			schema: {
-				body: {
-					type: 'object',
-					properties: {
-						settings: {
-							type: 'string',
-						},
-					},
-				},
-			},
+			schema: {} // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { settings } = request.body as { settings: GameSettings };
+			const { powerupsEnabled, powerups, playerLives, maxPlayers } = request.body as {
+				powerupsEnabled: boolean | null;
+				powerups: Powerups[] | null;
+				playerLives: number | null;
+				maxPlayers: number | null;
+			};
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -193,7 +189,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ error: 'No game found for the user' });
 			}
 
-			game.updateGameSettings(settings);
+			if (powerupsEnabled !== null) game.config.powerupsEnabled = powerupsEnabled;
+			if (powerups !== null) game.config.powerups = powerups;
+			if (playerLives !== null)game.config.playerLives = playerLives;
+			if (maxPlayers !== null) game.config.maxPlayers = maxPlayers;
+
+			game.updateGameSettings(game.config);
+			fastify.log.info(
+				`Game settings updated for game ${game.gameId} by user ${user.username}`
+			);
 			return reply
 				.code(200)
 				.send({ message: 'Game settings updated successfully' });
@@ -338,7 +342,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ error: 'No such player found in the game' });
 			}
 
-			game.removePlayer(parsedUserId);
+			await game.removePlayer(parsedUserId);
 			return reply.code(200).send({
 				message: `Player ${playerToKick.displayName} kicked from the game`,
 			});
@@ -391,7 +395,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						(p) => p instanceof UserPlayer && p.user.id === user.id
 					);
 					if (owner) {
-						game.addLocalPlayer(owner as UserPlayer);
+						await game.addLocalPlayer(owner as UserPlayer);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
 						});
@@ -482,25 +486,22 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			if (player) {
 				if (accepted === 'false') {
-					game.removePlayer(user.id);
+					await game.removePlayer(user.id);
 					return reply.code(200).send({
 						message: 'You have declined the game invitation.',
 					});
 				}
 
-				if (player.joined) {
-					return reply
-						.code(400)
-						.send({ error: 'You are already in the game!' });
+				if (!player.joined) {
+					game.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === user.id
+					)!.joined = true;
 				}
-				game.players.find(
-					(p) => p instanceof UserPlayer && p.user.id === user.id
-				)!.joined = true;
 			} else
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-
+			game.updatePlayers();
 			return reply.code(200).view('lobby', {
 				ownerName: game.admin.displayname,
 				gameSettings: JSON.stringify(game.config),

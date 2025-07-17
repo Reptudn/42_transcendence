@@ -1,5 +1,5 @@
 import { WebSocket as WSWebSocket } from 'ws';
-import { connectedClients, sendSseRawByUserId } from '../../sse/handler';
+import { connectedClients, sendSseHtmlByUserId, sendSseRawByUserId } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { runningGames } from './games';
@@ -70,7 +70,7 @@ export class Game {
 				await getUserTitleString(user.id, this.fastify)
 			)
 		);
-		this.updatePlayers();
+		await this.updatePlayers();
 	}
 
 	async addAiPlayer(name: string, aiLevel: number) {
@@ -83,10 +83,10 @@ export class Game {
 		this.players.push(
 			new AiPlayer(this.players.length + 1, this, name, 'AI', aiLevel)
 		);
-		this.updatePlayers();
+		await this.updatePlayers();
 	}
 
-	addLocalPlayer(owner: UserPlayer) {
+	async addLocalPlayer(owner: UserPlayer) {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -96,10 +96,10 @@ export class Game {
 		this.players.push(
 			new LocalPlayer(this.players.length + 1, owner, this)
 		);
-		this.updatePlayers();
+		await this.updatePlayers();
 	}
 
-	removePlayer(playerId: number) {
+	async removePlayer(playerId: number) {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -144,12 +144,13 @@ export class Game {
 				`Deleted Game ${this.gameId} because no players are left!`
 			);
 		}
+		await this.updatePlayers();
 	}
 
-	private updatePlayers() {
+	async updatePlayers() {
 
 		// TODO: fix path issues here
-		const adminHtml = ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
+		const adminHtml = await ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
@@ -157,7 +158,7 @@ export class Game {
 		});
 
 		// TODO: fix path issues here
-		const lobbyHtml = ejs.renderFile('./app/public/pages/lobby.ejs', {
+		const lobbyHtml = await ejs.renderFile('./app/public/pages/lobby.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
@@ -168,10 +169,7 @@ export class Game {
 			if (!(player instanceof UserPlayer)) continue;
 
 			if (player.user.id === this.admin.id)
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_setup_settings_update',
-					html: adminHtml
-				}));
+				sendSseHtmlByUserId(player.user.id, 'game_setup_settings_update', adminHtml);
 			else
 				sendSseRawByUserId(player.user.id, JSON.stringify({
 					type: 'game_settings_update',

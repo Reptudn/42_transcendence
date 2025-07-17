@@ -78,8 +78,8 @@ function setupEventSource() {
 					break;
 				case 'game_settings_update': // includes settings and ready player updates
 					console.log('Game settings updated:', data.html);
-					import('./lobby.js').then(({ updateGameSettings }) => {
-						updateGameSettings(data.html);
+					import('./lobby.js').then(({ updatePage }) => {
+						updatePage(data.html);
 					}).catch((error) => {
 						console.error('Error importing updateGameSettings:', error);
 					});

@@ -1,6 +1,8 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './script.js';
 
+let isInitialized = false;
+
 interface Friend {
 	id: number;
 	username: string;
@@ -8,19 +10,22 @@ interface Friend {
 }
 
 let gameId: number | undefined = undefined;
-const res = await fetch('/api/games/create', {
-	method: 'POST',
-});
-if (!res.ok) {
-	const data = await res.json();
-	showLocalError(data.error);
-	loadPartialView('profile');
-	throw new Error('Failed to create game'); // Stop execution here
-}
+if (!isInitialized) {
+	const res = await fetch('/api/games/create', {
+		method: 'POST',
+	});
+	if (!res.ok) {
+		const data = await res.json();
+		showLocalError(data.error);
+		loadPartialView('profile');
+		throw new Error('Failed to create game'); // Stop execution here
+	}
 
-const data = await res.json();
-gameId = data.gameId;
-showLocalInfo(`${data.message} (${data.gameId})`);
+	const data = await res.json();
+	gameId = data.gameId;
+	showLocalInfo(`${data.message} (${data.gameId})`);
+	isInitialized = true;
+}
 
 do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
 
@@ -54,7 +59,7 @@ export async function refreshOnlineFriends() {
 		<div class="friend-item p-3 border rounded mb-2">
 		<div class="friend-info mb-2">
 			<span class="font-semibold">${friend.displayname}</span>
-			<span class="text-gray-500">(@${friend.username})</span>
+			<span class="glow-blue">(@${friend.username})</span>
 		</div>
 		<button 
 			onclick="addUserPlayer(${friend.id})" 
@@ -67,14 +72,37 @@ export async function refreshOnlineFriends() {
 
 }
 
+export async function updateSettings(newSettings: any)
+{
+	const res = await fetch('/api/games/settings', {
+		method: 'POST',
+		body: newSettings
+	});
+
+	if (!res.ok)
+	{
+		const data = await res.json();
+		showLocalError(data.error);
+	}
+	else
+	{
+		const data = await res.json();
+		showLocalInfo(data.message);
+	}
+}
+
 const powerupsToggle = document.getElementById(
 	'powerups-toggle'
 ) as HTMLInputElement | null;
 powerupsToggle?.addEventListener('change', async (event) => {
 	const isChecked = (event.target as HTMLInputElement).checked;
-	console.log(
-		`Powerups toggle changed: ${isChecked ? 'Enabled' : 'Disabled'}`
-	);
+	await updateSettings({ powerupsEnabled: isChecked });
+});
+
+const maxPlayerSlider = document.getElementById('players-input') as HTMLInputElement | null;
+maxPlayerSlider?.addEventListener('change', async (event) => {
+	const newValue = (event.target as HTMLInputElement).value;
+	await updateSettings({ maxPlayers: Number(newValue) });
 });
 
 export async function addPowerUp() {

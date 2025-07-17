@@ -1,14 +1,12 @@
-import { showLocalInfo } from './alert';
+import { showLocalError, showLocalInfo } from './alert';
 
-const lobbyElement = document.getElementById('lobby') as HTMLElement | null;
-
-export function updateGameSettings(settings: string) {
-	if (!lobbyElement) {
-		console.error('Lobby element not found!');
-		return;
-	}
-	lobbyElement.innerHTML = settings;
-	showLocalInfo('Game settings have been updated!');
+export function updatePage(html: string)
+{
+	const lobbyContainer = document.getElementById('lobby');
+	if (lobbyContainer)
+		lobbyContainer.innerHTML = html;
+	else
+		showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 export async function addLocalPlayer() {
