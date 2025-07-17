@@ -148,26 +148,30 @@ export class Game {
 
 	private updatePlayers() {
 
-		// const adminHtml = ejs.render('game_setup', {
-		// 	players: this.players,
-		// 	gameSettings: this.config,
-		// 	initial: false,
-		// });
-
-		const lobbyHtml = ejs.render('lobby', {
+		// TODO: fix path issues here
+		const adminHtml = ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
+			ownerName: this.admin.displayname
+		});
+
+		// TODO: fix path issues here
+		const lobbyHtml = ejs.renderFile('./app/public/pages/lobby.ejs', {
+			players: this.players,
+			gameSettings: this.config,
+			initial: false,
+			ownerName: this.admin.displayname
 		});
 
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
-			if (player.user.id === this.admin.id) continue;
-				// sendSseRawByUserId(player.user.id, JSON.stringify({
-				// 	type: 'game_setup_settings_update',
-				// 	html: adminHtml
-				// }));
+			if (player.user.id === this.admin.id)
+				sendSseRawByUserId(player.user.id, JSON.stringify({
+					type: 'game_setup_settings_update',
+					html: adminHtml
+				}));
 			else
 				sendSseRawByUserId(player.user.id, JSON.stringify({
 					type: 'game_settings_update',
@@ -180,16 +184,20 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		const adminHtml = ejs.render('game_setup', {
-			players: this.players,
-			gameSettings: gameSettings,
-			initial: false,
-		});
-
-		const lobbyHtml = ejs.render('lobby', {
+		// TODO: fix path issues here
+		const adminHtml = ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
+			ownerName: this.admin.displayname
+		});
+
+		// TODO: fix path issues here
+		const lobbyHtml = ejs.renderFile('./app/public/pages/lobby.ejs', {
+			players: this.players,
+			gameSettings: this.config,
+			initial: false,
+			ownerName: this.admin.displayname
 		});
 
 		this.config = gameSettings;
@@ -199,7 +207,7 @@ export class Game {
 
 			if (player.user.id === this.admin.id)
 				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_settings_update',
+					type: 'game_setup_settings_update',
 					html: adminHtml
 				}));
 			else

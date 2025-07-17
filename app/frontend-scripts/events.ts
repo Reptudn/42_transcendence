@@ -65,11 +65,18 @@ function setupEventSource() {
 					// TODO: make this a sendPopupCall with actual buttons
 					showLocalInfo(`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><button onclick="declineInvite(${data.gameId})">Decline</button>`);
 					break;
-				case 'game_admin_request':
-					await acceptGameInvite(data.gameId);
+				// case 'game_admin_request':
+				// 	await acceptGameInvite(data.gameId);
+				// 	break;
+				case 'game_setup_settings_update':
+					console.log('Game setup settings updated:', data.html);
+					import('./game_setup_new.js').then(({ updatePage }) => {
+						updatePage(data.html);
+					}).catch((error) => {
+						console.error('Error importing updateGameSettings:', error);
+					});
 					break;
 				case 'game_settings_update': // includes settings and ready player updates
-					alert ('Game settings updated!'); // TODO: remove this alert
 					console.log('Game settings updated:', data.html);
 					import('./lobby.js').then(({ updateGameSettings }) => {
 						updateGameSettings(data.html);

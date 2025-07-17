@@ -12,41 +12,60 @@ const res = await fetch('/api/games/create', {
 	method: 'POST',
 });
 if (!res.ok) {
-	showLocalError(`Failed to create game: ${res.statusText}`);
+	const data = await res.json();
+	showLocalError(data.error);
 	loadPartialView('profile');
 	throw new Error('Failed to create game'); // Stop execution here
 }
 
 const data = await res.json();
 gameId = data.gameId;
-showLocalInfo(`Game created with ID: ${gameId}`);
+showLocalInfo(`${data.message} (${data.gameId})`);
 
 do {} while (gameId === undefined || gameId < 0); // Wait until gameId is valid
 
-const friends: Friend[] = await fetch('/api/friends/online', { method: 'GET' })
-	.then(async (response) => {
-		if (!response.ok) {
-			showLocalError(
-				await response
-					.json()
-					.then((err) => err.error || 'Failed to fetch friends')
-			);
-			throw new Error('Failed to fetch friends list');
-		}
-		return response.json();
-	})
-	.then((data) => {
-		if (!Array.isArray(data)) {
-			showLocalError('Invalid friends data format');
-			throw new Error('Invalid friends data format');
-		}
-		return data;
-	})
-	.catch((error) => {
-		console.error('Error fetching friends:', error);
-		showLocalError('Failed to load friends list. Please try again later.');
-		return [];
-	});
+export async function refreshOnlineFriends() {
+	
+	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
+	if (!onlineFriendsContainer)
+	{
+		showLocalError('No online friends container!');
+		return;
+	}
+
+	const response = await fetch('/api/friends/online', { method: 'GET' });
+	if (!response.ok) {
+		showLocalError(
+			await response
+				.json()
+				.then((err) => err.error || 'Failed to fetch friends')
+		);
+		throw new Error('Failed to fetch friends list');
+	}
+	const friends: Friend[] = await response.json();
+
+	if (!friends || friends.length === 0)
+	{
+		onlineFriendsContainer.innerHTML = `<p>No friends online</p>`;
+		return;
+	}
+
+	onlineFriendsContainer.innerHTML = friends.map((friend) => `
+		<div class="friend-item p-3 border rounded mb-2">
+		<div class="friend-info mb-2">
+			<span class="font-semibold">${friend.displayname}</span>
+			<span class="text-gray-500">(@${friend.username})</span>
+		</div>
+		<button 
+			onclick="addUserPlayer(${friend.id})" 
+			class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+		>
+			Invite Friend
+		</button>
+		</div>
+	`).join('')
+
+}
 
 const powerupsToggle = document.getElementById(
 	'powerups-toggle'
@@ -76,6 +95,22 @@ export async function addAIPlayer() {
 	const data = await res.json();
 	console.log('AI player added:', data);
 	showLocalInfo(`${data.message || 'AI player added successfully!'}`);
+}
+
+export async function addUserPlayer(friendId: number) {
+	console.log('Inviting friend');
+
+	const response = await fetch(`/api/games/invite/${friendId}`, {
+		method: 'POST',
+	});
+	if (!response.ok) {
+		const error = await response.json();
+		showLocalError(`${error.error}`);
+		throw new Error(`Failed to invite friend: ${error.error}`);
+	}
+	const data = await response.json() as { message: string };
+	showLocalInfo(`${data.message}`);
+	console.log(`Friend ${friendId} invited successfully.`);
 }
 
 export async function addLocalPlayer() {
@@ -116,5 +151,34 @@ export async function kickPlayer(playerId: number) {
 
 export async function leaveGame() {
 	console.log('Leaving game...');
-	loadPartialView('profile');
+	await loadPartialView('profile');
 }
+
+export function updatePage(html: string)
+{
+	const lobbyContainer = document.getElementById('lobby');
+	if (lobbyContainer)
+		lobbyContainer.innerHTML = html;
+	else
+		showLocalError('Failed to update lobby due to missing lobby div.');
+}
+
+await refreshOnlineFriends();
+
+declare global {
+	interface Window {
+		refreshOnlineFriends: () => Promise<void>;
+		leaveGame: () => Promise<void>;
+		updatePage: (html: string) => void;
+		kickPlayer: (playerId: number) => Promise<void>;
+		addLocalPlayer: () => Promise<void>;
+		addUserPlayer: (friendId: number) => Promise<void>;
+	}
+}
+
+window.refreshOnlineFriends = refreshOnlineFriends;
+window.leaveGame = leaveGame;
+window.updatePage = updatePage;
+window.kickPlayer = kickPlayer;
+window.addLocalPlayer = addLocalPlayer;
+window.addUserPlayer = addUserPlayer;

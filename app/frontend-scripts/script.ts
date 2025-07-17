@@ -10,6 +10,7 @@ declare global {
 		updateNumber: (increment: number) => Promise<void>;
 		abortController: AbortController | null;
 		notifyEventSource: EventSource | null;
+		createGame: () => Promise<void>;
 	}
 }
 
@@ -23,6 +24,22 @@ export function updateActiveMenu(selectedPage: string): void {
 		}
 	}
 	document.head.title = `Transcendence: ${selectedPage}`;
+}
+
+export async function createGame()
+{
+	const res = await fetch('/api/games/create', {
+		method: 'POST'
+	});
+	if (!res.ok) {
+		const data = await res.json();
+		showLocalError(`${data.error}`);
+		return;
+	}
+
+	const data = await res.json();
+	showLocalInfo(`${data.message} (${data.gameId})`);
+	await loadPartialView('game_setup_new', true, null, true);
 }
 
 let was_in_game = false;
@@ -265,3 +282,4 @@ window.updateMenu = updateMenu;
 window.logout = logout;
 window.fetchNumber = fetchNumber;
 window.updateNumber = updateNumber;
+window.createGame = createGame;

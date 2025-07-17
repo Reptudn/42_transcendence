@@ -1,4 +1,4 @@
-import { FastifyPluginAsync } from 'fastify';
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 // import { WebSocket as WSWebSocket } from 'ws';
 // import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
@@ -128,7 +128,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			preValidation: [fastify.authenticate],
 			schema: {},
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -138,11 +138,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				let existingGame = runningGames.find(
 					(g) => g.admin.id === user.id
-				); // find game where user is in either as admin or normal user
-				if (existingGame) {
+				); // find game where user is in either as admin
+				if (existingGame && existingGame.status === GameStatus.WAITING) {
 					return reply
-						.code(400)
-						.send({ error: 'User already has a game' });
+						.code(200).send({ message: 'You already have a game in lobby phase.. putting you back in there!', gameId: existingGame.gameId });
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
@@ -180,7 +179,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				},
 			},
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const { settings } = request.body as { settings: GameSettings };
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
@@ -208,7 +207,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -286,7 +285,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -314,7 +313,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -352,7 +351,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 		},
-		async (request, reply) => {
+		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });

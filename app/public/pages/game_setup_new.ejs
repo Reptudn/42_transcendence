@@ -5,10 +5,14 @@
 	<button onclick="addLocalPlayer()">Add Local Player</button>
 	<button onclick="addUserPlayer()">Invite Player</button>
 	<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
-	<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">
-<% } %>
+	<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
+	<div>
+		<div id="onlineFriendsList"></div>
+		<button onclick="refreshOnlineFriends()">Refresh</button>
+	</div>
 
-<div class="lobby">
+	<div class="lobby">
+<% } %>
 	<p>Players: <%= players.length %> / <%= gameSettings.maxPlayers %></p>
 	<div class="settings">
 		<h2>Lobby Settings</h2>
@@ -31,7 +35,6 @@
 	</div>
 	<br>
 	<br>
-	<button id="addLocalPlayerBtn">Add Local Player</button>
 	<div class="players">
 		<h2>Players:</h2>
 		<div id="playerList">
@@ -46,10 +49,10 @@
 			<% } %>
 		</div>
 	</div>
-</div>
-
 <% if (initial) { %>
+	</div>
+
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
 	<button onclick="leaveGame()">Leave Game</button> 
-	<script type="module" src="/static/js/game_setup.js"></script>
+	<script type="module" src="/static/js/game_setup_new.js" defer></script>
 <% } %>

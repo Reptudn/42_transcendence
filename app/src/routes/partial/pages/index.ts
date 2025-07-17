@@ -152,20 +152,20 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						fastify
 					);
 				}
-				else if (page === 'game_setup') {
+				else if (page === 'game_setup' || page === 'game_setup_new') {
 					page = 'game_setup_new';
 					const user = await checkAuth(req, true, fastify);
-					const existingGame = runningGames.find((g) => 
-						g.admin.id === user!.id || 
-						g.players.find((u) => u instanceof UserPlayer && u.user.id === user!.id && u.joined)
-					);
+					if (!user)
+						return reply.code(401).send({ error: 'Unauthorized' });
+					const existingGame = runningGames.find((g) => g.admin.id === user!.id);
+					if (!existingGame)
+						throw new Error("User has no game yet! Create one first.");
+					const admin = existingGame.players.find(p => p instanceof UserPlayer && p.user.id == user.id);
+					if (admin) admin.joined = true;
 					variables['initial'] = true;
-					if (existingGame && existingGame.admin.id !== user!.id)
-					{
-						variables['game'] = existingGame;
-						return reply.view('lobby.ejs', { ...variables, t: req.t }, { layout: layoutOption });
-					}
-
+					variables['ownerName'] = user!.displayname;
+					variables['players'] = existingGame.players;
+					variables['gameSettings'] = existingGame.config;
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
