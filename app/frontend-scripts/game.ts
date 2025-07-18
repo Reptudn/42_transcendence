@@ -5,7 +5,7 @@ import { loadPartialView } from './script.js';
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 
-const wsUrl = `/api/games/connect/${gameId}`;
+const wsUrl = `ws://localhost:3000/api/games/connect/${gameId}`; // TODO: make this url with env var
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
@@ -30,8 +30,8 @@ ws.onclose = (event) => {
 
 		case 1000: // Normal closure
 			showLocalInfo('Connection to game closed!');
+			loadPartialView('profile');
 			break;
-			
 		case 1001: // Going away
 			showLocalInfo('Server is shutting down!');
 			loadPartialView('profile');
@@ -41,7 +41,7 @@ ws.onclose = (event) => {
 			showLocalError('Connection lost unexpectedly. Trying to reconnect...');
 			setTimeout(() => {
 				window.location.reload(); // Simple reconnection strategy
-			}, 3000);
+			}, 1000);
 			break;
 			
 		default:
@@ -83,6 +83,7 @@ ws.onerror = (error) => {
 
 ws.onclose = () => {
 	showLocalInfo('WebSocket closed');
+	console.log("Websocket closed");
 };
 
 // INPUT
@@ -92,19 +93,18 @@ let rightPressed = false;
 let lastSentDirection = 0;
 
 window.addEventListener('keydown', (e) => {
-	if (e.key === 'ArrowLeft') {
+	if (e.key === 'ArrowLeft')
 		leftPressed = true;
-	} else if (e.key === 'ArrowRight') {
+	
+	if (e.key === 'ArrowRight')
 		rightPressed = true;
-	}
 });
 
 window.addEventListener('keyup', (e) => {
-	if (e.key === 'ArrowLeft') {
+	if (e.key === 'ArrowLeft')
 		leftPressed = false;
-	} else if (e.key === 'ArrowRight') {
+	if (e.key === 'ArrowRight')
 		rightPressed = false;
-	}
 });
 
 setInterval(() => {

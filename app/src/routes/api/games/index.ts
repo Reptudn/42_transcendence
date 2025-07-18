@@ -468,13 +468,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					return reply.code(200).send({
 						message: 'You have declined the game invitation.',
 					});
-				}
-
-				if (!player.joined) {
-					game.players.find(
-						(p) => p instanceof UserPlayer && p.user.id === user.id
-					)!.joined = true;
-				}
+				} else if (accepted === 'true')
+					player.joined = true;
+				else
+					return reply.code(404).send({ error: 'Invalid accepted parameter' });
 			} else
 				return reply
 					.code(404)
@@ -558,7 +555,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fastify.log.info(
 					`Player ${player.playerId} disconnected from game ${parsedGameId}.`
 				);
-				player.wsocket = null;
+				player.disconnect();
 
 				// TODO: do some leave action
 			});
