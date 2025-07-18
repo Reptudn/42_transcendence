@@ -1,5 +1,5 @@
 import { WebSocket as WSWebSocket } from 'ws';
-import { connectedClients, sendSseHtmlByUserId, sendSseRawByUserId } from '../../sse/handler';
+import { connectedClients, sendSeeMessageByUserId, sendSseHtmlByUserId, sendSseRawByUserId } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { runningGames } from './games';
@@ -24,9 +24,8 @@ export class Game {
 	status: GameStatus = GameStatus.WAITING;
 	admin: User;
 	players: Player[] = [];
-	// gameState: GameState = {};
+	gameState: GameState;
 	config: GameSettings;
-	all_connected: boolean = false;
 
 	fastify: FastifyInstance;
 
@@ -42,8 +41,15 @@ export class Game {
 		this.fastify = fastify;
 		this.config = config;
 		this.players = [];
-		this.all_connected = false;
-		// this.players.push(new UserPlayer(admin, this, null, 0, "User Player"));
+		this.gameState = {
+			meta: {
+				name: 'test',
+				author: 'freddy',
+				size_x: 500,
+				size_y: 500
+			},
+			objects: []
+		} as GameState;
 	}
 
 	async addUserPlayer(user: User) {
@@ -154,21 +160,13 @@ export class Game {
 		await this.updateLobbyState();
 	}
 
-	async tick()
-	{
-		if (!this.all_connected)
-		{
-			this.all_connected = this.players.every((player) => player.isReady());
-			if (!this.all_connected) return; // wait until all players are connected
-		}
-
-		// handle the actual tick here
-	}
-
 	async startGame()
 	{
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
+
+		if (this.players.length < 2)
+			throw new Error('Not enough players to start the game! (Min 2)');
 
 		for (const player of this.players)
 			if (!player.joined)
@@ -176,13 +174,9 @@ export class Game {
 
 		this.status = GameStatus.RUNNING;
 
-		for (const player of this.players) {
-			if (!(player instanceof UserPlayer)) continue;
-			sendSseRawByUserId(player.user.id, JSON.stringify({
-				type: 'game_started',
-				gameId: this.gameId,
-			}));
-		}
+		for (const player of this.players)
+			if (player instanceof UserPlayer)
+				sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
 
 		this.fastify.log.info(`Game ${this.gameId} started with ${this.players.length} players.`);
 	}
@@ -213,28 +207,6 @@ export class Game {
 				sendSseHtmlByUserId(player.user.id, 'game_settings_update', lobbyHtml);
 		}
 	}
-
-	// addPlayer(player: Player) {
-	// 	if (this.status !== GameStatus.WAITING) return;
-
-	// 	player.playerId = this.players.length;
-	// 	this.players.push(player);
-
-	// 	if (
-	// 		player.userId &&
-	// 		player.type === PlayerType.USER &&
-	// 		player.userId !== this.admin.id &&
-	// 		connectedClients.has(player.userId)
-	// 	) {
-	// 		connectedClients.get(player.userId)?.send(
-	// 			JSON.stringify({
-	// 				type: 'game_request',
-	// 				gameId: this.gameId,
-	// 				playerId: player.playerId,
-	// 			})
-	// 		);
-	// 	}
-	// }
 
 	isReady() {
 		for (const player of this.players) {
@@ -303,7 +275,7 @@ export class UserPlayer extends Player {
 
 export class AiPlayer extends Player {
 	public aiMoveCoolDown: number;
-	// data: AIBrainData;
+	public aiBrainData: AIBrainData;
 
 	constructor(
 		id: number,
@@ -314,6 +286,12 @@ export class AiPlayer extends Player {
 	) {
 		super(id, game.config.playerLives, name, title);
 		this.aiMoveCoolDown = aiLevel;
+		this.aiBrainData = {
+			aiLastBallDistance: 0,
+			aiDelayCounter: 0,
+			aiLastTargetParam: 0,
+			lastAIMovementDirection: 0,
+		} as AIBrainData;
 	}
 
 	isReady(): boolean {

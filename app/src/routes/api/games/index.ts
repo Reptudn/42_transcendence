@@ -526,7 +526,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			player.wsocket = socket;
-			
+
 			fastify.log.info(
 				`Player ${player.playerId} connected to game ${parsedGameId}.`
 			);
@@ -560,7 +560,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				player.wsocket = null;
 
-				// do some leave action
+				// TODO: do some leave action
 			});
 		}
 	);

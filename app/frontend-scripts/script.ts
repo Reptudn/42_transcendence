@@ -86,6 +86,13 @@ export async function loadPartialView(
 			method: 'GET',
 			headers: headers,
 		});
+
+		if (!response.ok)
+		{
+			const data = await response.json();
+			throw new Error(data.error);
+		}
+
 		const html: string = await response.text();
 
 		const contentElement: HTMLElement | null =
@@ -166,7 +173,10 @@ export async function loadPartialView(
 			);
 		}
 	} catch (error) {
-		console.error('Error fetching partial view:', error);
+		if (error instanceof Error)
+			showLocalError(error.message);
+		else
+		showLocalError(`Error fetching partial view: ${error}`);
 	}
 }
 

@@ -181,6 +181,20 @@ export async function leaveGame() {
 	await loadPartialView('profile');
 }
 
+export async function startGame()
+{
+	const res = await fetch('/api/games/start', { method: 'POST' });
+
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`${error.error || 'Failed to start game: Unknown error'}`);
+		return;
+	}
+	const data = await res.json();
+	console.log('Game started:', data);
+	showLocalInfo(`${data.message || 'Game started successfully!'}`);
+}
+
 export function updatePage(html: string)
 {
 	const lobbyContainer = document.getElementById('lobby');
@@ -201,6 +215,7 @@ declare global {
 		addLocalPlayer: () => Promise<void>;
 		addUserPlayer: (friendId: number) => Promise<void>;
 		addAIPlayer: () => Promise<void>;
+		startGame: () => Promise<void>;
 	}
 }
 
@@ -211,3 +226,4 @@ window.kickPlayer = kickPlayer;
 window.addLocalPlayer = addLocalPlayer;
 window.addUserPlayer = addUserPlayer;
 window.addAIPlayer = addAIPlayer;
+window.startGame = startGame;

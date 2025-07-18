@@ -4,40 +4,57 @@ import { loadPartialView } from './script.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
-const playerId = urlParams.get('playerId');
 
-if (!gameId || !playerId) {
-	showLocalError('Missing game ID or player ID. Please join via the chat setup.');
-	await loadPartialView('chat_setup');
-}
-
-console.log(
-	'Attempting to join with game ID',
-	gameId,
-	'and player ID',
-	playerId
-);
-const wsUrl = `/api/games/join/${gameId}/${playerId}`;
+const wsUrl = `/api/games/connect/${gameId}`;
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
-	console.log(
-		`Connected to chat websocket for game ${gameId} as player ${playerId}`
-	);
+	console.log('WebSocket connection established');
+	showLocalInfo('Connected to game server');
+};
+
+ws.onerror = (error) => {
+	console.error('WebSocket error:', error);
+	showLocalError('Failed to connect to game server');
+};
+
+ws.onclose = (event) => {
+	console.log('WebSocket closed:', event.code, event.reason);
+	
+	// Handle different close codes from your backend
+	switch (event.code) {
+		case 1008: // Policy violation (your custom error codes)
+			showLocalError(`Connection rejected: ${event.reason}`);
+			loadPartialView('profile');
+			break;
+
+		case 1000: // Normal closure
+			showLocalInfo('Connection to game closed!');
+			break;
+			
+		case 1001: // Going away
+			showLocalInfo('Server is shutting down!');
+			loadPartialView('profile');
+			break;
+			
+		case 1006: // TODO: handle unexpected game disconnects
+			showLocalError('Connection lost unexpectedly. Trying to reconnect...');
+			setTimeout(() => {
+				window.location.reload(); // Simple reconnection strategy
+			}, 3000);
+			break;
+			
+		default:
+			showLocalError('Connection closed unexpectedly');
+			loadPartialView('profile');
+			break;
+	}
 };
 
 ws.onmessage = (event) => {
 	try {
 		const data = JSON.parse(event.data);
-		if (data.type === 'chat') {
-			const chatMessages = document.getElementById('chatMessages');
-			if (chatMessages) {
-				const messageElement = document.createElement('div');
-				messageElement.textContent = `Player ${data.playerId}: ${data.text}`;
-				chatMessages.appendChild(messageElement);
-				chatMessages.scrollTop = chatMessages.scrollHeight;
-			}
-		} else if (data.type === 'state') {
+		if (data.type === 'state') {
 			const state = document.getElementById('state');
 			if (state) {
 				state.innerHTML = JSON.stringify(data.state);
@@ -67,31 +84,6 @@ ws.onerror = (error) => {
 ws.onclose = () => {
 	showLocalInfo('WebSocket closed');
 };
-
-// CHAT
-
-document.getElementById('sendChatButton')?.addEventListener('click', () => {
-	const input = document.getElementById('chatInput') as HTMLInputElement;
-	if (input && input.value.trim() !== '') {
-		const msg = { type: 'chat', text: input.value.trim() };
-		ws.send(JSON.stringify(msg));
-		input.value = '';
-
-		const chatMessages = document.getElementById('chatMessages');
-		if (chatMessages) {
-			const messageElement = document.createElement('div');
-			messageElement.textContent = `You: ${msg.text}`;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-		}
-	}
-});
-
-document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-	if (e.key === 'Enter') {
-		document.getElementById('sendChatButton')?.click();
-	}
-});
 
 // INPUT
 
@@ -133,3 +125,8 @@ setInterval(() => {
 		lastSentDirection = 0;
 	}
 }, 1000 / 30); // 30 FPS
+
+export async function leaveGame()
+{
+	console.log('Leave Game');
+}

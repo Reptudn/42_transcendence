@@ -69,15 +69,13 @@ function setupEventSource() {
 				// 	await acceptGameInvite(data.gameId);
 				// 	break;
 				case 'game_setup_settings_update':
-					console.log('Game setup settings updated:', data.html);
 					import('./game_setup_new.js').then(({ updatePage }) => {
 						updatePage(data.html);
 					}).catch((error) => {
 						console.error('Error importing updateGameSettings:', error);
 					});
 					break;
-				case 'game_settings_update': // TODO: dont get anything in here
-					console.log('Game settings updated:', data.html);
+				case 'game_settings_update':
 					import('./lobby.js').then(({ updatePage }) => {
 						updatePage(data.html);
 					}).catch((error) => {
@@ -86,8 +84,9 @@ function setupEventSource() {
 					break;
 				case 'game_started':
 					console.log('Game started:', data);
-					showLocalInfo(`Game started! (ID: ${data.gameId})`);
-					await loadPartialView('api', true, `games/run/${data.gameId}`, false);
+					const gameId = data.message;
+					showLocalInfo(`Game started! (ID: ${gameId})`);
+					await loadPartialView('api', true, `games/run/${gameId}`, false);
 					break;
 				case 'game_closed': // TODO: when being kicked from a game nothing gets here
 					showLocalInfo(data.message);
