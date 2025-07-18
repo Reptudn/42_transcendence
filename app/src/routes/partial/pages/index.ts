@@ -54,7 +54,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 		async (req: any, reply: any) => {
 			let { page, username } = req.params;
-			const loadpartial = req.headers['loadpartial'] === 'true';
+			let loadpartial = false;
+			if (req.headers['loadpartial'] === undefined)
+				loadpartial = true;
+			else
+				loadpartial = req.headers['loadpartial'] === 'true';
 			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await checkAuth(req, false, fastify);
 

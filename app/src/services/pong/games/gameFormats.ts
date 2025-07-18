@@ -26,6 +26,7 @@ export class Game {
 	players: Player[] = [];
 	// gameState: GameState = {};
 	config: GameSettings;
+	all_connected: boolean = false;
 
 	fastify: FastifyInstance;
 
@@ -41,6 +42,7 @@ export class Game {
 		this.fastify = fastify;
 		this.config = config;
 		this.players = [];
+		this.all_connected = false;
 		// this.players.push(new UserPlayer(admin, this, null, 0, "User Player"));
 	}
 
@@ -152,6 +154,39 @@ export class Game {
 		await this.updateLobbyState();
 	}
 
+	async tick()
+	{
+		if (!this.all_connected)
+		{
+			this.all_connected = this.players.every((player) => player.isReady());
+			if (!this.all_connected) return; // wait until all players are connected
+		}
+
+		// handle the actual tick here
+	}
+
+	async startGame()
+	{
+		if (this.status !== GameStatus.WAITING)
+			throw new Error('Game already running!');
+
+		for (const player of this.players)
+			if (!player.joined)
+				throw new Error('All players must be joined to start the game!');
+
+		this.status = GameStatus.RUNNING;
+
+		for (const player of this.players) {
+			if (!(player instanceof UserPlayer)) continue;
+			sendSseRawByUserId(player.user.id, JSON.stringify({
+				type: 'game_started',
+				gameId: this.gameId,
+			}));
+		}
+
+		this.fastify.log.info(`Game ${this.gameId} started with ${this.players.length} players.`);
+	}
+
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
 
@@ -256,7 +291,8 @@ export class UserPlayer extends Player {
 	isReady(): boolean {
 		return (
 			this.wsocket !== null &&
-			this.wsocket.readyState === WSWebSocket.OPEN
+			this.wsocket.readyState === WSWebSocket.OPEN &&
+			this.joined
 		);
 	}
 

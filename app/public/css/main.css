@@ -13,6 +13,48 @@
 }
 
 @layer utilities {
+
+	.glow-rainbow-border {
+		border-color: 0 0 5px #ff0000, 0 0 10px #ff7f00, 0 0 15px #ffff00,
+			0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #4b0082, 0 0 35px #9400d3;
+		animation: rotate-colors 10s linear infinite;
+	}
+
+	@keyframes rotate-colors {
+		0% {
+			border-color: 0 0 5px #ff0000, 0 0 10px #ff7f00, 0 0 15px #ffff00,
+				0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #4b0082, 0 0 35px #9400d3;
+		}
+		14% {
+			border-color: 0 0 5px #ff7f00, 0 0 10px #ffff00, 0 0 15px #00ff00,
+				0 0 20px #0000ff, 0 0 25px #4b0082, 0 0 30px #9400d3, 0 0 35px #ff0000;
+		}
+		28% {
+			border-color: 0 0 5px #ffff00, 0 0 10px #00ff00, 0 0 15px #0000ff,
+				0 0 20px #4b0082, 0 0 30px #9400d3, 0 0 35px #ff0000, 0 0 40px #ff7f00;
+		}
+		42% {
+			border-color: 0 0 5px #00ff00, 0 0 10px #0000ff, 0 0 15px #4b0082,
+				0 0 30px #9400d3, 0 0 35px #ff0000, 0 0 40px #ff7f00, 0 0 45px #ffff00;
+		}
+		56% {
+			border-color: 0 0 5px #0000ff, 0 0 10px #4b0082, 0 0 30px #9400d3,
+				0 0 35px #ff0000, 0 0 40px #ff7f00, 0 0 45px #ffff00, 0 0 50px #00ff00;
+		}
+		70% {
+			border-color: 0 0 5px #4b0082, 0 0 30px #9400d3, 0 0 35px #ff0000,
+				0 0 40px #ff7f00, 0 0 45px #ffff00, 0 0 50px #00ff00, 0 0 55px #0000ff;
+		}
+		84% {
+			border-color: 0 0 5px #9400d3, 0 0 35px #ff0000, 0 0 40px #ff7f00,
+				0 0 45px #ffff00, 0 0 50px #00ff00, 0 0 55px #0000ff, 0 0 60px #4b0082;
+		}
+		100% {
+			border-color: 0 0 5px #ff0000, 0 0 10px #ff7f00, 0 0 15px #ffff00,
+				0 0 20px #00ff00, 0 0 25px #0000ff, 0 0 30px #4b0082, 0 0 35px #9400d3;
+		}
+	}
+
 	.glow-green {
 		font-family: 'VT323', monospace;
 		font-weight: 400;

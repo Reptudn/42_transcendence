@@ -84,6 +84,11 @@ function setupEventSource() {
 						console.error('Error importing updateGameSettings:', error);
 					});
 					break;
+				case 'game_started':
+					console.log('Game started:', data);
+					showLocalInfo(`Game started! (ID: ${data.gameId})`);
+					await loadPartialView('api', true, `games/run/${data.gameId}`, false);
+					break;
 				case 'game_closed': // TODO: when being kicked from a game nothing gets here
 					showLocalInfo(data.message);
 					await loadPartialView('profile', true, null, true);
