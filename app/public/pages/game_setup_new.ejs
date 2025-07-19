@@ -6,6 +6,16 @@
 	<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
 	<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
 	<input type="number" name="Difficulty" id="difficulty-input" min="2" max="10" value="5">Game Difficulty</input>
+	<label for="map-select">Map:</label>
+	<select name="Map" id="map-select">
+		<% if (availableMaps && availableMaps.length > 0) { %>
+			<% for (const map of availableMaps) { %>
+				<option value="<%= map.name %>"><%= map.name %></option>
+			<% } %>
+		<% } else { %>
+			<option value="">No maps available</option>
+		<% } %>
+	</select>
 	<br>
 	<div>
 		<h2>Online Friends:</h2>

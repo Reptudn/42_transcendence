@@ -391,10 +391,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	fastify.get('/run/:gameId', {
+	fastify.get('/run', {
 		preValidation: [fastify.authenticate],
 		schema: {
-			params: {
+			querystring: {
 				type: 'object',
 				properties: {
 					gameId: { type: 'string' },
@@ -407,7 +407,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		if (!user) {
 			return reply.code(401).send({ error: 'Unauthorized' });
 		}
-		const { gameId } = request.params as { gameId: string };
+		const { gameId } = request.query as { gameId: string };
 		const parsedGameId = Number.parseInt(gameId, 10);
 
 		const game = runningGames.find((g) => g.gameId === parsedGameId);
@@ -485,12 +485,29 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 
 	fastify.get(
-		'/connect/:gameId',
-		{ websocket: true },
+		'/connect',
+		{
+			websocket: true,
+			preValidation: [fastify.authenticate],
+			schema: {
+				querystring: {
+					type: 'object',
+					properties: {
+						gameId: { type: 'string' },
+					},
+					required: ['gameId'],
+				},
+			}
+		},
 		async (socket, request: FastifyRequest) => {
-			const { gameId } = request.params as {
-				gameId: string;
-			};
+			const { gameId } = request.query as { gameId: string };
+			const parsedGameId = Number.parseInt(gameId, 10);
+
+			if (gameId === undefined || gameId === null)
+			{
+				socket.close(1008, 'Game ID is required');
+				return;
+			}
 
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
@@ -498,11 +515,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return;
 			}
 
-			const parsedGameId = Number.parseInt(gameId, 10);
-
-			const game = runningGames.find((g) => g.gameId === parsedGameId);
+			const game = runningGames.find((g) => (g.gameId === parsedGameId));
 			if (!game) {
-				socket.close(1008, 'Game not found');
+				socket.close(1008, 'Game not found!');
 				return;
 			}
 
@@ -524,6 +539,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			fastify.log.info(
 				`Player ${player.playerId} connected to game ${parsedGameId}.`
+			);
+
+			socket.send(
+				JSON.stringify({ type: 'state', state: game.gameState })
 			);
 
 			socket.on('message', (message: Buffer) => {

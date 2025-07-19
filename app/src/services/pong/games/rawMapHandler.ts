@@ -1,83 +1,107 @@
-// import { readFile } from 'fs/promises';
-// import { join } from 'path';
+import { readdir, readFile } from 'fs/promises';
+import path, { join } from 'path';
+import { Game, Player } from './gameFormats';
 
-// export async function getMapAsInitialGameState(
-// 	settings: GameSettings
-// ): Promise<GameState> {
-// 	console.log('getMapAsInitialGameState');
-// 	const jsonPath = join(
-// 		__dirname,
-// 		'..',
-// 		'..',
-// 		'..',
-// 		'..',
-// 		'..',
-// 		'data',
-// 		'maps',
-// 		`${settings.map}.json`
-// 	);
+export async function getMapAsInitialGameState(
+	game: Game
+): Promise<GameState> {
+	const jsonPath = join(
+		__dirname,
+		'..',
+		'..',
+		'..',
+		'..',
+		'..',
+		'data',
+		'maps',
+		`${game.config.map}.json`
+	);
 
-// 	let map: {
-// 		meta: { name: string; author: string; size_x: number; size_y: number };
-// 		objects: Array<any>;
-// 	};
+	let map: {
+		meta: { name: string; author: string; size_x: number; size_y: number };
+		objects: Array<any>;
+	};
 
-// 	try {
-// 		const raw = await readFile(jsonPath, 'utf-8');
-// 		map = JSON.parse(raw);
-// 	} catch (err) {
-// 		console.error(`Failed to load map JSON at ${jsonPath}:`, err);
-// 		throw new Error('Could not load map data.');
-// 	}
+	try {
+		const raw = await readFile(jsonPath, 'utf-8');
+		map = JSON.parse(raw);
+	} catch (err) {
+		console.error(`Failed to load map JSON at ${jsonPath}:`, err);
+		throw new Error('Could not load map data.');
+	}
 
-// 	let gameState: GameState = {
-// 		meta: { name: '', author: '', size_x: 0, size_y: 0 },
-// 		objects: [],
-// 	};
-// 	gameState.meta = map.meta;
-// 	for (let object of map.objects) {
-// 		if (!object.conditions || object.conditions.length === 0) {
-// 			gameState.objects.push(object);
-// 			continue;
-// 		}
-// 		let fulfilled: boolean = true;
-// 		for (let condition of object.conditions) {
-// 			if (
-// 				!isMapConditionFulfilled(
-// 					settings,
-// 					condition.condition,
-// 					condition.variable,
-// 					condition.target
-// 				)
-// 			) {
-// 				fulfilled = false;
-// 				break;
-// 			}
-// 		}
-// 		if (fulfilled) {
-// 			const { conditions, ...objectWithoutConditions } = object;
-// 			gameState.objects.push(objectWithoutConditions);
-// 		}
-// 	}
-// 	return gameState;
-// }
-// function isMapConditionFulfilled(
-// 	settings: GameSettings,
-// 	condition: string,
-// 	variable: string,
-// 	target: number
-// ): boolean {
-// 	let numVal: number = 0;
-// 	if (!settings.players) return false;
-// 	if (variable === 'player_count') numVal = settings.players.length + 1;
-// 	// gamesettings players dont contain the admin
-// 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
-// 	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
+	let gameState: GameState = {
+		meta: { name: '', author: '', size_x: 0, size_y: 0 },
+		objects: [],
+	};
+	gameState.meta = map.meta;
+	for (let object of map.objects) {
+		if (!object.conditions || object.conditions.length === 0) {
+			gameState.objects.push(object);
+			continue;
+		}
+		let fulfilled: boolean = true;
+		for (let condition of object.conditions) {
+			if (
+				!isMapConditionFulfilled(
+					game.config,
+					game.players,
+					condition.condition,
+					condition.variable,
+					condition.target
+				)
+			) {
+				fulfilled = false;
+				break;
+			}
+		}
+		if (fulfilled) {
+			const { conditions, ...objectWithoutConditions } = object;
+			gameState.objects.push(objectWithoutConditions);
+		}
+	}
+	return gameState;
+}
+function isMapConditionFulfilled(
+	settings: GameSettings,
+	players: Player[],
+	condition: string,
+	variable: string,
+	target: number
+): boolean {
+	let numVal: number = 0;
+	if (!players) return false;
+	if (variable === 'player_count') numVal = players.length + 1;
+	// gamesettings players dont contain the admin
+	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
+	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
 
-// 	if (condition === 'larger_than') return numVal > target;
-// 	else if (condition === 'larger_than_or_equal') return numVal >= target;
-// 	else if (condition === 'equal') return numVal === target;
-// 	else if (condition === 'smaller_than_or_equal') return numVal <= target;
-// 	else if (condition === 'smaller_than') return numVal < target;
-// 	else return false;
-// }
+	if (condition === 'larger_than') return numVal > target;
+	else if (condition === 'larger_than_or_equal') return numVal >= target;
+	else if (condition === 'equal') return numVal === target;
+	else if (condition === 'smaller_than_or_equal') return numVal <= target;
+	else if (condition === 'smaller_than') return numVal < target;
+	else return false;
+}
+
+export async function getAvailableMaps() : Promise<string[]>
+{
+	try {
+		const mapsPath = path.join(process.cwd(), 'app/maps'); // Adjust path as needed
+		const files = await readdir(mapsPath);
+		
+		// Filter for map files (e.g., .json, .map, etc.)
+		const mapFiles = files.filter(file => 
+			file.endsWith('.json') || file.endsWith('.map') || file.endsWith('.txt')
+		);
+		
+		// Remove file extensions and return just the names
+		const mapNames = mapFiles.map(file => {
+			return path.parse(file).name.toLocaleUpperCase();
+		});
+		
+		return mapNames;
+	} catch (error) {
+		return [];
+	}
+}

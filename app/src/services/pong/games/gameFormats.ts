@@ -4,10 +4,24 @@ import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { runningGames } from './games';
 import ejs from 'ejs';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getMapAsInitialGameState } from './rawMapHandler';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
+}
+
+const defaultBotNames = JSON.parse(
+	fs.readFileSync(
+		path.resolve(__dirname, '../../../../data/defaultBotNames.json'),
+		'utf-8'
+	)
+);
+
+function getRandomDefaultName(): string {
+	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
 
 const defaultGameSettings: GameSettings = {
@@ -175,6 +189,7 @@ export class Game {
 				throw new Error('All players must be joined to start the game!');
 
 		this.status = GameStatus.RUNNING;
+		this.gameState = await getMapAsInitialGameState(this);
 
 		for (const player of this.players)
 			if (player instanceof UserPlayer)
@@ -288,6 +303,8 @@ export class AiPlayer extends Player {
 		title: string,
 		aiLevel: number
 	) {
+		// probably temp random ai names
+		name = getRandomDefaultName();
 		super(id, game.config.playerLives, name, title);
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = {

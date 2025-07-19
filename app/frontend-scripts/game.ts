@@ -5,7 +5,7 @@ import { leaveGame, loadPartialView } from './script.js';
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 
-const wsUrl = `ws://localhost:3000/api/games/connect/${gameId}`; // TODO: make this url with env var
+const wsUrl = `/api/games/connect?gameId=${gameId}`; // TODO: make this url with env var (ps to myself.. this doesnt work in the frontend xd)
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
@@ -53,6 +53,7 @@ ws.onclose = (event) => {
 
 ws.onmessage = (event) => {
 	try {
+		console.log(event.data);
 		const data = JSON.parse(event.data);
 		if (data.type === 'state') {
 			const state = document.getElementById('state');
@@ -75,15 +76,6 @@ ws.onmessage = (event) => {
 	} catch (e) {
 		showLocalError(`Error parsing chat message: ${e}`);
 	}
-};
-
-ws.onerror = (error) => {
-	showLocalError(`WebSocket error: ${error}`);
-};
-
-ws.onclose = () => {
-	showLocalInfo('WebSocket closed');
-	console.log("Websocket closed");
 };
 
 // INPUT

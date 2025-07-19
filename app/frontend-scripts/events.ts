@@ -91,7 +91,7 @@ function setupEventSource() {
 					console.log('Game started:', data);
 					const gameId = data.message;
 					showLocalInfo(`Game started! (ID: ${gameId})`);
-					await loadPartialView('api', true, `games/run/${gameId}`, false);
+					await loadPartialView('api', true, `games/run?gameId=${gameId}`, false);
 					break;
 				case 'game_closed': // TODO: when being kicked from a game nothing gets here
 					showLocalInfo(data.message);

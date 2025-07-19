@@ -89,6 +89,12 @@ maxPlayerSlider?.addEventListener('change', async (event) => {
 	await updateSettings({ gameDifficulty: Number(newValue) });
 });
 
+const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
+mapSelect?.addEventListener('change', async (event) => {
+	const selectedMap = (event.target as HTMLSelectElement).value;
+	await updateSettings({ map: selectedMap.toLocaleUpperCase() });
+});
+
 export async function addPowerUp() {
 	console.log('Adding power-up...');
 	alert("Not implemented")

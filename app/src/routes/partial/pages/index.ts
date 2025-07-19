@@ -15,6 +15,7 @@ import { checkAuth } from '../../../services/auth/auth';
 // import { getUserGames } from '../../../services/database/games';
 import { runningGames } from '../../../services/pong/games/games';
 import { UserPlayer } from '../../../services/pong/games/gameFormats';
+import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -166,6 +167,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = existingGame.players;
 					variables['gameSettings'] = existingGame.config;
+					variables['availableMaps'] = await getAvailableMaps();
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
