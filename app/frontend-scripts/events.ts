@@ -5,12 +5,17 @@ import { loadPartialView } from "./script.js";
 
 export let notifyEventSource: EventSource | null = null;
 
+const loggedIntervalBase = 100;
+let loggedIntervalIncrement = loggedIntervalBase;
 function setupEventSource() {
 
 	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
+		loggedIntervalIncrement *= 1.5;
 		// console.warn('EventSource not set up because user is not logged in');
 		return;
 	}
+
+	loggedIntervalIncrement = loggedIntervalBase;
 
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
@@ -110,7 +115,7 @@ setInterval(() => {
 		// console.log('Attempting to connect to EventSource...');
 		setupEventSource();
 	}
-}, window.sessionStorage.getItem('loggedIn') === 'true' ? 100 : 5000);
+}, window.sessionStorage.getItem('loggedIn') === 'true' ? loggedIntervalIncrement : 5000);
 
 export async function sendPopup(
 	title: string,
