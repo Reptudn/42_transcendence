@@ -10,7 +10,7 @@
 	<select name="Map" id="map-select">
 		<% if (availableMaps && availableMaps.length > 0) { %>
 			<% for (const map of availableMaps) { %>
-				<option value="<%= map.name %>"><%= map.name %></option>
+				<option value="<%= map %>"><%= map %></option>
 			<% } %>
 		<% } else { %>
 			<option value="">No maps available</option>

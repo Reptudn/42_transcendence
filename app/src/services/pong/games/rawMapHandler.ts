@@ -1,13 +1,13 @@
 import { readdir, readFile } from 'fs/promises';
 import path, { join } from 'path';
 import { Game, Player } from './gameFormats';
+import { FastifyInstance } from 'fastify';
 
 export async function getMapAsInitialGameState(
 	game: Game
 ): Promise<GameState> {
 	const jsonPath = join(
 		__dirname,
-		'..',
 		'..',
 		'..',
 		'..',
@@ -84,22 +84,25 @@ function isMapConditionFulfilled(
 	else return false;
 }
 
-export async function getAvailableMaps() : Promise<string[]>
+// TODO: doesnt really work yet
+export async function getAvailableMaps(fastify: FastifyInstance) : Promise<string[]>
 {
 	try {
-		const mapsPath = path.join(process.cwd(), 'app/maps'); // Adjust path as needed
+		const mapsPath = path.join(__dirname, '../../../../data/maps');
 		const files = await readdir(mapsPath);
-		
-		// Filter for map files (e.g., .json, .map, etc.)
+
+		fastify.log.info(`maps in folder: ${files}`);
+
 		const mapFiles = files.filter(file => 
-			file.endsWith('.json') || file.endsWith('.map') || file.endsWith('.txt')
+			file.endsWith('.json')
 		);
 		
-		// Remove file extensions and return just the names
 		const mapNames = mapFiles.map(file => {
 			return path.parse(file).name.toLocaleUpperCase();
 		});
-		
+
+		fastify.log.info(`mapsNames: ${mapNames}`);
+
 		return mapNames;
 	} catch (error) {
 		return [];

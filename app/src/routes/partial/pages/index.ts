@@ -167,7 +167,10 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = existingGame.players;
 					variables['gameSettings'] = existingGame.config;
-					variables['availableMaps'] = await getAvailableMaps();
+
+					const maps = await getAvailableMaps(fastify);
+					variables['availableMaps'] = maps;
+					fastify.log.info(`Maps ${maps}`);
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;

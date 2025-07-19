@@ -92,7 +92,7 @@ maxPlayerSlider?.addEventListener('change', async (event) => {
 const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
 mapSelect?.addEventListener('change', async (event) => {
 	const selectedMap = (event.target as HTMLSelectElement).value;
-	await updateSettings({ map: selectedMap.toLocaleUpperCase() });
+	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
 });
 
 export async function addPowerUp() {

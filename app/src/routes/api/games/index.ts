@@ -61,11 +61,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {} // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { powerupsEnabled, powerups, playerLives, gameDifficulty } = request.body as {
+			const { powerupsEnabled, powerups, playerLives, gameDifficulty, map } = request.body as {
 				powerupsEnabled?: boolean;
 				powerups?: Powerups[];
 				playerLives?: number;
 				gameDifficulty?: number;
+				map?: string;
 			};
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
@@ -80,6 +81,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			let changed = false;
+
+			if (map !== undefined) {
+				fastify.log.info(`Updating map for game ${game.gameId} by user ${user.username}`);
+				game.config.map = map.toLocaleLowerCase();
+				changed = true;
+			}
 
 			if (powerupsEnabled !== undefined) {
 				fastify.log.info(`Updating game settings for game ${game.gameId} by user ${user.username}`);

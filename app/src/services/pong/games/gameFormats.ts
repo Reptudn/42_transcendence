@@ -26,7 +26,7 @@ function getRandomDefaultName(): string {
 
 const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
-	map: 'default_map',
+	map: 'classic', // if this isnt being changed with the settings this is the default map
 	powerupsEnabled: false,
 	powerups: [],
 	playerLives: 3, // number of lives each player has
