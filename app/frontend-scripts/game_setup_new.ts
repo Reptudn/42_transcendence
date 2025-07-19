@@ -68,11 +68,11 @@ export async function updateSettings(newSettings: any)
 		const data = await res.json();
 		showLocalError(data.error);
 	}
-	else
-	{
-		const data = await res.json();
-		showLocalInfo(data.message);
-	}
+	// else
+	// {
+	// 	const data = await res.json();
+	// 	showLocalInfo(data.message);
+	// }
 }
 
 const powerupsToggle = document.getElementById(

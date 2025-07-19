@@ -29,6 +29,8 @@ export class Game {
 
 	fastify: FastifyInstance;
 
+	// TODO: include start time to close the game after some time when it has started and no websocket connected
+
 	constructor(
 		gameId: number,
 		admin: User,

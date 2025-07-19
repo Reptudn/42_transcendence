@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { updateGameState } from './gameRenderer.js';
-import { loadPartialView } from './script.js';
+import { leaveGame, loadPartialView } from './script.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -126,7 +126,10 @@ setInterval(() => {
 	}
 }, 1000 / 30); // 30 FPS
 
-export async function leaveGame()
-{
-	console.log('Leave Game');
-}
+// This probably wont work because we never actually unload?
+window.addEventListener('beforeunload', async () => {
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.close(1000, 'Page unloading');
+		await leaveGame();
+	}
+});

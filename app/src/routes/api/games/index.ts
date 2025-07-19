@@ -72,15 +72,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
-			const game = runningGames.find((g) => g.admin.id === user.id);
+			const game = runningGames.find((g) => (g.admin.id === user.id && g.status === GameStatus.WAITING));
 			if (!game) {
 				return reply
 					.code(404)
-					.send({ error: 'No game found for the user' });
+					.send({ error: 'No game found for the user in lobby phase to change settings' });
 			}
-
-			if (game.status !== GameStatus.WAITING)
-				return reply.code(401).send({ error: 'You cant update the settings while this game is already running!' });
 
 			let changed = false;
 
@@ -95,9 +92,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						error: 'Powerups are not enabled for this game. Turn on powerups first.',
 					});
 				}
-				fastify.log.info(`Updating powerups for game ${game.gameId} by user ${user.username}`);
-				game.config.powerups = powerups;
-				changed = true;
+				else
+				{
+					fastify.log.info(`Updating powerups for game ${game.gameId} by user ${user.username}`);
+					game.config.powerups = powerups;
+					changed = true;
+				}
 			}
 			if (playerLives !== undefined) {
 				fastify.log.info(`Updating player lives for game ${game.gameId} by user ${user.username}`);
@@ -121,13 +121,14 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (changed)
 			{
 				await game.updateLobbyState();
-			fastify.log.info(
-				`Game settings updated for game ${game.gameId} by user ${user.username}`
-			);
-			return reply
-				.code(200)
-				.send({ message: 'Game settings updated successfully!' });
-			} else
+				fastify.log.info(
+					`Game settings updated for game ${game.gameId} by user ${user.username}`
+				);
+				return reply
+					.code(200)
+					.send({ message: 'Game settings updated successfully!' });
+			}
+			else
 				return reply.code(200).send({ message: 'No game settings changed!' });
 		}
 	);
@@ -223,7 +224,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
-			const game = runningGames.find((g) => g.admin.id === user.id);
+			const game = runningGames.find((g) => (g.admin.id === user.id
+				|| g.players.find(p => p instanceof UserPlayer && p.user.id === user.id)
+			));
 			if (!game) {
 				return reply
 					.code(404)
@@ -363,7 +366,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
-			const game = runningGames.find((g) => g.admin.id === user.id);
+			const game = runningGames.find((g) => g.admin.id === user.id && g.status === GameStatus.WAITING);
 			if (!game) {
 				return reply
 					.code(404)
@@ -448,15 +451,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			};
 			const parsedGameId = Number.parseInt(gameId, 10);
 
-			const game = runningGames.find((g) => g.gameId === parsedGameId);
+			const game = runningGames.find((g) => (g.gameId === parsedGameId && g.status === GameStatus.WAITING));
 			if (!game) {
-				return reply.code(404).send({ error: 'Game not found' });
+				return reply.code(404).send({ error: 'Game not found or already running' });
 			}
-
-			if (game.status !== GameStatus.WAITING)
-				return reply.code(404).send({
-					error: 'The game you are trying to join has already started!',
-				});
 
 			const player = game.players.find(
 				(p) => p instanceof UserPlayer && p.user.id === user.id

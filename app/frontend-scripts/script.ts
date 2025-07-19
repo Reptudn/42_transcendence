@@ -45,7 +45,7 @@ export async function createGame()
 
 export let was_in_game = false;
 window.was_in_game = was_in_game;
-async function leaveGame()
+export async function leaveGame()
 {
 	if (!was_in_game) return;
 
