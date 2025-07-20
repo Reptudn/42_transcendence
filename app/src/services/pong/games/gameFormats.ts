@@ -24,6 +24,7 @@ function getRandomDefaultName(): string {
 	return defaultBotNames[Math.floor(Math.random() * defaultBotNames.length)];
 }
 
+// TODO: there is one player too much in the game always on the map
 const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
