@@ -10,12 +10,10 @@ let loggedIntervalIncrement = loggedIntervalBase;
 export function setupEventSource() {
 
 	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
-		loggedIntervalIncrement *= 1.5;
+		
 		// console.warn('EventSource not set up because user is not logged in');
 		return;
 	}
-
-	loggedIntervalIncrement = loggedIntervalBase;
 
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
@@ -28,10 +26,12 @@ export function setupEventSource() {
 		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		showLocalError("A server connection error occured!");
+		loggedIntervalIncrement *= 3;
+		showLocalError(`A server connection error occurred!<br>Trying to reconnect in ${loggedIntervalIncrement}ms`);
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
+		loggedIntervalIncrement = loggedIntervalBase;
 	};
 	notifyEventSource.onmessage = async (event) => {
 		// console.log('EventSource message received:', event);
