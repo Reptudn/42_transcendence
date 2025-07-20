@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { updateGameState } from './gameRenderer.js';
-import { leaveGame, loadPartialView } from './script.js';
+import { loadPartialView } from './script.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -122,6 +122,31 @@ setInterval(() => {
 window.addEventListener('beforeunload', async () => {
 	if (ws.readyState === WebSocket.OPEN) {
 		ws.close(1000, 'Page unloading');
-		await leaveGame();
+		await leaveWsGame();
 	}
 });
+
+export async function leaveWsGame()
+{	
+	const response = await fetch('/api/games/leave', {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		showLocalError(`Failed to leave game: ${response.statusText}`);
+		return;
+	}
+
+	showLocalInfo('You have left the game successfully.');
+	if (ws.readyState === WebSocket.OPEN)
+		ws.close(1000, 'Leaving game!');
+	await loadPartialView('profile');
+}
+
+window.leaveWsGame = leaveWsGame;
+
+declare global {
+	interface Window {
+		leaveWsGame: () => Promise<void>;
+	}
+}

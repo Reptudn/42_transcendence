@@ -1,68 +1,77 @@
-<div class="max-w-4xl p-6 rounded-lg shadow-md glow-green">
-	<h1 class="text-4xl font-bold mb-6 text-center"><%= t('game_setup.game_setup') %></h1>
-
-	<section class="mb-8">
-	<h2 class="text-3xl font-semibold mb-3"><%= t('game_setup.general_settings') %></h2>
-	<div class="grid grid-cols-2 gap-6">
-		<div>
-		<label for="map" class="block font-medium text-2xl"><%= t('game_setup.map') %></label>
-		<select id="map" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-			<option value="classic"><%= t('game_setup.modes.classic') %> 🏓</option>
-		</select>
-		</div>
-		<div>
-		<label for="lives" class="block font-medium text-2xl"><%= t('game_setup.player_lives') %></label>
-		<input type="number" id="lives" placeholder="3" min="1"
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-		</div>
-		<div>
-		<label for="difficulty" class="block font-medium text-2xl"><%= t('game_setup.game_difficulty') %></label>
-		<input type="number" id="difficulty" placeholder="1" min="1" max="10"
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-		</div>
-		<div class="flex items-center mt-6">
-		<input type="checkbox" id="powerups" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-		<label for="powerups" class="ml-2 text-2xl"><%= t('game_setup.powerups_enabled') %></label>
-		</div>
-	</div>
-	</section>
-
-	<section class="mb-8">
-	<h2 class="text-2xl font-semibold mb-3"><%= t('game_setup.player_settings') %></h2>
-	<p class="text-sm text-1xl mb-4">
-		<%= t('game_setup.player_settings_description') %>
-	</p>
-	<div id="playersContainer">
-		<div class="player-card p-4 border rounded-lg mb-4" data-player-index="0">
-		<h3 class="text-xl font-bold mb-2"><%= t('game_setup.player') %> 1: <%= t('game_setup.you') %></h3>
-		<div class="mb-2">
-			<label class="block text-sm font-medium"><%= t('game_setup.control_scheme') %></label>
-			<select class="control-scheme mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-			<option value="wasd">WASD</option>
-			<option value="arrows"><%= t('game_setup.controls.arrow_keys') %></option>
-			<option value="ijkl">IJKL</option>
-			</select>
-		</div>
-		</div>
-	</div>
-	<div class="flex space-x-4">
-		<button id="addPlayerButton" class="glow-green py-2 px-4 rounded text-2xl">
-		<%= t('game_setup.add_player') %>
-		</button>
-		<button id="removePlayerButton" class="glow-red py-2 px-4 rounded text-2xl">
-		<%= t('game_setup.remove_player') %>
-		</button>
-	</div>
-	</section>
-
-	<div class="text-center">
-	<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl">
-		<%= t('game_setup.start_game') %>
-	</button>
-	</div>
-</div>
 <% if (initial) { %>
-<button onclick="addAIPlayer()">Add AI</button>
-<button id="startGameButton" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
-<script type="module" src="/static/js/game_setup.js"></script>
+	<!-- Initial Page things that only get loaded when the page is first loaded -->
+	<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
+	<button onclick="addAIPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add AI</button>
+	<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Local Player</button>
+	<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
+	<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
+	<input type="number" name="Difficulty" id="difficulty-input" min="2" max="10" value="5">Game Difficulty</input>
+	<label for="map-select">Map:</label>
+	<select name="Map" id="map-select">
+		<% if (availableMaps && availableMaps.length > 0) { %>
+			<% for (const map of availableMaps) { %>
+				<option value="<%= map %>"><%= map %></option>
+			<% } %>
+		<% } else { %>
+			<option value="">No maps available</option>
+		<% } %>
+	</select>
+	<br>
+	<div>
+		<h2>Online Friends:</h2>
+		<p>Click on a friend to invite them to your game.</p>
+		<div id="onlineFriendsList" class="flex">
+			<!--Online friends will be inserted here-->
+		</div>
+		<button onclick="refreshOnlineFriends()">Refresh</button>
+	</div>
+	<br>
+	<div id="lobby">
+<% } %>
+	<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
+	<div class="settings">
+		<h2 class="text-3xl">Lobby Settings</h2>
+		<div id="lobbySettings">
+			<h3 class="text-2xl">Power-ups:</h3>
+			<% if (gameSettings.powerupsEnabled) { %>
+				<button onclick="addPowerUp()">Add Power Up</button>
+				<% for (const powerup of gameSettings.powerups) { %>
+					<div class="powerup">
+						<span class="powerup-name"><%= powerup.name %></span>
+						<span class="powerup-description"><%= powerup.description %></span>
+						<button onclick="removePowerup()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+					</div>
+				<% } %>
+			<% } else { %>
+				<p>Power-ups are disabled.</p>
+			<% } %>
+		</div>
+	</div>
+	<br>
+	<br>
+	<div class="players">
+		<h2 class="text-3xl">Players:</h2>
+		<div id="playerList">
+			<% if (!players || players.length === 0) { %>
+				<p>No players joined.</p>
+			<% } else { %>
+				<% for (const player of players) { %>
+					<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+						<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+						<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
+						<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
+						<% if (player.playerId !== 1) { %> <!-- 1 is the admin -->
+							<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+						<% } %>
+					</div>
+				<% } %>
+			<% } %>
+		</div>
+	</div>
+<% if (initial) { %>
+	</div>
+
+	<!-- Initial Page things that only get loaded when the page is first loaded -->
+	<button onclick="leaveGame()">Leave Game</button> 
+	<script type="module" src="/static/js/game_setup.js" defer></script>
 <% } %>

@@ -88,6 +88,9 @@ document
 				showLocalError(
 					'An unknown error occurred during image conversion.'
 				);
+				showLocalError(
+					'An unknown error occurred during image conversion.'
+				);
 			}
 			return;
 		}
@@ -232,7 +235,7 @@ document
 				await loadPartialView('login');
 				updateMenu();
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(`${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);

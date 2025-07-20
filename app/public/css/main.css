@@ -133,9 +133,86 @@
 		border: 5px double #00ff00;
 	}
 
-	/* #popup-wrapper {
-		position: absolute;
-	} */
+	#popup-container {
+		max-height: 80vh; /* Begrenze die Höhe des Containers */
+		overflow-y: auto; /* Ermöglicht vertikales Scrollen */
+		scrollbar-width: none;
+	}
+
+	/* Für Webkit-basierte Browser (Chrome, Edge, etc.) */
+	#popup-container::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	#popup-container::-webkit-scrollbar-thumb {
+		background-color: #00ff00; /* Farbe der Scrollbar */
+		border-radius: 4px;
+	}
+
+	#popup-container::-webkit-scrollbar-track {
+		background-color: #1a1a1a; /* Hintergrund der Scrollbar */
+	}
+
+	/* Für Webkit-basierte Browser (Chrome, Edge, etc.) */
+	html::-webkit-scrollbar {
+		width: 12px; /* Breite der Scrollbar */
+	}
+
+	html::-webkit-scrollbar-thumb {
+		background-color: #00ff00; /* Farbe der Scrollbar */
+		border-radius: 6px; /* Abgerundete Ecken */
+		border: 2px solid #1a1a1a; /* Rand um die Scrollbar */
+	}
+
+	html::-webkit-scrollbar-track {
+		background-color: #1a1a1a; /* Hintergrund der Scrollbar */
+	}
+
+	/* Für Firefox */
+	html {
+		scrollbar-width: thin; /* Dünne Scrollbar */
+		scrollbar-color: #00ff00 #1a1a1a; /* Farbe der Scrollbar und des Hintergrunds */
+	}
+
+	.alert {
+		pointer-events: auto;
+		animation: slideIn 0.3s ease-in-out;
+		padding: 1rem;
+		border-left-width: 4px;
+		border-radius: 0.5rem;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		position: relative;
+	}
+
+	.alert-red {
+		border-color: #ef4444; /* Red */
+	}
+
+	.alert-yellow {
+		border-color: #facc15; /* Yellow */
+	}
+
+	.alert-green {
+		border-color: #10b981; /* Green */
+	}
+
+	.close-icon {
+		fill: currentColor;
+		width: 1.5rem;
+		height: 1.5rem;
+		color: inherit;
+	}
+
+	#header-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100px; /* Höhe des Headers */
+		background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+		pointer-events: none; /* Verhindert Interaktionen */
+		z-index: 999; /* Über dem Inhalt */
+	}
 
 	@keyframes scanlines-move {
 		0% {
@@ -221,6 +298,10 @@
 	}
 }
 
+#content {
+	background-color: #12121246;
+}
+
 /* Ladebildschirm */
 .loading-screen {
 	position: absolute; /* Relativ zum tv-screen-inner */
@@ -230,7 +311,7 @@
 	justify-content: center; /* Horizontal zentrieren */
 	align-items: center; /* Vertikal zentrieren */
 	flex-direction: column; /* Text und Ladebalken untereinander anordnen */
-	z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
+	z-index: 10002; /* Sicherstellen, dass es über anderen Inhalten liegt */
 }
 
 .loading-content {
@@ -283,7 +364,7 @@
 	justify-content: center;
 	align-items: center;
 	background: black; /* Schwarzer Hintergrund */
-	z-index: 9999; /* Über allem */
+	z-index: 10002; /* Über allem */
 }
 
 .welcome-text {

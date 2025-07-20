@@ -7,7 +7,7 @@ export let notifyEventSource: EventSource | null = null;
 
 const loggedIntervalBase = 100;
 let loggedIntervalIncrement = loggedIntervalBase;
-function setupEventSource() {
+export function setupEventSource() {
 
 	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
 		loggedIntervalIncrement *= 1.5;
@@ -74,7 +74,7 @@ function setupEventSource() {
 				// 	await acceptGameInvite(data.gameId);
 				// 	break;
 				case 'game_setup_settings_update':
-					import('./game_setup_new.js').then(({ updatePage }) => {
+					import('./game_setup.js').then(({ updatePage }) => {
 						updatePage(data.html);
 					}).catch((error) => {
 						console.error('Error importing updateGameSettings:', error);
@@ -185,9 +185,11 @@ declare global {
 		acceptGameInvite: (gameId: number, playerId: number) => Promise<void>;
 		declineGameInvite: (gameId: number, playerId: number) => Promise<void>;
 		notifyEventSource: EventSource | null;
+		setupEventSource: () => void;
 	}
 }
 
 closeAllPopups();
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
+window.setupEventSource = setupEventSource;

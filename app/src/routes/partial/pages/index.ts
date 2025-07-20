@@ -153,8 +153,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						fastify
 					);
 				}
-				else if (page === 'game_setup' || page === 'game_setup_new') {
-					page = 'game_setup_new';
+				else if (page === 'game_setup') {
 					const user = await checkAuth(req, true, fastify);
 					if (!user)
 						return reply.code(401).send({ error: 'Unauthorized' });

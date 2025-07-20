@@ -1,4 +1,5 @@
 import { showLocalInfo, showLocalError } from './alert.js';
+import { setupEventSource } from './events.js';
 import './script.js';
 import { updateMenu, loadPartialView } from './script.js';
 
@@ -20,12 +21,13 @@ const loginAction = async () => {
 			await loadPartialView('profile');
 			showLocalInfo('You have logged in successfully');
 			window.sessionStorage.setItem("loggedIn", "true");
+			setupEventSource();
 		} else {
 			const data = await response.json();
-			showLocalError(`Error: ${data.message}`);
+			showLocalError(`${data.message}`);
 		}
 	} catch (error) {
-		console.error('Error:', error);
+		console.error(error);
 		showLocalError('An error occurred. Please try again.');
 	}
 };

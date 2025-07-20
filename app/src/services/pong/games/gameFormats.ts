@@ -125,10 +125,8 @@ export class Game {
 		await this.updateLobbyState();
 	}
 
+	// TODO: implment logic when a player is leaving while the game is running...
 	async removePlayer(playerId: number) {
-		if (this.status !== GameStatus.WAITING)
-			throw new Error('Game already running!');
-
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
@@ -202,7 +200,7 @@ export class Game {
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
 
-		const adminHtml = await ejs.renderFile('./app/public/pages/game_setup_new.ejs', {
+		const adminHtml = await ejs.renderFile('./app/public/pages/game_setup.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
