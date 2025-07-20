@@ -44,10 +44,10 @@ ws.onclose = (event) => {
 			}, 1000);
 			break;
 			
-		default:
-			showLocalError('Connection closed unexpectedly');
-			loadPartialView('profile');
-			break;
+		// default:
+		//	// showLocalError('Connection closed unexpectedly');
+		// 	loadPartialView('profile');
+		// 	break;
 	}
 };
 

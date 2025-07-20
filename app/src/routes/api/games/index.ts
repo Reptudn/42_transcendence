@@ -34,6 +34,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					return reply
 						.code(200).send({ message: 'You already have a game in lobby phase.. putting you back in there!', gameId: existingGame.gameId });
 				}
+				else if (existingGame && existingGame.status === GameStatus.RUNNING)
+				{
+					return reply.code(401).send({ error: 'Seems like you have a running game already.. wait for it to end before creating a new one (yes you shouldnt have ended up here!)' });
+				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
 				const game = new Game(id, user, fastify);
@@ -240,10 +244,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ error: 'No game found for the user' });
 			}
 
+			const player = game.players.find(p => p instanceof UserPlayer && p.user.id === user.id);
+
 			try {
-				game.removePlayer(user.id);
+				if (!player)
+					throw new Error('You are not a player in this game!');
+				game.removePlayer(player.playerId);
 			} catch (err) {
-				return reply.code(500).send({ error: err });
+				if (err instanceof Error)
+					return reply.code(500).send({ error: `Failed to leave game: ${err.message}` });
+				return reply.code(500).send({ error: 'Failed to leave game: Unknown Error' });
 			}
 			return reply.code(200).send({ message: 'Left game successfully' });
 		}
@@ -277,10 +287,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!playerToKick) {
 				return reply
 					.code(404)
-					.send({ error: 'No such player found in the game' });
+					.send({ error: 'No such player found in the game to kick' });
 			}
 			const self = game.players.find(p => p instanceof UserPlayer && p.user.id === user.id);
-			if (playerToKick.playerId && self && self instanceof UserPlayer && self.user.id === user.id)
+			if (playerToKick.playerId && self && self.playerId === playerToKick.playerId)
 				return reply.code(404).send({ error: 'You cant kick yourself ( Just leave.. kicking yourself is not cool :c )' });
 			try {
 				await game.removePlayer(parsedPlayerId);
@@ -469,10 +479,19 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			if (player) {
 				if (accepted === 'false') {
-					await game.removePlayer(user.id);
-					return reply.code(200).send({
-						message: 'You have declined the game invitation.',
-					});
+					try
+					{
+						await game.removePlayer(user.id);
+						return reply.code(200).send({
+							message: 'You have declined the game invitation.',
+						});
+					}
+					catch (err)
+					{
+						if (err instanceof Error)
+							return reply.code(400).send({ error: `Failed to decline invite: ${err.message}` });
+						return reply.code(400).send({ error: 'Failed to decline invite: Unknown error' });
+					}
 				} else if (accepted === 'true')
 					player.joined = true;
 				else

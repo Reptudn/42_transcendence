@@ -161,7 +161,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					if (!existingGame)
 						throw new Error("User has no game yet! Create one first.");
 					const admin = existingGame.players.find(p => p instanceof UserPlayer && p.user.id == user.id);
-					if (admin) admin.joined = true;
+					if (!admin) throw new Error("No Admin found!");
+					admin.joined = true;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = existingGame.players;

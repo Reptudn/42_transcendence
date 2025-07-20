@@ -2,7 +2,7 @@ import { WebSocket as WSWebSocket } from 'ws';
 import { connectedClients, sendSeeMessageByUserId, sendSseHtmlByUserId, sendSseRawByUserId } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
-import { runningGames } from './games';
+import { removeGame } from './games';
 import ejs from 'ejs';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -126,7 +126,7 @@ export class Game {
 	}
 
 	// TODO: implment logic when a player is leaving while the game is running...
-	async removePlayer(playerId: number) {
+	async removePlayer(playerId: number, forced: boolean = false) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
@@ -145,34 +145,28 @@ export class Game {
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
-			sendSseRawByUserId(playerToRemove.user.id, JSON.stringify({
+			forced && sendSseRawByUserId(playerToRemove.user.id, JSON.stringify({
 				type: 'game_closed',
 				message: `You got kicked from the game (${this.gameId}).`,
 			}));
 		}
 
-		if (playerToRemove instanceof UserPlayer && playerToRemove.user.id == this.admin.id) {
-			for (const player of this.players) {
-				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect();
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_closed',
-					message: 'Game admin left, game closed.',
-				}));
-			}
-			this.players.splice(0, this.players.length); // clear all players
+		await this.updateLobbyState();
+
+		// TODO: in the future dont end the game when just the owner leaves
+		try
+		{
+			if (playerToRemove instanceof UserPlayer && playerToRemove.user.id == this.admin.id)
+				this.endGame('Game admin left, game closed.');
+	
+			if (this.players.length === 0)
+				this.endGame(null);
+		}
+		catch (err)
+		{
+			throw err;
 		}
 
-		if (this.players.length === 0) {
-			const index = runningGames.findIndex(
-				(game) => game.gameId === this.gameId
-			);
-			if (index !== -1) runningGames.splice(index, 1);
-			this.fastify.log.info(
-				`Deleted Game ${this.gameId} because no players are left!`
-			);
-		}
-		await this.updateLobbyState();
 	}
 
 	async startGame()
@@ -222,6 +216,27 @@ export class Game {
 			else
 				sendSseHtmlByUserId(player.user.id, 'game_settings_update', lobbyHtml);
 		}
+	}
+
+	// when null if given it means the game end because no players were left
+	endGame(end_message: string | null)
+	{
+		if (end_message !== null) // this occurs when the game ends because its actually over because someone won or the admin left as of now
+		{
+			for (const player of this.players) {
+				if (!(player instanceof UserPlayer)) continue;
+				player.disconnect();
+				sendSseRawByUserId(player.user.id, JSON.stringify({
+					type: 'game_closed',
+					message: end_message,
+				}));
+			}
+			this.players.splice(0, this.players.length); // clear all players
+	
+			// TODO: add some game ending logic like adding everything to the db and such
+		}
+		
+		removeGame(this.gameId);
 	}
 
 	isReady() {

@@ -7,7 +7,7 @@ interface Friend {
 	displayname: string;
 }
 
-window.was_in_game = true;
+window.sessionStorage.setItem('ingame', 'lobby');
 
 export async function refreshOnlineFriends() {
 	

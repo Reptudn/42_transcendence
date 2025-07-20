@@ -3,6 +3,11 @@ import { Game, GameStatus, UserPlayer } from './gameFormats.js';
 
 export let runningGames: Game[] = [];
 
+export function removeGame(gameId: number)
+{
+	runningGames = runningGames.filter(game => game.gameId !== gameId);
+}
+
 const ticksPerSecond = 20;
 setInterval(async () => {
 	for (const game of runningGames) {

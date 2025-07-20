@@ -27,6 +27,7 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		loggedIntervalIncrement *= 3;
+		if (loggedIntervalIncrement > 30000) loggedIntervalIncrement = 30000;
 		showLocalError(`A server connection error occurred!<br>Trying to reconnect in ${loggedIntervalIncrement}ms`);
 	};
 	notifyEventSource.onopen = () => {

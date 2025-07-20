@@ -43,12 +43,8 @@ export async function createGame()
 	await loadPartialView('game_setup', true, null, true);
 }
 
-export let was_in_game = false;
-window.was_in_game = was_in_game;
 export async function leaveGame()
 {
-	if (!was_in_game) return;
-
 	const response = await fetch('/api/games/leave', {
 		method: 'POST',
 	});
@@ -58,7 +54,7 @@ export async function leaveGame()
 		return;
 	}
 
-	was_in_game = false;
+	window.sessionStorage.setItem('ingame', '');
 	showLocalInfo('You have left the game successfully.');
 }
 
@@ -153,12 +149,25 @@ export async function loadPartialView(
 			console.warn('Content element not found');
 		}
 
-		// if (was_in_game)
+		// TODO: find a good way to handle it when the user leaves a lobby or a game in any way
+		// alert(`Page: '${page}' and subroute: '${subroute ? subroute : 'NOPE'}'`);
+		// const ingameStatus = window.sessionStorage.getItem('ingame');
+		// if (ingameStatus === 'lobby')
+		// {
+		// 	alert('leaving game because out of lobby');
 		// 	await leaveGame();
+		// }
+		// else if (window.sessionStorage.getItem('ingame') === 'game')
+		// {
+		// 	alert('leaving game out game itself');
+		// 	import('./game.js').then(({ leaveWsGame }) => {
+		// 		leaveWsGame();
+		// 	}).catch((error) => {
+		// 		console.error('Error importing leaveWsGame:', error);
+		// 	});
+		// }
 	
 		updateActiveMenu(page);
-		if ((subroute && subroute.startsWith('games/run?gameId=')) || page === 'lobby' || page === 'game_setup')
-			was_in_game = true;
 
 		if (pushState) {
 			console.info('pushing state: ', url);
