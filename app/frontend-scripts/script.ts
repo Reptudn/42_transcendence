@@ -57,6 +57,7 @@ export async function leaveGame()
 	showLocalInfo('You have left the game successfully.');
 }
 
+// the isPartial var can be set to false if for some reason you want to load a partial view from a different route than the base partial route
 export async function loadPartialView(
 	page: string,
 	pushState = true,
