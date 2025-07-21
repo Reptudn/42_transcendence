@@ -137,18 +137,16 @@ export class Game {
 		);
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
+			
 			this.players = this.players.filter(
 				(player) =>
-					player instanceof LocalPlayer &&
-					player.owner !== playerToRemove
+					!(player instanceof LocalPlayer &&
+					player.owner.playerId !== playerToRemove.playerId)
 			);
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
-			forced && sendSseRawByUserId(playerToRemove.user.id, JSON.stringify({
-				type: 'game_closed',
-				message: `You got kicked from the game (${this.gameId}).`,
-			}));
+			forced && sendSeeMessageByUserId(playerToRemove.user.id, 'game_closed', `You got kicked from the game (${this.gameId}).`);
 		}
 
 		await this.updateLobbyState();

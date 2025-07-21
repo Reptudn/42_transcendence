@@ -204,7 +204,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
-				game.addUserPlayer(inviteUser);
+				await game.addUserPlayer(inviteUser);
 			} catch (err) {
 				return reply.code(404).send({ error: err });
 			}
@@ -281,6 +281,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.send({ error: 'No game found for the user' });
 			}
 
+			if (game.status !== GameStatus.WAITING)
+				return reply.code(401).send({ error: 'You can only kick players while in the lobby not ingame!' });
+
 			const playerToKick = game.players.find(
 				(p) => p.playerId === parsedPlayerId
 			);
@@ -293,7 +296,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (playerToKick.playerId && self && self.playerId === playerToKick.playerId)
 				return reply.code(404).send({ error: 'You cant kick yourself ( Just leave.. kicking yourself is not cool :c )' });
 			try {
-				await game.removePlayer(parsedPlayerId);
+				await game.removePlayer(parsedPlayerId, true);
 				return reply.code(200).send({
 					message: `Player ${playerToKick.displayName} kicked from the game`,
 				});
