@@ -1,5 +1,6 @@
 import { tickEngine } from '../engine/engine.js';
-import { Game, GameStatus, UserPlayer } from './gameFormats.js';
+import { Game, GameStatus } from './gameClass.js';
+import { UserPlayer } from './playerClass.js';
 
 export let runningGames: Game[] = [];
 

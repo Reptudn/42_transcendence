@@ -11,11 +11,9 @@ import {
 	getUserByUsername,
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
-// import { connectedClients } from '../../../services/sse/handler';
-// import { getUserGames } from '../../../services/database/games';
 import { runningGames } from '../../../services/pong/games/games';
-import { UserPlayer } from '../../../services/pong/games/gameFormats';
 import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
+import { UserPlayer } from '../../../services/pong/games/playerClass';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(

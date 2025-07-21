@@ -1,7 +1,8 @@
 import { readdir, readFile } from 'fs/promises';
 import path, { join } from 'path';
-import { Game, Player } from './gameFormats';
+import { Game } from './gameClass';
 import { FastifyInstance } from 'fastify';
+import { Player } from './playerClass';
 
 export async function getMapAsInitialGameState(
 	game: Game

@@ -1,6 +1,5 @@
-// import { Game } from '../games/engineClasses.js';
-// import { PlayerType } from '../games/gameFormats.js';
-import { AiPlayer, Game } from '../games/gameFormats.js';
+import { Game } from '../games/gameClass.js';
+import { AiPlayer } from '../games/playerClass.js';
 import { distance } from './pointUtils.js';
 
 export function projectPointOnPolyline(

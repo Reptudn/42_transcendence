@@ -5,12 +5,12 @@ import { checkAuth } from '../../../services/auth/auth';
 import {
 	Game,
 	GameStatus,
-	UserPlayer,
-} from '../../../services/pong/games/gameFormats';
+} from '../../../services/pong/games/gameClass';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
+import { UserPlayer } from '../../../services/pong/games/playerClass';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(

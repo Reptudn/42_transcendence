@@ -1,7 +1,7 @@
 import { movePaddle } from './paddleMovement.js';
 import { moveBall } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
-import { Game } from '../games/gameFormats.js';
+import { Game } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
 	for (let player of game.players) {
