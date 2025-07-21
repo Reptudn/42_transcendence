@@ -181,7 +181,6 @@ export async function leaveGame() {
 			`${error.error || 'Failed to leave game: Unknown error'}`
 		);
 	}
-	window.was_in_game = false;
 	await loadPartialView('profile');
 }
 

@@ -27,6 +27,7 @@ export class Game {
 	players: Player[] = [];
 	gameState: GameState;
 	config: GameSettings;
+	already_ended: boolean = false;
 
 	fastify: FastifyInstance;
 
@@ -53,6 +54,7 @@ export class Game {
 			},
 			objects: []
 		} as GameState;
+		this.already_ended = false;
 	}
 
 	async addUserPlayer(user: User) {
@@ -205,6 +207,8 @@ export class Game {
 	// when null if given it means the game end because no players were left
 	endGame(end_message: string | null)
 	{
+		if (this.already_ended) return;
+
 		if (end_message !== null) // this occurs when the game ends because its actually over because someone won or the admin left as of now
 		{
 			for (const player of this.players) {

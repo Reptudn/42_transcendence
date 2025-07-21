@@ -2,6 +2,8 @@ import { showLocalError, showLocalInfo } from './alert.js';
 
 // TODO: handle leave when user just clicks on a different page
 
+window.sessionStorage.setItem('ingame', 'lobby');
+
 export function updatePage(html: string)
 {
 	const lobbyContainer = document.getElementById('lobby');

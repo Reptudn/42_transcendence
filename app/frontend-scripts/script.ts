@@ -11,7 +11,6 @@ declare global {
 		abortController: AbortController | null;
 		notifyEventSource: EventSource | null;
 		createGame: () => Promise<void>;
-		was_in_game: boolean;
 	}
 }
 
@@ -54,7 +53,7 @@ export async function leaveGame()
 		return;
 	}
 
-	window.sessionStorage.setItem('ingame', '');
+	window.sessionStorage.setItem('ingame', 'nope');
 	showLocalInfo('You have left the game successfully.');
 }
 
@@ -152,7 +151,7 @@ export async function loadPartialView(
 		// TODO: find a good way to handle it when the user leaves a lobby or a game in any way
 		// alert(`Page: '${page}' and subroute: '${subroute ? subroute : 'NOPE'}'`);
 		// const ingameStatus = window.sessionStorage.getItem('ingame');
-		// if (ingameStatus === 'lobby')
+		// if (ingameStatus === 'lobby' && !url.startsWith('/api/games/run?gameId='))
 		// {
 		// 	alert('leaving game because out of lobby');
 		// 	await leaveGame();

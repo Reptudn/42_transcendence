@@ -1,5 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { updateGameState } from './gameRenderer.js';
+import { initCanvas, updateGameState } from './gameRenderer.js';
 import { loadPartialView } from './script.js';
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,6 +10,8 @@ const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
 	console.log('WebSocket connection established');
+	window.sessionStorage.setItem('ingame', 'game');
+	initCanvas();
 	showLocalInfo('Connected to game server');
 };
 
