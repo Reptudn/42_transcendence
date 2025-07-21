@@ -234,13 +234,14 @@ async function logout(): Promise<void> {
 const recentIndices: number[] = [];
 const MAX_RECENT = 40;
 const TOTAL_GIFS = 53;
+const MAX_ATTEMPTS = 100;
 function getRandomIndexExcludingRecent(): number {
 	let candidate: number;
 	let attempts = 0;
 	do {
 		candidate = Math.floor(Math.random() * TOTAL_GIFS);
 		attempts++;
-		if (attempts > 100) break;
+		if (attempts > MAX_ATTEMPTS) break;
 	} while (recentIndices.includes(candidate));
 
 	recentIndices.push(candidate);
