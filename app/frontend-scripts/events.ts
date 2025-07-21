@@ -94,7 +94,7 @@ export function setupEventSource() {
 					showLocalInfo(`Game started! (ID: ${gameId})`);
 					await loadPartialView('api', true, `games/run?gameId=${gameId}`, false);
 					break;
-				case 'game_closed': // TODO: when being kicked from a game nothing gets here
+				case 'game_closed':
 					showLocalInfo(data.message);
 					await loadPartialView('profile', true, null, true);
 					break;

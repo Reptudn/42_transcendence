@@ -84,7 +84,6 @@ function isMapConditionFulfilled(
 	else return false;
 }
 
-// TODO: doesnt really work yet
 export async function getAvailableMaps(fastify: FastifyInstance) : Promise<string[]>
 {
 	try {

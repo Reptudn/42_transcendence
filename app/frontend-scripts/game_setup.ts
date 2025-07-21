@@ -52,7 +52,6 @@ export async function refreshOnlineFriends() {
 
 }
 
-// TODO: doesnt work yet either
 export async function updateSettings(newSettings: any)
 {
 	const res = await fetch('/api/games/settings', {
@@ -149,7 +148,6 @@ export async function addLocalPlayer() {
 	showLocalInfo(`${data.message || 'Local player added successfully!'}`);
 }
 
-// TODO: doesnt work
 export async function kickPlayer(playerId: number) {
 	console.log(`Kicking player with ID: ${playerId}`);
 

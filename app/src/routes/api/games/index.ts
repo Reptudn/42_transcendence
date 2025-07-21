@@ -144,7 +144,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	// TODO: add invite cancel
 	// this invites another user
 	fastify.post(
 		'/invite/:userId',
@@ -603,7 +602,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				player.disconnect();
 
-				// TODO: do some leave action
+				// TODO: do some leave action (depends on the game.. what do we want to do?)
 			});
 		}
 	);

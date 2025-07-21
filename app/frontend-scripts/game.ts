@@ -5,7 +5,7 @@ import { loadPartialView } from './script.js';
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 
-const wsUrl = `/api/games/connect?gameId=${gameId}`; // TODO: make this url with env var (ps to myself.. this doesnt work in the frontend xd)
+const wsUrl = `/api/games/connect?gameId=${gameId}`;
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
@@ -37,12 +37,12 @@ ws.onclose = (event) => {
 			loadPartialView('profile');
 			break;
 			
-		case 1006: // TODO: handle unexpected game disconnects
-			showLocalError('Connection lost unexpectedly. Trying to reconnect...');
-			setTimeout(() => {
-				window.location.reload(); // Simple reconnection strategy
-			}, 1000);
-			break;
+		// case 1006:
+		// 	showLocalError('Connection lost unexpectedly. Trying to reconnect...');
+		// 	setTimeout(() => {
+		// 		window.location.reload(); // Simple reconnection strategy
+		// 	}, 1000);
+		// 	break;
 			
 		// default:
 		//	// showLocalError('Connection closed unexpectedly');
