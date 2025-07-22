@@ -51,10 +51,10 @@ export async function invite(
 
 	if (typeof toUser === 'object') {
 		for (const user of toUser) {
-			await inviteUserToChat(fastify, user, fromUser, chat_id);
+			await inviteUserToChat(fastify, fromUser, user, chat_id);
 		}
 	} else {
-		await inviteUserToChat(fastify, toUser, fromUser, chat_id);
+		await inviteUserToChat(fastify, fromUser, toUser, chat_id);
 	}
 
 	sendPopupToClient(
@@ -92,7 +92,7 @@ export async function leave(
 	deleteUserFromChaParticipants(fastify, fromUser, chat_id);
 
 	const check = await getAllParticipantsFromSql(fastify, chat_id);
-	if (check.length === 0) {
+	if (check && check.length === 0) {
 		removeChat(fastify, chat_id);
 	}
 	sendPopupToClient(

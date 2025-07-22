@@ -253,7 +253,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 			userIdsInt.push(user.id);
 
 			const chat_id = await saveNewChatInfo(fastify, true, group_name);
-			if (chat_id >= 0) {
+			if (chat_id) {
 				for (const id of userIdsInt) {
 					addToParticipants(fastify, user.id, id, chat_id);
 				}

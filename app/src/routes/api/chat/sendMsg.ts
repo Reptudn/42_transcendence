@@ -10,49 +10,48 @@ import {
 	getChatFromSql,
 } from '../../../services/database/chat';
 import { checkCmd } from './commands';
+import { HttpError } from '../../../services/database/chat';
+import { sendPopupToClient } from '../../../services/sse/popup';
+
+//TODO req.body checken
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
 		'/',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const body = req.body as {
-				chat: number;
-				message: string;
-			};
+			try {
+				const body = req.body as {
+					chat: number;
+					message: string;
+				};
 
-			const fromUser = await getUserById(
-				(req.user as { id: number }).id,
-				fastify
-			);
+				const fromUser = await getUserById(
+					(req.user as { id: number }).id,
+					fastify
+				);
 
-			if (!fromUser) return res.status(400).send({ error: 'User not found' }); // TODO Error msg
+				if (!fromUser)
+					return res.status(400).send({ error: 'User not found' }); // TODO Error msg
 
-			if (body.message.startsWith('/'))
-				return await checkCmd(fastify, body, fromUser.id);
+				if (body.message.startsWith('/'))
+					return await checkCmd(fastify, body, fromUser.id);
 
-			const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
-			if (!toUsers)
-				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
+				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 
-			const chatInfo = await getChatFromSql(fastify, body.chat);
-			if (!chatInfo)
-				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
+				const chatInfo = await getChatFromSql(fastify, body.chat);
 
-			// sind alle user die ich geblockt habe
-			const blocked = await getAllBlockerUser(fastify, fromUser.id);
-			if (!blocked)
-				return res.status(400).send({ error: 'Blocked Users not found' });
-			const blockedId = blocked.map((b) => b.blocked_id);
+				// sind alle user die ich geblockt habe
+				const blocked = await getAllBlockerUser(fastify, fromUser.id);
 
-			// sind all user die mich blockiert haben
-			const blocker = await getAllBlockedUser(fastify, fromUser.id);
-			if (!blocker)
-				return res.status(400).send({ error: 'Blocked Users not found' });
-			const blockerId = blocker.map((b) => b.blocker_id);
+				const blockedId = blocked.map((b) => b.blocked_id);
 
-			if (!chatInfo.is_group && !chatInfo.name) {
-				if (
+				// sind all user die mich blockiert haben
+				const blocker = await getAllBlockedUser(fastify, fromUser.id);
+
+				const blockerId = blocker.map((b) => b.blocker_id);
+
+				if (!chatInfo.is_group && !chatInfo.name) {
 					sendMsgDm(
 						fromUser,
 						toUsers,
@@ -60,12 +59,41 @@ export async function sendMsg(fastify: FastifyInstance) {
 						blockedId,
 						blockerId,
 						body.message
-					)
-				)
-					saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
-			} else {
-				sendMsgGroup(fromUser, toUsers, chatInfo, blockerId, body.message);
-				saveMsgInSql(fastify, fromUser.id, body.chat, body.message);
+					);
+					await saveMsgInSql(
+						fastify,
+						fromUser.id,
+						body.chat,
+						body.message
+					);
+				} else {
+					sendMsgGroup(
+						fromUser,
+						toUsers,
+						chatInfo,
+						blockerId,
+						body.message
+					);
+					await saveMsgInSql(
+						fastify,
+						fromUser.id,
+						body.chat,
+						body.message
+					);
+				}
+			} catch (err) {
+				const errorClass = err as HttpError;
+
+				if (errorClass.statusCode < 500) {
+					sendPopupToClient(
+						fastify,
+						(req.user as { id: number }).id,
+						'Error',
+						errorClass.msg,
+						'red'
+					);
+				}
+				res.status(errorClass.statusCode).send({ error: errorClass.msg });
 			}
 		}
 	);
@@ -77,7 +105,7 @@ function sendMsgGroup(
 	chatInfo: Chat,
 	blockerId: number[],
 	content: string
-) {
+): void {
 	// wenn fromUser die Person blockiert hat kommt sende ich die nachricht normal
 	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
@@ -103,7 +131,7 @@ function sendMsgDm(
 	blockedId: number[],
 	blockerId: number[],
 	content: string
-) {
+): void {
 	// wenn der fromUser die person blockiert hat kann man fromUser keine nachrichten mehr senden
 	// wenn fromUser blockiert wurde von der person kann er die nachricht noch in den chat schreiben aber toUser bekommt sie nicht
 	const user = toUser.filter((b) => b.user_id !== fromUser.id);
@@ -126,9 +154,9 @@ function sendMsgDm(
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
-		return true;
+		return;
 	}
-	return false;
+	throw new HttpError(400, 'User is Blocked');
 }
 
 export function createHtmlMsg(
