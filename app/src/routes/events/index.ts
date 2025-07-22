@@ -124,7 +124,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) {
 				reply.raw.end();
 				console.log('Client not authenticated');
-				return;
+				return reply;
 			}
 
 			sendSseHeaders(reply);
@@ -198,8 +198,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user: User | null = await checkAuth(request, false, fastify);
 			if (!user) {
-				reply.send({ message: 'Not authenticated' });
-				return;
+				return reply.send({ message: 'Not authenticated' });
 			}
 			const {
 				title,
@@ -218,18 +217,25 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				callback2: string;
 				buttonName2: string;
 			};
-			sendPopupToClient(
-				fastify,
-				user.id,
-				title,
-				description,
-				color,
-				callback1,
-				buttonName1,
-				callback2,
-				buttonName2
-			);
-			reply.send({ message: 'Popup sent' });
+			try {
+				fastify.log.info('before send popup');
+				sendPopupToClient(
+					fastify,
+					user.id,
+					title,
+					description,
+					color,
+					callback1,
+					buttonName1,
+					callback2,
+					buttonName2
+				);
+				fastify.log.info('after send popup');
+				return reply.code(200).send({ message: 'Popup sent' });
+			} catch (err) {
+				console.error('Error sending popup:', err);
+				return reply.code(500).send({ message: 'Error sending popup' });
+			}
 		}
 	);
 };

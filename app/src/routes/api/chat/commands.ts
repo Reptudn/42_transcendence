@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { getUserByUsername } from '../../../services/database/users 2';
+import { getUserByUsername } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { invite, leave } from './utils';
 

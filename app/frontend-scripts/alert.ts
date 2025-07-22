@@ -78,9 +78,3 @@ window.showLocalPopup = showLocalPopup;
 window.showLocalError = showLocalError;
 window.showLocalInfo = showLocalInfo;
 window.showLocalLog = showLocalLog;
-
-showLocalPopup({
-	title: 'Local Alert',
-	description: 'This is a local alert message.',
-	color: 'blue',
-});

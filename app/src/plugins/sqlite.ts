@@ -122,6 +122,25 @@ export default fp(async (fastify) => {
 			FOREIGN KEY(blocked_id) REFERENCES users(id) ON DELETE CASCADE
 			);
 		`);
+		// await fastify.sqlite.exec(`
+		// 	CREATE TABLE IF NOT EXISTS games (
+		// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+		// 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		// 	owner_id INTEGER NOT NULL,
+		// 	FOREIGN KEY (owner_id) REFERENCES users(id)
+		// 	)
+		// `);
+		// await fastify.sqlite.exec(`
+		// 	CREATE TABLE IF NOT EXISTS game_participants (
+		// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+		// 	game_id INTEGER NOT NULL,
+		// 	user_id INTEGER NOT NULL,
+		// 	place INTEGER DEFAULT 0, --which place on podium (1st is best)
+		// 	FOREIGN KEY (game_id) REFERENCES games(id),
+		// 	FOREIGN KEY (user_id) REFERENCES users(id),
+		// 	UNIQUE(game_id, user_id)
+		// 	)
+		// `);
 
 		for (const achievement of achievementsData) {
 			await fastify.sqlite.run(

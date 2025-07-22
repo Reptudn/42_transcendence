@@ -3,13 +3,14 @@ import { showLocalError, showLocalInfo } from './alert.js';
 declare global {
 	interface Window {
 		updateActiveMenu: (selectedPage: string) => void;
-		loadPartialView: (page: string, pushState?: boolean) => Promise<void>;
+		loadPartialView: (page: string, pushState?: boolean, subroute?: string | null, isPartial?: boolean) => Promise<void>;
 		updateMenu: () => Promise<void>;
 		logout: () => Promise<void>;
 		fetchNumber: () => Promise<void>;
 		updateNumber: (increment: number) => Promise<void>;
 		abortController: AbortController | null;
 		notifyEventSource: EventSource | null;
+		createGame: () => Promise<void>;
 	}
 }
 
@@ -25,24 +26,69 @@ export function updateActiveMenu(selectedPage: string): void {
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
+export async function createGame()
+{
+	const res = await fetch('/api/games/create', {
+		method: 'POST'
+	});
+	if (!res.ok) {
+		const data = await res.json();
+		showLocalError(`${data.error}`);
+		return;
+	}
+
+	const data = await res.json();
+	showLocalInfo(`${data.message} (${data.gameId})`);
+	await loadPartialView('game_setup', true, null, true);
+}
+
+export async function leaveGame()
+{
+	const response = await fetch('/api/games/leave', {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		showLocalError(`Failed to leave game: ${response.statusText}`);
+		return;
+	}
+
+	window.sessionStorage.setItem('ingame', 'nope');
+	showLocalInfo('You have left the game successfully.');
+}
+
+// the isPartial var can be set to false if for some reason you want to load a partial view from a different route than the base partial route
 export async function loadPartialView(
 	page: string,
 	pushState = true,
-	subroute: string | null = null
+	subroute: string | null = null,
+	isPartial: boolean = true
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (token) headers.Authorization = `Bearer ${token}`;
 
-	const url = subroute
-		? `/partial/pages/${page}/${subroute}`
-		: `/partial/pages/${page}`;
+	let url: string;
+	if (isPartial)
+		url = subroute
+			? `/partial/pages/${page}/${subroute}`
+			: `/partial/pages/${page}`;
+	else url = subroute
+			? `/${page}/${subroute}`
+			: `${page}`;
 
 	try {
 		const response: Response = await fetch(url, {
 			method: 'GET',
 			headers: headers,
 		});
+
+		if (!response.ok)
+		{
+			const data = await response.json();
+			throw new Error(data.error);
+		}
+
 		const html: string = await response.text();
 
 		const contentElement: HTMLElement | null =
@@ -103,6 +149,24 @@ export async function loadPartialView(
 			console.warn('Content element not found');
 		}
 
+		// TODO: find a good way to handle it when the user leaves a lobby or a game in any way
+		// alert(`Page: '${page}' and subroute: '${subroute ? subroute : 'NOPE'}'`);
+		// const ingameStatus = window.sessionStorage.getItem('ingame');
+		// if (ingameStatus === 'lobby' && !url.startsWith('/api/games/run?gameId='))
+		// {
+		// 	alert('leaving game because out of lobby');
+		// 	await leaveGame();
+		// }
+		// else if (window.sessionStorage.getItem('ingame') === 'game')
+		// {
+		// 	alert('leaving game out game itself');
+		// 	import('./game.js').then(({ leaveWsGame }) => {
+		// 		leaveWsGame();
+		// 	}).catch((error) => {
+		// 		console.error('Error importing leaveWsGame:', error);
+		// 	});
+		// }
+	
 		updateActiveMenu(page);
 
 		if (pushState) {
@@ -118,15 +182,18 @@ export async function loadPartialView(
 			);
 		}
 	} catch (error) {
-		console.error('Error fetching partial view:', error);
+		if (error instanceof Error)
+			showLocalError(error.message);
+		else
+		showLocalError(`Error fetching partial view: ${error}`);
 	}
 }
 
 // history change event
-window.addEventListener('popstate', (event: PopStateEvent) => {
+window.addEventListener('popstate', async (event: PopStateEvent) => {
 	const state = event.state;
 	if (event.state && typeof event.state.page === 'string') {
-		loadPartialView(
+		await loadPartialView(
 			state.page,
 			false,
 			state.subroute ? state.subroute : null
@@ -212,13 +279,12 @@ async function logout(): Promise<void> {
 	try {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
-			// Update your menu and load the home view
 			updateMenu();
-			loadPartialView('index');
+			await loadPartialView('index');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');
-			window.sessionStorage.setItem("loggedIn", "false");
+			window.sessionStorage.setItem('loggedIn', 'false');
 		} else {
 			const data = await response.json();
 			showLocalError(`Error during logout: ${data.message}`);
@@ -231,11 +297,29 @@ async function logout(): Promise<void> {
 	}
 }
 
+const recentIndices: number[] = [];
+const MAX_RECENT = 40;
+const TOTAL_GIFS = 53;
+const MAX_ATTEMPTS = 100;
+function getRandomIndexExcludingRecent(): number {
+	let candidate: number;
+	let attempts = 0;
+	do {
+		candidate = Math.floor(Math.random() * TOTAL_GIFS);
+		attempts++;
+		if (attempts > MAX_ATTEMPTS) break;
+	} while (recentIndices.includes(candidate));
+
+	recentIndices.push(candidate);
+	if (recentIndices.length > MAX_RECENT) {
+		recentIndices.shift();
+	}
+	return candidate;
+}
 function setRandomBgPicture(): void {
 	const tvScreenInner = document.getElementById('background-image');
 	if (tvScreenInner) {
-		const totalGifs = 29; // Update this value if the number of GIFs changes
-		const randomIndex = Math.floor(Math.random() * totalGifs) + 1;
+		const randomIndex = getRandomIndexExcludingRecent();
 		tvScreenInner.setAttribute(
 			'src',
 			`/static/assets/backgrounds/gifs/${randomIndex}.gif`
@@ -244,7 +328,12 @@ function setRandomBgPicture(): void {
 }
 setRandomBgPicture();
 document.addEventListener('keydown', (event) => {
-	if (event.key === 'g' || event.key === 'G' || event.key === 'b' || event.key === 'B') {
+	if (
+		event.key === 'g' ||
+		event.key === 'G' ||
+		event.key === 'b' ||
+		event.key === 'B'
+	) {
 		setRandomBgPicture();
 	}
 });
@@ -255,3 +344,4 @@ window.updateMenu = updateMenu;
 window.logout = logout;
 window.fetchNumber = fetchNumber;
 window.updateNumber = updateNumber;
+window.createGame = createGame;
