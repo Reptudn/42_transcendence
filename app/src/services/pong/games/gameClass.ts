@@ -180,14 +180,14 @@ export class Game {
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
 
-		const adminHtml = await ejs.renderFile('./app/public/pages/game_setup.ejs', {
+		const adminHtml = await ejs.renderFile('./app/pages/game_setup.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
 		});
 
-		const lobbyHtml = await ejs.renderFile('./app/public/pages/lobby.ejs', {
+		const lobbyHtml = await ejs.renderFile('./app/pages/lobby.ejs', {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
