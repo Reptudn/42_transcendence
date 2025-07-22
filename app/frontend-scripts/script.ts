@@ -284,7 +284,7 @@ async function logout(): Promise<void> {
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');
-			window.sessionStorage.setItem("loggedIn", "false");
+			window.sessionStorage.setItem('loggedIn', 'false');
 		} else {
 			const data = await response.json();
 			showLocalError(`Error during logout: ${data.message}`);
@@ -297,11 +297,29 @@ async function logout(): Promise<void> {
 	}
 }
 
+const recentIndices: number[] = [];
+const MAX_RECENT = 40;
+const TOTAL_GIFS = 53;
+const MAX_ATTEMPTS = 100;
+function getRandomIndexExcludingRecent(): number {
+	let candidate: number;
+	let attempts = 0;
+	do {
+		candidate = Math.floor(Math.random() * TOTAL_GIFS);
+		attempts++;
+		if (attempts > MAX_ATTEMPTS) break;
+	} while (recentIndices.includes(candidate));
+
+	recentIndices.push(candidate);
+	if (recentIndices.length > MAX_RECENT) {
+		recentIndices.shift();
+	}
+	return candidate;
+}
 function setRandomBgPicture(): void {
 	const tvScreenInner = document.getElementById('background-image');
 	if (tvScreenInner) {
-		const totalGifs = 29; // Update this value if the number of GIFs changes
-		const randomIndex = Math.floor(Math.random() * totalGifs) + 1;
+		const randomIndex = getRandomIndexExcludingRecent();
 		tvScreenInner.setAttribute(
 			'src',
 			`/static/assets/backgrounds/gifs/${randomIndex}.gif`
@@ -310,7 +328,12 @@ function setRandomBgPicture(): void {
 }
 setRandomBgPicture();
 document.addEventListener('keydown', (event) => {
-	if (event.key === 'g' || event.key === 'G' || event.key === 'b' || event.key === 'B') {
+	if (
+		event.key === 'g' ||
+		event.key === 'G' ||
+		event.key === 'b' ||
+		event.key === 'B'
+	) {
 		setRandomBgPicture();
 	}
 });
