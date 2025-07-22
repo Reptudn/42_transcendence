@@ -19,7 +19,7 @@ export function sendPopupToClient(
 	}
 	try {
 		ejs.renderFile(
-			path.join(__dirname, `../../../public/pages/misc/popup.ejs`),
+			path.join(__dirname, `../../../pages/misc/popup.ejs`),
 			{
 				title,
 				description,
@@ -60,7 +60,7 @@ export function sendAchievementToClient(
 	}
 	try {
 		ejs.renderFile(
-			path.join(__dirname, `../../../public/pages/misc/popup.ejs`),
+			path.join(__dirname, `../../../pages/misc/popup.ejs`),
 			{
 				title,
 				description,

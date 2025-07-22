@@ -573,6 +573,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				JSON.stringify({ type: 'state', state: game.gameState })
 			);
 
+			socket.on('error', (error) => {
+				fastify.log.error(
+					`WebSocket error for player ${player.playerId} in game ${parsedGameId}:`,
+					error
+				);
+				
+				// TODO: add some client socket error management here like ragequit and so on
+
+				player.disconnect();
+			});
+
 			socket.on('message', (message: Buffer) => {
 				const msgStr = message.toString();
 				fastify.log.info(
