@@ -24,3 +24,10 @@ interface GameState {
 	};
 	objects: GameObject[];
 }
+
+interface AIBrainData {
+	aiLastBallDistance: number;
+	aiDelayCounter: number;
+	aiLastTargetParam: number;
+	lastAIMovementDirection: number;
+}

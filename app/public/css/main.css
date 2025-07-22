@@ -13,6 +13,131 @@
 }
 
 @layer utilities {
+
+	.glow-rainbow-border {
+		position: relative;
+		border: 3px solid transparent;
+		background: linear-gradient(#00ff15, #00ff15) padding-box,
+					conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000) border-box;
+	}
+
+	.glow-rainbow-border::before {
+		content: '';
+		position: absolute;
+		inset: -6px;
+		padding: 6px;
+		background: conic-gradient(from 0deg, 
+			#ff0000 0deg, 
+			#ff7f00 51deg, 
+			#ffff00 102deg, 
+			#00ff00 153deg, 
+			#0000ff 204deg, 
+			#4b0082 255deg, 
+			#9400d3 306deg, 
+			#ff0000 360deg
+		);
+		border-radius: inherit;
+		mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		mask-composite: xor;
+		-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		z-index: -1;
+		animation: rotate-rainbow 3s linear infinite;
+		filter: blur(1px);
+	}
+
+	.glow-rainbow-border::after {
+		content: '';
+		position: absolute;
+		inset: -10px;
+		background: conic-gradient(from 0deg, 
+			rgba(255, 0, 0, 0.3) 0deg, 
+			rgba(255, 127, 0, 0.3) 51deg, 
+			rgba(255, 255, 0, 0.3) 102deg, 
+			rgba(0, 255, 0, 0.3) 153deg, 
+			rgba(0, 0, 255, 0.3) 204deg, 
+			rgba(75, 0, 130, 0.3) 255deg, 
+			rgba(148, 0, 211, 0.3) 306deg, 
+			rgba(255, 0, 0, 0.3) 360deg
+		);
+		border-radius: inherit;
+		z-index: -2;
+		animation: rotate-rainbow 3s linear infinite;
+		filter: blur(15px);
+	}
+
+	@keyframes rotate-rainbow {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* XXX: this is the code which creates the rotating effect*/
+	/* .easter-egg {
+		position: relative;
+		border: 3px solid transparent;
+		background: linear-gradient(#000, #000) padding-box,
+					conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000) border-box;
+		animation: rotate-easteregg 3s linear infinite;
+	}
+	
+	.easter-egg::before {
+		content: '';
+		position: absolute;
+		inset: -6px;
+		padding: 6px;
+		background: conic-gradient(from 0deg, 
+			#ff0000 0deg, 
+			#ff7f00 51deg, 
+			#ffff00 102deg, 
+			#00ff00 153deg, 
+			#0000ff 204deg, 
+			#4b0082 255deg, 
+			#9400d3 306deg, 
+			#ff0000 360deg
+		);
+		border-radius: inherit;
+		mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		mask-composite: xor;
+		-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		z-index: -1;
+		animation: rotate-easteregg 3s linear infinite;
+		filter: blur(1px);
+	}
+	
+	.easter-egg::after {
+		content: '';
+		position: absolute;
+		inset: -10px;
+		background: conic-gradient(from 0deg, 
+			rgba(255, 0, 0, 0.3) 0deg, 
+			rgba(255, 127, 0, 0.3) 51deg, 
+			rgba(255, 255, 0, 0.3) 102deg, 
+			rgba(0, 255, 0, 0.3) 153deg, 
+			rgba(0, 0, 255, 0.3) 204deg, 
+			rgba(75, 0, 130, 0.3) 255deg, 
+			rgba(148, 0, 211, 0.3) 306deg, 
+			rgba(255, 0, 0, 0.3) 360deg
+		);
+		border-radius: inherit;
+		z-index: -2;
+		animation: rotate-easteregg 3s linear infinite;
+		filter: blur(15px);
+	}
+	
+	@keyframes rotate-easteregg {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
+	} */
+
 	.glow-green {
 		font-family: 'VT323', monospace;
 		font-weight: 400;

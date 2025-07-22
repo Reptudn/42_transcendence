@@ -1,21 +1,21 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { GameState } from '../engine/engineFormats.js';
+import { readdir, readFile } from 'fs/promises';
+import path, { join } from 'path';
+import { Game } from './gameClass';
+import { FastifyInstance } from 'fastify';
+import { Player } from './playerClass';
 
 export async function getMapAsInitialGameState(
-	settings: GameSettings
+	game: Game
 ): Promise<GameState> {
-	console.log('getMapAsInitialGameState');
 	const jsonPath = join(
 		__dirname,
 		'..',
 		'..',
 		'..',
 		'..',
-		'..',
 		'data',
 		'maps',
-		`${settings.map}.json`
+		`${game.config.map}.json`
 	);
 
 	let map: {
@@ -45,7 +45,8 @@ export async function getMapAsInitialGameState(
 		for (let condition of object.conditions) {
 			if (
 				!isMapConditionFulfilled(
-					settings,
+					game.config,
+					game.players,
 					condition.condition,
 					condition.variable,
 					condition.target
@@ -64,12 +65,14 @@ export async function getMapAsInitialGameState(
 }
 function isMapConditionFulfilled(
 	settings: GameSettings,
+	players: Player[],
 	condition: string,
 	variable: string,
 	target: number
 ): boolean {
 	let numVal: number = 0;
-	if (variable === 'player_count') numVal = settings.players.length + 1;
+	if (!players) return false;
+	if (variable === 'player_count') numVal = players.length;
 	// gamesettings players dont contain the admin
 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
 	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
@@ -80,4 +83,28 @@ function isMapConditionFulfilled(
 	else if (condition === 'smaller_than_or_equal') return numVal <= target;
 	else if (condition === 'smaller_than') return numVal < target;
 	else return false;
+}
+
+export async function getAvailableMaps(fastify: FastifyInstance) : Promise<string[]>
+{
+	try {
+		const mapsPath = path.join(__dirname, '../../../../data/maps');
+		const files = await readdir(mapsPath);
+
+		fastify.log.info(`maps in folder: ${files}`);
+
+		const mapFiles = files.filter(file => 
+			file.endsWith('.json')
+		);
+		
+		const mapNames = mapFiles.map(file => {
+			return path.parse(file).name.toLocaleUpperCase();
+		});
+
+		fastify.log.info(`mapsNames: ${mapNames}`);
+
+		return mapNames;
+	} catch (error) {
+		return [];
+	}
 }

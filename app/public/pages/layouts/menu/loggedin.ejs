@@ -2,7 +2,7 @@
 	<button data-page="profile" class="cursor-pointer hover:scale-110 hover:glow-blue text-white font-bold py-2 px-4 rounded-full glow-green"
 		onclick="loadPartialView('profile')"><%= t('menu.profile') %></button>
 	<button data-page="game_setup" class="cursor-pointer hover:scale-110 hover:glow-blue text-white font-bold py-2 px-4 rounded-full glow-green"
-		onclick="loadPartialView('game_setup')"><%= t('menu.game') %></button>
+		onclick="createGame()"><%= t('menu.game') %></button>
 	<button data-page="logout" class="cursor-pointer hover:scale-110 hover:glow-blue text-white font-bold py-2 px-4 rounded-full glow-green"
 		onclick="logout()">
 		Logout
@@ -10,3 +10,4 @@
 	<button data-page="about" class="cursor-pointer hover:scale-110 hover:glow-blue text-white font-bold py-2 px-4 rounded-full glow-green"
 		onclick="loadPartialView('about')"><%= t('menu.about') %></button>
 </nav>
+<script type="module" src="/static/js/events.js" defer></script>

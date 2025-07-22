@@ -1,6 +1,6 @@
-import { Game, PlayerType } from '../games/gameFormats.js';
+import { Game } from '../games/gameClass.js';
+import { AiPlayer } from '../games/playerClass.js';
 import { distance } from './pointUtils.js';
-import { Point } from './engineFormats.js';
 
 export function projectPointOnPolyline(
 	pt: Point,
@@ -36,12 +36,13 @@ export function projectPointOnPolyline(
 }
 
 export function updateAIMovement(game: Game): void {
+	if (!game.gameState) return;
 	const ball = game.gameState.objects.find((obj) => obj.type === 'ball');
 	if (!ball || !ball.center) return;
 	const ballPos = ball.center;
 
 	for (const player of game.players) {
-		if (player.type !== PlayerType.AI) continue;
+		if (!(player instanceof AiPlayer)) continue;
 
 		const damageArea = game.gameState.objects.find(
 			(obj) =>
@@ -95,7 +96,7 @@ export function updateAIMovement(game: Game): void {
 			};
 		}
 
-		const level = player.aiLevel || 5;
+		const level = game.config.gameDifficulty || 5;
 
 		// random delay after collision
 		const currentBallDistance = distance(ballPos, closestPoint);

@@ -6,6 +6,7 @@ import {
 	getFriendRequestById,
 	rejectFriendRequest,
 	removeFriendship,
+	getFriends,
 } from '../../../services/database/friends';
 import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
@@ -49,6 +50,30 @@ const declineFriendRequestSchema = {
 };
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+
+	fastify.get('/', { preValidation: [fastify.authenticate] }, async (req, reply) => {
+		const user = await checkAuth(req, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
+
+		const friendsList = await getFriends(user.id, fastify);
+		return reply.send(friendsList);
+	});
+
+	fastify.get('/online', { preValidation: [fastify.authenticate] }, async (req, reply) => {
+		const user = await checkAuth(req, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ message: 'Unauthorized' });
+		}
+
+		const friendsList = await getFriends(user.id, fastify);
+		const onlineFriends = friendsList.filter(friend => 
+			connectedClients && connectedClients.has(friend.id)
+		);
+		return reply.send(onlineFriends);
+	});
+
 	fastify.post(
 		'/request',
 		{
@@ -60,10 +85,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const requestedId: number = Number(req.body.requestId);
 
 			if (requesterId === requestedId) {
-				reply.code(400).send({
+				return reply.code(400).send({
 					message: 'You cannot send a friend request to yourself',
 				});
-				return;
 			}
 
 			const pendingRequest = await getFriendRequest(
@@ -74,13 +98,11 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (pendingRequest) {
 				if (pendingRequest.requested_id == requesterId) {
 					await acceptFriendRequest(pendingRequest.id, fastify);
-					reply.send({ message: 'Friend request accepted' });
-					return reply.code(200);
+					return reply.code(200).send({ message: 'Friend request accepted' });
 				} else {
-					reply
+					return reply
 						.code(400)
 						.send({ message: 'Friend request already sent' });
-					return;
 				}
 			}
 
@@ -106,14 +128,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						'Decline'
 					);
 				} else {
-					reply.code(200).send({
+					return reply.code(200).send({
 						message:
 							'User not connected, sent friend request will be received later.',
 					});
 				}
-				reply.code(200).send({ message: 'Friend request sent' });
+				return reply.code(200).send({ message: 'Friend request sent' });
 			} catch (err: any) {
-				reply.code(400).send({ message: err.message });
+				return reply.code(400).send({ message: err.message });
 			}
 		}
 	);
@@ -153,9 +175,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 				}
 
-				reply.send({ message: 'Friend request accepted' });
+				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
-				reply.code(400).send({ message: err.message });
+				return reply.code(400).send({ message: err.message });
 			}
 		}
 	);
@@ -177,9 +199,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 			try {
 				await rejectFriendRequest(requestId, fastify);
-				reply.send({ message: 'Friendship removed' });
+				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
-				reply.code(400).send({ message: err.message });
+				return reply.code(400).send({ message: err.message });
 			}
 		}
 	);
@@ -212,10 +234,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (!user) return reply.code(401).send({ message: 'Unauthorized' });
 			try {
 				await removeFriendship(user.id, friendId, fastify);
-				reply.send({ message: 'Friendship removed' });
+				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				// reply.code(400).send({ message: err.message });
-				reply.code(400).send({ message: 'Failed to remove the friend!' });
+				return reply.code(400).send({ message: 'Failed to remove the friend!' });
 			}
 		}
 	);

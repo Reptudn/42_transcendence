@@ -1,9 +1,9 @@
-import { Game } from '../games/gameFormats.js';
 import { movePaddle } from './paddleMovement.js';
 import { moveBall } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
+import { Game } from '../games/gameClass.js';
 
-export function tickEngine(game: Game): Game {
+export function tickEngine(game: Game) {
 	for (let player of game.players) {
 		game.gameState = movePaddle(
 			game.gameState,
@@ -16,6 +16,4 @@ export function tickEngine(game: Game): Game {
 	game.gameState = moveBall(game.gameState, 3);
 
 	updateAIMovement(game);
-
-	return game;
 }

@@ -11,7 +11,9 @@ import {
 	getUserByUsername,
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
-import { connectedClients } from '../../../services/sse/handler';
+import { runningGames } from '../../../services/pong/games/games';
+import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
+import { UserPlayer } from '../../../services/pong/games/playerClass';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -21,7 +23,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				params: {
 					type: 'object',
 					properties: {
-						username: { type: 'string', minLength: 1, maxLength: 100 },
+						username: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 100,
+						},
 						page: {
 							type: 'string',
 							minLength: 1,
@@ -46,7 +52,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			},
 		},
 		async (req: any, reply: any) => {
-			const { page, username } = req.params;
+			let { page, username } = req.params;
 			const loadpartial = req.headers['loadpartial'] === 'true';
 			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await checkAuth(req, false, fastify);
@@ -78,7 +84,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 					let profileId: number = friend_id ?? self_id!;
 					let isSelf = profileId === profile.id;
-					
+
 					profile.profile_picture =
 						'/profile/' + profileId + '/picture';
 					variables['user'] = profile;
@@ -144,14 +150,25 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						profile.id,
 						fastify
 					);
-				} else if (page === 'game_setup') {
-					await checkAuth(req, true, fastify);
-					const user_id = req.user.id;
-					let friends = await getFriends(user_id, fastify);
-					friends = friends.filter((friend) =>
-						connectedClients.has(friend.id)
-					);
-					variables['friends'] = friends;
+				}
+				else if (page === 'game_setup') {
+					const user = await checkAuth(req, true, fastify);
+					if (!user)
+						return reply.code(401).send({ error: 'Unauthorized' });
+					const existingGame = runningGames.find((g) => g.admin.id === user!.id);
+					if (!existingGame)
+						throw new Error("User has no game yet! Create one first.");
+					const admin = existingGame.players.find(p => p instanceof UserPlayer && p.user.id == user.id);
+					if (!admin) throw new Error("No Admin found!");
+					admin.joined = true;
+					variables['initial'] = true;
+					variables['ownerName'] = user!.displayname;
+					variables['players'] = existingGame.players;
+					variables['gameSettings'] = existingGame.config;
+
+					const maps = await getAvailableMaps(fastify);
+					variables['availableMaps'] = maps;
+					fastify.log.info(`Maps ${maps}`);
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
