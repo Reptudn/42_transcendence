@@ -1,16 +1,33 @@
+<% if (isGoogleLogin) { %>
 <div class="mb-6">
-	<label for="totp" class="block font-bold mb-2 text-2xl">2fa token</label>
-	<input type="totp" id="totp" name="2FA" placeholder="> ____________"
-		class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
-	<br>
-	<label for="totp-backup" class="block font-bold mb-2 text-2xl">Backup Code</label>
-	<input type="totp-backup" id="backup-totp" name="2FA Backup" placeholder="> ____________"
-		class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
-	<br>
-	<div class="text-center">
-		<button id="login2faButton" type="button" onclick="twofa_login()"
-			class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
-	</div>
+    <label for="totp" class="block font-bold mb-2 text-2xl">2fa token</label>
+    <input type="totp" id="totp" name="2FA" placeholder="> ____________"
+        class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+    <br>
+    <label for="totp-backup" class="block font-bold mb-2 text-2xl">Backup Code</label>
+    <input type="totp-backup" id="backup-totp" name="2FA Backup" placeholder="> ____________"
+        class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+    <br>
+    <div class="text-center">
+        <button id="login2faButton" type="button" onclick="twofa_login_google()"
+            class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
+    </div>
 </div>
+<% } else { %>
+<div class="mb-6">
+    <label for="totp" class="block font-bold mb-2 text-2xl">2fa token</label>
+    <input type="totp" id="totp" name="2FA" placeholder="> ____________"
+        class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+    <br>
+    <label for="totp-backup" class="block font-bold mb-2 text-2xl">Backup Code</label>
+    <input type="totp-backup" id="backup-totp" name="2FA Backup" placeholder="> ____________"
+        class="w-full rounded-lg glow-green text-2xl hover:glow-blue">
+    <br>
+    <div class="text-center">
+        <button id="login2faButton" type="button" onclick="twofa_login()"
+            class="text-3xl text-white font-bold py-2 px-4 rounded-lg glow-green hover:glow-blue"><%= t('login.login_button') %></button>
+    </div>
+</div>
+<% } %>
 
 <script type="module" src="/static/js/twofa_login.js" defer></script>
