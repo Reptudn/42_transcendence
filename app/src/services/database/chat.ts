@@ -126,7 +126,7 @@ export async function saveNewChatInfo(
 	fastify: FastifyInstance,
 	is_group: boolean,
 	groupName: string | null
-): Promise<number | null> {
+): Promise<number> {
 	try {
 		const chat = await fastify.sqlite.run(
 			'INSERT INTO chats (name, is_group) VALUES (?, ?)',
@@ -134,10 +134,9 @@ export async function saveNewChatInfo(
 		);
 		if (chat.changes !== 0 && typeof chat.lastID === 'number')
 			return chat.lastID;
-		return null;
+		throw new HttpError(400, 'Database error saveNewChatInfo');
 	} catch (err) {
-		fastify.log.info(err, 'Database error saveNewChatInfo'); //TODO Error msg;
-		return null;
+		throw new HttpError(500, 'Database error saveNewChatInfo');
 	}
 }
 

@@ -38,3 +38,10 @@ export default chat;
 
 // TODO Problem with checking toUser is on chat or on another side
 // TODO Error handling
+// TODO commands
+// TODO Send Popup to Client
+
+// TODO If Client not connected send msgs when reconnected
+// TODO Gruppe erstllen
+// TODO Blockieren
+// TODO Entblocken

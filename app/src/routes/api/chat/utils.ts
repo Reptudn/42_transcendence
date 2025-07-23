@@ -6,6 +6,7 @@ import {
 	deleteUserFromChaParticipants,
 	getAllParticipantsFromSql,
 	removeChat,
+	// type HttpError,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
 
@@ -103,3 +104,18 @@ export async function leave(
 		'red'
 	);
 }
+
+// export async function catchFunction(fastify: FastifyInstance, err: HttpError, userId: number, res: ) {
+// 	const errorClass = err as HttpError;
+
+// 	if (errorClass.statusCode < 500) {
+// 		sendPopupToClient(
+// 			fastify,
+// 			userId,
+// 			'Error',
+// 			errorClass.msg,
+// 			'red'
+// 		);
+// 	}
+// 	res.status(errorClass.statusCode).send({ error: errorClass.msg });
+// }

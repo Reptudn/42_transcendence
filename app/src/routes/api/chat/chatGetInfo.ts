@@ -15,6 +15,7 @@ import {
 	deleteFromBlockedUsers,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
+	type HttpError,
 } from '../../../services/database/chat';
 
 interface MessageQueryChat {
@@ -252,20 +253,27 @@ export async function createNewChat(fastify: FastifyInstance) {
 
 			userIdsInt.push(user.id);
 
-			const chat_id = await saveNewChatInfo(fastify, true, group_name);
-			if (chat_id) {
+			try {
+				const chat_id = await saveNewChatInfo(fastify, true, group_name);
+
 				for (const id of userIdsInt) {
 					addToParticipants(fastify, user.id, id, chat_id);
 				}
+
 				res.send({ chat_id: chat_id.toString() });
-			} else if (chat_id === -1) {
-				return sendPopupToClient(
-					fastify,
-					user.id,
-					'INFO',
-					'Not able to create a new group',
-					'red'
-				);
+			} catch (err) {
+				const errorClass = err as HttpError;
+
+				if (errorClass.statusCode < 500) {
+					sendPopupToClient(
+						fastify,
+						(req.user as { id: number }).id,
+						'Error',
+						errorClass.msg,
+						'red'
+					);
+				}
+				res.status(errorClass.statusCode).send({ error: errorClass.msg });
 			}
 		}
 	);

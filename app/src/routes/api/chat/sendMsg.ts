@@ -14,8 +14,6 @@ import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
 
-//TODO req.body checken
-
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
 		'/',
@@ -134,9 +132,7 @@ function sendMsgGroup(
 			if (toUser) {
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
-			// continue;
 		}
-		// TODO Client is not connected save msg and send later
 	}
 }
 
@@ -160,8 +156,6 @@ function sendMsgDm(
 				if (toUser) {
 					sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 				}
-			} else {
-				// TODO Client is not connected save msg and send later
 			}
 		}
 		if (connectedClients.has(fromUser.id)) {
