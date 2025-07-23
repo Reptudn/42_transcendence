@@ -17,7 +17,9 @@ import {
 	searchForChatId,
 	saveNewChatInfo,
 	addToParticipants,
+	type HttpError,
 } from '../../../services/database/chat';
+import { catchFunction } from '../chat/utils';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -116,16 +118,16 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						addToParticipants(
 							fastify,
 							pendingRequest.requester_id,
-							pendingRequest.requester_id,
 							chat_id
 						);
 						addToParticipants(
 							fastify,
-							pendingRequest.requester_id,
 							pendingRequest.requested_id,
 							chat_id
 						);
-					} catch (err) {}
+					} catch (err) {
+						return catchFunction(fastify, err as HttpError, (req.user as { id: number }).id, reply);
+					}
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
@@ -201,23 +203,24 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						}</a>!`,
 						'blue'
 					);
+					try {
+						const chat_id = await saveNewChatInfo(fastify, false, null);
+
+						addToParticipants(
+							fastify,
+							request.requester_id,
+							chat_id
+						);
+						addToParticipants(
+							fastify,
+							request.requested_id,
+							chat_id
+						);
+					} catch (err) {
+						return catchFunction(fastify, err as HttpError, (req.user as { id: number }).id, reply);
+					}
 				}
 
-				const chat_id = await saveNewChatInfo(fastify, false, null);
-				if (request && chat_id) {
-					addToParticipants(
-						fastify,
-						request.requester_id,
-						request.requester_id,
-						chat_id
-					);
-					addToParticipants(
-						fastify,
-						request.requester_id,
-						request.requested_id,
-						chat_id
-					);
-				}
 				reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
 				return reply.code(400).send({ message: err.message });

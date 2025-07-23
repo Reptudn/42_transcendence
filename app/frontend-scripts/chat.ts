@@ -43,7 +43,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 			console.error('Chat ID not found in sessionStorage');
 			return;
 		}
-		await fetch('/api/chat', {
+		const res = await fetch('/api/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -51,6 +51,10 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 				message: msg,
 			}),
 		});
+		if (!res.ok) {
+			const errorMsg = await res.json();
+			showLocalError(errorMsg.error);
+		}
 	}
 });
 

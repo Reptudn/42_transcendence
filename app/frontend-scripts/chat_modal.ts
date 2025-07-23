@@ -1,5 +1,5 @@
 import { getMessages, getChats } from './chat.js';
-import { showLocalError, showLocalPopup } from './alert.js';
+import { showLocalError, showLocalInfo, showLocalPopup } from './alert.js';
 
 let userIds: string[] = [];
 let userIdToBlock = '';
@@ -76,6 +76,7 @@ document
 		document.getElementById('closeGroupWindow')?.click();
 		await getMessages(newId);
 		await getChats();
+		showLocalInfo('Group created');
 	});
 
 document.getElementById('closeGroupWindow')?.addEventListener('click', async () => {

@@ -1,6 +1,5 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Blocked, Part, Msg } from '../../types/chat';
-import { sendPopupToClient } from '../sse/popup';
 
 export class HttpError {
 	statusCode: number;
@@ -142,34 +141,19 @@ export async function saveNewChatInfo(
 
 export async function addToParticipants(
 	fastify: FastifyInstance,
-	fromUser: number,
 	userId: number,
 	chatId: number
-): Promise<boolean> {
+): Promise<void> {
 	try {
-		console.log('fromUser = ', fromUser);
-		console.log('userId = ', userId);
-		const check = await getParticipantFromSql(fastify, userId, chatId);
-		console.log('check = ', check);
-		if (check) {
-			sendPopupToClient(
-				fastify,
-				fromUser,
-				'INFO',
-				'User already in chat',
-				'red'
-			);
-			return false;
-		}
+		const user = await getParticipantFromSql(fastify, userId, chatId);
+		if (user) throw new HttpError(400, 'User already in Chat');
 		fastify.sqlite.run(
 			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 			[chatId, userId]
 		);
 	} catch (err) {
-		fastify.log.info(err, 'Database error addToParticipants'); //TODO Error msg;
-		return false;
+		throw new HttpError(500, 'Database error addToParticipants');
 	}
-	return true;
 }
 
 export async function getParticipantFromSql(
@@ -184,8 +168,7 @@ export async function getParticipantFromSql(
 		)) as Part | null;
 		return user;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
+		throw new HttpError(500, 'Database error getParticipantFromSql');
 	}
 }
 

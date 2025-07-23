@@ -12,7 +12,6 @@ import {
 } from '../../../services/database/chat';
 import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
-import { sendPopupToClient } from '../../../services/sse/popup';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -41,13 +40,6 @@ export async function sendMsg(fastify: FastifyInstance) {
 				if (
 					!(await getParticipantFromSql(fastify, fromUser.id, body.chat))
 				) {
-					sendPopupToClient(
-						fastify,
-						fromUser.id,
-						'Error',
-						'User is no member in Chat',
-						'red'
-					);
 					return res
 						.status(400)
 						.send({ error: 'User is no member in Chat' }); // TODO Error msg
@@ -97,16 +89,6 @@ export async function sendMsg(fastify: FastifyInstance) {
 				}
 			} catch (err) {
 				const errorClass = err as HttpError;
-
-				if (errorClass.statusCode < 500) {
-					sendPopupToClient(
-						fastify,
-						(req.user as { id: number }).id,
-						'Error',
-						errorClass.msg,
-						'red'
-					);
-				}
 				res.status(errorClass.statusCode).send({ error: errorClass.msg });
 			}
 		}

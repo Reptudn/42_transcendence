@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 import {
 	getChatFromSql,
 	saveNewChatInfo,
@@ -6,7 +6,7 @@ import {
 	deleteUserFromChaParticipants,
 	getAllParticipantsFromSql,
 	removeChat,
-	// type HttpError,
+	type HttpError,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
 
@@ -24,7 +24,7 @@ export async function inviteUserToChat(
 		}
 		saveNewChatInfo(fastify, true, null);
 	}
-	addToParticipants(fastify, fromUser, user_id, chat_id);
+	addToParticipants(fastify, user_id, chat_id);
 	return true;
 }
 
@@ -105,17 +105,17 @@ export async function leave(
 	);
 }
 
-// export async function catchFunction(fastify: FastifyInstance, err: HttpError, userId: number, res: ) {
-// 	const errorClass = err as HttpError;
+export function catchFunction(fastify: FastifyInstance, err: HttpError, userId: number, res: FastifyReply) {
+	const errorClass = err as HttpError;
 
-// 	if (errorClass.statusCode < 500) {
-// 		sendPopupToClient(
-// 			fastify,
-// 			userId,
-// 			'Error',
-// 			errorClass.msg,
-// 			'red'
-// 		);
-// 	}
-// 	res.status(errorClass.statusCode).send({ error: errorClass.msg });
-// }
+	if (errorClass.statusCode < 500) {
+		sendPopupToClient(
+			fastify,
+			userId,
+			'Error',
+			errorClass.msg,
+			'red'
+		);
+	}
+	res.status(errorClass.statusCode).send({ error: errorClass.msg });
+}

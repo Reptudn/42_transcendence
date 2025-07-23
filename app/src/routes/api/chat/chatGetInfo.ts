@@ -4,7 +4,6 @@ import { invite, leave } from './utils';
 import { getUserById } from '../../../services/database/users';
 import { createHtmlMsg } from './sendMsg';
 import { getFriends } from '../../../services/database/friends';
-import { sendPopupToClient } from '../../../services/sse/popup';
 import {
 	saveNewChatInfo,
 	addToParticipants,
@@ -257,22 +256,12 @@ export async function createNewChat(fastify: FastifyInstance) {
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 
 				for (const id of userIdsInt) {
-					addToParticipants(fastify, user.id, id, chat_id);
+					addToParticipants(fastify, id, chat_id);
 				}
 
 				res.send({ chat_id: chat_id.toString() });
 			} catch (err) {
 				const errorClass = err as HttpError;
-
-				if (errorClass.statusCode < 500) {
-					sendPopupToClient(
-						fastify,
-						(req.user as { id: number }).id,
-						'Error',
-						errorClass.msg,
-						'red'
-					);
-				}
 				res.status(errorClass.statusCode).send({ error: errorClass.msg });
 			}
 		}
