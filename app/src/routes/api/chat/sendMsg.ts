@@ -8,6 +8,7 @@ import {
 	getAllBlockerUser,
 	getAllParticipantsFromSql,
 	getChatFromSql,
+	getParticipantFromSql,
 } from '../../../services/database/chat';
 import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
@@ -38,6 +39,21 @@ export async function sendMsg(fastify: FastifyInstance) {
 					return await checkCmd(fastify, body, fromUser.id);
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
+
+				if (
+					!(await getParticipantFromSql(fastify, fromUser.id, body.chat))
+				) {
+					sendPopupToClient(
+						fastify,
+						fromUser.id,
+						'Error',
+						'User is no member in Chat',
+						'red'
+					);
+					return res
+						.status(400)
+						.send({ error: 'User is no member in Chat' }); // TODO Error msg
+				}
 
 				const chatInfo = await getChatFromSql(fastify, body.chat);
 
