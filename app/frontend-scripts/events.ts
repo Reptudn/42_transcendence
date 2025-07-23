@@ -1,12 +1,19 @@
-import { closeAllPopups, popupContainer, updateCloseAllVisibility } from "./popup.js";
-import { loadPartialView } from "./script.js";
+// import { updateGameSettings } from "./lobby.js";
+import { showLocalError, showLocalInfo } from './alert.js';
+import {
+	closeAllPopups,
+	popupContainer,
+	updateCloseAllVisibility,
+} from './popup.js';
+import { loadPartialView } from './script.js';
 
 export let notifyEventSource: EventSource | null = null;
 
+const loggedIntervalBase = 100;
+let loggedIntervalIncrement = loggedIntervalBase;
 export function setupEventSource() {
-
 	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
-		// console.warn('EventSource not set up because user is not logged in');
+		console.warn('EventSource not set up because user is not logged in');
 		return;
 	}
 
@@ -15,16 +22,23 @@ export function setupEventSource() {
 		console.info('notifyEventSource.close', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		showLocalInfo('Server connection closed');
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		loggedIntervalIncrement *= 3;
+		if (loggedIntervalIncrement > 30000) loggedIntervalIncrement = 30000;
+		showLocalError(
+			`A server connection error occurred!<br>Trying to reconnect in ${loggedIntervalIncrement}ms`
+		);
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
+		loggedIntervalIncrement = loggedIntervalBase;
 	};
-	notifyEventSource.onmessage = (event) => {
+	notifyEventSource.onmessage = async (event) => {
 		// console.log('EventSource message received:', event);
 		// console.log('EventSource data:', event.data);
 		try {
@@ -48,39 +62,95 @@ export function setupEventSource() {
 						return;
 					}
 					break;
-				case 'game_request':
-					console.log('👫 Game request received:', data);
-					sendPopup(
-						'Game Request',
-						'You have been invited to play a game!',
-						'blue',
-						`acceptGameInvite(${data.gameId}, ${data.playerId})`,
-						'Accept'
+				case 'game_invite':
+					console.log('👫 Game invite received:', data);
+					// await sendPopup(
+					// 	'Game Invite',
+					// 	'You have been invited to play a game!',
+					// 	'blue',
+					// 	`acceptGameInvite(${data.gameId})`,
+					// 	'Accept'
+					// );
+					// TODO: make this a sendPopupCall with actual buttons
+					showLocalInfo(
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><button onclick="declineInvite(${data.gameId})">Decline</button>`
 					);
 					break;
-				case 'game_admin_request':
-					acceptGameInvite(data.gameId, data.playerId);
+				// case 'game_admin_request':
+				// 	await acceptGameInvite(data.gameId);
+				// 	break;
+				case 'game_setup_settings_update':
+					import('./game_setup.js')
+						.then(({ updatePage }) => {
+							updatePage(data.html);
+						})
+						.catch((error) => {
+							console.error(
+								'Error importing updateGameSettings:',
+								error
+							);
+						});
 					break;
+				case 'game_settings_update':
+					import('./lobby.js')
+						.then(({ updatePage }) => {
+							updatePage(data.html);
+						})
+						.catch((error) => {
+							console.error(
+								'Error importing updateGameSettings:',
+								error
+							);
+						});
+					break;
+				case 'game_started': {
+					console.log('Game started:', data);
+					const gameId = data.message;
+					showLocalInfo(`Game started! (ID: ${gameId})`);
+					await loadPartialView(
+						'api',
+						true,
+						`games/run?gameId=${gameId}`,
+						false
+					);
+					break;
+				}
+				case 'game_closed':
+					showLocalInfo(data.message);
+					await loadPartialView('profile', true, null, true);
+					break;
+				case 'chat': {
+					import('./chat.js').then(({ appendToChatBox }) => {
+						appendToChatBox(data.message);
+					});
+					break;
+				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
 					console.log(data);
 					break;
 			}
-
 		} catch (err) {
 			console.error('Error parsing event data:', err);
 		}
 	};
 }
+// setupEventSource();
+// loop every 100 ms if notifyEventSource is null
+setInterval(
+	() => {
+		if (!notifyEventSource) {
+			console.log('Attempting to connect to EventSource...');
+			setupEventSource();
+		}
+	},
 
-setInterval(() => {
-	if (!notifyEventSource) {
-		// console.log('Attempting to connect to EventSource...');
-		setupEventSource();
-	}
-}, window.sessionStorage.getItem('loggedIn') === 'true' ? 1000 : 5000);
+	window.sessionStorage.getItem('loggedIn') === 'true'
+		? loggedIntervalIncrement
+		: 5000
+);
 
-function sendPopup(
+export async function sendPopup(
 	title: string,
 	description = '',
 	color = 'black',
@@ -89,7 +159,7 @@ function sendPopup(
 	callback2 = '',
 	buttonName2 = 'CLICK ME 2'
 ) {
-	fetch('/event/send', {
+	const res = await fetch('/events/send', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -103,33 +173,44 @@ function sendPopup(
 			callback2,
 			buttonName2,
 		}),
-	})
-		.then((response) => response.json())
-		.then((data) => console.log('Popup sent:', data))
-		.catch((error) => console.error('Error sending popup:', error));
+	});
+
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`Failed to send popup: ${error.error}`);
+		throw new Error(`Failed to send popup: ${error.error}`);
+	}
+
+	showLocalInfo('Popup sent successfully!');
 }
 
 export function testCallback() {
 	console.log('TEST! TEST! beep boop beep!');
 }
 
-export function acceptGameInvite(gameId: number, playerId: number) {
-	console.log(
-		'Accepting game invite for gameId',
-		gameId,
-		'with playerId',
-		playerId
-	);
-	loadPartialView(
-		`game?gameId=${encodeURIComponent(
-			gameId
-		)}&playerId=${encodeURIComponent(playerId)}`
-	);
+export async function acceptGameInvite(gameId: number) {
+	console.log('Accepting game invite for gameId', gameId);
+	await loadPartialView('api', true, `games/join/${gameId}/true`, false);
+}
+
+export async function declineGameInvite(gameId: number) {
+	console.log('Declining game invite for gameId', gameId);
+	const res = await fetch(`/api/games/join/${gameId}/false`, {
+		method: 'GET',
+	});
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`Failed to decline game invite: ${error.error}`);
+		throw new Error(`Failed to decline game invite: ${error.error}`);
+	}
+	const data = await res.json();
+	showLocalInfo(`${data.message}`);
 }
 
 declare global {
 	interface Window {
-		acceptGameInvite: (gameId: number, playerId: number) => void;
+		acceptGameInvite: (gameId: number, playerId: number) => Promise<void>;
+		declineGameInvite: (gameId: number, playerId: number) => Promise<void>;
 		notifyEventSource: EventSource | null;
 		setupEventSource: () => void;
 	}

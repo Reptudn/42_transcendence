@@ -5,10 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const achievementsData = JSON.parse(
-	fs.readFileSync(
-		path.resolve(__dirname, '../../data/achievements.json'),
-		'utf-8'
-	)
+	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
 );
 import { FastifyInstance } from 'fastify';
 
@@ -30,6 +27,7 @@ export default fp(async (fastify) => {
 	// TODO: use migrations?
 
 	const createDatabase = async (fastify: FastifyInstance) => {
+		await fastify.sqlite.exec('PRAGMA foreign_keys = ON');
 		await fastify.sqlite.exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +81,68 @@ export default fp(async (fastify) => {
 			FOREIGN KEY(achievement_id) REFERENCES achievements(id) ON DELETE CASCADE
 			)
 		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS chats (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT, -- optional für Gruppen
+			is_group BOOLEAN DEFAULT 0,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			)
+		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS chat_participants (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			chat_id INTEGER NOT NULL,
+			user_id INTEGER NOT NULL,
+			FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(chat_id, user_id)
+			)
+		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS messages (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			chat_id INTEGER NOT NULL,
+			user_id INTEGER,
+			content TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+			FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+			)
+		`);
+
+		await fastify.sqlite.exec(`
+			CREATE TABLE IF NOT EXISTS blocked_users (
+			blocker_id INTEGER NOT NULL,
+			blocked_id INTEGER NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (blocker_id, blocked_id),
+			FOREIGN KEY(blocker_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY(blocked_id) REFERENCES users(id) ON DELETE CASCADE
+			);
+		`);
+		// await fastify.sqlite.exec(`
+		// 	CREATE TABLE IF NOT EXISTS games (
+		// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+		// 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		// 	owner_id INTEGER NOT NULL,
+		// 	FOREIGN KEY (owner_id) REFERENCES users(id)
+		// 	)
+		// `);
+		// await fastify.sqlite.exec(`
+		// 	CREATE TABLE IF NOT EXISTS game_participants (
+		// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+		// 	game_id INTEGER NOT NULL,
+		// 	user_id INTEGER NOT NULL,
+		// 	place INTEGER DEFAULT 0, --which place on podium (1st is best)
+		// 	FOREIGN KEY (game_id) REFERENCES games(id),
+		// 	FOREIGN KEY (user_id) REFERENCES users(id),
+		// 	UNIQUE(game_id, user_id)
+		// 	)
+		// `);
 
 		for (const achievement of achievementsData) {
 			await fastify.sqlite.run(

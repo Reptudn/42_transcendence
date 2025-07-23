@@ -21,8 +21,8 @@ const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			const totp: User2FASetup = await createUser2faSecret(user, fastify);
-			sendPopupToClient(user.id, 'Your 2fa QR Code', `<img src="${totp.qrcode}"></img>`);
-			sendPopupToClient(user.id, 'Your Rescue code (write this one down somewhere)', totp.rescue)
+			sendPopupToClient(fastify, user.id, 'Your 2fa QR Code', `<img src="${totp.qrcode}"></img>`);
+			sendPopupToClient(fastify, user.id, 'Your Rescue code (write this one down somewhere)', totp.rescue)
 			return reply.code(200).send({
 				qrcode: totp.qrcode,
 				rescue: totp.rescue,

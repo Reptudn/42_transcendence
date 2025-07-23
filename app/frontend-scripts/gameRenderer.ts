@@ -75,10 +75,19 @@ export function interpolateGameObject(
 	return interpolated;
 }
 
-const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d');
+let canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+let ctx = canvas.getContext('2d');
 if (!ctx) {
 	throw new Error('Failed to get 2D context from canvas');
+}
+
+export function initCanvas()
+{
+	canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+	ctx = canvas.getContext('2d');
+	if (!ctx) {
+		throw new Error('Failed to get 2D context from canvas');
+	}
 }
 
 export function isPointInsideCanvas(x: number, y: number): boolean {
@@ -302,6 +311,7 @@ export function drawGameState(gameState: GameState): void {
 				break;
 		}
 	}
+	console.log("gamestate drawn");
 }
 
 export function updateGameState(
@@ -431,3 +441,12 @@ export function render(): void {
 }
 
 requestAnimationFrame(render);
+
+declare global
+{
+	interface Window {
+		initCanvas: () => void;
+	}
+}
+
+window.initCanvas = initCanvas;

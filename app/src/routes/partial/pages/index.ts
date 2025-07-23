@@ -11,7 +11,9 @@ import {
 	getUserByUsername,
 } from '../../../services/database/users';
 import { checkAuth } from '../../../services/auth/auth';
-import { connectedClients } from '../../../services/sse/handler';
+import { runningGames } from '../../../services/pong/games/games';
+import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
+import { UserPlayer } from '../../../services/pong/games/playerClass';
 import { getUser2faSecret } from '../../../services/database/totp';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -22,7 +24,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				params: {
 					type: 'object',
 					properties: {
-						username: { type: 'string', minLength: 1, maxLength: 100 },
+						username: {
+							type: 'string',
+							minLength: 1,
+							maxLength: 100,
+						},
 						page: {
 							type: 'string',
 							minLength: 1,
@@ -30,8 +36,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							errorMessage: {
 								type: 'Page must be a string.',
 								minLength: 'Page must not be empty.',
-								maxLength:
-									'Page must not exceed 100 characters.',
+								maxLength: 'Page must not exceed 100 characters.',
 							},
 						},
 					},
@@ -47,15 +52,14 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			},
 		},
 		async (req: any, reply: any) => {
-			const { page, username } = req.params;
+			let { page, username } = req.params;
 			const loadpartial = req.headers['loadpartial'] === 'true';
 			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await checkAuth(req, false, fastify);
 
 			let variables: { [key: string]: any } = {};
 			variables['isAuthenticated'] = user != null;
-			if (user != null)
-				variables['name'] = user.displayname || user.username;
+			if (user != null) variables['name'] = user.displayname || user.username;
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
@@ -79,9 +83,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 					let profileId: number = friend_id ?? self_id!;
 					let isSelf = profileId === profile.id;
-					
-					profile.profile_picture =
-						'/profile/' + profileId + '/picture';
+
+					profile.profile_picture = '/profile/' + profileId + '/picture';
 					variables['user'] = profile;
 					variables['isSelf'] = isSelf;
 					variables['title'] = await getUserTitleString(
@@ -148,17 +151,27 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['has_totp'] =
 						(await getUser2faSecret(profile, fastify)) !== '';
 				} else if (page === 'game_setup') {
-					await checkAuth(req, true, fastify);
-					const user_id = req.user.id;
-					let friends = await getFriends(user_id, fastify);
-					friends = friends.filter((friend) =>
-						connectedClients.has(friend.id)
+					const user = await checkAuth(req, true, fastify);
+					if (!user)
+						return reply.code(401).send({ error: 'Unauthorized' });
+					const existingGame = runningGames.find(
+						(g) => g.admin.id === user!.id
 					);
-					variables['friends'] = friends;
-				} else if (page === 'edit_profile') {
-					await checkAuth(req, true, fastify);
-					variables['has_totp'] =
-						(await getUser2faSecret(req.user.id, fastify)) !== '';
+					if (!existingGame)
+						throw new Error('User has no game yet! Create one first.');
+					const admin = existingGame.players.find(
+						(p) => p instanceof UserPlayer && p.user.id == user.id
+					);
+					if (!admin) throw new Error('No Admin found!');
+					admin.joined = true;
+					variables['initial'] = true;
+					variables['ownerName'] = user!.displayname;
+					variables['players'] = existingGame.players;
+					variables['gameSettings'] = existingGame.config;
+
+					const maps = await getAvailableMaps(fastify);
+					variables['availableMaps'] = maps;
+					fastify.log.info(`Maps ${maps}`);
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;

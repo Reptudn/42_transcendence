@@ -1,0 +1,139 @@
+<div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
+	<% if (isSelf) { %>
+	<div class="flex justify-end -mb-[45px]">
+		<a
+			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
+			onclick="loadPartialView('edit_profile')"
+		>
+			<%= t('profile.edit_profile') %>
+		</a>
+	</div>
+	<% } %>
+
+	<div class="flex items-center space-x-4">
+		<img
+			src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
+			alt="Profile Picture"
+			class="w-24 h-24 rounded-full object-cover ring-2 ring-blue-500"
+		/>
+		<div>
+			<h2 class="text-4xl font-bold"><%= user.displayname %></h2>
+			<h3 class="text-3xl">@<%= user.username %></h3>
+			<h3 class="text-3xl">The <%= title %></h3>
+		</div>
+	</div>
+
+	<% if (user.bio) { %>
+	<div class="mt-4">
+		<h4 class="font-bold text-3xl">bio:</h4>
+		<p class="break-words hyphens-auto">
+			<%= user.bio || t('profile.no_bio') %>
+		</p>
+	</div>
+	<% } %> <% if (friends.length > 0 || isSelf ) { %>
+	<div class="mt-6 border-t pt-4">
+		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.friends') %></h3>
+		<div class="flex flex-wrap gap-4">
+			<% friends.forEach(friend=> { %>
+			<div
+				class="flex flex-col items-center p-4 rounded-lg"
+			>
+				<button
+					onclick="loadPartialView('profile', true, '<%= friend.username %>')"
+					class="cursor-pointer flex flex-col items-center"
+				>
+					<img
+						src="/api/profile/<%= friend.id %>/picture"
+						alt="Friend Picture <%= friend.id %>"
+						class="w-16 h-16 rounded-full object-cover ring-2 ring-blue-500"
+					/>
+					<div class="text-center mt-2">
+						<div class="text-lg font-bold">
+							<%= friend.displayname %>
+						</div>
+						<div class="text-2xl">
+							@<%= friend.username %>
+						</div>
+					</div>
+				</button>
+				<% if (isSelf) { %>
+				<button
+					onclick="removeFriendRequest(<%= friend.id %>); loadPartialView('profile');"
+					class="bg-red-500 hover:bg-red-700 text-xs font-bold py-1 px-3 rounded"
+				>
+					<%= t('profile.remove') %>
+				</button>
+				<% } %>
+			</div>
+			<% }) %> <% if (isSelf) { %>
+			<div
+				class="flex flex-col items-center p-4 rounded-lg"
+			>
+				<a
+					onclick="loadPartialView('add_friends')"
+					class="flex items-center justify-center w-16 h-16 border-2 border-dashed border-green-500 rounded-full hover:bg-green-100 glow-green"
+				>
+					<span class="text-3xl font-bold glow-blue">+</span>
+				</a>
+				<div class="text-2xl mt-2"><%= t('profile.add_friends') %></div>
+			</div>
+			<% } %>
+		</div>
+	</div>
+	<% } %>
+
+	<!-- <div class="mt-6 border-t pt-4">
+		<h4 class="text-2xl font-bold mb-4">Match History</h4>
+		<p class="text-gray-500">Coming soon...</p>
+	</div> -->
+
+	<div class="mt-6 border-t pt-4">
+		<h3 class="font-bold mb-4 text-3xl">
+			<%= t('profile.achievements') %> (<%= unlockedCount %> / <%= totalCount %>)
+		</h3>
+		<div
+			id="unlockedAchievements"
+			class="grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-4 transition-all duration-300"
+		>
+			<% achievements.filter(a=> a.unlocked).forEach(function(achievement)
+			{ %>
+			<div
+				class="relative border border-green-300 rounded-lg p-4 text-center max-w-xs max-h-48 group"
+			>
+				<h4 class="font-bold text-2xl truncate">
+					<%= achievement.name %>
+				</h4>
+				<p class="absolute top-0 backdrop-blur-sm left-1/2 transform -translate-x-1/2 translate-y-full bg-transparent text-white text-1xl rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10 text-center w-full min-h-full">
+					<%= achievement.description %>
+				</p>
+				<div class="mt-2 text-2xl truncate">
+					<%= achievement.title_third %>
+				</div>
+			</div>
+			<% }); %>
+		</div>
+	</div>
+
+	<% if (isSelf) { %>
+	<div class="mt-6 border-t pt-4">
+		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.locked_achievements') %></h3>
+		<div class="grid grid-cols-auto gap-4">
+			<% achievements.filter(a=>
+			!a.unlocked).forEach(function(achievement) { %>
+			<div
+				class="border border-red-300 rounded-lg p-4 text-center opacity-50"
+			>
+				<h4 class="font-bold glow-red text-2xl"><%= achievement.name %></h4>
+				<p class="text-2xl glow-red text-1xl">
+					<%= achievement.description %>
+				</p>
+			</div>
+			<% }); %>
+		</div>
+	</div>
+	<% } %>
+</div>
+
+<script>
+window.sessionStorage.setItem('loggedIn', 'true');
+</script>

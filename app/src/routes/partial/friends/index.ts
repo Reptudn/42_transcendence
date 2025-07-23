@@ -14,7 +14,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				querystring: {
 					type: 'object',
 					properties: {
-						q: { type: 'string', minLength: 0, maxLength: 100 },
+						q: { type: 'string', minLength: 1, maxLength: 100 },
 					},
 					required: [],
 				},

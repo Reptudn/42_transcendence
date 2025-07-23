@@ -7,7 +7,7 @@
 		"test": "test"
 	},
 	"scripts": {
-		"start": "npm run build:ts && fastify start -l info app/dist/app.js",
+		"start": "npm run build:ts && fastify start --address 0.0.0.0 -l info app/dist/app.js",
 		"build:ts": "tsc",
 		"watch:ts": "tsc -w",
 		"build:frontend": "tsc -p tsconfig.frontend.json",
@@ -15,7 +15,7 @@
 		"build:css": "npx @tailwindcss/cli -i ./app/public/css/main.css -o ./app/public/css/output.css",
 		"watch:css": "npx @tailwindcss/cli -i ./app/public/css/main.css -o ./app/public/css/output.css --watch",
 		"dev": "npm run build:ts && npm run build:frontend && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:watch:frontend\" \"npm:watch:css\" \"npm:dev:start\"",
-		"dev:start": "fastify start --ignore-watch='node_modules dist db' -w -l info -P app/dist/app.js"
+		"dev:start": "fastify start --ignore-watch='node_modules dist db' -w -l info --address 0.0.0.0 -P app/dist/app.js"
 	},
 	"keywords": [
 		"42",
