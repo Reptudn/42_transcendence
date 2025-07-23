@@ -118,14 +118,12 @@ document
 					await loadPartialView('profile');
 				}
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				`An error occurred while updating your profile: ${
-					error instanceof Error ? error.message : 'Unknown error'
-				}`
+				'An error occurred while updating your profile. Please try again.'
 			);
 		}
 	});
@@ -183,8 +181,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				await loadPartialView('profile');
 			} else {
-				console.log(data.message);
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -279,7 +276,7 @@ document
 				await loadPartialView('register');
 				updateMenu();
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(`Error: ${data.message}`);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);

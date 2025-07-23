@@ -10,13 +10,6 @@ const registerAction = async () => {
 	).value;
 	const password = (document.querySelector('#password') as HTMLInputElement)
 		.value;
-	const confirmPassword =
-		(document.querySelector('#confirmPassword') as HTMLInputElement)
-			?.value || '';
-	if (password !== confirmPassword) {
-		showLocalError('Die Passwörter stimmen nicht überein!');
-		return;
-	}
 	try {
 		const response = await fetch('/api/auth/register', {
 			method: 'POST',
@@ -30,7 +23,7 @@ const registerAction = async () => {
 			showLocalInfo('You have registered successfully');
 			await loadPartialView('login');
 		} else {
-			showLocalError(`${data.message}`);
+			showLocalError(`Error: ${data.message}`);
 		}
 	} catch (error) {
 		console.error('Error:', error);

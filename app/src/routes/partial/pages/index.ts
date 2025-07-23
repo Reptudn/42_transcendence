@@ -35,8 +35,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							errorMessage: {
 								type: 'Page must be a string.',
 								minLength: 'Page must not be empty.',
-								maxLength:
-									'Page must not exceed 100 characters.',
+								maxLength: 'Page must not exceed 100 characters.',
 							},
 						},
 					},
@@ -59,8 +58,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			let variables: { [key: string]: any } = {};
 			variables['isAuthenticated'] = user != null;
-			if (user != null)
-				variables['name'] = user.displayname || user.username;
+			if (user != null) variables['name'] = user.displayname || user.username;
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
@@ -85,8 +83,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					let profileId: number = friend_id ?? self_id!;
 					let isSelf = profileId === profile.id;
 
-					profile.profile_picture =
-						'/profile/' + profileId + '/picture';
+					profile.profile_picture = '/profile/' + profileId + '/picture';
 					variables['user'] = profile;
 					variables['isSelf'] = isSelf;
 					variables['title'] = await getUserTitleString(
@@ -150,16 +147,19 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						profile.id,
 						fastify
 					);
-				}
-				else if (page === 'game_setup') {
+				} else if (page === 'game_setup') {
 					const user = await checkAuth(req, true, fastify);
 					if (!user)
 						return reply.code(401).send({ error: 'Unauthorized' });
-					const existingGame = runningGames.find((g) => g.admin.id === user!.id);
+					const existingGame = runningGames.find(
+						(g) => g.admin.id === user!.id
+					);
 					if (!existingGame)
-						throw new Error("User has no game yet! Create one first.");
-					const admin = existingGame.players.find(p => p instanceof UserPlayer && p.user.id == user.id);
-					if (!admin) throw new Error("No Admin found!");
+						throw new Error('User has no game yet! Create one first.');
+					const admin = existingGame.players.find(
+						(p) => p instanceof UserPlayer && p.user.id == user.id
+					);
+					if (!admin) throw new Error('No Admin found!');
 					admin.joined = true;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;

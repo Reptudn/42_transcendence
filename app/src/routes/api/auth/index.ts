@@ -9,15 +9,7 @@ const authSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 16,
-			pattern: '^[a-zA-Z0-9_]+$', // Only alphanumeric characters and underscores
-			errorMessage: {
-				type: 'Username must be a string.',
-				minLength:
-					'Username must be at least 3 characters.',
-				maxLength: 'Username can have a maximum of 16 characters.',
-				pattern:
-					'Username can only contain alphanumeric characters and underscores.',
-			},
+			pattern: '^[a-zA-Z0-9_]+$', // Nur alphanumerische Zeichen und Unterstriche
 		},
 		password: {
 			type: 'string',
@@ -27,49 +19,20 @@ const authSchema = {
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
 					: '',
-			errorMessage: {
-				type: 'Password must be a string.',
-				minLength:
-					'Password must be at least 8 characters.',
-				maxLength: 'Password can have a maximum of 32 characters.',
-				pattern:
-					'Password must include at least one uppercase letter, one lowercase letter, one digit, and one special character.',
-			},
 		},
 		displayname: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
-			errorMessage: {
-				type: 'Display name must be a string.',
-				minLength:
-					'Display name must be at least 3 characters in production or 1 in development.',
-				maxLength: 'Display name can have a maximum of 32 characters.',
-			},
 		},
 	},
-	required: ['username', 'password'],
+	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
 	additionalProperties: false,
-	errorMessage: {
-		required: {
-			username: 'Username is required.',
-			password: 'Password is required.',
-		},
-		additionalProperties: 'No additional properties are allowed.',
-	},
 };
 
 const registerSchema = {
 	...authSchema,
-	required: [...authSchema.required, 'displayname'],
-	errorMessage: {
-		required: {
-			username: 'Username is required.',
-			password: 'Password is required.',
-			displayname: 'Display name is required for registration.',
-		},
-		additionalProperties: 'No additional properties are allowed.',
-	},
+	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
 };
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
