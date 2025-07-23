@@ -1,4 +1,9 @@
-import { connectedClients, sendSeeMessageByUserId, sendSseHtmlByUserId, sendSseRawByUserId } from '../../sse/handler';
+import {
+	connectedClients,
+	sendSeeMessageByUserId,
+	sendSseHtmlByUserId,
+	sendSseRawByUserId,
+} from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { removeGame } from './games';
@@ -50,9 +55,9 @@ export class Game {
 				name: 'test',
 				author: 'freddy',
 				size_x: 500,
-				size_y: 500
+				size_y: 500,
 			},
-			objects: []
+			objects: [],
 		} as GameState;
 		this.already_ended = false;
 	}
@@ -94,7 +99,13 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const aiPlayer = new AiPlayer(this.players.length + 1, this, name, 'AI', aiLevel);
+		const aiPlayer = new AiPlayer(
+			this.players.length + 1,
+			this,
+			name,
+			'AI',
+			aiLevel
+		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
 		await this.updateLobbyState();
@@ -120,43 +131,45 @@ export class Game {
 		);
 		if (!playerToRemove) throw new Error('Player not found!');
 
-		this.players = this.players.filter(
-			(player) => player.playerId !== playerId
-		);
+		this.players = this.players.filter((player) => player.playerId !== playerId);
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
-			
+
 			this.players = this.players.filter(
 				(player) =>
-					!(player instanceof LocalPlayer &&
-					player.owner.playerId !== playerToRemove.playerId)
+					!(
+						player instanceof LocalPlayer &&
+						player.owner.playerId !== playerToRemove.playerId
+					)
 			);
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
-			forced && sendSeeMessageByUserId(playerToRemove.user.id, 'game_closed', `You got kicked from the game (${this.gameId}).`);
+			forced &&
+				sendSeeMessageByUserId(
+					playerToRemove.user.id,
+					'game_closed',
+					`You got kicked from the game (${this.gameId}).`
+				);
 		}
 
 		await this.updateLobbyState();
 
 		// TODO: in the future dont end the game when just the owner leaves
-		try
-		{
-			if (playerToRemove instanceof UserPlayer && playerToRemove.user.id == this.admin.id)
+		try {
+			if (
+				playerToRemove instanceof UserPlayer &&
+				playerToRemove.user.id == this.admin.id
+			)
 				this.endGame('Game admin left, game closed.');
-	
-			if (this.players.length === 0)
-				this.endGame(null);
-		}
-		catch (err)
-		{
+
+			if (this.players.length === 0) this.endGame(null);
+		} catch (err) {
 			throw err;
 		}
-
 	}
 
-	async startGame()
-	{
+	async startGame() {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -174,12 +187,13 @@ export class Game {
 			if (player instanceof UserPlayer)
 				sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
 
-		this.fastify.log.info(`Game ${this.gameId} started with ${this.players.length} players.`);
+		this.fastify.log.info(
+			`Game ${this.gameId} started with ${this.players.length} players.`
+		);
 	}
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
-
 		const adminHtml = await ejs.renderFile('./app/pages/game_setup.ejs', {
 			players: this.players,
 			gameSettings: this.config,
@@ -191,39 +205,50 @@ export class Game {
 			players: this.players,
 			gameSettings: this.config,
 			initial: false,
-			ownerName: this.admin.displayname
+			ownerName: this.admin.displayname,
 		});
 
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer) || !player.joined) continue;
 
 			if (player.user.id === this.admin.id)
-				sendSseHtmlByUserId(player.user.id, 'game_setup_settings_update', adminHtml);
+				sendSseHtmlByUserId(
+					player.user.id,
+					'game_setup_settings_update',
+					adminHtml
+				);
 			else
-				sendSseHtmlByUserId(player.user.id, 'game_settings_update', lobbyHtml);
+				sendSseHtmlByUserId(
+					player.user.id,
+					'game_settings_update',
+					lobbyHtml
+				);
 		}
 	}
 
 	// when null if given it means the game end because no players were left
-	endGame(end_message: string | null)
-	{
+	endGame(end_message: string | null) {
+		console.log(`Ending game ${this.gameId} with message: ${end_message}`);
 		if (this.already_ended) return;
 
-		if (end_message !== null) // this occurs when the game ends because its actually over because someone won or the admin left as of now
-		{
+		if (end_message !== null) {
+			// this occurs when the game ends because its actually over because someone won or the admin left as of now
 			for (const player of this.players) {
 				if (!(player instanceof UserPlayer)) continue;
 				player.disconnect();
-				sendSseRawByUserId(player.user.id, JSON.stringify({
-					type: 'game_closed',
-					message: end_message,
-				}));
+				sendSseRawByUserId(
+					player.user.id,
+					JSON.stringify({
+						type: 'game_closed',
+						message: end_message,
+					})
+				);
 			}
 			this.players.splice(0, this.players.length); // clear all players
-	
+
 			// TODO: add some game ending logic like adding everything to the db and such
 		}
-		
+
 		removeGame(this.gameId);
 	}
 
@@ -236,4 +261,3 @@ export class Game {
 		return true;
 	}
 }
-
