@@ -37,6 +37,9 @@ async function twofa_login() {
 
 async function twofa_login_google() {
 	try {
+		const urlParams = new URLSearchParams(window.location.search);
+		const userId = urlParams.get('userid');
+		console.log("Two_fa function googleid: ", userId)
 		const fa_token = totpInput.value;
 		const backup_totp = backup_totpinput.value;
 		const response = await fetch('/api/auth/2fa_google', {
@@ -45,7 +48,7 @@ async function twofa_login_google() {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-				userid: window.user_id,
+				userid: userId,
 				fa_token: fa_token,
 				rescue_token: backup_totp
 			}),

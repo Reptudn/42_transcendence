@@ -1,7 +1,9 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { unlockAchievement } from '../../../services/database/achievements';
 import {
+	//getGoogleUser,
 	getUserById,
+	//loginGoogleUser,
 	loginUser,
 	registerUser,
 } from '../../../services/database/users';
@@ -229,15 +231,19 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fa_token: string;
 				rescue_token: string;
 			};
+			fastify.log.info(`Trying Google 2FA for userid: ${userid}`);
 			const user = await getUserById(userid, fastify);
-			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
+			if (!user) return reply.code(401).send({error: 'Invalid 2fa code! 1'});
 			if (rescue_token !== await getUser2faRescue(user, fastify)){
 				if (!userid || !fa_token)
-					return reply.code(401).send({error: 'Invalid 2fa code!'});
-				const index = users_2fa_google.findIndex((id) => id === userid);
-				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
+					return reply.code(401).send({error: 'Invalid 2fa code! 2'});
+				for (const element of users_2fa_google){
+					fastify.log.info(`Element: ${element}`)
+				}
+				const index = users_2fa_google.findIndex((id) => id === Number(userid));
+				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code pls work!'});
 				if ((await verify2fa(user, fa_token, fastify)) === false){
-					return reply.code(401).send({error: 'Invalid 2fa code!'});
+					return reply.code(401).send({error: 'Invalid 2fa code! 4'});
 				}
 			}
 			users_2fa_google = users_2fa_google.filter((id) => id !== user.id);

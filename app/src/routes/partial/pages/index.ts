@@ -15,8 +15,20 @@ import { runningGames } from '../../../services/pong/games/games';
 import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
 import { UserPlayer } from '../../../services/pong/games/playerClass';
 import { getUser2faSecret } from '../../../services/database/totp';
+//import { getUser2faSecret } from '../../../services/database/totp';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+	fastify.get('/2fa_code', async (request, reply) => {
+	const query = request.query as { google?: string; userid?: string };
+	const isGoogleLogin = query.google === '1';
+	const userid = query.userid;
+	return reply.view('2fa_code.ejs', {
+		isGoogleLogin,
+		userid,
+		t: request.t,
+		isAuthenticated: false
+	}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
+});
 	fastify.get(
 		'/:page/:username?',
 		{
@@ -54,7 +66,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		async (req: any, reply: any) => {
 			let { page, username } = req.params;
 			const loadpartial = req.headers['loadpartial'] === 'true';
-			const layoutOption = loadpartial ? false : 'layouts/basic.ejs';
+			let layoutOption = loadpartial ? false : 'layouts/basic.ejs';
 			const user = await checkAuth(req, false, fastify);
 
 			let variables: { [key: string]: any } = {};
@@ -63,6 +75,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
+
+			fastify.log.info(`page is ${page}`);
 
 			try {
 				if (page === 'profile') {
@@ -150,7 +164,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 					variables['has_totp'] =
 						(await getUser2faSecret(profile, fastify)) !== '';
-				} else if (page === 'game_setup') {
+				}				else if (page === 'game_setup') {
 					const user = await checkAuth(req, true, fastify);
 					if (!user)
 						return reply.code(401).send({ error: 'Unauthorized' });

@@ -35,8 +35,12 @@ export async function createUser2faSecret(
 	fastify: FastifyInstance
 ): Promise<User2FASetup> {
 	const secret = fastify.totp.generateSecret();
-	const rescue = crypto.randomBytes(10).toString('hex');
-	const qrcode = await fastify.totp.generateQRCode({ secret: secret.ascii });
+	const rescue = crypto.randomBytes(10).toString(`hex`).substring(0, 10).toUpperCase();
+	const qrcode = await fastify.totp.generateQRCode({
+		secret: secret.ascii || secret, // use .ascii if available, else just secret
+		issuer: 'Transcendence',
+		label: user.username
+	});
 
 	await fastify.sqlite.run(
 		'UPDATE users SET totp_secret = ?, totp_rescue = ? WHERE id = ?',

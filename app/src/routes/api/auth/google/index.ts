@@ -6,6 +6,8 @@ import {
 	loginGoogleUser,
 } from '../../../../services/database/users';
 import { getGoogleProfile } from '../../../../services/google/user';
+import { users_2fa_google } from '../index';
+import { getUser2faSecret } from '../../../../services/database/totp';
 
 const google_callback: FastifyPluginAsync = async (
 	fastify,
@@ -43,7 +45,7 @@ const google_callback: FastifyPluginAsync = async (
 					fastify.log.info('Trying to register google user into db');
 					await registerGoogleUser(user, fastify);
 				} catch (error) {
-					fastify.log.error('Error Google Register', error);
+					fastify.log.error('Error Google Registe r', error);
 					reply.send(error);
 					return;
 				}
@@ -55,6 +57,15 @@ const google_callback: FastifyPluginAsync = async (
 					user.id,
 					fastify
 				);
+
+				const twofaSecret = await getUser2faSecret(loggedGoogleUser, fastify);
+                if (twofaSecret !== '') {
+					fastify.log.info(`Before push: ${users_2fa_google}`);
+					users_2fa_google.push(loggedGoogleUser.id);
+					fastify.log.info(`After push: ${users_2fa_google}`);
+                    // Redirect to 2FA page, pass google=1 and userid as query params
+                    return reply.redirect(`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`);
+                }
 
 				const jwt = fastify.jwt.sign(
 					{
