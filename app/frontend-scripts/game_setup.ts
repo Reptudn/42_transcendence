@@ -10,10 +10,8 @@ interface Friend {
 window.sessionStorage.setItem('ingame', 'lobby');
 
 export async function refreshOnlineFriends() {
-	
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
-	if (!onlineFriendsContainer)
-	{
+	if (!onlineFriendsContainer) {
 		showLocalError('No online friends container!');
 		return;
 	}
@@ -29,13 +27,14 @@ export async function refreshOnlineFriends() {
 	}
 	const friends: Friend[] = await response.json();
 
-	if (!friends || friends.length === 0)
-	{
-		onlineFriendsContainer.innerHTML = `<p>No friends online</p>`;
+	if (!friends || friends.length === 0) {
+		onlineFriendsContainer.innerHTML = `<p>🔴 No friends online</p>`;
 		return;
 	}
 
-	onlineFriendsContainer.innerHTML = friends.map((friend) => `
+	onlineFriendsContainer.innerHTML = friends
+		.map(
+			(friend) => `
 		<div class="friend-item p-3 border rounded mb-2">
 		<div class="friend-info mb-2">
 			<span class="font-semibold">${friend.displayname}</span>
@@ -48,22 +47,21 @@ export async function refreshOnlineFriends() {
 			Invite Friend
 		</button>
 		</div>
-	`).join('')
-
+	`
+		)
+		.join('');
 }
 
-export async function updateSettings(newSettings: any)
-{
+export async function updateSettings(newSettings: any) {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(newSettings)
+		body: JSON.stringify(newSettings),
 	});
 
-	if (!res.ok)
-	{
+	if (!res.ok) {
 		const data = await res.json();
 		showLocalError(data.error);
 	}
@@ -82,7 +80,9 @@ powerupsToggle?.addEventListener('change', async (event) => {
 	await updateSettings({ powerupsEnabled: isChecked });
 });
 
-const maxPlayerSlider = document.getElementById('difficulty-input') as HTMLInputElement | null;
+const maxPlayerSlider = document.getElementById(
+	'difficulty-input'
+) as HTMLInputElement | null;
 maxPlayerSlider?.addEventListener('change', async (event) => {
 	const newValue = (event.target as HTMLInputElement).value;
 	await updateSettings({ gameDifficulty: Number(newValue) });
@@ -96,7 +96,7 @@ mapSelect?.addEventListener('change', async (event) => {
 
 export async function addPowerUp() {
 	console.log('Adding power-up...');
-	alert("Not implemented")
+	alert('Not implemented');
 }
 
 export async function addAIPlayer() {
@@ -105,9 +105,7 @@ export async function addAIPlayer() {
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(
-			`${error.error || 'Failed to add AI player: Unknown error'}`
-		);
+		showLocalError(`${error.error || 'Failed to add AI player: Unknown error'}`);
 		return;
 	}
 	const data = await res.json();
@@ -126,7 +124,7 @@ export async function addUserPlayer(friendId: number) {
 		showLocalError(`${error.error}`);
 		throw new Error(`Failed to invite friend: ${error.error}`);
 	}
-	const data = await response.json() as { message: string };
+	const data = (await response.json()) as { message: string };
 	showLocalInfo(`${data.message}`);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
@@ -157,9 +155,7 @@ export async function kickPlayer(playerId: number) {
 
 	if (!res.ok) {
 		const data = await res.json();
-		showLocalError(
-			`${data.error || 'Failed to kick player: Unknown error'}`
-		);
+		showLocalError(`${data.error || 'Failed to kick player: Unknown error'}`);
 		return;
 	}
 	const data = await res.json();
@@ -177,15 +173,12 @@ export async function leaveGame() {
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(
-			`${error.error || 'Failed to leave game: Unknown error'}`
-		);
+		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
 	}
 	await loadPartialView('profile');
 }
 
-export async function startGame()
-{
+export async function startGame() {
 	const res = await fetch('/api/games/start', { method: 'POST' });
 
 	if (!res.ok) {
@@ -198,13 +191,10 @@ export async function startGame()
 	showLocalInfo(`${data.message || 'Game started successfully!'}`);
 }
 
-export function updatePage(html: string)
-{
+export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
-	if (lobbyContainer)
-		lobbyContainer.innerHTML = html;
-	else
-		showLocalError('Failed to update lobby due to missing lobby div.');
+	if (lobbyContainer) lobbyContainer.innerHTML = html;
+	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 await refreshOnlineFriends();

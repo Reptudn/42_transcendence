@@ -146,7 +146,7 @@ setInterval(
 		}
 	},
 	window.sessionStorage.getItem('loggedIn') === 'true'
-		? loggedIntervalIncrement
+		? 100
 		: 5000
 );
 
