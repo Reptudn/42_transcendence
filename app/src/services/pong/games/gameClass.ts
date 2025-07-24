@@ -69,7 +69,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length >= this.config.maxPlayers)
+		if (this.players.length > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		if (
@@ -85,7 +85,7 @@ export class Game {
 				user,
 				this,
 				null,
-				this.players.length + 1,
+				this.players.length,
 				await getUserTitleString(user.id, this.fastify)
 			)
 		);
@@ -96,11 +96,11 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length >= this.config.maxPlayers)
+		if (this.players.length > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const aiPlayer = new AiPlayer(
-			this.players.length + 1,
+			this.players.length,
 			this,
 			name,
 			'AI',
@@ -115,10 +115,10 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length >= this.config.maxPlayers)
+		if (this.players.length > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const localPlayer = new LocalPlayer(this.players.length + 1, owner, this);
+		const localPlayer = new LocalPlayer(this.players.length, owner, this);
 		localPlayer.joined = true; // Local players are always considered joined
 		this.players.push(localPlayer);
 		await this.updateLobbyState();

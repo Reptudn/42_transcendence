@@ -1,12 +1,10 @@
-import { readdir, readFile } from 'fs/promises';
-import path, { join } from 'path';
-import { Game } from './gameClass';
-import { FastifyInstance } from 'fastify';
-import { Player } from './playerClass';
+import { readdir, readFile } from 'node:fs/promises';
+import path, { join } from 'node:path';
+import type { Game } from './gameClass';
+import type { FastifyInstance } from 'fastify';
+import type { Player } from './playerClass';
 
-export async function getMapAsInitialGameState(
-	game: Game
-): Promise<GameState> {
+export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 	const jsonPath = join(
 		__dirname,
 		'..',
@@ -31,18 +29,18 @@ export async function getMapAsInitialGameState(
 		throw new Error('Could not load map data.');
 	}
 
-	let gameState: GameState = {
+	const gameState: GameState = {
 		meta: { name: '', author: '', size_x: 0, size_y: 0 },
 		objects: [],
 	};
 	gameState.meta = map.meta;
-	for (let object of map.objects) {
+	for (const object of map.objects) {
 		if (!object.conditions || object.conditions.length === 0) {
 			gameState.objects.push(object);
 			continue;
 		}
-		let fulfilled: boolean = true;
-		for (let condition of object.conditions) {
+		let fulfilled = true;
+		for (const condition of object.conditions) {
 			if (
 				!isMapConditionFulfilled(
 					game.config,
@@ -70,7 +68,7 @@ function isMapConditionFulfilled(
 	variable: string,
 	target: number
 ): boolean {
-	let numVal: number = 0;
+	let numVal = 0;
 	if (!players) return false;
 	if (variable === 'player_count') numVal = players.length;
 	// gamesettings players dont contain the admin
@@ -78,26 +76,23 @@ function isMapConditionFulfilled(
 	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
 
 	if (condition === 'larger_than') return numVal > target;
-	else if (condition === 'larger_than_or_equal') return numVal >= target;
-	else if (condition === 'equal') return numVal === target;
-	else if (condition === 'smaller_than_or_equal') return numVal <= target;
-	else if (condition === 'smaller_than') return numVal < target;
-	else return false;
+	if (condition === 'larger_than_or_equal') return numVal >= target;
+	if (condition === 'equal') return numVal === target;
+	if (condition === 'smaller_than_or_equal') return numVal <= target;
+	if (condition === 'smaller_than') return numVal < target;
+	return false;
 }
 
-export async function getAvailableMaps(fastify: FastifyInstance) : Promise<string[]>
-{
+export async function getAvailableMaps(fastify: FastifyInstance): Promise<string[]> {
 	try {
 		const mapsPath = path.join(__dirname, '../../../../data/maps');
 		const files = await readdir(mapsPath);
 
 		fastify.log.info(`maps in folder: ${files}`);
 
-		const mapFiles = files.filter(file => 
-			file.endsWith('.json')
-		);
-		
-		const mapNames = mapFiles.map(file => {
+		const mapFiles = files.filter((file) => file.endsWith('.json'));
+
+		const mapNames = mapFiles.map((file) => {
 			return path.parse(file).name.toLocaleUpperCase();
 		});
 
