@@ -32,8 +32,9 @@ export async function sendMsg(fastify: FastifyInstance) {
 				if (!fromUser)
 					return res.status(400).send({ error: 'User not found' }); // TODO Error msg
 
-				if (body.message.startsWith('/'))
-					return await checkCmd(fastify, body, fromUser.id);
+				if (body.message.startsWith('/')) {
+					await checkCmd(fastify, body, fromUser.id);
+				}
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 

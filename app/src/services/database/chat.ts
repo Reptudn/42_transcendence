@@ -114,7 +114,8 @@ export async function getChatFromSql(
 		const chat = (await fastify.sqlite.get(
 			'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
 			[chatId]
-		)) as Chat;
+		)) as Chat | null;
+		if (!chat) throw new HttpError(400, 'Chat not found');
 		return chat;
 	} catch (err) {
 		throw new HttpError(500, 'Database error getChatFromSql');
@@ -146,12 +147,15 @@ export async function addToParticipants(
 ): Promise<void> {
 	try {
 		const user = await getParticipantFromSql(fastify, userId, chatId);
-		if (user) throw new HttpError(400, 'User already in Chat');
+		if (user) {
+			throw new HttpError(400, 'User already in Chat');
+		}
 		fastify.sqlite.run(
 			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 			[chatId, userId]
 		);
 	} catch (err) {
+		if (err instanceof HttpError) throw err;
 		throw new HttpError(500, 'Database error addToParticipants');
 	}
 }
@@ -176,7 +180,7 @@ export async function addToBlockedUsers(
 	fastify: FastifyInstance,
 	blocker_id: number,
 	blocked_id: number
-): Promise<boolean> {
+): Promise<void> {
 	try {
 		if (!(await checkUserBlocked(fastify, blocker_id, blocked_id))) {
 			await fastify.sqlite.run(
@@ -185,10 +189,9 @@ export async function addToBlockedUsers(
 			);
 		}
 	} catch (err) {
-		fastify.log.info(err, 'Database error addToBlockedUsers'); //TODO Error msg;
-		return false;
+		if (err instanceof HttpError) throw err;
+		throw new HttpError(500, 'Database error addToBlockedUsers');
 	}
-	return true;
 }
 
 export async function checkUserBlocked(
@@ -204,8 +207,7 @@ export async function checkUserBlocked(
 		if (!blocked) return false;
 		return true;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return false;
+		throw new HttpError(500, 'Database error checkUserBlocked');
 	}
 }
 
@@ -213,17 +215,15 @@ export async function deleteFromBlockedUsers(
 	fastify: FastifyInstance,
 	blocker_id: number,
 	blocked_id: number
-): Promise<boolean> {
+): Promise<void> {
 	try {
 		await fastify.sqlite.run(
 			'DELETE FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
 			[blocker_id, blocked_id]
 		);
 	} catch (err) {
-		fastify.log.info(err, 'Database error deleteFromBlockedUsers'); //TODO Error msg;
-		return false;
+		throw new HttpError(500, 'Database error deleteFromBlockedUsers');
 	}
-	return true;
 }
 
 export async function deleteUserFromChaParticipants(

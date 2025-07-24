@@ -65,18 +65,17 @@ document
 		}
 		const url = `/api/chat/create?${params.toString()}`;
 		const res = await fetch(url);
+		const data = await res.json();
 		if (!res.ok) {
 			showLocalError(`Failed to create chat: ${groupName}`);
 			return;
 		}
-		const responseData = await res.json();
-
-		const newId = responseData.chat_id as string;
+		showLocalInfo(data.msg);
+		const newId = data.chat_id as string;
 		sessionStorage.setItem('chat_id', newId);
 		document.getElementById('closeGroupWindow')?.click();
 		await getMessages(newId);
 		await getChats();
-		showLocalInfo('Group created');
 	});
 
 document.getElementById('closeGroupWindow')?.addEventListener('click', async () => {
@@ -120,10 +119,12 @@ document.getElementById('confirmBlockUser')?.addEventListener('click', async () 
 	}
 	const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
 	const res = await fetch(url);
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to block user');
+		showLocalError(data.error);
 		return;
 	}
+	showLocalInfo(data.msg);
 	document.getElementById('closeBlockUser')?.click();
 });
 
@@ -170,11 +171,11 @@ document
 		}
 		const url = `/api/chat/unblock_user?user_id=${userIdToBlock}`;
 		const res = await fetch(url);
+		const data = await res.json();
 		if (!res.ok) {
-			showLocalError('Failed to unblock user');
-			console.error('Failed to unblock user:', res.status, res.statusText);
-			return;
+			return showLocalError(data.error);
 		}
+		showLocalInfo(data.msg);
 		document.getElementById('closeUnblockUser')?.click();
 	});
 
@@ -228,11 +229,12 @@ document.getElementById('confirmInviteUser')?.addEventListener('click', async ()
 		'chat_id'
 	)}&${params.toString()}`;
 	const res = await fetch(url);
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to invite user');
-		console.error('Failed to invite user:', res.status, res.statusText);
+		showLocalError(data.error);
 		return;
 	}
+	showLocalInfo(data.msg);
 	document.getElementById('closeInviteUser')?.click();
 });
 

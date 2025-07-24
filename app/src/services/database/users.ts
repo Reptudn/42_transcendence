@@ -61,7 +61,7 @@ export async function registerUser(
 		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
 	);
 	if (user.changes !== 0 && typeof user.lastID === 'number') {
-		inviteUserToChat(fastify, user.lastID, user.lastID, 1);
+		inviteUserToChat(fastify, user.lastID, 1);
 	}
 }
 
