@@ -68,17 +68,15 @@ const searchUser = document.getElementById('searchForFriend') as HTMLInputElemen
 
 searchUser?.addEventListener('input', async () => {
 	const res = await fetch('/api/chat/chats');
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to fetch chats');
-		console.error('Failed to fetch chats:', res.status, res.statusText);
-		return;
+		return showLocalError(data.error);
 	}
-	const chats = (await res.json()) as Chat[];
+	console.log('data = ', data);
 	const input = searchUser.value.trim().toLowerCase();
 	console.log('input = ', input);
 	if (input === '') {
-		await getChats();
-		return;
+		return await getChats();
 	}
 	const userList = document.getElementById('userList');
 	if (!userList) {
@@ -87,6 +85,7 @@ searchUser?.addEventListener('input', async () => {
 		return;
 	}
 	userList.innerHTML = '';
+	const chats = data.chats as Chat[];
 	for (const chat of chats) {
 		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
 			const butt = document.createElement('button');
@@ -131,15 +130,14 @@ export function appendToChatBox(rawMessage: string) {
 
 export async function getChats() {
 	const res = await fetch('/api/chat/chats');
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to fetch chats');
-		console.error('Failed to fetch chats:', res.status, res.statusText);
-		return;
+		return showLocalError(data.error);
 	}
-	const chats = (await res.json()) as Chat[];
 	const userList = document.getElementById('userList');
 	if (userList) {
 		userList.innerHTML = '';
+		const chats = data.chats as Chat[];
 		for (const chat of chats) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
@@ -161,15 +159,11 @@ export async function getMessages(chat_id: string | null) {
 		return;
 	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalPopup({
-			title: 'Error',
-			description: 'Failed to fetch users',
-			color: 'red',
-		});
-		return;
+		return showLocalError(data.error);
 	}
-	const msgs = (await res.json()) as htmlMsg[];
+	const msgs = data.msgs as htmlMsg[];
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {

@@ -12,7 +12,7 @@ interface Friend {
 
 document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends');
+	const res = await fetch('/api/friends');
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		return;
@@ -88,7 +88,7 @@ document.getElementById('closeGroupWindow')?.addEventListener('click', async () 
 
 document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends');
+	const res = await fetch('/api/friends');
 	if (!res.ok) {
 		showLocalError('Failed to load friends in block user modal');
 	}
@@ -137,7 +137,7 @@ document.getElementById('closeBlockUser')?.addEventListener('click', async () =>
 
 document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends');
+	const res = await fetch('/api/friends');
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		return;
@@ -188,7 +188,7 @@ document.getElementById('closeUnblockUser')?.addEventListener('click', async () 
 
 document.getElementById('inviteUser')?.addEventListener('click', async () => {
 	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends');
+	const res = await fetch('/api/friends');
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		console.error('Failed to fetch friends:', res.status, res.statusText);
@@ -249,9 +249,10 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const res = await fetch(
 		`/api/chat/leave_user?chat_id=${sessionStorage.getItem('chat_id')}`
 	);
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to leave chat');
-		console.error('Failed to leave chat:', res.status, res.statusText);
+		showLocalError(data.error);
 		return;
 	}
+	showLocalInfo(data.msg);
 });

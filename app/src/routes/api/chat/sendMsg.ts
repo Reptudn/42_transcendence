@@ -38,13 +38,7 @@ export async function sendMsg(fastify: FastifyInstance) {
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 
-				if (
-					!(await getParticipantFromSql(fastify, fromUser.id, body.chat))
-				) {
-					return res
-						.status(400)
-						.send({ error: 'User is no member in Chat' }); // TODO Error msg
-				}
+				await getParticipantFromSql(fastify, fromUser.id, body.chat);
 
 				const chatInfo = await getChatFromSql(fastify, body.chat);
 
@@ -153,7 +147,7 @@ function sendMsgDm(
 }
 
 export function createHtmlMsg(
-	fromUser: User,
+	fromUser: User | null,
 	chatInfo: Chat | null,
 	msgContent: string
 ) {
@@ -163,12 +157,12 @@ export function createHtmlMsg(
 		chatId: 0,
 		htmlMsg: '',
 	};
-	msg.fromUserName = fromUser.displayname;
+	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';
 	msg.chatId = chatInfo ? chatInfo.id : 0;
 	msg.htmlMsg = `
 		<div>
-			<p><a href='/partial/pages/profile/${fromUser.username}'>${fromUser.displayname}:</a>${msgContent}</p>
+			<p><a href='/partial/pages/profile/${fromUser?.username}'>${fromUser?.displayname}:</a>${msgContent}</p>
 		</div>
 		`;
 	return msg;

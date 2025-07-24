@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Blocked, Part, Msg } from '../../types/chat';
+import { sendPopupToClient } from '../sse/popup';
 
 export class HttpError {
 	statusCode: number;
@@ -31,16 +32,16 @@ export async function saveMsgInSql(
 export async function getAllChatsFromSqlByUserId(
 	fastify: FastifyInstance,
 	userId: number
-): Promise<Chat[] | null> {
+): Promise<Chat[]> {
 	try {
 		const chats = (await fastify.sqlite.all(
 			'SELECT c.id, c.name, c.is_group, c.created_at FROM chats AS c JOIN chat_participants AS cp ON c.id = cp.chat_id WHERE cp.user_id = ? AND c.id <> 1',
 			[userId]
 		)) as Chat[] | null;
+		if (!chats) throw new HttpError(400, 'No Chatparticipants found');
 		return chats;
 	} catch (err) {
-		fastify.log.info(err, 'Database error getAllChatsFromSqlByUserId'); //TODO Error msg;
-		return null;
+		throw new HttpError(500, 'Database error getAllChatsFromSqlByUserId');
 	}
 }
 
@@ -54,10 +55,15 @@ export async function getFriendsDisplayname(
 			'SELECT u.displayname FROM chat_participants AS cp JOIN users AS u ON cp.user_id = u.id WHERE cp.chat_id = ? AND cp.user_id <> ?',
 			[chatId, userId]
 		)) as { displayname: string } | null;
+		// if (!name) throw new HttpError(400, 'User not found');
+		if (!name) {
+			sendPopupToClient(fastify, userId, 'Error', 'User not found', 'red');
+			return null;
+		}
 		return name;
 	} catch (err) {
-		fastify.log.info(err, 'Database error getFriendsDisplayname'); //TODO Error msg;
-		return null;
+		if (err instanceof HttpError) throw err;
+		throw new HttpError(500, 'Database error getFriendsDisplayname');
 	}
 }
 
@@ -118,6 +124,7 @@ export async function getChatFromSql(
 		if (!chat) throw new HttpError(400, 'Chat not found');
 		return chat;
 	} catch (err) {
+		if (err instanceof HttpError) throw err;
 		throw new HttpError(500, 'Database error getChatFromSql');
 	}
 }
@@ -136,6 +143,7 @@ export async function saveNewChatInfo(
 			return chat.lastID;
 		throw new HttpError(400, 'Database error saveNewChatInfo');
 	} catch (err) {
+		if (err instanceof HttpError) throw err;
 		throw new HttpError(500, 'Database error saveNewChatInfo');
 	}
 }
@@ -164,14 +172,16 @@ export async function getParticipantFromSql(
 	fastify: FastifyInstance,
 	user_id: number,
 	chat_id: number
-): Promise<Part | null> {
+): Promise<Part> {
 	try {
 		const user = (await fastify.sqlite.get(
 			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ? AND user_id = ?',
 			[chat_id, user_id]
 		)) as Part | null;
+		if (!user) throw new HttpError(400, 'User is no Participant in chat');
 		return user;
 	} catch (err) {
+		if (err instanceof HttpError) throw err;
 		throw new HttpError(500, 'Database error getParticipantFromSql');
 	}
 }
@@ -230,46 +240,42 @@ export async function deleteUserFromChaParticipants(
 	fastify: FastifyInstance,
 	userId: number,
 	chatId: number
-): Promise<boolean> {
+): Promise<void> {
 	try {
 		await fastify.sqlite.run(
 			'DELETE FROM chat_participants WHERE chat_id = ? AND user_id = ?',
 			[chatId, userId]
 		);
 	} catch (err) {
-		fastify.log.info(err, 'Database error deleteUserFromChaParticipants'); //TODO Error msg;
-		return false;
+		throw new HttpError(500, 'Database error deleteUserFromChaParticipants');
 	}
-	return true;
 }
 
 export async function getMessagesFromSqlByChatId(
 	fastify: FastifyInstance,
 	chat_id: number
-): Promise<Msg[] | null> {
+): Promise<Msg[]> {
 	try {
 		const msg = (await fastify.sqlite.all(
 			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
 			[chat_id]
 		)) as Msg[] | null;
+		if (!msg) throw new HttpError(400, 'No messages found');
 		return msg;
 	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
+		throw new HttpError(500, 'Database error getMessagesFromSqlByChatId');
 	}
 }
 
 export async function removeChat(
 	fastify: FastifyInstance,
 	chat_id: number
-): Promise<boolean> {
+): Promise<void> {
 	try {
 		await fastify.sqlite.run('DELETE FROM chats WHERE id = ?', [chat_id]);
 	} catch (err) {
-		fastify.log.error(err, 'Database error while deleting chat');
-		return false;
+		throw new HttpError(500, 'Database error while deleting chat');
 	}
-	return true;
 }
 
 export async function searchForChatId(

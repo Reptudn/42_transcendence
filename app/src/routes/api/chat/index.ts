@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import { sendMsg } from './sendMsg';
 import {
 	getAllChats,
-	getAllFriends,
 	getAllMsg,
 	createNewChat,
 	blockUsers,
@@ -24,7 +23,7 @@ import {
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
-	getAllFriends(fastify);
+	// getAllFriends(fastify);
 	getAllChats(fastify);
 	getAllMsg(fastify);
 	createNewChat(fastify);
@@ -39,9 +38,6 @@ export default chat;
 // TODO Problem with checking toUser is on chat or on another side
 // TODO Error handling
 // TODO commands
-// TODO Send Popup to Client
+// TODO need to create globale chat if database is new
 
 // TODO If Client not connected send msgs when reconnected
-// TODO Gruppe erstllen
-// TODO Blockieren
-// TODO Entblocken
