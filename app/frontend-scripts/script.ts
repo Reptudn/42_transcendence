@@ -3,7 +3,12 @@ import { showLocalError, showLocalInfo } from './alert.js';
 declare global {
 	interface Window {
 		updateActiveMenu: (selectedPage: string) => void;
-		loadPartialView: (page: string, pushState?: boolean, subroute?: string | null, isPartial?: boolean) => Promise<void>;
+		loadPartialView: (
+			page: string,
+			pushState?: boolean,
+			subroute?: string | null,
+			isPartial?: boolean
+		) => Promise<void>;
 		updateMenu: () => Promise<void>;
 		logout: () => Promise<void>;
 		fetchNumber: () => Promise<void>;
@@ -26,10 +31,9 @@ export function updateActiveMenu(selectedPage: string): void {
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
-export async function createGame()
-{
+export async function createGame() {
 	const res = await fetch('/api/games/create', {
-		method: 'POST'
+		method: 'POST',
 	});
 	if (!res.ok) {
 		const data = await res.json();
@@ -42,8 +46,7 @@ export async function createGame()
 	await loadPartialView('game_setup', true, null, true);
 }
 
-export async function leaveGame()
-{
+export async function leaveGame() {
 	const response = await fetch('/api/games/leave', {
 		method: 'POST',
 	});
@@ -73,9 +76,7 @@ export async function loadPartialView(
 		url = subroute
 			? `/partial/pages/${page}/${subroute}`
 			: `/partial/pages/${page}`;
-	else url = subroute
-			? `/${page}/${subroute}`
-			: `${page}`;
+	else url = subroute ? `/${page}/${subroute}` : `${page}`;
 
 	try {
 		const response: Response = await fetch(url, {
@@ -83,8 +84,7 @@ export async function loadPartialView(
 			headers: headers,
 		});
 
-		if (!response.ok)
-		{
+		if (!response.ok) {
 			const data = await response.json();
 			throw new Error(data.error);
 		}
@@ -131,11 +131,7 @@ export async function loadPartialView(
 					newScript.addEventListener(
 						'error',
 						(event) => {
-							console.error(
-								'Script error:',
-								newScript.src,
-								event
-							);
+							console.error('Script error:', newScript.src, event);
 						},
 						{
 							signal: window.abortController
@@ -166,7 +162,7 @@ export async function loadPartialView(
 		// 		console.error('Error importing leaveWsGame:', error);
 		// 	});
 		// }
-	
+
 		updateActiveMenu(page);
 
 		if (pushState) {
@@ -182,10 +178,8 @@ export async function loadPartialView(
 			);
 		}
 	} catch (error) {
-		if (error instanceof Error)
-			showLocalError(error.message);
-		else
-		showLocalError(`Error fetching partial view: ${error}`);
+		if (error instanceof Error) showLocalError(error.message);
+		else showLocalError(`Error fetching partial view: ${error}`);
 	}
 }
 
@@ -208,9 +202,7 @@ export async function updateMenu(): Promise<void> {
 		if (token) {
 			response = await fetch('/partial/menu', {
 				headers: {
-					Authorization: `Bearer ${
-						localStorage.getItem('token') || ''
-					}`,
+					Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 				},
 			});
 		} else {
@@ -291,9 +283,7 @@ async function logout(): Promise<void> {
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
-		showLocalError(
-			'An error occurred during logout. Do try again, old chap!'
-		);
+		showLocalError('An error occurred during logout. Do try again, old chap!');
 	}
 }
 

@@ -13,7 +13,7 @@ import {
 	deleteFromBlockedUsers,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
-	type HttpError,
+	HttpError,
 	checkUserBlocked,
 	getParticipantFromSql,
 } from '../../../services/database/chat';
@@ -105,7 +105,9 @@ export async function getAllMsg(fastify: FastifyInstance) {
 			const userId = (req.user as { id: number }).id;
 
 			try {
-				await getParticipantFromSql(fastify, userId, chat_id);
+				const user = await getParticipantFromSql(fastify, userId, chat_id);
+				if (!user)
+					throw new HttpError(400, 'User no Participant');
 
 				const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 

@@ -38,7 +38,9 @@ export async function sendMsg(fastify: FastifyInstance) {
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 
-				await getParticipantFromSql(fastify, fromUser.id, body.chat);
+				const user = await getParticipantFromSql(fastify, fromUser.id, body.chat);
+				if (!user)
+					throw new HttpError(400, 'User not Participant');
 
 				const chatInfo = await getChatFromSql(fastify, body.chat);
 

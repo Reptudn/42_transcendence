@@ -1,4 +1,4 @@
-import { showLocalError, showLocalPopup } from './alert.js';
+import { showLocalError, showLocalInfo, showLocalPopup } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
 
 export interface Chat {
@@ -101,17 +101,18 @@ searchUser?.addEventListener('input', async () => {
 });
 
 export function appendToChatBox(rawMessage: string) {
+	const msg = JSON.parse(rawMessage) as htmlMsg;
+
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
-		showLocalError('Chat messages element not found');
-		console.error('Chat messages element not found');
+		showLocalInfo(
+			`New Chat form ${msg.fromUserName}`,
+			`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+		);
 		return;
 	}
 
-	const msg = JSON.parse(rawMessage) as htmlMsg;
-
 	const nowChatId = sessionStorage.getItem('chat_id');
-	console.log('nowChatId = ', nowChatId);
 	if (nowChatId) {
 		if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
 			const messageElement = document.createElement('div');
@@ -167,7 +168,7 @@ export async function getMessages(chat_id: string | null) {
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
-		showLocalError('Failed to get the chat messages element');
+		// showLocalError('Failed to get the chat messages element');
 		return;
 	}
 
@@ -176,3 +177,11 @@ export async function getMessages(chat_id: string | null) {
 		appendToChatBox(JSON.stringify(msg));
 	}
 }
+
+declare global {
+	interface Window {
+		getMessages: (chat_id: string | null) => void;
+	}
+}
+
+window.getMessages = getMessages;

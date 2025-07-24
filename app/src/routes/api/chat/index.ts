@@ -38,6 +38,5 @@ export default chat;
 // TODO Problem with checking toUser is on chat or on another side
 // TODO Error handling
 // TODO commands
-// TODO need to create globale chat if database is new
 
 // TODO If Client not connected send msgs when reconnected

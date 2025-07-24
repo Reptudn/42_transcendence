@@ -172,13 +172,13 @@ export async function getParticipantFromSql(
 	fastify: FastifyInstance,
 	user_id: number,
 	chat_id: number
-): Promise<Part> {
+): Promise<Part | null> {
 	try {
 		const user = (await fastify.sqlite.get(
 			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ? AND user_id = ?',
 			[chat_id, user_id]
 		)) as Part | null;
-		if (!user) throw new HttpError(400, 'User is no Participant in chat');
+		// if (!user) throw new HttpError(400, 'User is no Participant in chat');)
 		return user;
 	} catch (err) {
 		if (err instanceof HttpError) throw err;

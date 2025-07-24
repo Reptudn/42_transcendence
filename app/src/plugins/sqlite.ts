@@ -8,6 +8,7 @@ const achievementsData = JSON.parse(
 	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
 );
 import { FastifyInstance } from 'fastify';
+import { getChatFromSql, saveNewChatInfo } from '../services/database/chat';
 
 declare module 'fastify' {
 	interface FastifyInstance {
@@ -88,6 +89,12 @@ export default fp(async (fastify) => {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			)
 		`);
+
+		try {
+			await getChatFromSql(fastify, 1);
+		} catch (err) {
+			await saveNewChatInfo(fastify, true, null);
+		}
 
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS chat_participants (
