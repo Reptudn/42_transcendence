@@ -14,6 +14,7 @@ import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
+	ENDED = 'ended',
 }
 
 const defaultGameSettings: GameSettings = {
@@ -32,7 +33,7 @@ export class Game {
 	players: Player[] = [];
 	gameState: GameState;
 	config: GameSettings;
-	already_ended: boolean = false;
+	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
 	fastify: FastifyInstance;
 
@@ -59,7 +60,6 @@ export class Game {
 			},
 			objects: [],
 		} as GameState;
-		this.already_ended = false;
 	}
 
 	async addUserPlayer(user: User) {
@@ -163,7 +163,8 @@ export class Game {
 			)
 				this.endGame('Game admin left, game closed.');
 
-			if (this.players.length === 0) this.endGame(null);
+			if (this.players.length === 0)
+				this.endGame('No players left, game closed.');
 		} catch (err) {
 			throw err;
 		}
@@ -227,27 +228,23 @@ export class Game {
 	}
 
 	// when null if given it means the game end because no players were left
-	endGame(end_message: string | null) {
+	endGame(end_message: string) {
 		console.log(`Ending game ${this.gameId} with message: ${end_message}`);
-		if (this.already_ended) return;
 
-		if (end_message !== null) {
-			// this occurs when the game ends because its actually over because someone won or the admin left as of now
-			for (const player of this.players) {
-				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect();
-				sendSseRawByUserId(
-					player.user.id,
-					JSON.stringify({
-						type: 'game_closed',
-						message: end_message,
-					})
-				);
-			}
-			this.players.splice(0, this.players.length); // clear all players
-
-			// TODO: add some game ending logic like adding everything to the db and such
+		// this occurs when the game ends because its actually over because someone won or the admin left as of now
+		for (const player of this.players) {
+			if (!(player instanceof UserPlayer)) continue;
+			player.disconnect();
+			sendSseRawByUserId(
+				player.user.id,
+				JSON.stringify({
+					type: 'game_closed',
+					message: end_message,
+				})
+			);
 		}
+
+		// TODO: add some game ending logic like adding everything to the db and such
 
 		removeGame(this.gameId);
 	}
