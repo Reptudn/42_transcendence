@@ -388,7 +388,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					});
 			} catch (err) {
 				if (err instanceof Error)
-					return reply.code(404).send({ error: 'oh no' + err.message });
+					return reply.code(404).send({ error: 'Failed to add player: ' + err.message });
 				return reply.code(404).send({ error: 'Unknown error' });
 			}
 		}
