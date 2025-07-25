@@ -80,7 +80,7 @@ ws.onmessage = (event) => {
 						player.playerTitle
 					}</span>(<span class="glow-blue">${player.lives} Lives${
 						player.lives <= 0 ? ' - dead' : ''
-					} (${playerItem.type})</span>)`;
+					}) (${player.type})</span>`;
 					playersList.appendChild(playerItem);
 				}
 			}

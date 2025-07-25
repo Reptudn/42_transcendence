@@ -5,7 +5,7 @@ import type { Game } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
 	// move players
-	for (let player of game.players) {
+	for (const player of game.players) {
 		if (player.lives <= 0) continue;
 		game.gameState = movePaddle(
 			game.gameState,
@@ -20,11 +20,19 @@ export function tickEngine(game: Game) {
 	game.gameState = moveBall(game.gameState, 3);
 
 	// check hits
-	for (let player of game.players) {
+	for (const player of game.players) {
 		if (hasPlayerBeenHit(game.gameState, player.playerId)) {
 			player.lives--;
 			if (player.lives <= 0) {
-				game.removePlayer(player.playerId, false);
+				const objectsToRemove: number[] = [];
+				for (const obj of game.gameState.objects) {
+					if (obj.playerNbr === player.playerId) {
+						objectsToRemove.push(game.gameState.objects.indexOf(obj));
+					}
+				}
+				for (const index of objectsToRemove) {
+					game.gameState.objects.splice(index, 1);
+				}
 			}
 		}
 	}
