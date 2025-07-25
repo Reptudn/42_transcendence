@@ -1,4 +1,7 @@
-import type { FastifyInstance, FastifyReply } from 'fastify';
+import type { FastifyInstance } from 'fastify';
+import type { Blocked, Msg, htmlMsg } from '../../../types/chat';
+import { createHtmlMsg } from './sendMsg';
+import { getUserById } from '../../../services/database/users';
 import {
 	getChatFromSql,
 	addToParticipants,
@@ -11,15 +14,20 @@ import { sendPopupToClient } from '../../../services/sse/popup';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
+	formUser: number,
 	user_id: number,
 	chat_id: number
 ): Promise<void> {
-	try {
-		await getChatFromSql(fastify, chat_id);
-		await addToParticipants(fastify, user_id, chat_id);
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-	}
+	await getChatFromSql(fastify, chat_id);
+	await addToParticipants(fastify, user_id, chat_id);
+	if (formUser === user_id) return;
+	sendPopupToClient(
+		fastify,
+		user_id,
+		'INFO',
+		'You got invited to a Chat',
+		'yellow'
+	);
 }
 
 export async function invite(
@@ -28,28 +36,24 @@ export async function invite(
 	fromUser: number,
 	toUser: number | number[]
 ) {
-	try {
-		const chat = await getChatFromSql(fastify, chat_id);
+	const chat = await getChatFromSql(fastify, chat_id);
 
-		if (chat.name === null) {
-			let chatName: string;
-			if (chat.is_group) chatName = 'global';
-			else chatName = 'private';
-			throw new HttpError(
-				400,
-				`You not able to invite a user to the ${chatName} chat`
-			);
-		}
+	if (chat.name === null) {
+		let chatName: string;
+		if (chat.is_group) chatName = 'global';
+		else chatName = 'private';
+		throw new HttpError(
+			400,
+			`You not able to invite a user to the ${chatName} chat`
+		);
+	}
 
-		if (typeof toUser === 'object') {
-			for (const user of toUser) {
-				await inviteUserToChat(fastify, user, chat_id);
-			}
-		} else {
-			await inviteUserToChat(fastify, toUser, chat_id);
+	if (typeof toUser === 'object') {
+		for (const user of toUser) {
+			await inviteUserToChat(fastify, fromUser, user, chat_id);
 		}
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
+	} else {
+		await inviteUserToChat(fastify, fromUser, toUser, chat_id);
 	}
 }
 
@@ -58,38 +62,96 @@ export async function leave(
 	chat_id: number,
 	fromUser: number
 ) {
-	try {
-		const chat = await getChatFromSql(fastify, chat_id);
+	const chat = await getChatFromSql(fastify, chat_id);
 
-		if (chat.name === null) {
-			let chatName: string;
-			if (chat.is_group) chatName = 'global';
-			else chatName = 'private';
-			throw new HttpError(400, `You not able to leave the ${chatName} chat`);
-		}
+	if (chat.name === null) {
+		let chatName: string;
+		if (chat.is_group) chatName = 'global';
+		else chatName = 'private';
+		throw new HttpError(400, `You not able to leave the ${chatName} chat`);
+	}
 
-		deleteUserFromChaParticipants(fastify, fromUser, chat_id);
+	deleteUserFromChaParticipants(fastify, fromUser, chat_id);
 
-		const check = await getAllParticipantsFromSql(fastify, chat_id);
-		if (check && check.length === 0) {
-			removeChat(fastify, chat_id);
-		}
-	} catch (err) {
-		if (err instanceof HttpError)
-			throw err;
+	const check = await getAllParticipantsFromSql(fastify, chat_id);
+	if (check && check.length === 0) {
+		removeChat(fastify, chat_id);
 	}
 }
 
-export function catchFunction(
+export async function getMsgForGroup(
 	fastify: FastifyInstance,
-	err: HttpError,
-	userId: number,
-	res: FastifyReply
+	chatMsgs: Msg[],
+	blocked: Blocked[],
+	blockedId: number[]
 ) {
-	const errorClass = err as HttpError;
+	// wenn ich geblocket wurde bekomme ich alle nachrichten normal
+	// wenn ich ihn geblockt habe bekomme ich die nachrichten mit Msg blocked aber erst zum zeitpunkt des blocks
 
-	if (errorClass.statusCode < 500) {
-		sendPopupToClient(fastify, userId, 'Error', errorClass.msg, 'red');
+	const htmlMsgs: htmlMsg[] = [];
+
+	for (const msg of chatMsgs) {
+		const user = await getUserById(msg.user_id, fastify);
+		if (!user) {
+			htmlMsgs.push(createHtmlMsg(null, null, msg.content, false));
+			continue;
+		}
+		if (!blockedId.includes(user.id))
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+		else {
+			const pos = blockedId.indexOf(user.id);
+			if (blocked[pos].created_at <= msg.created_at) {
+				htmlMsgs.push(createHtmlMsg(user, null, 'Msg blocked', true));
+			} else htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+		}
 	}
-	res.status(errorClass.statusCode).send({ error: errorClass.msg });
+	return htmlMsgs;
+}
+
+export async function getMsgForDm(
+	fastify: FastifyInstance,
+	chatMsgs: Msg[],
+	blocked: Blocked[],
+	blockedId: number[]
+) {
+	// wenn ich geblocket wurde bekomme ich alle nachrichten
+	// wenn ich ihn geblockt habe bekomme ich nur die nachrichten bis zum block
+
+	const htmlMsgs: htmlMsg[] = [];
+
+	for (const msg of chatMsgs) {
+		const user = await getUserById(msg.user_id, fastify);
+		if (!user) {
+			htmlMsgs.push(createHtmlMsg(null, null, msg.content, false));
+			continue;
+		}
+		if (!blockedId.includes(user.id))
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+		else {
+			const pos = blockedId.indexOf(user.id);
+			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
+			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+		}
+	}
+	return htmlMsgs;
+}
+
+export function normError(err: unknown) {
+	let errorCode: number;
+	let errorMsg: string;
+
+	if (err instanceof HttpError) {
+		errorCode = err.statusCode;
+		errorMsg = err.msg;
+	} else if (err instanceof Error) {
+		errorCode = 500;
+		errorMsg = err.message;
+	} else if (typeof err === 'string') {
+		errorCode = 500;
+		errorMsg = err;
+	} else {
+		errorCode = 500;
+		errorMsg = 'Unknown Error';
+	}
+	return { errorCode, errorMsg };
 }

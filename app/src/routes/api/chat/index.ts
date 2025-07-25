@@ -23,7 +23,6 @@ import {
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
-	// getAllFriends(fastify);
 	getAllChats(fastify);
 	getAllMsg(fastify);
 	createNewChat(fastify);
@@ -35,8 +34,11 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 export default chat;
 
-// TODO Problem with checking toUser is on chat or on another side
-// TODO Error handling
 // TODO commands
-
 // TODO If Client not connected send msgs when reconnected
+// TODO Problem when User logged out other user can send him msg
+// TODO user is able to invite a blocked user
+// TODO check that there are not too many messages because of memory
+// TODO limit the chars per messages e.g. 500
+// TODO what if a user gets deleted
+// TODO translation for error Msgs

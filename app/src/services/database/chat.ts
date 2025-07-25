@@ -86,47 +86,34 @@ export async function getAllBlockerUser(
 	fastify: FastifyInstance,
 	blockerId: number
 ): Promise<Blocked[]> {
-	try {
-		const blocked = (await fastify.sqlite.all(
-			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ?',
-			[blockerId]
-		)) as Blocked[];
-		return blocked;
-	} catch (err) {
-		throw new HttpError(500, 'Database Error getAllBlockerUser');
-	}
+	const blocked = (await fastify.sqlite.all(
+		'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ?',
+		[blockerId]
+	)) as Blocked[];
+	return blocked;
 }
 
 export async function getAllParticipantsFromSql(
 	fastify: FastifyInstance,
 	chatId: number
 ): Promise<Part[]> {
-	try {
-		const user = (await fastify.sqlite.all(
-			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ?',
-			[chatId]
-		)) as Part[];
-		return user;
-	} catch (err) {
-		throw new HttpError(500, 'Database error getAllParticipantsFromSql');
-	}
+	const user = (await fastify.sqlite.all(
+		'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ?',
+		[chatId]
+	)) as Part[];
+	return user;
 }
 
 export async function getChatFromSql(
 	fastify: FastifyInstance,
 	chatId: number
 ): Promise<Chat> {
-	try {
-		const chat = (await fastify.sqlite.get(
-			'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
-			[chatId]
-		)) as Chat | null;
-		if (!chat) throw new HttpError(400, 'Chat not found');
-		return chat;
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-		throw new HttpError(500, 'Database error getChatFromSql');
-	}
+	const chat = (await fastify.sqlite.get(
+		'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
+		[chatId]
+	)) as Chat | null;
+	if (!chat) throw new HttpError(400, 'Chat not found');
+	return chat;
 }
 
 export async function saveNewChatInfo(
@@ -134,18 +121,13 @@ export async function saveNewChatInfo(
 	is_group: boolean,
 	groupName: string | null
 ): Promise<number> {
-	try {
-		const chat = await fastify.sqlite.run(
-			'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-			[groupName, is_group]
-		);
-		if (chat.changes !== 0 && typeof chat.lastID === 'number')
-			return chat.lastID;
-		throw new HttpError(400, 'Database error saveNewChatInfo');
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-		throw new HttpError(500, 'Database error saveNewChatInfo');
-	}
+	const chat = await fastify.sqlite.run(
+		'INSERT INTO chats (name, is_group) VALUES (?, ?)',
+		[groupName, is_group]
+	);
+	if (chat.changes !== 0 && typeof chat.lastID === 'number')
+		return chat.lastID;
+	throw new HttpError(400, 'Failed to save the Chat');
 }
 
 export async function addToParticipants(
@@ -153,19 +135,14 @@ export async function addToParticipants(
 	userId: number,
 	chatId: number
 ): Promise<void> {
-	try {
-		const user = await getParticipantFromSql(fastify, userId, chatId);
-		if (user) {
-			throw new HttpError(400, 'User already in Chat');
-		}
-		fastify.sqlite.run(
-			'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
-			[chatId, userId]
-		);
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-		throw new HttpError(500, 'Database error addToParticipants');
+	const user = await getParticipantFromSql(fastify, userId, chatId);
+	if (user) {
+		throw new HttpError(400, 'User already in Chat');
 	}
+	fastify.sqlite.run(
+		'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
+		[chatId, userId]
+	);
 }
 
 export async function getParticipantFromSql(
@@ -173,17 +150,11 @@ export async function getParticipantFromSql(
 	user_id: number,
 	chat_id: number
 ): Promise<Part | null> {
-	try {
-		const user = (await fastify.sqlite.get(
-			'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ? AND user_id = ?',
-			[chat_id, user_id]
-		)) as Part | null;
-		// if (!user) throw new HttpError(400, 'User is no Participant in chat');)
-		return user;
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-		throw new HttpError(500, 'Database error getParticipantFromSql');
-	}
+	const user = (await fastify.sqlite.get(
+		'SELECT id, chat_id, user_id FROM chat_participants WHERE chat_id = ? AND user_id = ?',
+		[chat_id, user_id]
+	)) as Part | null;
+	return user;
 }
 
 export async function addToBlockedUsers(
@@ -191,16 +162,11 @@ export async function addToBlockedUsers(
 	blocker_id: number,
 	blocked_id: number
 ): Promise<void> {
-	try {
-		if (!(await checkUserBlocked(fastify, blocker_id, blocked_id))) {
-			await fastify.sqlite.run(
-				'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
-				[blocker_id, blocked_id]
-			);
-		}
-	} catch (err) {
-		if (err instanceof HttpError) throw err;
-		throw new HttpError(500, 'Database error addToBlockedUsers');
+	if (!(await checkUserBlocked(fastify, blocker_id, blocked_id))) {
+		await fastify.sqlite.run(
+			'INSERT INTO blocked_users (blocker_id, blocked_id) VALUES (?, ?)',
+			[blocker_id, blocked_id]
+		);
 	}
 }
 
@@ -209,16 +175,12 @@ export async function checkUserBlocked(
 	blocker_id: number,
 	blocked_id: number
 ): Promise<boolean> {
-	try {
-		const blocked = (await fastify.sqlite.get(
-			'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
-			[blocker_id, blocked_id]
-		)) as Blocked | null;
-		if (!blocked) return false;
-		return true;
-	} catch (err) {
-		throw new HttpError(500, 'Database error checkUserBlocked');
-	}
+	const blocked = (await fastify.sqlite.get(
+		'SELECT blocker_id, blocked_id, created_at FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
+		[blocker_id, blocked_id]
+	)) as Blocked | null;
+	if (!blocked) return false;
+	return true;
 }
 
 export async function deleteFromBlockedUsers(
@@ -226,14 +188,10 @@ export async function deleteFromBlockedUsers(
 	blocker_id: number,
 	blocked_id: number
 ): Promise<void> {
-	try {
-		await fastify.sqlite.run(
-			'DELETE FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
-			[blocker_id, blocked_id]
-		);
-	} catch (err) {
-		throw new HttpError(500, 'Database error deleteFromBlockedUsers');
-	}
+	await fastify.sqlite.run(
+		'DELETE FROM blocked_users WHERE blocker_id = ? AND blocked_id = ?',
+		[blocker_id, blocked_id]
+	);
 }
 
 export async function deleteUserFromChaParticipants(
@@ -241,41 +199,29 @@ export async function deleteUserFromChaParticipants(
 	userId: number,
 	chatId: number
 ): Promise<void> {
-	try {
-		await fastify.sqlite.run(
-			'DELETE FROM chat_participants WHERE chat_id = ? AND user_id = ?',
-			[chatId, userId]
-		);
-	} catch (err) {
-		throw new HttpError(500, 'Database error deleteUserFromChaParticipants');
-	}
+	await fastify.sqlite.run(
+		'DELETE FROM chat_participants WHERE chat_id = ? AND user_id = ?',
+		[chatId, userId]
+	);
 }
 
 export async function getMessagesFromSqlByChatId(
 	fastify: FastifyInstance,
 	chat_id: number
 ): Promise<Msg[]> {
-	try {
-		const msg = (await fastify.sqlite.all(
-			'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
-			[chat_id]
-		)) as Msg[] | null;
-		if (!msg) throw new HttpError(400, 'No messages found');
-		return msg;
-	} catch (err) {
-		throw new HttpError(500, 'Database error getMessagesFromSqlByChatId');
-	}
+	const msg = (await fastify.sqlite.all(
+		'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
+		[chat_id]
+	)) as Msg[] | null;
+	if (!msg) throw new HttpError(400, 'No messages found');
+	return msg;
 }
 
 export async function removeChat(
 	fastify: FastifyInstance,
 	chat_id: number
 ): Promise<void> {
-	try {
-		await fastify.sqlite.run('DELETE FROM chats WHERE id = ?', [chat_id]);
-	} catch (err) {
-		throw new HttpError(500, 'Database error while deleting chat');
-	}
+	await fastify.sqlite.run('DELETE FROM chats WHERE id = ?', [chat_id]);
 }
 
 export async function searchForChatId(
@@ -285,30 +231,25 @@ export async function searchForChatId(
 	const placeholders = user_ids.map(() => '?').join(',');
 	const count = user_ids.length;
 
-	try {
-		const chat = await fastify.sqlite.get(
-			`
-		SELECT c.id
-		FROM chats c
-		WHERE c.is_group = 0
-		  AND c.id IN (
-		    SELECT chat_id
-		    FROM chat_participants
-		    WHERE user_id IN (${placeholders})
-		    GROUP BY chat_id
-		    HAVING COUNT(*) = ?
-		       AND (
-		         SELECT COUNT(*) FROM chat_participants cp2
-		         WHERE cp2.chat_id = chat_participants.chat_id
-		       ) = ?
-		  )
-		LIMIT 1
-		`,
-			[...user_ids, count, count]
-		);
-		return chat?.id ?? null;
-	} catch (err) {
-		fastify.log.info(err, 'Database error'); //TODO Error msg;
-		return null;
-	}
+	const chat = await fastify.sqlite.get(
+		`
+	SELECT c.id
+	FROM chats c
+	WHERE c.is_group = 0
+		AND c.id IN (
+		SELECT chat_id
+		FROM chat_participants
+		WHERE user_id IN (${placeholders})
+		GROUP BY chat_id
+		HAVING COUNT(*) = ?
+			AND (
+				SELECT COUNT(*) FROM chat_participants cp2
+				WHERE cp2.chat_id = chat_participants.chat_id
+			) = ?
+		)
+	LIMIT 1
+	`,
+		[...user_ids, count, count]
+	);
+	return chat?.id ?? null;
 }

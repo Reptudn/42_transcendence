@@ -1,11 +1,16 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { Blocked, htmlMsg, Msg } from '../../../types/chat';
-import { invite, leave } from './utils';
+import type { htmlMsg } from '../../../types/chat';
+import {
+	invite,
+	leave,
+	getMsgForDm,
+	getMsgForGroup,
+	normError,
+	inviteUserToChat,
+} from './utils';
 import { getUserById } from '../../../services/database/users';
-import { createHtmlMsg } from './sendMsg';
 import {
 	saveNewChatInfo,
-	addToParticipants,
 	getAllChatsFromSqlByUserId,
 	getFriendsDisplayname,
 	getAllBlockerUser,
@@ -13,7 +18,6 @@ import {
 	deleteFromBlockedUsers,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
-	HttpError,
 	checkUserBlocked,
 	getParticipantFromSql,
 } from '../../../services/database/chat';
@@ -100,20 +104,19 @@ export async function getAllMsg(fastify: FastifyInstance) {
 			schema: { querystring: chatMsgRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQueryChat;
-
-			const userId = (req.user as { id: number }).id;
-
 			try {
+				const { chat_id } = req.query as MessageQueryChat;
+
+				const userId = (req.user as { id: number }).id;
+
 				const user = await getParticipantFromSql(fastify, userId, chat_id);
 				if (!user)
-					throw new HttpError(400, 'User no Participant');
+					return res.status(400).send({ error: 'User is no Participant' });
 
 				const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 
 				const chat = await getChatFromSql(fastify, chat_id);
 
-				// sind alle user die ich geblockt habe
 				const blocked = await getAllBlockerUser(fastify, userId);
 
 				const blockedId = blocked.map((b) => b.blocked_id);
@@ -138,71 +141,11 @@ export async function getAllMsg(fastify: FastifyInstance) {
 
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				return res
-					.status(errorClass.statusCode)
-					.send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
-}
-
-async function getMsgForGroup(
-	fastify: FastifyInstance,
-	chatMsgs: Msg[],
-	blocked: Blocked[],
-	blockedId: number[]
-) {
-	// wenn ich geblocket wurde bekomme ich alle nachrichten normal
-	// wenn ich ihn geblockt habe bekomme ich die nachrichten mit Msg blocked aber erst zum zeitpunkt des blocks
-
-	const htmlMsgs: htmlMsg[] = [];
-
-	for (const msg of chatMsgs) {
-		const user = await getUserById(msg.user_id, fastify);
-		if (!user) {
-			htmlMsgs.push(createHtmlMsg(null, null, msg.content));
-			continue;
-		}
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		else {
-			const pos = blockedId.indexOf(user.id);
-			if (blocked[pos].created_at <= msg.created_at) {
-				htmlMsgs.push(createHtmlMsg(user, null, 'Msg blocked'));
-			} else htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		}
-	}
-	return htmlMsgs;
-}
-
-async function getMsgForDm(
-	fastify: FastifyInstance,
-	chatMsgs: Msg[],
-	blocked: Blocked[],
-	blockedId: number[]
-) {
-	// wenn ich geblocket wurde bekomme ich alle nachrichten
-	// wenn ich ihn geblockt habe bekomme ich nur die nachrichten bis zum block
-
-	const htmlMsgs: htmlMsg[] = [];
-
-	for (const msg of chatMsgs) {
-		const user = await getUserById(msg.user_id, fastify);
-		if (!user) {
-			htmlMsgs.push(createHtmlMsg(null, null, msg.content));
-			continue;
-		}
-		// TODO What if user is deleted
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		else {
-			const pos = blockedId.indexOf(user.id);
-			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		}
-	}
-	return htmlMsgs;
 }
 
 export async function getAllChats(fastify: FastifyInstance) {
@@ -210,9 +153,9 @@ export async function getAllChats(fastify: FastifyInstance) {
 		'/chats',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const userId = (req.user as { id: number }).id;
-
 			try {
+				const userId = (req.user as { id: number }).id;
+
 				const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
 
 				for (const chat of userChats) {
@@ -227,8 +170,8 @@ export async function getAllChats(fastify: FastifyInstance) {
 				}
 				return res.status(200).send({ chats: userChats });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				res.status(errorClass.statusCode).send({ error: errorClass.msg });
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -242,29 +185,32 @@ export async function createNewChat(fastify: FastifyInstance) {
 			schema: { querystring: chatCreateRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { group_name, user_id } = req.query as MessageQueryUser;
-
-			const user = await getUserById((req.user as { id: number }).id, fastify);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-
-			let userIdsInt: number[] = [];
-			if (typeof user_id === 'object') {
-				userIdsInt = user_id
-					.map((id) => Number.parseInt(id, 10))
-					.filter((id) => !Number.isNaN(id));
-			} else {
-				userIdsInt.push(Number.parseInt(user_id));
-			}
-
-			userIdsInt.push(user.id);
-
 			try {
+				const { group_name, user_id } = req.query as MessageQueryUser;
+
+				const user = await getUserById(
+					(req.user as { id: number }).id,
+					fastify
+				);
+				if (!user) {
+					return res.status(400).send({ error: 'Unknown User' });
+				}
+
+				let userIdsInt: number[] = [];
+				if (typeof user_id === 'object') {
+					userIdsInt = user_id
+						.map((id) => Number.parseInt(id, 10))
+						.filter((id) => !Number.isNaN(id));
+				} else {
+					userIdsInt.push(Number.parseInt(user_id));
+				}
+
+				userIdsInt.push(user.id);
+
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 
 				for (const id of userIdsInt) {
-					addToParticipants(fastify, id, chat_id);
+					inviteUserToChat(fastify, user.id, id, chat_id);
 				}
 
 				return res.send({
@@ -272,16 +218,12 @@ export async function createNewChat(fastify: FastifyInstance) {
 					msg: 'Group successfully created',
 				});
 			} catch (err) {
-				const errorClass = err as HttpError;
-				return res
-					.status(errorClass.statusCode)
-					.send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
 }
-
-// TODO function after this need to get checkt
 
 export async function blockUsers(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryBlock }>(
@@ -291,11 +233,11 @@ export async function blockUsers(fastify: FastifyInstance) {
 			schema: { querystring: chatBlockRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryBlock;
-
-			const blockerId = (req.user as { id: number }).id;
-
 			try {
+				const { user_id } = req.query as MessageQueryBlock;
+
+				const blockerId = (req.user as { id: number }).id;
+
 				if (
 					await checkUserBlocked(
 						fastify,
@@ -308,10 +250,8 @@ export async function blockUsers(fastify: FastifyInstance) {
 				addToBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
 				return res.status(200).send({ msg: 'User blocked successfully' });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				return res
-					.status(errorClass.statusCode)
-					.send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -325,11 +265,11 @@ export async function unblockUsers(fastify: FastifyInstance) {
 			schema: { querystring: chatBlockRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryBlock;
-
-			const blockerId = (req.user as { id: number }).id;
-
 			try {
+				const { user_id } = req.query as MessageQueryBlock;
+
+				const blockerId = (req.user as { id: number }).id;
+
 				if (
 					!(await checkUserBlocked(
 						fastify,
@@ -343,8 +283,8 @@ export async function unblockUsers(fastify: FastifyInstance) {
 					.status(200)
 					.send({ msg: 'User get successfully blocked' });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				res.status(errorClass.statusCode).send({ error: errorClass.msg });
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -358,29 +298,38 @@ export async function inviteUser(fastify: FastifyInstance) {
 			schema: { querystring: chatInviteRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id, user_id } = req.query as MessageQueryInvite;
-
-			const myId = (req.user as { id: number }).id;
-
-			let userIdsInt: number[] = [];
-			if (typeof user_id === 'object') {
-				userIdsInt = user_id
-					.map((id) => Number.parseInt(id, 10))
-					.filter((id) => !Number.isNaN(id));
-			} else {
-				userIdsInt.push(Number.parseInt(user_id));
-			}
-
 			try {
+				const { chat_id, user_id } = req.query as MessageQueryInvite;
+
+				const myId = (req.user as { id: number }).id;
+
+				let userIdsInt: number[] = [];
+				if (typeof user_id === 'object') {
+					userIdsInt = user_id
+						.map((id) => Number.parseInt(id, 10))
+						.filter((id) => !Number.isNaN(id));
+				} else {
+					userIdsInt.push(Number.parseInt(user_id));
+				}
+
 				await invite(fastify, chat_id, myId, userIdsInt);
+
+				// for (const user of userIdsInt) {
+				// 	sendPopupToClient(
+				// 		fastify,
+				// 		user,
+				// 		'INFO',
+				// 		'You got invited to a new Group',
+				// 		'yellow'
+				// 	);
+				// }
+
 				return res
 					.status(200)
 					.send({ msg: 'User get successfully invited' });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				return res
-					.status(errorClass.statusCode)
-					.send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -394,20 +343,19 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 			schema: { querystring: chatMsgRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQueryChat;
-
-			const userId = (req.user as { id: number }).id;
-
 			try {
+				const { chat_id } = req.query as MessageQueryChat;
+
+				const userId = (req.user as { id: number }).id;
+
 				await leave(fastify, chat_id, userId);
+
 				return res
 					.status(200)
 					.send({ msg: 'You have successfully left the group' });
 			} catch (err) {
-				const errorClass = err as HttpError;
-				return res
-					.status(errorClass.statusCode)
-					.send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);

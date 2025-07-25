@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo, showLocalPopup } from './alert.js';
+import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
 
 export interface Chat {
@@ -40,7 +40,6 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		const chat_id = sessionStorage.getItem('chat_id');
 		if (!chat_id) {
 			showLocalError('Chat ID not found');
-			console.error('Chat ID not found in sessionStorage');
 			return;
 		}
 		const res = await fetch('/api/chat', {
@@ -72,16 +71,13 @@ searchUser?.addEventListener('input', async () => {
 	if (!res.ok) {
 		return showLocalError(data.error);
 	}
-	console.log('data = ', data);
 	const input = searchUser.value.trim().toLowerCase();
-	console.log('input = ', input);
 	if (input === '') {
 		return await getChats();
 	}
 	const userList = document.getElementById('userList');
 	if (!userList) {
 		showLocalError('User list element not found');
-		console.error('User list element not found');
 		return;
 	}
 	userList.innerHTML = '';
@@ -105,8 +101,9 @@ export function appendToChatBox(rawMessage: string) {
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
+		if (msg.blocked) return;
 		showLocalInfo(
-			`New Chat form ${msg.fromUserName}`,
+			`You recived a new Msg from ${msg.fromUserName}`,
 			`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
 		);
 		return;
@@ -122,11 +119,11 @@ export function appendToChatBox(rawMessage: string) {
 			return;
 		}
 	}
-	showLocalPopup({
-		title: 'New Msg',
-		description: `You recived a new Msg from ${msg.fromUserName} in Group ${msg.chatName}`,
-		color: 'blue',
-	});
+	if (msg.blocked) return;
+	showLocalInfo(
+		`You recived a new Msg from ${msg.fromUserName}`,
+		`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+	);
 }
 
 export async function getChats() {
@@ -156,7 +153,6 @@ export async function getChats() {
 export async function getMessages(chat_id: string | null) {
 	if (!chat_id || chat_id === '0') {
 		showLocalError('Invalid chat ID');
-		console.error('Invalid chat ID:', chat_id);
 		return;
 	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);

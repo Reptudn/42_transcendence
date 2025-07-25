@@ -12,6 +12,7 @@ import {
 } from '../../../services/database/chat';
 import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
+import { normError } from './utils';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -30,7 +31,7 @@ export async function sendMsg(fastify: FastifyInstance) {
 				);
 
 				if (!fromUser)
-					return res.status(400).send({ error: 'User not found' }); // TODO Error msg
+					return res.status(400).send({ error: 'User not found' });
 
 				if (body.message.startsWith('/')) {
 					await checkCmd(fastify, body, fromUser.id);
@@ -38,18 +39,20 @@ export async function sendMsg(fastify: FastifyInstance) {
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 
-				const user = await getParticipantFromSql(fastify, fromUser.id, body.chat);
+				const user = await getParticipantFromSql(
+					fastify,
+					fromUser.id,
+					body.chat
+				);
 				if (!user)
-					throw new HttpError(400, 'User not Participant');
+					return res.status(400).send({ error: 'User is no Participant' });
 
 				const chatInfo = await getChatFromSql(fastify, body.chat);
 
-				// sind alle user die ich geblockt habe
 				const blocked = await getAllBlockerUser(fastify, fromUser.id);
 
 				const blockedId = blocked.map((b) => b.blocked_id);
 
-				// sind all user die mich blockiert haben
 				const blocker = await getAllBlockedUser(fastify, fromUser.id);
 
 				const blockerId = blocker.map((b) => b.blocker_id);
@@ -85,8 +88,8 @@ export async function sendMsg(fastify: FastifyInstance) {
 					);
 				}
 			} catch (err) {
-				const errorClass = err as HttpError;
-				res.status(errorClass.statusCode).send({ error: errorClass.msg });
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -99,14 +102,14 @@ function sendMsgGroup(
 	blockerId: number[],
 	content: string
 ): void {
-	// wenn fromUser die Person blockiert hat kommt sende ich die nachricht normal
+	// wenn fromUser die Person blockiert hat sende ich die nachricht normal
 	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
 		if (connectedClients.has(user.user_id)) {
 			let msg: htmlMsg;
 			if (blockerId.includes(user.user_id)) {
-				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked');
-			} else msg = createHtmlMsg(fromUser, chatInfo, content);
+				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked', true);
+			} else msg = createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
@@ -128,7 +131,7 @@ function sendMsgDm(
 	const user = toUser.filter((b) => b.user_id !== fromUser.id);
 
 	if (!blockedId.includes(user[0].user_id)) {
-		const msg = createHtmlMsg(fromUser, chatInfo, content);
+		const msg = createHtmlMsg(fromUser, chatInfo, content, false);
 		if (!blockerId.includes(user[0].user_id)) {
 			if (connectedClients.has(user[0].user_id)) {
 				const toUser = connectedClients.get(user[0].user_id);
@@ -151,13 +154,15 @@ function sendMsgDm(
 export function createHtmlMsg(
 	fromUser: User | null,
 	chatInfo: Chat | null,
-	msgContent: string
+	msgContent: string,
+	msgBlocked: boolean
 ) {
 	const msg: htmlMsg = {
 		fromUserName: '',
 		chatName: '',
 		chatId: 0,
 		htmlMsg: '',
+		blocked: msgBlocked,
 	};
 	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';

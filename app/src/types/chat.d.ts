@@ -30,4 +30,5 @@ export interface htmlMsg {
 	chatName: string;
 	chatId: number;
 	htmlMsg: string;
+	blocked: boolean;
 }
