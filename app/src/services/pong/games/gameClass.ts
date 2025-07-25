@@ -10,6 +10,7 @@ import { removeGame } from './games';
 import ejs from 'ejs';
 import { getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
+import { saveCompletedGame } from '../../database/games';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -227,6 +228,14 @@ export class Game {
 	endGame(end_message: string) {
 		console.log(`Ending game ${this.gameId} with message: ${end_message}`);
 
+		(async () => {
+			try {
+				await saveCompletedGame(this, this.fastify);
+			} catch (_e) {
+				// already logged inside saveCompletedGame
+			}
+		})();
+
 		// this occurs when the game ends because its actually over because someone won or the admin left as of now
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
@@ -239,8 +248,6 @@ export class Game {
 				})
 			);
 		}
-
-		// TODO: add some game ending logic like adding everything to the db and such
 
 		removeGame(this.gameId);
 	}
