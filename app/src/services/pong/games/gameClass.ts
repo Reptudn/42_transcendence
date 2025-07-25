@@ -226,7 +226,7 @@ export class Game {
 
 	// when null if given it means the game end because no players were left
 	async endGame(end_message: string) {
-		console.log(`Ending game ${this.gameId} with message: ${end_message}`);
+		this.fastify.log.info(`Ending game ${this.gameId} with message: ${end_message}`);
 
 		(async () => {
 			try {
