@@ -134,13 +134,15 @@ export default fp(async (fastify) => {
 		`);
 		await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS game_results (
-				game_id    INTEGER NOT NULL,
-				player_id  INTEGER NOT NULL,      -- per-game slot index
-				user_id    INTEGER,               -- nullable real user.id; NULL for AI/Local
-				place      INTEGER NOT NULL,      -- 1=winner,2=runner-up, etc.
+				game_id     INTEGER NOT NULL,
+				player_id   INTEGER NOT NULL,
+				user_id     INTEGER,               -- nullable real user.id
+				player_type TEXT    NOT NULL,      -- 'User' | 'Local' | 'AI'
+				ai_level    INTEGER DEFAULT NULL,  -- only for AI, NULL otherwise
+				place       INTEGER NOT NULL,      -- 1=winner,2=runner-up,...
 				FOREIGN KEY (game_id)   REFERENCES completed_games(id) ON DELETE CASCADE,
 				FOREIGN KEY (user_id)   REFERENCES users(id)           ON DELETE CASCADE,
-				PRIMARY KEY   (game_id, player_id)
+				PRIMARY KEY (game_id, player_id)
 			);
 		`);
 

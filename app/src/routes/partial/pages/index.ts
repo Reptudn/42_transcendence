@@ -14,6 +14,7 @@ import { checkAuth } from '../../../services/auth/auth';
 import { runningGames } from '../../../services/pong/games/games';
 import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
 import { UserPlayer } from '../../../services/pong/games/playerClass';
+import { getUserRecentGames } from '../../../services/database/games';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -105,9 +106,12 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['achievements'] = achievements;
 					variables['unlockedCount'] = unlockedAchievements.length;
 					variables['totalCount'] = allAchievements.length;
-
-					let friends = await getFriends(profile.id, fastify);
-					variables['friends'] = friends;
+					variables['friends'] = await getFriends(profile.id, fastify);
+					variables['games'] = await getUserRecentGames(
+						profileId,
+						5,
+						fastify
+					);
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {

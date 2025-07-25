@@ -225,7 +225,7 @@ export class Game {
 	}
 
 	// when null if given it means the game end because no players were left
-	endGame(end_message: string) {
+	async endGame(end_message: string) {
 		console.log(`Ending game ${this.gameId} with message: ${end_message}`);
 
 		(async () => {
