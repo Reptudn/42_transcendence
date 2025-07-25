@@ -159,11 +159,15 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					const admin = existingGame.players.find(
 						(p) => p instanceof UserPlayer && p.user.id == user.id
 					);
+					const players = [];
+					for (const player of existingGame.players) {
+						players.push(player.formatStateForClients());
+					}
 					if (!admin) throw new Error('No Admin found!');
 					admin.joined = true;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;
-					variables['players'] = existingGame.players;
+					variables['players'] = players;
 					variables['gameSettings'] = existingGame.config;
 
 					const maps = await getAvailableMaps(fastify);

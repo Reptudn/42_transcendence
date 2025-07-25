@@ -35,6 +35,20 @@ setInterval(async () => {
 				});
 			}
 		}
+
+		// send updated game state to clients
+		for (const player of game.players) {
+			if (player instanceof UserPlayer && !player.wsocket) continue;
+			player instanceof UserPlayer &&
+				player.wsocket &&
+				player.wsocket.send(
+					JSON.stringify({
+						type: 'state',
+						state: game.formatStateForClients(),
+					})
+				);
+		}
+
 		if (playersAliveAfter.length <= 1) {
 			if (playersAliveAfter.length === 1) {
 				const winner = playersAliveAfter[0];
@@ -44,17 +58,6 @@ setInterval(async () => {
 				});
 			}
 			game.endGame('Game ended, no players left.');
-			continue;
-		}
-
-		// send updated game state to clients
-		for (const player of game.players) {
-			if (player instanceof UserPlayer && !player.wsocket) continue;
-			player instanceof UserPlayer &&
-				player.wsocket &&
-				player.wsocket.send(
-					JSON.stringify({ type: 'state', state: game.gameState })
-				);
 		}
 	}
 }, 1000 / ticksPerSecond);

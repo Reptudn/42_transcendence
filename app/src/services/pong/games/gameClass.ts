@@ -92,20 +92,14 @@ export class Game {
 		await this.updateLobbyState();
 	}
 
-	async addAiPlayer(name: string, aiLevel: number) {
+	async addAiPlayer(aiLevel: number) {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
 		if (this.players.length > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const aiPlayer = new AiPlayer(
-			this.players.length,
-			this,
-			name,
-			'AI',
-			aiLevel
-		);
+		const aiPlayer = new AiPlayer(this.players.length, this, aiLevel);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
 		await this.updateLobbyState();
@@ -195,15 +189,17 @@ export class Game {
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
+		const players = this.players.map((player) => player.formatStateForClients());
+
 		const adminHtml = await ejs.renderFile('./app/pages/game_setup.ejs', {
-			players: this.players,
+			players: players,
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
 		});
 
 		const lobbyHtml = await ejs.renderFile('./app/pages/lobby.ejs', {
-			players: this.players,
+			players: players,
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
@@ -256,5 +252,12 @@ export class Game {
 			}
 		}
 		return true;
+	}
+
+	formatStateForClients() {
+		return {
+			...this.gameState,
+			players: this.players.map((player) => player.formatStateForClients()),
+		};
 	}
 }

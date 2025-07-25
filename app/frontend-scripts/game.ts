@@ -22,7 +22,7 @@ ws.onerror = (error) => {
 
 ws.onclose = (event) => {
 	console.log('WebSocket closed:', event.code, event.reason);
-	
+
 	// Handle different close codes from your backend
 	switch (event.code) {
 		case 1008: // Policy violation (your custom error codes)
@@ -38,14 +38,14 @@ ws.onclose = (event) => {
 			showLocalInfo('Server is shutting down!');
 			loadPartialView('profile');
 			break;
-			
+
 		// case 1006:
 		// 	showLocalError('Connection lost unexpectedly. Trying to reconnect...');
 		// 	setTimeout(() => {
 		// 		window.location.reload(); // Simple reconnection strategy
 		// 	}, 1000);
 		// 	break;
-			
+
 		// default:
 		//	// showLocalError('Connection closed unexpectedly');
 		// 	loadPartialView('profile');
@@ -66,6 +66,23 @@ ws.onmessage = (event) => {
 					data.state.meta.size_x,
 					data.state.meta.size_y
 				);
+				const playersList = document.getElementById('playersList');
+				if (!playersList) {
+					return;
+				}
+				playersList.innerHTML = '';
+				for (const player of data.state.players) {
+					const playerItem = document.createElement('li');
+					playerItem.className = 'glow-green';
+					playerItem.innerHTML = `${
+						player.displayName
+					} the <span class="glow-red">${
+						player.playerTitle
+					}</span>(<span class="glow-blue">${player.lives} Lives${
+						player.lives <= 0 ? ' - dead' : ''
+					} (${playerItem.type})</span>)`;
+					playersList.appendChild(playerItem);
+				}
 			}
 		} else if (data.type === 'change_lobby_settings') {
 			const settings = document.getElementById('lobbySettings');
@@ -87,18 +104,14 @@ let rightPressed = false;
 let lastSentDirection = 0;
 
 window.addEventListener('keydown', (e) => {
-	if (e.key === 'ArrowLeft')
-		leftPressed = true;
-	
-	if (e.key === 'ArrowRight')
-		rightPressed = true;
+	if (e.key === 'ArrowLeft') leftPressed = true;
+
+	if (e.key === 'ArrowRight') rightPressed = true;
 });
 
 window.addEventListener('keyup', (e) => {
-	if (e.key === 'ArrowLeft')
-		leftPressed = false;
-	if (e.key === 'ArrowRight')
-		rightPressed = false;
+	if (e.key === 'ArrowLeft') leftPressed = false;
+	if (e.key === 'ArrowRight') rightPressed = false;
 });
 
 setInterval(() => {
@@ -128,8 +141,7 @@ window.addEventListener('beforeunload', async () => {
 	}
 });
 
-export async function leaveWsGame()
-{	
+export async function leaveWsGame() {
 	const response = await fetch('/api/games/leave', {
 		method: 'POST',
 	});
@@ -140,8 +152,7 @@ export async function leaveWsGame()
 	}
 
 	showLocalInfo('You have left the game successfully.');
-	if (ws.readyState === WebSocket.OPEN)
-		ws.close(1000, 'Leaving game!');
+	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
 	await loadPartialView('profile');
 }
 

@@ -4,7 +4,7 @@ import { open, Database } from 'sqlite';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const achievementsData = JSON.parse(
+export const achievementsData = JSON.parse(
 	fs.readFileSync(path.resolve(__dirname, '../../data/achievements.json'), 'utf-8')
 );
 import { FastifyInstance } from 'fastify';
