@@ -3,7 +3,7 @@
 	<button onclick="leaveWsGame()">Leave Game</button>
 	<canvas id="gameCanvas" width="500" height="500" class="glow-rainbow-border"></canvas>
 	<p>Players:</p>
-	<ul>
+	<ul id="playersList">
 		<% players.forEach(player => { %>
 			<li class="glow-green"><%= player.displayName %> the <span class="glow-red"><%= player.playerTitle %></span>(<span class="glow-blue"><%= player.lives %></span>)</li>
 		<% }); %>

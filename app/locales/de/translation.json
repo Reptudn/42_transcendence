@@ -49,7 +49,9 @@
 		"remove": "Entfernen",
 		"add_friends": "Mehr Freunde hinzufügen",
 		"locked_achievements": "Gesperrte Erfolge",
-		"achievements": "Erfolge"
+		"achievements": "Erfolge",
+		"match_history": "Spiel Historie",
+		"no_match_history": "Noch keine Runden gespielt."
 	},
 	"edit_profile": {
 		"edit_profile": "Profil bearbeiten",

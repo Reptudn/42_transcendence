@@ -1,4 +1,5 @@
-import { Game } from "./gameClass";
+import { Game } from './gameClass';
+import { getRandomUserTitle } from '../../database/users';
 import { WebSocket as WSWebSocket } from 'ws';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -38,6 +39,24 @@ export abstract class Player {
 	}
 
 	abstract isReady(): boolean;
+
+	formatStateForClients() {
+		return {
+			playerId: this.playerId,
+			displayName: this.displayName,
+			playerTitle: this.playerTitle,
+			lives: this.lives,
+			joined: this.joined,
+			type:
+				this instanceof UserPlayer
+					? 'User'
+					: this instanceof LocalPlayer
+					? 'Local'
+					: this instanceof AiPlayer
+					? 'AI'
+					: 'Unknown',
+		};
+	}
 }
 
 export class UserPlayer extends Player {
@@ -75,16 +94,10 @@ export class AiPlayer extends Player {
 	public aiMoveCoolDown: number;
 	public aiBrainData: AIBrainData;
 
-	constructor(
-		id: number,
-		game: Game,
-		name: string,
-		title: string,
-		aiLevel: number
-	) {
+	constructor(id: number, game: Game, aiLevel: number) {
 		// probably temp random ai names
-		name = getRandomDefaultName();
-		super(id, game.config.playerLives, name, title);
+		const name = getRandomDefaultName();
+		super(id, game.config.playerLives, name, getRandomUserTitle(aiLevel > 3));
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = {
 			aiLastBallDistance: 0,
@@ -104,12 +117,7 @@ export class LocalPlayer extends Player {
 
 	// TODO: better way to handle local player with custom names
 	constructor(id: number, owner: UserPlayer, game: Game) {
-		super(
-			id,
-			game.config.playerLives,
-			`${owner.displayName} (Local)`,
-			'Local'
-		);
+		super(id, game.config.playerLives, `${owner.displayName} (Local)`, 'Local');
 		this.owner = owner;
 	}
 

@@ -4,13 +4,10 @@ import { showLocalError, showLocalInfo } from './alert.js';
 
 window.sessionStorage.setItem('ingame', 'lobby');
 
-export function updatePage(html: string)
-{
+export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
-	if (lobbyContainer)
-		lobbyContainer.innerHTML = html;
-	else
-		showLocalError('Failed to update lobby due to missing lobby div.');
+	if (lobbyContainer) lobbyContainer.innerHTML = html;
+	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 export async function addLocalPlayer() {
@@ -37,9 +34,7 @@ export async function leaveGame() {
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(
-			`${error.error || 'Failed to leave game: Unknown error'}`
-		);
+		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
 	}
 }
 

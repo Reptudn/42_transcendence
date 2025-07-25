@@ -8,9 +8,16 @@ interface GameObject {
 	name: string;
 	playerNbr?: number;
 	shape: Point[];
+
+	// ball specific properties
 	velocity?: { x: number; y: number };
 	center?: Point;
 	radius?: number;
+
+	// damage area specific properties
+	overlapping_ball?: boolean;
+
+	// paddle specific properties
 	anchor1?: Point;
 	anchor2?: Point;
 }
