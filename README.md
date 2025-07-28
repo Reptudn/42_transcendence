@@ -5,8 +5,8 @@
 ### With Docker
 
 1. Have docker running
-2. Run `docker build -t transcendence .`
-3. Start with `docker run -p 3000:3000 transcendence:latest`
+2. Run `make` to see all the available commands
+3. Basic start with `make start`
 4. Have fun ponging :D
 
 ### Without Docker

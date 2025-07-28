@@ -10,7 +10,7 @@ RUN npm install
 
 ENV NODE_ENV=production
 
-RUN npm prune --omit=dev # when removing all dev deps it wont start anymore
+RUN npm prune --omit=dev
 
 EXPOSE 3000
 
