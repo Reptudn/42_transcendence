@@ -7,7 +7,7 @@ export let runningGames: Game[] = [];
 
 export function removeGame(gameId: number) {
 	// log all content stringified of the ame to be deleted
-	fastify.log.info({ game: runningGames.find((g) => g.gameId === gameId) }, 'Removing game');
+	// fastify.log.info({ game: runningGames.find((g) => g.gameId === gameId) }, 'Removing game');
 	runningGames = runningGames.filter((game) => game.gameId !== gameId);
 }
 
