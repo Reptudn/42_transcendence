@@ -4,14 +4,20 @@ RUN apt-get update && apt-get upgrade -y && apt-get autoclean -y && apt-get auto
 
 WORKDIR /app
 
-# Copy source code
-COPY . .
+COPY package*.json ./
 
-RUN mkdir -p /app/data
-
-# Install dependencies
 RUN npm install
+
+COPY app/ ./app/
+COPY tsconfig.json ./
+
+RUN mkdir -p /app/db
+
+RUN npm run build:ts
+
+ENV NODE_ENV=production
+# RUN npm prune --omit=dev # when removing all dev deps it wont start anymore
 
 EXPOSE 3000
 
-CMD [ "npm", "run", "start" ]
+ENTRYPOINT [ "npm", "run", "start" ]

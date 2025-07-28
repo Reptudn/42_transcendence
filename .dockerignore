@@ -1,3 +1,37 @@
 app/node_modules/
 app/dist/
 app/public/js/
+*.pdf
+*.md
+.vscode/
+.idea/
+
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+README.md
+.nyc_output
+coverage
+.coverage
+*.log
+.DS_Store
+dist
+
+# **/*
+
+# !*.ejs
+# !*.json
+# !*.ts
+# !*.png
+# !*.css
+# !*.ico
+# !*.jpg
+# !*.gif
