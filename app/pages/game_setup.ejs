@@ -61,7 +61,8 @@
 							<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
 							<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
 							<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
-							<% if (player.playerId !== 1) { %> <!-- 1 is the admin -->
+							<h3 class="glow-purple">Type: <%= player.type || 'Unknown' %></h3>
+							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
 								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
 						</div>

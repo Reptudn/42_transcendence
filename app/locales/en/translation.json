@@ -49,7 +49,9 @@
 		"remove": "Remove",
 		"add_friends": "Add Friends",
 		"locked_achievements": "Locked Achievements",
-		"achievements": "Achievements"
+		"achievements": "Achievements",
+		"match_history": "Match History",
+		"no_match_history": "No matches played yet."
 	},
 	"edit_profile": {
 		"edit_profile": "Edit Your Profile",
