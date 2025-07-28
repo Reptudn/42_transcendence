@@ -92,5 +92,15 @@
 		"add_player": "Add Player",
 		"remove_player": "Remove Player",
 		"start_game": "Start Game"
+	},
+	"chat": {
+		"group": "Group successfully created",
+		"block": "User blocked successfully",
+		"unblock": "User get successfully blocked",
+		"invite": "User get successfully invited",
+		"leave": "You have successfully left the group"
+	},
+	"chat_err": {
+		"leave_err": "You not able to leave the {{chatName}} chat"
 	}
 }

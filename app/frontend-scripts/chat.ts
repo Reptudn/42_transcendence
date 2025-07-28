@@ -1,26 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import type { htmlMsg } from '../src/types/chat.js';
-
-export interface Chat {
-	id: string;
-	name: string | null;
-	is_group: boolean;
-	created_at: string;
-}
-
-export interface User {
-	id: number;
-	google_id: string;
-	username: string;
-	password: string;
-	displayname: string;
-	bio: string;
-	profile_picture: string;
-	click_count: number;
-	title_first: number;
-	title_second: number;
-	title_third: number;
-}
+import type { htmlMsg, Chat } from '../src/types/chat.js';
 
 if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
@@ -86,8 +65,8 @@ searchUser?.addEventListener('input', async () => {
 		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				sessionStorage.setItem('chat_id', chat.id);
-				await getMessages(chat.id);
+				sessionStorage.setItem('chat_id', chat.id.toString());
+				await getMessages(chat.id.toString());
 			});
 			butt.textContent = chat.name;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
@@ -139,10 +118,10 @@ export async function getChats() {
 		for (const chat of chats) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				sessionStorage.setItem('chat_id', chat.id);
-				await getMessages(chat.id);
+				sessionStorage.setItem('chat_id', chat.id.toString());
+				await getMessages(chat.id.toString());
 			});
-			if (chat.name === null) butt.textContent = chat.id;
+			if (chat.name === null) butt.textContent = chat.id.toString();
 			else butt.textContent = chat.name;
 			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
 			userList.appendChild(butt);
@@ -164,7 +143,6 @@ export async function getMessages(chat_id: string | null) {
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
-		// showLocalError('Failed to get the chat messages element');
 		return;
 	}
 

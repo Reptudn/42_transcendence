@@ -91,5 +91,12 @@
 		"add_player": "Ajouter un joueur",
 		"remove_player": "Supprimer un joueur",
 		"start_game": "Démarrer le jeu"
+	},
+	"chat": {
+		"group": "Groupe créé avec succès",
+		"block": "Utilisateur bloqué avec succès",
+		"unblock": "L'utilisateur a été bloqué avec succès",
+		"invite": "L'utilisateur a été invité avec succès",
+		"leave": "Vous avez quitté le groupe avec succès."
 	}
 }

@@ -5,10 +5,11 @@ import { getUserById } from '../../../services/database/users';
 import {
 	getChatFromSql,
 	addToParticipants,
-	deleteUserFromChaParticipants,
+	deleteUserFromChatParticipants,
 	getAllParticipantsFromSql,
 	HttpError,
 	removeChat,
+	getAllBlockerUser,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
 
@@ -19,6 +20,10 @@ export async function inviteUserToChat(
 	chat_id: number
 ): Promise<void> {
 	await getChatFromSql(fastify, chat_id);
+	const Blocked = await getAllBlockerUser(fastify, formUser);
+	const blockedInt = Blocked.map((block) => block.blocked_id);
+	if (blockedInt.includes(user_id))
+		throw new HttpError(400, 'You have blocked the User');
 	await addToParticipants(fastify, user_id, chat_id);
 	if (formUser === user_id) return;
 	sendPopupToClient(
@@ -65,13 +70,11 @@ export async function leave(
 	const chat = await getChatFromSql(fastify, chat_id);
 
 	if (chat.name === null) {
-		let chatName: string;
-		if (chat.is_group) chatName = 'global';
-		else chatName = 'private';
-		throw new HttpError(400, `You not able to leave the ${chatName} chat`);
+		const chatName = chat.is_group ? 'global' : 'private';
+		throw new HttpError(400, `You not able to leave the ${chatName} chat`, 'leave_err');
 	}
 
-	deleteUserFromChaParticipants(fastify, fromUser, chat_id);
+	deleteUserFromChatParticipants(fastify, fromUser, chat_id);
 
 	const check = await getAllParticipantsFromSql(fastify, chat_id);
 	if (check && check.length === 0) {

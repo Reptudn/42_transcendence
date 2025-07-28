@@ -215,7 +215,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 
 				return res.send({
 					chat_id: chat_id.toString(),
-					msg: 'Group successfully created',
+					msg: req.t('chat.group'),
 				});
 			} catch (err) {
 				const nError = normError(err);
@@ -248,7 +248,7 @@ export async function blockUsers(fastify: FastifyInstance) {
 					return res.status(400).send({ error: 'User already blocked' });
 
 				addToBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
-				return res.status(200).send({ msg: 'User blocked successfully' });
+				return res.status(200).send({ msg: req.t('chat.block') });
 			} catch (err) {
 				const nError = normError(err);
 				return res.status(nError.errorCode).send({ error: nError.errorMsg });
@@ -279,9 +279,7 @@ export async function unblockUsers(fastify: FastifyInstance) {
 				)
 					return res.status(400).send({ error: 'User is not blocked' });
 				deleteFromBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
-				return res
-					.status(200)
-					.send({ msg: 'User get successfully blocked' });
+				return res.status(200).send({ msg: req.t('chat.unblock') });
 			} catch (err) {
 				const nError = normError(err);
 				res.status(nError.errorCode).send({ error: nError.errorMsg });
@@ -314,19 +312,7 @@ export async function inviteUser(fastify: FastifyInstance) {
 
 				await invite(fastify, chat_id, myId, userIdsInt);
 
-				// for (const user of userIdsInt) {
-				// 	sendPopupToClient(
-				// 		fastify,
-				// 		user,
-				// 		'INFO',
-				// 		'You got invited to a new Group',
-				// 		'yellow'
-				// 	);
-				// }
-
-				return res
-					.status(200)
-					.send({ msg: 'User get successfully invited' });
+				return res.status(200).send({ msg: req.t('chat.invite') });
 			} catch (err) {
 				const nError = normError(err);
 				return res.status(nError.errorCode).send({ error: nError.errorMsg });
@@ -350,9 +336,7 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 
 				await leave(fastify, chat_id, userId);
 
-				return res
-					.status(200)
-					.send({ msg: 'You have successfully left the group' });
+				return res.status(200).send({ msg: req.t('chat.leave') });
 			} catch (err) {
 				const nError = normError(err);
 				return res.status(nError.errorCode).send({ error: nError.errorMsg });

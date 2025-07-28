@@ -5,10 +5,12 @@ import { sendPopupToClient } from '../sse/popup';
 export class HttpError {
 	statusCode: number;
 	msg: string;
+	translation?: string;
 
-	constructor(code: number, msg: string) {
+	constructor(code: number, msg: string, translation?: string) {
 		this.statusCode = code;
 		this.msg = msg;
+		this.translation = translation;
 	}
 }
 
@@ -112,7 +114,7 @@ export async function getChatFromSql(
 		'SELECT id, name, is_group, created_at FROM chats WHERE id = ?',
 		[chatId]
 	)) as Chat | null;
-	if (!chat) throw new HttpError(400, 'Chat not found');
+	if (!chat) throw new HttpError(404, 'Chat not found');
 	return chat;
 }
 
@@ -125,8 +127,7 @@ export async function saveNewChatInfo(
 		'INSERT INTO chats (name, is_group) VALUES (?, ?)',
 		[groupName, is_group]
 	);
-	if (chat.changes !== 0 && typeof chat.lastID === 'number')
-		return chat.lastID;
+	if (chat.changes !== 0 && typeof chat.lastID === 'number') return chat.lastID;
 	throw new HttpError(400, 'Failed to save the Chat');
 }
 
@@ -194,7 +195,7 @@ export async function deleteFromBlockedUsers(
 	);
 }
 
-export async function deleteUserFromChaParticipants(
+export async function deleteUserFromChatParticipants(
 	fastify: FastifyInstance,
 	userId: number,
 	chatId: number

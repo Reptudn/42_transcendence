@@ -255,4 +255,7 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 		return;
 	}
 	showLocalInfo(data.msg);
+	sessionStorage.setItem('chat_id', '1');
+	await getMessages('1');
+	await getChats();
 });

@@ -92,5 +92,12 @@
 		"add_player": "Spieler hinzufügen",
 		"remove_player": "Spieler entfernen",
 		"start_game": "Spiel starten"
+	},
+	"chat": {
+		"group": "Gruppe Erfolgreich erstellt",
+		"block": "Benutzer erfolgreich gesperrt",
+		"unblock": "Benutzer wurde erfolgreich gesperrt",
+		"invite": "Benutzer wurde erfolgreich eingeladen",
+		"leave": "Sie haben die Gruppe erfolgreich verlassen"
 	}
 }
