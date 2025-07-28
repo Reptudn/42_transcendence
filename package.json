@@ -7,7 +7,7 @@
 		"test": "test"
 	},
 	"scripts": {
-		"start": "npm run build:ts && fastify start --address 0.0.0.0 -l info app/dist/app.js",
+		"start": "npm run build:ts && npm run build:frontend && npm run build:css && fastify start --address 0.0.0.0 -l info app/dist/app.js",
 		"build:ts": "tsc",
 		"watch:ts": "tsc -w",
 		"build:frontend": "tsc -p tsconfig.frontend.json",
