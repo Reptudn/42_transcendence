@@ -1,186 +1,185 @@
-// import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
+import type { Database } from 'sqlite';
+import type { Game } from '../pong/games/gameClass';
+import { UserPlayer, AiPlayer, LocalPlayer } from '../pong/games/playerClass';
+import { getUserTitleString } from './users.js';
 
-// export async function createGameInDB(
-// 	owner_id: number,
-// 	fastify: FastifyInstance
-// ): Promise<{ id: number; code: string }> {
-// 	const games = await getUserGames(owner_id, fastify);
-// 	games.forEach((game) => {
-// 		if (game.state === 'Lobby') {
-// 			throw new Error(
-// 				`You already have a game in lobby phase! (${game.id})`
-// 			);
-// 		} else if (game.state === 'Running') {
-// 			throw new Error(`You already have a game running! (${game.id})`);
-// 		}
-// 	});
+export async function saveCompletedGame(
+	game: Game,
+	fastify: FastifyInstance
+): Promise<void> {
+	const db = fastify.sqlite as Database;
+	const settingsJson = JSON.stringify(game.config);
 
-// 	let game_code = '';
-// 	let unique = false;
-// 	while (!unique) {
-// 		game_code = '';
-// 		for (let i = 0; i < 4; i++) {
-// 			const randomChar = String.fromCharCode(
-// 				Math.floor(Math.random() * 26) + 65 // A-Z
-// 			);
-// 			game_code += randomChar;
-// 		}
-// 		const existing = await fastify.sqlite.get(
-// 			'SELECT id FROM games WHERE code = ? AND state != ?',
-// 			[game_code, 'Ended']
-// 		);
-// 		if (!existing) {
-// 			unique = true;
-// 		}
-// 	}
-// 	const result = await fastify.sqlite.run(
-// 		'INSERT INTO games (owner_id, code) VALUES (?, ?)',
-// 		[owner_id, game_code]
-// 	);
+	await db.exec('BEGIN TRANSACTION');
+	try {
+		const res = await db.run(
+			`INSERT INTO completed_games (settings) VALUES (?)`,
+			[settingsJson]
+		);
+		if (!res.lastID) throw new Error('No ID returned for completed_games');
+		const completedGameId = res.lastID;
 
-// 	if (result.lastID === undefined)
-// 		throw new Error('Failed to create game in the database.');
+		const stmt = await db.prepare(`
+			INSERT INTO game_results
+				(game_id, player_id, user_id, player_type, ai_level, place)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`);
 
-// 	return { id: result.lastID, code: game_code }; // last id is the id of the created game + game_code
-// }
+		for (const { playerId, place } of game.results) {
+			const pl = game.players.find((p) => p.playerId === playerId);
+			if (!pl) {
+				fastify.log.warn(
+					`⚠️ Slot ${playerId} missing in game ${game.gameId}`
+				);
+				continue;
+			}
 
-// export async function setGameStatus(
-// 	game_id: number,
-// 	status: 'Lobby' | 'Running' | 'Ended',
-// 	fastify: FastifyInstance
-// ) {
-// 	const result = await fastify.sqlite.run(
-// 		'UPDATE games SET state = ? WHERE id = ?',
-// 		[status, game_id]
-// 	);
+			let userId: number | null = null;
+			let playerType = 'Unknown';
+			let aiLevel: number | null = null;
 
-// 	if (result.changes === undefined)
-// 		throw new Error('Failed to update game status in the database.');
+			if (pl instanceof UserPlayer) {
+				userId = pl.user.id;
+				playerType = 'User';
+			} else if (pl instanceof LocalPlayer) {
+				userId = pl.owner.user.id;
+				playerType = 'Local';
+			} else if (pl instanceof AiPlayer) {
+				playerType = 'AI';
+				aiLevel = pl.aiMoveCoolDown;
+			}
 
-// 	return result.changes > 0;
-// }
+			await stmt.run([
+				completedGameId,
+				playerId,
+				userId,
+				playerType,
+				aiLevel,
+				place,
+			]);
+		}
 
-// export async function addUserToGame(
-// 	game_id: number,
-// 	user_id: number,
-// 	fastify: FastifyInstance
-// ) {
-// 	try {
-// 		const res = await fastify.sqlite.get(
-// 			'SELECT status FROM games WHERE game_id = ?',
-// 			[game_id]
-// 		);
+		await stmt.finalize();
+		await db.exec('COMMIT');
+		fastify.log.info(`✅ Game ${game.gameId} saved (#${completedGameId})`);
+	} catch (err) {
+		await db.exec('ROLLBACK');
+		fastify.log.error(`❌ Failed to save completed game ${game.gameId}:`, err);
+		throw err;
+	}
+}
 
-// 		if (res && res.state !== 'Lobby')
-// 			throw new Error('Cannot add user to a running game!');
+export interface GamePlayerSummary {
+	playerId: number;
+	place: number;
+	userId: number | null;
+	displayname: string | null;
+	username: string | null;
+	title: string | null; // now correct per‐place title
+	playerType: 'User' | 'Local' | 'AI' | 'Unknown';
+	aiLevel: number | null;
+}
 
-// 		const result = await fastify.sqlite.run(
-// 			`INSERT INTO game_participants (game_id, user_id) VALUES (?, ?)`,
-// 			[game_id, user_id]
-// 		);
+export interface CompletedGameSummary {
+	gameId: number;
+	endedAt: string;
+	players: GamePlayerSummary[];
+}
 
-// 		if (result.changes === undefined)
-// 			throw new Error('Failed to add user to game in the database.');
+/**
+ * Fetch a user’s most recent completed games, with each player’s correct title.
+ */
+export async function getUserRecentGames(
+	userId: number,
+	maxResults: number,
+	fastify: FastifyInstance
+): Promise<CompletedGameSummary[]> {
+	const db = fastify.sqlite as any;
 
-// 		return result.changes > 0;
-// 	} catch (err: any) {
-// 		if (err.message.includes('UNIQUE'))
-// 			throw new Error(`User ${user_id} is already in game ${game_id}`);
+	// 1️⃣ get the last N game IDs where this user finished
+	const recentGameIds: Array<{ game_id: number }> = await db.all(
+		`
+    SELECT cg.id AS game_id
+      FROM completed_games cg
+      JOIN game_results gr ON gr.game_id = cg.id
+     WHERE gr.user_id = ?
+     GROUP BY cg.id
+     ORDER BY cg.ended_at DESC
+     LIMIT ?
+    `,
+		userId,
+		maxResults
+	);
+	if (recentGameIds.length === 0) return [];
 
-// 		throw new Error('Failed to add user to game. Please try again.');
-// 	}
-// }
+	// 2️⃣ pull every player record for those games
+	const placeholders = recentGameIds.map(() => '?').join(',');
+	const gamesParam = recentGameIds.map((r) => r.game_id);
+	const playerRecords: Array<{
+		game_id: number;
+		ended_at: string;
+		player_id: number;
+		place: number;
+		player_type: string;
+		ai_level: number | null;
+		user_id: number | null;
+		displayname: string | null;
+		username: string | null;
+	}> = await db.all(
+		`
+    SELECT
+      cg.id           AS game_id,
+      cg.ended_at     AS ended_at,
+      gr.player_id    AS player_id,
+      gr.place        AS place,
+      gr.player_type  AS player_type,
+      gr.ai_level     AS ai_level,
+      u.id            AS user_id,
+      u.displayname   AS displayname,
+      u.username      AS username
+    FROM completed_games cg
+    JOIN game_results gr ON gr.game_id = cg.id
+    LEFT JOIN users u    ON gr.user_id = u.id
+    WHERE cg.id IN (${placeholders})
+    ORDER BY cg.ended_at DESC, gr.place ASC
+    `,
+		...gamesParam
+	);
 
-// export async function removeUserFromGame(
-// 	game_id: number,
-// 	user_id: number,
-// 	fastify: FastifyInstance
-// ) {
-// 	const result = await fastify.sqlite.run(
-// 		`DELETE FROM game_participants WHERE game_id = ? AND user_id = ?`,
-// 		[game_id, user_id]
-// 	);
-// 	if (result.changes === 0)
-// 		throw new Error(`User ${user_id} is not in game ${game_id}`);
+	// 3️⃣ group into summaries
+	const summaryMap = new Map<number, CompletedGameSummary>();
+	for (const rec of playerRecords) {
+		if (!summaryMap.has(rec.game_id)) {
+			summaryMap.set(rec.game_id, {
+				gameId: rec.game_id,
+				endedAt: rec.ended_at,
+				players: [],
+			});
+		}
+		summaryMap.get(rec.game_id)!.players.push({
+			playerId: rec.player_id,
+			place: rec.place,
+			userId: rec.user_id,
+			displayname: rec.displayname,
+			username: rec.username,
+			title: null, // fill next 🔄
+			playerType: (rec.player_type as any) ?? 'Unknown',
+			aiLevel: rec.ai_level,
+		});
+	}
 
-// 	const game = await fastify.sqlite.get(
-// 		'SELECT state FROM games WHERE id = ?',
-// 		[game_id]
-// 	);
-// 	if (!game || game.state !== 'Lobby') return;
-// 	const participantsCount = await fastify.sqlite.get(
-// 		'SELECT COUNT(*) as count FROM game_participants WHERE game_id = ?',
-// 		[game_id]
-// 	);
-// 	if (participantsCount.count === 0) {
-// 		await fastify.sqlite.run('DELETE FROM games WHERE id = ?', [game_id]);
-// 	}
-// }
+	const summaries = Array.from(summaryMap.values());
 
-// interface UserGame {
-// 	id: number;
-// 	created_at: string;
-// 	state: 'Lobby' | 'Running' | 'Ended';
-// 	owner_id: number;
-// 	score: number;
-// 	joined_at: string;
-// 	winner_id?: number | null;
-// }
-// export async function getUserGames(
-// 	user_id: number,
-// 	fastify: FastifyInstance
-// ): Promise<UserGame[]> {
-// 	return await fastify.sqlite.all<UserGame[]>(
-// 		'SELECT g.id, g.created_at, g.state, g.owner_id, gp.score, gp.joined_at, g.winner_id FROM game_participants gp JOIN games g ON gp.game_id = g.id WHERE gp.user_id = ?',
-// 		[user_id]
-// 	);
-// }
+	// 4️⃣ fetch correct title strings per‐player (honestly, one extra query per finished game… 💩)
+	for (const game of summaries) {
+		for (const p of game.players) {
+			if (p.userId !== null) {
+				// pulls from users.title_first/second/third or achievement titles
+				p.title = await getUserTitleString(p.userId, fastify);
+			}
+		}
+	}
 
-// interface Participant {
-// 	id: number;
-// 	user_id: number;
-// 	score: number;
-// 	joined_at: string;
-// }
-
-// interface Winner extends Participant {}
-
-// interface GameInfo {
-// 	id: number;
-// 	created_at: string;
-// 	state: 'Lobby' | 'Running' | 'Ended';
-// 	owner_id: number;
-// 	participants: Participant[];
-// 	winner: Winner | null;
-// }
-
-// export async function getGameInfo(
-// 	game_id: number,
-// 	fastify: FastifyInstance
-// ): Promise<GameInfo> {
-// 	const game = await fastify.sqlite.get(
-// 		'SELECT id, created_at, state, owner_id FROM games WHERE id = ?',
-// 		[game_id]
-// 	);
-
-// 	if (!game) throw new Error(`Game with ID ${game_id} not found`);
-
-// 	const participants = await fastify.sqlite.all<Participant[]>(
-// 		'SELECT id, user_id, score, joined_at FROM game_participants WHERE game_id = ?',
-// 		[game_id]
-// 	);
-
-// 	const winner = participants.reduce(
-// 		(top, current) => (!top || current.score > top.score ? current : top),
-// 		null as Participant | null
-// 	);
-
-// 	return {
-// 		id: game.id,
-// 		created_at: game.created_at,
-// 		state: game.state,
-// 		owner_id: game.owner_id,
-// 		participants,
-// 		winner,
-// 	};
-// }
+	return summaries;
+}
