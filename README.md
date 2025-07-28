@@ -1,4 +1,19 @@
-# ITS HAPPENING
+# Transcendence
+
+## How to run
+
+### With Docker
+
+1. Have docker running
+2. Run `docker build -t transcendence .`
+3. Start with `docker run -p 3000:3000 transcendence:latest`
+4. Have fun ponging :D
+
+### Without Docker
+
+1. Run `npm install` in the root project directory
+2. Start the server with `npm run start`
+3. Have fun :D
 
 ### map making rules
 

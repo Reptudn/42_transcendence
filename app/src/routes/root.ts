@@ -15,6 +15,10 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			);
 		}
 	);
-};
+
+	fastify.get('/api/health', async (req, reply) => {
+		return reply.send({ status: 'ok' });
+	});
+}
 
 export default root;
