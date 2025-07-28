@@ -34,7 +34,8 @@ export async function sendMsg(fastify: FastifyInstance) {
 					return res.status(400).send({ error: 'User not found' });
 
 				if (body.message.startsWith('/')) {
-					await checkCmd(fastify, body, fromUser.id);
+					const msg = await checkCmd(fastify, body, fromUser.id);
+					return res.status(200).send({ msg: req.t(msg) });
 				}
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
@@ -118,7 +119,7 @@ function sendMsgGroup(
 	}
 }
 
-function sendMsgDm(
+export function sendMsgDm(
 	fromUser: User,
 	toUser: Part[],
 	chatInfo: Chat,

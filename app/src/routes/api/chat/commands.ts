@@ -1,42 +1,54 @@
 import type { FastifyInstance } from 'fastify';
-import { getUserByUsername } from '../../../services/database/users';
-import { sendPopupToClient } from '../../../services/sse/popup';
+import { getUserById, getUserByUsername } from '../../../services/database/users';
 import { invite, leave } from './utils';
-import { HttpError } from '../../../services/database/chat';
+import {
+	HttpError,
+	getChatFromSql,
+	getParticipantFromSql,
+	searchForChatId,
+	getAllBlockerUser,
+	getAllBlockedUser,
+	saveMsgInSql,
+} from '../../../services/database/chat';
 import { getFriends } from '../../../services/database/friends';
-import type { Friend } from '../../../types/chat';
+import { sendMsgDm } from './sendMsg';
 
 export async function checkCmd(
 	fastify: FastifyInstance,
 	body: { chat: number; message: string },
 	fromUser: number
-) {
+): Promise<string> {
 	const parts = body.message.trim().split(' ');
 	const cmd = parts[0];
+	let msg = 'Command executed';
 
 	const args = parts.slice(1, parts.length);
 
-	console.log('cmd = ', cmd);
-	console.log('args = ', args);
-
 	if (args.length > 2) {
-		sendPopupToClient(fastify, fromUser, 'INFO', 'Wrong nbr of args', 'red');
-		return;
+		throw new HttpError(400, 'Too many Command Arguments');
 	}
 
 	switch (cmd) {
 		case '/invite':
 			await inviteCmd(fastify, body.chat, fromUser, args);
+			msg = 'chat.invite';
 			break;
 		case '/msg':
-			break; // TODO great succes;
+			await sendMsgCmd(fastify, fromUser, args);
+			break;
 		case '/leave':
 			await leaveCmd(fastify, body.chat, fromUser, args);
+			msg = 'chat.leave';
+			break;
+		case '/whois':
+			break;
+		case '/help':
+			msg = '/invite<br>/msg</br>/leave<br>/whois</br>';
 			break;
 		default:
-			// invalid command
-			break;
+			throw new HttpError(400, `Invalid Command: ${cmd}`);
 	}
+	return msg;
 }
 
 async function inviteCmd(
@@ -50,9 +62,12 @@ async function inviteCmd(
 		if (!toUser) {
 			throw new HttpError(400, 'User not found');
 		}
-		await invite(fastify, chatID, fromUser, toUser.id);
+		const friends = await getFriends(fromUser, fastify);
+		if (friends.some((user) => user.id === toUser.id))
+			await invite(fastify, chatID, fromUser, toUser.id);
+		else throw new HttpError(400, 'User not found');
 	} else {
-		throw new HttpError(400, 'Wrong nbr of args');
+		throw new HttpError(400, 'Wrong Number of Command Arguments');
 	}
 }
 
@@ -65,9 +80,41 @@ async function leaveCmd(
 	if (args.length === 0) {
 		await leave(fastify, chatId, fromUser);
 	} else {
-		sendPopupToClient(fastify, fromUser, 'INFO', 'Wrong nbr of args', 'red');
-		return;
+		throw new HttpError(400, 'Wrong Number of Command Arguments');
 	}
+}
+
+async function sendMsgCmd(
+	fastify: FastifyInstance,
+	fromUser: number,
+	args: string[]
+) {
+	if (args.length !== 2)
+		throw new HttpError(400, 'Wrong Number of Command Arguments');
+	const user = await getUserById(fromUser, fastify);
+	if (!user) throw new HttpError(400, 'User not found');
+
+	const toUser = await getUserByUsername(args[0], fastify);
+	if (!toUser) throw new HttpError(400, 'User not found');
+
+	const chatId = await searchForChatId(fastify, [user.id, toUser.id]);
+	if (!chatId) throw new HttpError(400, 'Chat not found');
+
+	const chat = await getChatFromSql(fastify, chatId);
+
+	const part = await getParticipantFromSql(fastify, toUser.id, chatId);
+	if (!part) throw new HttpError(400, 'No Participant in Chat');
+
+	const blocked = await getAllBlockerUser(fastify, user.id);
+
+	const blockedId = blocked.map((b) => b.blocked_id);
+
+	const blocker = await getAllBlockedUser(fastify, user.id);
+
+	const blockerId = blocker.map((b) => b.blocker_id);
+
+	sendMsgDm(user, [part], chat, blockedId, blockerId, args[1]);
+	await saveMsgInSql(fastify, user.id, chatId, args[1]);
 }
 
 // TODO Commands

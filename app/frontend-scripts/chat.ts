@@ -29,10 +29,11 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 				message: msg,
 			}),
 		});
+		const data = await res.json();
 		if (!res.ok) {
-			const errorMsg = await res.json();
-			showLocalError(errorMsg.error);
+			return showLocalError(data.error);
 		}
+		if (data.msg !== 'Command executed') showLocalInfo(data.msg);
 	}
 });
 
