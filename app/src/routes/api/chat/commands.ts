@@ -2,6 +2,9 @@ import type { FastifyInstance } from 'fastify';
 import { getUserByUsername } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { invite, leave } from './utils';
+import { HttpError } from '../../../services/database/chat';
+import { getFriends } from '../../../services/database/friends';
+import type { Friend } from '../../../types/chat';
 
 export async function checkCmd(
 	fastify: FastifyInstance,
@@ -45,13 +48,11 @@ async function inviteCmd(
 	if (args.length === 1) {
 		const toUser = await getUserByUsername(args[0], fastify);
 		if (!toUser) {
-			sendPopupToClient(fastify, fromUser, 'INFO', 'User not found', 'red');
-			return;
+			throw new HttpError(400, 'User not found');
 		}
 		await invite(fastify, chatID, fromUser, toUser.id);
 	} else {
-		sendPopupToClient(fastify, fromUser, 'INFO', 'Wrong nbr of args', 'red');
-		return;
+		throw new HttpError(400, 'Wrong nbr of args');
 	}
 }
 

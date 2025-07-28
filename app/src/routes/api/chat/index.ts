@@ -36,9 +36,10 @@ export default chat;
 
 // TODO commands
 // TODO is it oke to invite a user that is not our friend?
+// TODO what if a user gets deleted
+
+// nicht so wichtige
 // TODO If Client not connected send msgs when reconnected implement online offline status
-// TODO Problem when User logged out other user can send him msg
 // TODO check that there are not too many messages because of memory
 // TODO limit the chars per messages e.g. 500
-// TODO what if a user gets deleted
 // TODO translation for error Msgs

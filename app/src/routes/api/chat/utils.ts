@@ -71,7 +71,7 @@ export async function leave(
 
 	if (chat.name === null) {
 		const chatName = chat.is_group ? 'global' : 'private';
-		throw new HttpError(400, `You not able to leave the ${chatName} chat`, 'leave_err');
+		throw new HttpError(400, `You not able to leave the ${chatName} chat`);
 	}
 
 	deleteUserFromChatParticipants(fastify, fromUser, chat_id);

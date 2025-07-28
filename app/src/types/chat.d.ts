@@ -32,3 +32,9 @@ export interface htmlMsg {
 	htmlMsg: string;
 	blocked: boolean;
 }
+
+interface Friend {
+	id: number;
+	username: string;
+	displayname: string;
+}
