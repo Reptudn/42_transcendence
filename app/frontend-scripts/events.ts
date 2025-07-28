@@ -145,9 +145,7 @@ setInterval(
 			setupEventSource();
 		}
 	},
-	window.sessionStorage.getItem('loggedIn') === 'true'
-		? 100
-		: 5000
+	window.sessionStorage.getItem('loggedIn') === 'true' ? 100 : 5000
 );
 
 export async function sendPopup(

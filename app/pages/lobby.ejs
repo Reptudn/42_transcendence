@@ -1,10 +1,10 @@
 <% if (initial)  {%>
 <div class="flex-row">
-	<button onclick="leaveGame()">Leave Game</button>
 	<script src="/static/js/lobby.js" type="module"></script>
 	<div id="lobby">
-<% } %>
-		<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
+		<% } %>
+		<h1 class="text-4xl mt-10 mb-5"><%= ownerName %>'s Game</h1>
+		<button onclick="leaveGame()" class="bg-red-500 px-2 py-2 rounded">Leave Game</button>
 		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl">Lobby Settings</h2>
@@ -27,7 +27,7 @@
 			</div>
 		</div>
 		<br>
-		<button onclick="addLocalPlayer()">Add Local Player</button>
+		<button onclick="addLocalPlayer()" class="bg-blue-500 px-2 py-2 rounded">Add Local Player</button>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>
 			<div id="playerList">
