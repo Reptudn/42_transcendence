@@ -4,7 +4,7 @@
 		<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
 		<button onclick="addAIPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add AI</button>
 		<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Local Player</button>
-		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('game_setup.start_game') %></button>
+		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.start_game') %></button>
 		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
 		<input type="number" name="Difficulty" id="difficulty-input" min="2" max="10" value="5">Game Difficulty</input>
 		<label for="map-select">Map:</label>
@@ -75,5 +75,5 @@
 	</div> <!-- End of page div -->
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
 	<button onclick="leaveGame()">Leave Game</button> 
-	<script type="module" src="/static/js/game_setup.js" defer></script>
+	<script type="module" src="/static/js/lobby_admin.js" defer></script>
 <% } %>

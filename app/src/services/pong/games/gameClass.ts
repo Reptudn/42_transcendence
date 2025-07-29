@@ -192,7 +192,7 @@ export class Game {
 	async updateLobbyState() {
 		const players = this.players.map((player) => player.formatStateForClients());
 
-		const adminHtml = await ejs.renderFile('./app/pages/game_setup.ejs', {
+		const adminHtml = await ejs.renderFile('./app/pages/lobby_admin.ejs', {
 			players: players,
 			gameSettings: this.config,
 			initial: false,
@@ -212,7 +212,7 @@ export class Game {
 			if (player.user.id === this.admin.id)
 				sendSseHtmlByUserId(
 					player.user.id,
-					'game_setup_settings_update',
+					'lobby_admin_settings_update',
 					adminHtml
 				);
 			else

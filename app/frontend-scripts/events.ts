@@ -80,8 +80,8 @@ export function setupEventSource() {
 				// case 'game_admin_request':
 				// 	await acceptGameInvite(data.gameId);
 				// 	break;
-				case 'game_setup_settings_update':
-					import('./game_setup.js')
+				case 'lobby_admin_settings_update':
+					import('./lobby_admin.js')
 						.then(({ updatePage }) => {
 							updatePage(data.html);
 						})

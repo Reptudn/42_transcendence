@@ -39,7 +39,7 @@ export async function createGame()
 
 	const data = await res.json();
 	showLocalInfo(`${data.message} (${data.gameId})`);
-	await loadPartialView('game_setup', true, null, true);
+	await loadPartialView('lobby_admin', true, null, true);
 }
 
 export async function leaveGame()
