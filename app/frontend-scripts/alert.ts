@@ -48,7 +48,7 @@ export function showLocalPopup(data: LocalAlertData) {
 	// </div>
 	// `;
 
-	popupContainer?.insertAdjacentHTML('beforeend', ejs.render(template, data));
+	popupContainer?.insertAdjacentHTML('afterbegin', ejs.render(template, data));
 	// popupContainer?.insertAdjacentHTML('beforeend', template2);
 	updateCloseAllVisibility();
 }

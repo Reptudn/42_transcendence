@@ -7,6 +7,7 @@ import { getUserAchievements } from './achievements.js';
 import { getImageFromLink } from '../google/user.js';
 import type { FastifyInstance } from 'fastify';
 import { inviteUserToChat } from '../../routes/api/chat/utils.js';
+import { achievementsData } from '../../plugins/sqlite.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -405,6 +406,42 @@ export async function getUserTitleString(userId: number, fastify: FastifyInstanc
 		' ' +
 		(await getUserTitle(userId, 3, fastify))
 	);
+}
+
+export function getRandomUserTitle(achievements: boolean): string {
+	let allFirstTitles = [...default_titles_first];
+	let allSecondTitles = [...default_titles_second];
+	let allThirdTitles = [...default_titles_third];
+
+	if (achievements && achievementsData) {
+		allFirstTitles = [
+			...default_titles_first,
+			...achievementsData
+				.map((a: Achievement) => a.title_first)
+				.filter(Boolean),
+		];
+		allSecondTitles = [
+			...default_titles_second,
+			...achievementsData
+				.map((a: Achievement) => a.title_second)
+				.filter(Boolean),
+		];
+		allThirdTitles = [
+			...default_titles_third,
+			...achievementsData
+				.map((a: Achievement) => a.title_third)
+				.filter(Boolean),
+		];
+	}
+
+	const firstTitle =
+		allFirstTitles[Math.floor(Math.random() * allFirstTitles.length)];
+	const secondTitle =
+		allSecondTitles[Math.floor(Math.random() * allSecondTitles.length)];
+	const thirdTitle =
+		allThirdTitles[Math.floor(Math.random() * allThirdTitles.length)];
+
+	return `${firstTitle} ${secondTitle} ${thirdTitle}`;
 }
 
 export async function getUserTitles(

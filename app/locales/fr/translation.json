@@ -48,7 +48,9 @@
 		"remove": "Entfernen",
 		"add_friends": "Ajouter des amis",
 		"locked_achievements": "Succès verrouillés",
-		"achievements": "Succès"
+		"achievements": "Succès",
+		"match_history": "Historique des matchs",
+		"no_match_history": "Aucun match joué pour le moment."
 	},
 	"edit_profile": {
 		"edit_profile": "Editer votre profil",
