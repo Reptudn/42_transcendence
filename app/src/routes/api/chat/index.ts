@@ -34,10 +34,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 export default chat;
 
-// TODO commands
-// TODO is it oke to invite a user that is not our friend?
 // TODO what if a user gets deleted
-// TODO sendMsgCmd Pop gets send also to the user how is sending it
 
 // nicht so wichtige
 // TODO If Client not connected send msgs when reconnected implement online offline status

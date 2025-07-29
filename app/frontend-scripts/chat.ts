@@ -99,7 +99,7 @@ export function appendToChatBox(rawMessage: string) {
 			return;
 		}
 	}
-	if (msg.blocked) return;
+	if (msg.blocked || msg.ownMsg) return;
 	showLocalInfo(
 		`You recived a new Msg from ${msg.fromUserName}`,
 		`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`

@@ -31,6 +31,7 @@ export interface htmlMsg {
 	chatId: number;
 	htmlMsg: string;
 	blocked: boolean;
+	ownMsg: boolean;
 }
 
 interface Friend {

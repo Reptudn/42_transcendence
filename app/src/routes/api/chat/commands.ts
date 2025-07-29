@@ -24,10 +24,6 @@ export async function checkCmd(
 
 	const args = parts.slice(1, parts.length);
 
-	if (args.length > 2) {
-		throw new HttpError(400, 'Too many Command Arguments');
-	}
-
 	switch (cmd) {
 		case '/invite':
 			await inviteCmd(fastify, body.chat, fromUser, args);
@@ -40,10 +36,8 @@ export async function checkCmd(
 			await leaveCmd(fastify, body.chat, fromUser, args);
 			msg = 'chat.leave';
 			break;
-		case '/whois':
-			break;
 		case '/help':
-			msg = '/invite<br>/msg</br>/leave<br>/whois</br>';
+			msg = '/invite<br>/msg</br>/leave';
 			break;
 		default:
 			throw new HttpError(400, `Invalid Command: ${cmd}`);
@@ -89,7 +83,7 @@ async function sendMsgCmd(
 	fromUser: number,
 	args: string[]
 ) {
-	if (args.length !== 2)
+	if (args.length < 2)
 		throw new HttpError(400, 'Wrong Number of Command Arguments');
 	const user = await getUserById(fromUser, fastify);
 	if (!user) throw new HttpError(400, 'User not found');
@@ -113,14 +107,8 @@ async function sendMsgCmd(
 
 	const blockerId = blocker.map((b) => b.blocker_id);
 
-	sendMsgDm(user, [part], chat, blockedId, blockerId, args[1]);
-	await saveMsgInSql(fastify, user.id, chatId, args[1]);
+	args.shift();
+	const msg = args.join(' ');
+	sendMsgDm(user, [part], chat, blockedId, blockerId, msg);
+	await saveMsgInSql(fastify, user.id, chatId, msg);
 }
-
-// TODO Commands
-
-// /invite username
-// /msg username message
-// /leave
-// /whois username
-// /help

@@ -113,6 +113,8 @@ function sendMsgGroup(
 			} else msg = createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
+				if (user.user_id === fromUser.id)
+					msg.ownMsg = true;
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -144,6 +146,7 @@ export function sendMsgDm(
 		if (connectedClients.has(fromUser.id)) {
 			const toUser = connectedClients.get(fromUser.id);
 			if (toUser) {
+				msg.ownMsg = true;
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -164,6 +167,7 @@ export function createHtmlMsg(
 		chatId: 0,
 		htmlMsg: '',
 		blocked: msgBlocked,
+		ownMsg: false,
 	};
 	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';
