@@ -1,8 +1,7 @@
 import {
 	connectedClients,
 	sendSeeMessageByUserId,
-	sendSseHtmlByUserId,
-	sendSseRawByUserId,
+	sendSseHtmlByUserId
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -240,13 +239,7 @@ export class Game {
 		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 			player.disconnect();
-			sendSseRawByUserId(
-				player.user.id,
-				JSON.stringify({
-					type: 'game_closed',
-					message: end_message,
-				})
-			);
+			sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
 		}
 
 		removeGame(this.gameId);

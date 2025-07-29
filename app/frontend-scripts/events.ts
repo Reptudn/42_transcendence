@@ -10,11 +10,16 @@ import { loadPartialView } from './script.js';
 export let notifyEventSource: EventSource | null = null;
 
 const loggedIntervalBase = 100;
-let loggedIntervalIncrement = loggedIntervalBase;
 export function setupEventSource() {
-	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
-		// console.warn('EventSource not set up because user is not logged in');
+	if (window.sessionStorage.getItem('loggedIn') !== 'true')
 		return;
+
+	if (notifyEventSource && notifyEventSource.readyState === EventSource.OPEN)
+		return;
+
+	if (notifyEventSource) {
+		notifyEventSource.close();
+		notifyEventSource = null;
 	}
 
 	notifyEventSource = new EventSource('/events');
@@ -23,20 +28,16 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		showLocalInfo('Server connection closed');
+		setupEventSource();
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		loggedIntervalIncrement *= 3;
-		if (loggedIntervalIncrement > 30000) loggedIntervalIncrement = 30000;
-		showLocalError(
-			`A server connection error occurred!<br>Trying to reconnect in ${loggedIntervalIncrement}ms`
-		);
+		setupEventSource();
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
-		loggedIntervalIncrement = loggedIntervalBase;
 	};
 	notifyEventSource.onmessage = async (event) => {
 		// console.log('EventSource message received:', event);
@@ -146,7 +147,7 @@ setInterval(
 		}
 	},
 	window.sessionStorage.getItem('loggedIn') === 'true'
-		? loggedIntervalIncrement
+		? loggedIntervalBase
 		: 5000
 );
 
