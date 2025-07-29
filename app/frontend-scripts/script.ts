@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { setupEventSource, closeEventSource } from './events.js';
 
 declare global {
 	interface Window {
@@ -91,6 +92,11 @@ export async function loadPartialView(
 
 		const html: string = await response.text();
 
+		if (window.sessionStorage.getItem('loggedIn') !== 'true')
+			closeEventSource();
+		else
+			setupEventSource();
+
 		const contentElement: HTMLElement | null =
 			document.getElementById('content');
 		if (contentElement) {
@@ -148,24 +154,6 @@ export async function loadPartialView(
 		} else {
 			console.warn('Content element not found');
 		}
-
-		// TODO: find a good way to handle it when the user leaves a lobby or a game in any way
-		// alert(`Page: '${page}' and subroute: '${subroute ? subroute : 'NOPE'}'`);
-		// const ingameStatus = window.sessionStorage.getItem('ingame');
-		// if (ingameStatus === 'lobby' && !url.startsWith('/api/games/run?gameId='))
-		// {
-		// 	alert('leaving game because out of lobby');
-		// 	await leaveGame();
-		// }
-		// else if (window.sessionStorage.getItem('ingame') === 'game')
-		// {
-		// 	alert('leaving game out game itself');
-		// 	import('./game.js').then(({ leaveWsGame }) => {
-		// 		leaveWsGame();
-		// 	}).catch((error) => {
-		// 		console.error('Error importing leaveWsGame:', error);
-		// 	});
-		// }
 	
 		updateActiveMenu(page);
 
@@ -181,6 +169,7 @@ export async function loadPartialView(
 				url
 			);
 		}
+
 	} catch (error) {
 		if (error instanceof Error)
 			showLocalError(error.message);

@@ -8,6 +8,13 @@ import {
 import { loadPartialView } from './script.js';
 
 export let notifyEventSource: EventSource | null = null;
+export function closeEventSource()
+{
+	if (!notifyEventSource) return;
+
+	notifyEventSource.close();
+	notifyEventSource = null;
+}
 
 const loggedIntervalBase = 100;
 export function setupEventSource() {
