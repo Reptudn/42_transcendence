@@ -40,8 +40,8 @@ export async function refreshOnlineFriends() {
 			<span class="font-semibold">${friend.displayname}</span>
 			<span class="glow-blue">(@${friend.username})</span>
 		</div>
-		<button 
-			onclick="addUserPlayer(${friend.id})" 
+		<button
+			onclick="addUserPlayer(${friend.id})"
 			class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
 		>
 			Invite Friend
@@ -198,6 +198,17 @@ export function updatePage(html: string) {
 }
 
 await refreshOnlineFriends();
+
+if (window.abortController) {
+	window.abortController.signal.addEventListener(
+		'abort',
+		() => {
+			alert('Game left due to abort');
+			leaveGame();
+		},
+		{ once: true, signal: window.abortController.signal }
+	);
+}
 
 declare global {
 	interface Window {

@@ -158,6 +158,17 @@ export async function leaveWsGame() {
 
 window.leaveWsGame = leaveWsGame;
 
+if (window.abortController) {
+	window.abortController.signal.addEventListener(
+		'abort',
+		() => {
+			alert('Game left due to abort');
+			leaveWsGame();
+		},
+		{ once: true, signal: window.abortController.signal }
+	);
+}
+
 declare global {
 	interface Window {
 		leaveWsGame: () => Promise<void>;

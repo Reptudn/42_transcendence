@@ -38,6 +38,17 @@ export async function leaveGame() {
 	}
 }
 
+if (window.abortController) {
+	window.abortController.signal.addEventListener(
+		'abort',
+		() => {
+			alert('Game left due to abort');
+			leaveGame();
+		},
+		{ once: true, signal: window.abortController.signal }
+	);
+}
+
 declare global {
 	interface Window {
 		updatePage: (html: string) => void;
