@@ -17,6 +17,11 @@ export function closeEventSource()
 }
 
 const loggedIntervalBase = 100;
+export let game_over = false;
+export function setGameOverVar(val: boolean) {
+	game_over = val;
+}
+
 export function setupEventSource() {
 	if (window.localStorage.getItem('loggedIn') !== 'true')
 		return;
@@ -126,6 +131,7 @@ export function setupEventSource() {
 				}
 				case 'game_closed':
 					showLocalInfo(data.message);
+					game_over = true;
 					await loadPartialView('profile', true, null, true);
 					break;
 				case 'chat': {

@@ -1,4 +1,5 @@
 import { showLocalInfo, showLocalError } from './alert.js';
+import { game_over, setGameOverVar } from './events.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 interface Friend {
@@ -7,7 +8,7 @@ interface Friend {
 	displayname: string;
 }
 
-window.localStorage.setItem('ingame', 'lobby');
+setGameOverVar(false);
 
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
@@ -164,6 +165,9 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
+
+	if (game_over) return;
+
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {

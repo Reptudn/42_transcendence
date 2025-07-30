@@ -1,6 +1,9 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { game_over, setGameOverVar } from './events.js';
 import { initCanvas, updateGameState } from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
+
+setGameOverVar(false);
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -10,8 +13,8 @@ const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
 	console.log('WebSocket connection established');
-	window.localStorage.setItem('ingame', 'game');
 	initCanvas();
+	window.startRendering();
 	showLocalInfo('Connected to game server');
 };
 
@@ -21,6 +24,8 @@ ws.onerror = (error) => {
 };
 
 ws.onclose = (event) => {
+	window.stopRendering();
+	clearInterval(input_interval);
 	console.log('WebSocket closed:', event.code, event.reason);
 
 	// Handle different close codes from your backend
@@ -54,6 +59,11 @@ ws.onclose = (event) => {
 };
 
 ws.onmessage = (event) => {
+	if (game_over)
+	{
+		ws.close(1000, 'Game over closing!');
+		return;
+	}
 	try {
 		console.log(event.data);
 		const data = JSON.parse(event.data);
@@ -107,14 +117,14 @@ window.addEventListener('keydown', (e) => {
 	if (e.key === 'ArrowLeft') leftPressed = true;
 
 	if (e.key === 'ArrowRight') rightPressed = true;
-});
+}, { signal: window.abortController?.signal });
 
 window.addEventListener('keyup', (e) => {
 	if (e.key === 'ArrowLeft') leftPressed = false;
 	if (e.key === 'ArrowRight') rightPressed = false;
-});
+}, { signal: window.abortController?.signal });
 
-setInterval(() => {
+const input_interval = setInterval(() => {
 	if (leftPressed && !rightPressed) {
 		if (lastSentDirection !== -1) {
 			ws.send(JSON.stringify({ type: 'move', dir: -1 }));
@@ -133,14 +143,6 @@ setInterval(() => {
 	}
 }, 1000 / 30); // 30 FPS
 
-// This probably wont work because we never actually unload?
-window.addEventListener('beforeunload', async () => {
-	if (ws.readyState === WebSocket.OPEN) {
-		ws.close(1000, 'Page unloading');
-		await leaveWsGame();
-	}
-});
-
 export async function leaveWsGame() {
 	// const response = await fetch('/api/games/leave', {
 	// 	method: 'POST',
@@ -152,13 +154,20 @@ export async function leaveWsGame() {
 	// }
 
 	// showLocalInfo('You have left the game successfully.');
+
+	// if (game_over) return;
+
 	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
-	await loadPartialView('profile');
+	alert("closing websocket");
 }
 
 window.leaveWsGame = leaveWsGame;
 
-onUnloadPageAsync(async() => { await leaveWsGame(); });
+onUnloadPageAsync(async () => {
+	clearInterval(input_interval);
+	window.stopRendering();
+	await leaveWsGame(); 
+});
 
 declare global {
 	interface Window {

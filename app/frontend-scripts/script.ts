@@ -36,7 +36,6 @@ export async function leaveGame() {
 		return;
 	}
 
-	window.localStorage.setItem('ingame', 'nope');
 	showLocalInfo('You have left the game successfully.');
 }
 
