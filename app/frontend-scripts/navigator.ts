@@ -1,5 +1,5 @@
 import { showLocalError } from './alert.js';
-import { setupEventSource, closeEventSource } from './events.js';
+import { setupEventSource } from './events.js';
 
 declare global {
 	interface Window {
@@ -46,7 +46,7 @@ export function onUnloadPageAsync(
 	options?: AddEventListenerOptions
 ) {
 	const signal = getSignal();
-	if (!signal || signal.aborted) return; // ✅ Prevent callback registration if already aborted
+	if (!signal || signal.aborted) return; 
 
 	signal.addEventListener(
 		'abort',
@@ -122,8 +122,7 @@ export async function loadPartialView(
 
 		const html: string = await response.text();
 
-		if (window.localStorage.getItem('loggedIn') !== 'true') closeEventSource();
-		else setupEventSource();
+		setupEventSource();
 
 		const contentElement: HTMLElement | null =
 			document.getElementById('content');
@@ -132,10 +131,6 @@ export async function loadPartialView(
 
 			const scripts = contentElement.querySelectorAll('script');
 			if (scripts && scripts.length > 0) {
-
-				// only call this when not going from
-				// if (!(last_page !== undefined && (last_page === '/partial/pages/lobby' || last_page === '/partial/pages/lobby_admin') && url.startsWith('/api/games/run?gameId=')))
-					
 
 				for (const oldScript of scripts) {
 					const newScript = document.createElement('script');
