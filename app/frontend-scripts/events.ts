@@ -55,7 +55,7 @@ export function setupEventSource() {
 					break;
 				case 'popup':
 					if (popupContainer) {
-						popupContainer.insertAdjacentHTML('beforeend', data.html);
+						popupContainer.insertAdjacentHTML('afterbegin', data.html);
 						updateCloseAllVisibility();
 					} else {
 						console.error('❌ popup-container not found in DOM!');

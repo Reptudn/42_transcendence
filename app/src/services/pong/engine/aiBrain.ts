@@ -50,8 +50,7 @@ export function updateAIMovement(game: Game): void {
 				obj.playerNbr === player.playerId
 		);
 		const paddlePath = game.gameState.objects.find(
-			(obj) =>
-				obj.type === 'paddle_path' && obj.playerNbr === player.playerId
+			(obj) => obj.type === 'paddle_path' && obj.playerNbr === player.playerId
 		);
 		const paddle = game.gameState.objects.find(
 			(obj) => obj.type === 'paddle' && obj.playerNbr === player.playerId
