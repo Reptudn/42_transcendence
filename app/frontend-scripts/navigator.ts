@@ -1,5 +1,6 @@
 import { showLocalError } from './alert.js';
 import { setupEventSource } from './events.js';
+import { initPopups } from './popup.js';
 
 declare global {
 	interface Window {
@@ -78,7 +79,7 @@ export function updateActiveMenu(selectedPage: string): void {
 	document.head.title = `Transcendence: ${selectedPage}`;
 }
 
-let last_page: string | undefined = undefined;
+export let last_page: string | undefined = undefined;
 // the isPartial var can be set to false if for some reason you want to load a partial view from a different route than the base partial route
 export async function loadPartialView(
 	page: string,
@@ -87,7 +88,12 @@ export async function loadPartialView(
 	isPartial: boolean = true
 ): Promise<void> {
 	const token = localStorage.getItem('token');
+	let whole_page = false;
 	const headers: Record<string, string> = { loadpartial: 'true' };
+	if (page.includes('?lng=')) {
+		headers.loadpartial = 'false';
+		whole_page = true;
+	}
 	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
@@ -124,56 +130,20 @@ export async function loadPartialView(
 
 		setupEventSource();
 
-		const contentElement: HTMLElement | null =
-			document.getElementById('content');
-		if (contentElement) {
-			contentElement.innerHTML = html;
-
-			const scripts = contentElement.querySelectorAll('script');
-			if (scripts && scripts.length > 0) {
-
-				for (const oldScript of scripts) {
-					const newScript = document.createElement('script');
-					newScript.noModule = false;
-					newScript.async = true;
-					newScript.defer = true;
-					newScript.type = oldScript.type || 'text/javascript';
-					console.log('Loading script:', oldScript);
-					if (oldScript.src)
-						newScript.src = `${oldScript.src}?cb=${Date.now()}`;
-					// refresh script, force cache break
-					else newScript.text = oldScript.text;
-
-					contentElement.appendChild(newScript);
-
-					oldScript.remove();
-
-					newScript.addEventListener(
-						'load',
-						() => {
-							console.log('Script loaded:', newScript.src);
-						},
-						{
-							signal: window.abortController
-								? window.abortController.signal
-								: undefined,
-						}
-					);
-					newScript.addEventListener(
-						'error',
-						(event) => {
-							console.error('Script error:', newScript.src, event);
-						},
-						{
-							signal: window.abortController
-								? window.abortController.signal
-								: undefined,
-						}
-					);
-				}
-			}
+		if (whole_page) {
+			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
+			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
+			replaceEntireDocument(html);
+			initPopups();
+			setupEventSource();
 		} else {
-			console.warn('Content element not found');
+			const contentElement: HTMLElement | null = document.getElementById('content');
+			if (contentElement) {
+				contentElement.innerHTML = html;
+				await loadScripts(contentElement);
+			} else {
+				console.warn('Content element not found');
+			}
 		}
 
 		updateActiveMenu(page);
@@ -196,6 +166,88 @@ export async function loadPartialView(
 	} catch (error) {
 		if (error instanceof Error) showLocalError(error.message);
 		else showLocalError(`Error fetching partial view: ${error}`);
+	}
+}
+
+function replaceEntireDocument(htmlContent: string): void {
+	// Parse the HTML to extract head and body content
+	const parser = new DOMParser();
+	const newDoc = parser.parseFromString(htmlContent, 'text/html');
+	
+	// Replace the entire document head
+	const newHead = newDoc.head;
+	const currentHead = document.head;
+	
+	// Clear current head (but preserve essential meta tags)
+	const essentialTags = currentHead.querySelectorAll('meta[charset], meta[name="viewport"]');
+	currentHead.innerHTML = '';
+	
+	// Re-add essential tags first
+	essentialTags.forEach(tag => currentHead.appendChild(tag.cloneNode(true)));
+	
+	// Add all new head content
+	Array.from(newHead.children).forEach(child => {
+		// Skip duplicating essential tags
+		if (child.tagName === 'META' && 
+			(child.getAttribute('charset') || child.getAttribute('name') === 'viewport')) {
+			return;
+		}
+		currentHead.appendChild(child.cloneNode(true));
+	});
+	
+	// Replace the entire body
+	const newBody = newDoc.body;
+	document.body.innerHTML = newBody.innerHTML;
+	
+	// Copy body attributes
+	Array.from(newBody.attributes).forEach(attr => {
+		document.body.setAttribute(attr.name, attr.value);
+	});
+	
+	// Load scripts in the new body
+	loadScripts(document.body);
+}
+
+async function loadScripts(container: HTMLElement): Promise<void> {
+	const scripts = container.querySelectorAll('script');
+	if (scripts && scripts.length > 0) {
+		for (const oldScript of scripts) {
+			const newScript = document.createElement('script');
+			newScript.noModule = false;
+			newScript.async = true;
+			newScript.defer = true;
+			newScript.type = oldScript.type || 'text/javascript';
+			console.log('Loading script:', oldScript);
+			
+			if (oldScript.src) {
+				newScript.src = `${oldScript.src}?cb=${Date.now()}`;
+			} else {
+				newScript.text = oldScript.text;
+			}
+
+			container.appendChild(newScript);
+			oldScript.remove();
+
+			newScript.addEventListener(
+				'load',
+				() => {
+					console.log('Script loaded:', newScript.src);
+				},
+				{
+					signal: window.abortController?.signal,
+				}
+			);
+			
+			newScript.addEventListener(
+				'error',
+				(event) => {
+					console.error('Script error:', newScript.src, event);
+				},
+				{
+					signal: window.abortController?.signal,
+				}
+			);
+		}
 	}
 }
 

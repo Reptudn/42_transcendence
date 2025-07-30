@@ -1,8 +1,22 @@
 // ----- Closing Buttons -----
 
-export const popupContainer: HTMLElement | null =
+export let popupContainer: HTMLElement | null =
 	document.getElementById('popup-container');
 if (!popupContainer) console.error('popup-container not found');
+
+let closeAllBtn = document.getElementById('close-all-popups-btn');
+if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
+else console.error('closeAllBtn not found');
+
+export function initPopups()
+{
+	popupContainer = document.getElementById('popup-container');
+	if (!popupContainer) console.error('popup-container not found');
+
+	closeAllBtn = document.getElementById('close-all-popups-btn');
+	if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
+	else console.error('closeAllBtn not found');
+}
 
 export function updateCloseAllVisibility(): void {
 	const closeAllBtn = document.getElementById('close-all-popups-btn');
@@ -41,9 +55,6 @@ export function closeAllPopups(): void {
 		);
 	}
 }
-const closeAllBtn = document.getElementById('close-all-popups-btn');
-if (closeAllBtn) closeAllBtn.addEventListener('click', closeAllPopups);
-else console.error('closeAllBtn not found');
 
 declare global {
 	interface Window {

@@ -143,7 +143,7 @@ const input_interval = setInterval(() => {
 	}
 }, 1000 / 30); // 30 FPS
 
-export async function leaveWsGame() {
+export async function leaveWsGame(manual: boolean = false) {
 	// const response = await fetch('/api/games/leave', {
 	// 	method: 'POST',
 	// });
@@ -158,7 +158,7 @@ export async function leaveWsGame() {
 	// if (game_over) return;
 
 	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
-	alert("closing websocket");
+	if (manual) loadPartialView('profile');
 }
 
 window.leaveWsGame = leaveWsGame;

@@ -33,7 +33,7 @@ export async function leaveGame() {
 	if (res.ok) {
 		const data = await res.json();
 		console.log('Left game:', data);
-		showLocalInfo(`HI ${data.message || 'Left game successfully!'}`);
+		showLocalInfo(`${data.message || 'Left game successfully!'}`);
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);

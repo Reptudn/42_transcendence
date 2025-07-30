@@ -456,7 +456,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const game = runningGames.find((g) => g.gameId === parsedGameId);
 			if (!game) {
-				return reply.code(404).send({ error: 'Game not found' });
+				const isApiRequest = request.headers['content-type']?.includes('application/json') ||
+					request.headers['accept']?.includes('application/json') ||
+					request.headers['x-requested-with'] === 'XMLHttpRequest';
+
+				if (isApiRequest) {
+					// Send JSON error for API requests
+					return reply.code(404).send({ error: 'Game not found' });
+				} else {
+					// Redirect for direct URL access
+					return reply.redirect('/partial/pages/index');
+				}
 			}
 
 			if (game.status !== GameStatus.RUNNING)
