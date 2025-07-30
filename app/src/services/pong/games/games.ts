@@ -50,14 +50,16 @@ setInterval(async () => {
 		}
 
 		if (playersAliveAfter.length <= 1) {
+			let winnerName: string = 'NULL';
 			if (playersAliveAfter.length === 1) {
 				const winner = playersAliveAfter[0];
 				game.results.push({
 					playerId: winner.playerId,
 					place: 1,
 				});
+				winnerName = winner.displayName;
 			}
-			game.endGame('Game ended, no players left.');
+			game.endGame(`Game ended.<br>Winner: ${winnerName}`);
 		}
 	}
 }, 1000 / ticksPerSecond);

@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+html {
+	scroll-behavior: smooth;
+}
+
 @theme {
 	--color-mint-500: oklch(0.72 0.11 178);
 	--color-background-dark: #121212; /* Dark grey */

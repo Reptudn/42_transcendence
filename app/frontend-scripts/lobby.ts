@@ -1,8 +1,8 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { game_over, setGameOverVar } from './events.js';
+import { onUnloadPageAsync } from './navigator.js';
 
-// TODO: handle leave when user just clicks on a different page
-
-window.sessionStorage.setItem('ingame', 'lobby');
+setGameOverVar(false);
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
@@ -26,6 +26,9 @@ export async function addLocalPlayer() {
 }
 
 export async function leaveGame() {
+
+	if (game_over) return;
+
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
 		const data = await res.json();
@@ -37,6 +40,13 @@ export async function leaveGame() {
 		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
 	}
 }
+
+setTimeout(() => {
+	onUnloadPageAsync(async () => {
+		await leaveGame();
+	});
+}, 0);
+
 
 declare global {
 	interface Window {

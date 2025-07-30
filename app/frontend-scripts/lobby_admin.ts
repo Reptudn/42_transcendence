@@ -1,5 +1,6 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { loadPartialView } from './script.js';
+import { game_over, setGameOverVar } from './events.js';
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 interface Friend {
 	id: number;
@@ -7,7 +8,7 @@ interface Friend {
 	displayname: string;
 }
 
-window.sessionStorage.setItem('ingame', 'lobby');
+setGameOverVar(false);
 
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
@@ -40,8 +41,8 @@ export async function refreshOnlineFriends() {
 			<span class="font-semibold">${friend.displayname}</span>
 			<span class="glow-blue">(@${friend.username})</span>
 		</div>
-		<button 
-			onclick="addUserPlayer(${friend.id})" 
+		<button
+			onclick="addUserPlayer(${friend.id})"
 			class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
 		>
 			Invite Friend
@@ -164,6 +165,9 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
+
+	if (game_over) return;
+
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -198,6 +202,8 @@ export function updatePage(html: string) {
 }
 
 await refreshOnlineFriends();
+
+onUnloadPageAsync(async() => { await leaveGame(); });
 
 declare global {
 	interface Window {
