@@ -1,6 +1,6 @@
 import { showLocalInfo, showLocalError } from './alert.js';
+import { loadPartialView } from './navigator.js';
 import './script.js';
-import { loadPartialView } from './script.js';
 
 const registerAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement)
@@ -35,7 +35,7 @@ const registerButton = document.getElementById('registerButton');
 if (registerButton) {
 	console.log('registerButton found');
 	registerButton.addEventListener('click', registerAction, {
-		signal: window.abortController?.signal,
+		// signal: window.abortController?.signal,
 	});
 } else console.error('registerButton not found');
 

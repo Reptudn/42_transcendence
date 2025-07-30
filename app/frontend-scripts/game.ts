@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { initCanvas, updateGameState } from './gameRenderer.js';
-import { loadPartialView } from './script.js';
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -10,7 +10,7 @@ const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
 	console.log('WebSocket connection established');
-	window.sessionStorage.setItem('ingame', 'game');
+	window.localStorage.setItem('ingame', 'game');
 	initCanvas();
 	showLocalInfo('Connected to game server');
 };
@@ -158,16 +158,7 @@ export async function leaveWsGame() {
 
 window.leaveWsGame = leaveWsGame;
 
-if (window.abortController) {
-	window.abortController.signal.addEventListener(
-		'abort',
-		() => {
-			alert('Game left due to abort');
-			leaveWsGame();
-		},
-		{ once: true, signal: window.abortController.signal }
-	);
-}
+onUnloadPageAsync(async() => { await leaveWsGame(); });
 
 declare global {
 	interface Window {

@@ -1,5 +1,5 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { loadPartialView } from './script.js';
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 interface Friend {
 	id: number;
@@ -7,7 +7,7 @@ interface Friend {
 	displayname: string;
 }
 
-window.sessionStorage.setItem('ingame', 'lobby');
+window.localStorage.setItem('ingame', 'lobby');
 
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
@@ -199,16 +199,7 @@ export function updatePage(html: string) {
 
 await refreshOnlineFriends();
 
-if (window.abortController) {
-	window.abortController.signal.addEventListener(
-		'abort',
-		() => {
-			alert('Game left due to abort');
-			leaveGame();
-		},
-		{ once: true, signal: window.abortController.signal }
-	);
-}
+onUnloadPageAsync(async() => { await leaveGame(); });
 
 declare global {
 	interface Window {

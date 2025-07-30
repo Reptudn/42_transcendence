@@ -1,11 +1,11 @@
 // import { updateGameSettings } from "./lobby.js";
 import { showLocalError, showLocalInfo } from './alert.js';
+import { loadPartialView } from './navigator.js';
 import {
 	closeAllPopups,
 	popupContainer,
 	updateCloseAllVisibility,
 } from './popup.js';
-import { loadPartialView } from './script.js';
 
 export let notifyEventSource: EventSource | null = null;
 export function closeEventSource()
@@ -18,7 +18,7 @@ export function closeEventSource()
 
 const loggedIntervalBase = 100;
 export function setupEventSource() {
-	if (window.sessionStorage.getItem('loggedIn') !== 'true')
+	if (window.localStorage.getItem('loggedIn') !== 'true')
 		return;
 
 	if (notifyEventSource && notifyEventSource.readyState === EventSource.OPEN)
@@ -153,7 +153,7 @@ setInterval(
 			setupEventSource();
 		}
 	},
-	window.sessionStorage.getItem('loggedIn') === 'true'
+	window.localStorage.getItem('loggedIn') === 'true'
 		? loggedIntervalBase
 		: 5000
 );

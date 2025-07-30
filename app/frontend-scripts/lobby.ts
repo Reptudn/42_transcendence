@@ -1,8 +1,9 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { onUnloadPageAsync } from './navigator.js';
 
 // TODO: handle leave when user just clicks on a different page
 
-window.sessionStorage.setItem('ingame', 'lobby');
+window.localStorage.setItem('ingame', 'lobby');
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
@@ -38,16 +39,12 @@ export async function leaveGame() {
 	}
 }
 
-if (window.abortController) {
-	window.abortController.signal.addEventListener(
-		'abort',
-		() => {
-			alert('Game left due to abort');
-			leaveGame();
-		},
-		{ once: true, signal: window.abortController.signal }
-	);
-}
+setTimeout(() => {
+	onUnloadPageAsync(async () => {
+		await leaveGame();
+	});
+}, 0);
+
 
 declare global {
 	interface Window {
