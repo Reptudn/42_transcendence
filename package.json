@@ -7,7 +7,7 @@
 		"test": "test"
 	},
 	"scripts": {
-		"start": "npm run build:ts && fastify start --address 0.0.0.0 -l info app/dist/app.js",
+		"start": "npm run build:ts && npm run build:frontend && npm run build:css && fastify start --address 0.0.0.0 -l info app/dist/app.js",
 		"build:ts": "tsc",
 		"watch:ts": "tsc -w",
 		"build:frontend": "tsc -p tsconfig.frontend.json",
@@ -50,14 +50,14 @@
 		"i18next-http-middleware": "^3.7.4",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
-		"ts-node": "^10.9.2"
+		"ts-node": "^10.9.2",
+		"fastify-tsconfig": "^3.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/node": "^22.14.1",
 		"c8": "^10.1.2",
 		"concurrently": "^9.0.0",
-		"fastify-tsconfig": "^3.0.0",
 		"tailwindcss": "^4.1.6",
 		"ts-node": "^10.4.0",
 		"typescript": "~5.8.2"
