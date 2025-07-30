@@ -142,16 +142,16 @@ window.addEventListener('beforeunload', async () => {
 });
 
 export async function leaveWsGame() {
-	const response = await fetch('/api/games/leave', {
-		method: 'POST',
-	});
+	// const response = await fetch('/api/games/leave', {
+	// 	method: 'POST',
+	// });
 
-	if (!response.ok) {
-		showLocalError(`Failed to leave game: ${response.statusText}`);
-		return;
-	}
+	// if (!response.ok) {
+	// 	showLocalError(`Failed to leave game: ${response.statusText}`);
+	// 	return;
+	// }
 
-	showLocalInfo('You have left the game successfully.');
+	// showLocalInfo('You have left the game successfully.');
 	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
 	await loadPartialView('profile');
 }
