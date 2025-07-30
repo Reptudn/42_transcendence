@@ -1,11 +1,11 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { loadPartialView, updateMenu } from './script.js';
 
-const totpInput = document.getElementById('totp') as HTMLInputElement;
-const backup_totpinput = document.getElementById('backup-totp') as HTMLInputElement;
 
 async function twofa_login() {
 	try {
+		const totpInput = document.getElementById('totp') as HTMLInputElement;
+		const backup_totpinput = document.getElementById('backup-totp') as HTMLInputElement;
 		const fa_token = totpInput.value;
 		const backup_totp = backup_totpinput.value;
 		const response = await fetch('/api/auth/2fa', {
@@ -37,9 +37,10 @@ async function twofa_login() {
 
 async function twofa_login_google() {
 	try {
+		const totpInput = document.getElementById('totp_google') as HTMLInputElement;
+		const backup_totpinput = document.getElementById('backup-totp_google') as HTMLInputElement;
 		const urlParams = new URLSearchParams(window.location.search);
 		const userId = urlParams.get('userid');
-		console.log("Two_fa function googleid: ", userId)
 		const fa_token = totpInput.value;
 		const backup_totp = backup_totpinput.value;
 		const response = await fetch('/api/auth/2fa_google', {
@@ -83,7 +84,6 @@ async function twofa_login_google() {
 
 declare global {
 	interface Window {
-		user_id: number;
 		twofa_login: () => Promise<void>;
 		twofa_login_google: () => Promise<void>;
 	}

@@ -60,10 +60,7 @@ const google_callback: FastifyPluginAsync = async (
 
 				const twofaSecret = await getUser2faSecret(loggedGoogleUser, fastify);
                 if (twofaSecret !== '') {
-					fastify.log.info(`Before push: ${users_2fa_google}`);
 					users_2fa_google.push(loggedGoogleUser.id);
-					fastify.log.info(`After push: ${users_2fa_google}`);
-                    // Redirect to 2FA page, pass google=1 and userid as query params
                     return reply.redirect(`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`);
                 }
 

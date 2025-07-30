@@ -22,7 +22,7 @@ const loginAction = async () => {
 			const responseData = await response.json();
 			if (responseData.twofa_status === true) {
 				window.user_id = responseData.userid;
-				await loadPartialView('2fa_code');
+				await loadPartialView(`2fa_code?userid=${responseData.userid}`);
 				return;
 			}
 			updateMenu();

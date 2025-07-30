@@ -164,12 +164,13 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fa_token: string;
 				rescue_token: string;
 			};
+
 			const user = await getUserById(userid, fastify);
 			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
 			if (rescue_token !== await getUser2faRescue(user, fastify)){
 				if (!userid || !fa_token)
 					return reply.code(401).send({error: 'Invalid 2fa code!'});
-				const index = users_2fa.findIndex((id) => id === userid);
+				const index = users_2fa.findIndex((id) => id === Number(userid));
 				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
 				if ((await verify2fa(user, fa_token, fastify)) === false){
 					return reply.code(401).send({error: 'Invalid 2fa code!'});
@@ -237,9 +238,6 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (rescue_token !== await getUser2faRescue(user, fastify)){
 				if (!userid || !fa_token)
 					return reply.code(401).send({error: 'Invalid 2fa code! 2'});
-				for (const element of users_2fa_google){
-					fastify.log.info(`Element: ${element}`)
-				}
 				const index = users_2fa_google.findIndex((id) => id === Number(userid));
 				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code pls work!'});
 				if ((await verify2fa(user, fa_token, fastify)) === false){
