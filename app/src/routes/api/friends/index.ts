@@ -18,6 +18,7 @@ import {
 	saveNewChatInfo,
 	addToParticipants,
 } from '../../../services/database/chat';
+import { normError } from '../chat/utils';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -116,16 +117,19 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						addToParticipants(
 							fastify,
 							pendingRequest.requester_id,
-							pendingRequest.requester_id,
 							chat_id
 						);
 						addToParticipants(
 							fastify,
-							pendingRequest.requester_id,
 							pendingRequest.requested_id,
 							chat_id
 						);
-					} catch (err) {}
+					} catch (err) {
+						const nError = normError(err);
+						reply
+							.code(nError.errorCode)
+							.send({ message: nError.errorMsg });
+					}
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
@@ -160,7 +164,6 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						message:
 							'User not connected, sent friend request will be received later.',
 					});
-					return;
 				}
 				return reply.code(200).send({ message: 'Friend request sent' });
 			} catch (err: any) {
@@ -201,26 +204,18 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						}</a>!`,
 						'blue'
 					);
+					const chat_id = await saveNewChatInfo(fastify, false, null);
+
+					addToParticipants(fastify, request.requester_id, chat_id);
+					addToParticipants(fastify, request.requested_id, chat_id);
 				}
 
-				const chat_id = await saveNewChatInfo(fastify, false, null);
-				if (request && chat_id) {
-					addToParticipants(
-						fastify,
-						request.requester_id,
-						request.requester_id,
-						chat_id
-					);
-					addToParticipants(
-						fastify,
-						request.requester_id,
-						request.requested_id,
-						chat_id
-					);
-				}
 				reply.send({ message: 'Friend request accepted' });
-			} catch (err: any) {
-				return reply.code(400).send({ message: err.message });
+			} catch (err) {
+				const nError = normError(err);
+				return reply
+					.code(nError.errorCode)
+					.send({ message: nError.errorMsg });
 			}
 		}
 	);

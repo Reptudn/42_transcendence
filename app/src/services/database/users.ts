@@ -5,7 +5,7 @@ import * as path from 'path';
 import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { inviteUserToChat } from '../../routes/api/chat/utils.js';
 import { achievementsData } from '../../plugins/sqlite.js';
 const default_titles = JSON.parse(

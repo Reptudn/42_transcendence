@@ -58,9 +58,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (error instanceof Error) {
 					reply.code(400).send({ message: error.message });
 				} else {
-					reply
-						.code(400)
-						.send({ message: 'An unknown error occurred' });
+					reply.code(400).send({ message: 'An unknown error occurred' });
 				}
 				return;
 			}
@@ -82,9 +80,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (error instanceof Error) {
 					reply.code(400).send({ message: error.message });
 				} else {
-					reply
-						.code(400)
-						.send({ message: 'An unknown error occurred' });
+					reply.code(400).send({ message: 'An unknown error occurred' });
 				}
 				return;
 			}

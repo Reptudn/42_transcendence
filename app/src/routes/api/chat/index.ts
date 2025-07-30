@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import { sendMsg } from './sendMsg';
 import {
 	getAllChats,
-	getAllFriends,
 	getAllMsg,
 	createNewChat,
 	blockUsers,
@@ -18,13 +17,12 @@ import {
 //	'/api/chat/messages' gets you all the msgs from chat querry: chat_id
 //	'/api/chat/create' create a new chat querry: group_name, user_id[]
 //	'/api/chat/block_user' block a user querry: user_id user you want to block
-//	'/api/chat/block_user' unblock a user querry: user_id user you want ot unblock
+//	'/api/chat/unblock_user' unblock a user querry: user_id user you want ot unblock
 //	'/api/chat/invite_user' invite user to a chat querry: chat_id, user_id[]
 //	'/api/chat/leave_user' leave a group chat querry: chat_id
 
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
-	getAllFriends(fastify);
 	getAllChats(fastify);
 	getAllMsg(fastify);
 	createNewChat(fastify);
@@ -36,12 +34,10 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 export default chat;
 
-// TODO Problem with checking toUser is on chat or on another side
-// TODO Error handling
-// TODO commands
-// TODO Send Popup to Client
+// TODO what if a user gets deleted
 
-// TODO If Client not connected send msgs when reconnected
-// TODO Gruppe erstllen
-// TODO Blockieren
-// TODO Entblocken
+// nicht so wichtige
+// TODO If Client not connected send msgs when reconnected implement online offline status
+// TODO check that there are not too many messages because of memory
+// TODO limit the chars per messages e.g. 500
+// TODO translation for error Msgs

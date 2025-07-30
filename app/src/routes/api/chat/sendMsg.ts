@@ -12,7 +12,7 @@ import {
 } from '../../../services/database/chat';
 import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
-import { sendPopupToClient } from '../../../services/sse/popup';
+import { normError } from './utils';
 
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
@@ -31,36 +31,29 @@ export async function sendMsg(fastify: FastifyInstance) {
 				);
 
 				if (!fromUser)
-					return res.status(400).send({ error: 'User not found' }); // TODO Error msg
+					return res.status(400).send({ error: 'User not found' });
 
-				if (body.message.startsWith('/'))
-					return await checkCmd(fastify, body, fromUser.id);
+				if (body.message.startsWith('/')) {
+					const msg = await checkCmd(fastify, body, fromUser.id);
+					return res.status(200).send({ msg: req.t(msg) });
+				}
 
 				const toUsers = await getAllParticipantsFromSql(fastify, body.chat);
 
-				if (
-					!(await getParticipantFromSql(fastify, fromUser.id, body.chat))
-				) {
-					sendPopupToClient(
-						fastify,
-						fromUser.id,
-						'Error',
-						'User is no member in Chat',
-						'red'
-					);
-					return res
-						.status(400)
-						.send({ error: 'User is no member in Chat' }); // TODO Error msg
-				}
+				const user = await getParticipantFromSql(
+					fastify,
+					fromUser.id,
+					body.chat
+				);
+				if (!user)
+					return res.status(400).send({ error: 'User is no Participant' });
 
 				const chatInfo = await getChatFromSql(fastify, body.chat);
 
-				// sind alle user die ich geblockt habe
 				const blocked = await getAllBlockerUser(fastify, fromUser.id);
 
 				const blockedId = blocked.map((b) => b.blocked_id);
 
-				// sind all user die mich blockiert haben
 				const blocker = await getAllBlockedUser(fastify, fromUser.id);
 
 				const blockerId = blocker.map((b) => b.blocker_id);
@@ -96,18 +89,8 @@ export async function sendMsg(fastify: FastifyInstance) {
 					);
 				}
 			} catch (err) {
-				const errorClass = err as HttpError;
-
-				if (errorClass.statusCode < 500) {
-					sendPopupToClient(
-						fastify,
-						(req.user as { id: number }).id,
-						'Error',
-						errorClass.msg,
-						'red'
-					);
-				}
-				res.status(errorClass.statusCode).send({ error: errorClass.msg });
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
@@ -120,23 +103,25 @@ function sendMsgGroup(
 	blockerId: number[],
 	content: string
 ): void {
-	// wenn fromUser die Person blockiert hat kommt sende ich die nachricht normal
+	// wenn fromUser die Person blockiert hat sende ich die nachricht normal
 	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
 		if (connectedClients.has(user.user_id)) {
 			let msg: htmlMsg;
 			if (blockerId.includes(user.user_id)) {
-				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked');
-			} else msg = createHtmlMsg(fromUser, chatInfo, content);
+				msg = createHtmlMsg(fromUser, chatInfo, 'Msg blocked', true);
+			} else msg = createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
+				if (user.user_id === fromUser.id)
+					msg.ownMsg = true;
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
 	}
 }
 
-function sendMsgDm(
+export function sendMsgDm(
 	fromUser: User,
 	toUser: Part[],
 	chatInfo: Chat,
@@ -149,7 +134,7 @@ function sendMsgDm(
 	const user = toUser.filter((b) => b.user_id !== fromUser.id);
 
 	if (!blockedId.includes(user[0].user_id)) {
-		const msg = createHtmlMsg(fromUser, chatInfo, content);
+		const msg = createHtmlMsg(fromUser, chatInfo, content, false);
 		if (!blockerId.includes(user[0].user_id)) {
 			if (connectedClients.has(user[0].user_id)) {
 				const toUser = connectedClients.get(user[0].user_id);
@@ -161,6 +146,7 @@ function sendMsgDm(
 		if (connectedClients.has(fromUser.id)) {
 			const toUser = connectedClients.get(fromUser.id);
 			if (toUser) {
+				msg.ownMsg = true;
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -170,22 +156,25 @@ function sendMsgDm(
 }
 
 export function createHtmlMsg(
-	fromUser: User,
+	fromUser: User | null,
 	chatInfo: Chat | null,
-	msgContent: string
+	msgContent: string,
+	msgBlocked: boolean
 ) {
 	const msg: htmlMsg = {
 		fromUserName: '',
 		chatName: '',
 		chatId: 0,
 		htmlMsg: '',
+		blocked: msgBlocked,
+		ownMsg: false,
 	};
-	msg.fromUserName = fromUser.displayname;
+	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';
 	msg.chatId = chatInfo ? chatInfo.id : 0;
 	msg.htmlMsg = `
 		<div>
-			<p><a href='/partial/pages/profile/${fromUser.username}'>${fromUser.displayname}:</a>${msgContent}</p>
+			<p><a href='/partial/pages/profile/${fromUser?.username}'>${fromUser?.displayname}:</a>${msgContent}</p>
 		</div>
 		`;
 	return msg;
