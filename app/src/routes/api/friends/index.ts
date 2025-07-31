@@ -129,8 +129,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
-				reply.code(400).send({ message: 'Friend request already sent' });
-				return;
+				return reply.code(400).send({ message: 'Friend request already sent' });
 			}
 
 			try {
@@ -160,7 +159,6 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						message:
 							'User not connected, sent friend request will be received later.',
 					});
-					return;
 				}
 				return reply.code(200).send({ message: 'Friend request sent' });
 			} catch (err: any) {
@@ -218,7 +216,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						chat_id
 					);
 				}
-				reply.send({ message: 'Friend request accepted' });
+				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
 				return reply.code(400).send({ message: err.message });
 			}
@@ -278,7 +276,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (chat_id) {
 					removeChat(fastify, chat_id);
 				}
-				reply.send({ message: 'Friendship removed' });
+				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				// reply.code(400).send({ message: err.message });
 				return reply

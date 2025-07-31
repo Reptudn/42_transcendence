@@ -102,7 +102,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (base64Data.startsWith(dataPrefix)) {
 				base64Data = base64Data.replace(dataPrefix, '');
 			}
-			reply
+			return reply
 				.header('Content-Type', 'image/png')
 				.send(Buffer.from(base64Data, 'base64'));
 		}
