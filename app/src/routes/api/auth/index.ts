@@ -1,6 +1,13 @@
-import { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { unlockAchievement } from '../../../services/database/achievements';
-import { loginUser, registerUser } from '../../../services/database/users';
+import {
+	//getGoogleUser,
+	getUserById,
+	//loginGoogleUser,
+	loginUser,
+	registerUser,
+} from '../../../services/database/users';
+import { getUser2faRescue, getUser2faSecret, removeUser2fa, verify2fa } from '../../../services/database/totp';
 
 const authSchema = {
 	type: 'object',
@@ -25,6 +32,9 @@ const authSchema = {
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
 		},
+		totp: {
+			type: 'string',
+		},
 	},
 	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
 	additionalProperties: false,
@@ -35,25 +45,45 @@ const registerSchema = {
 	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
 };
 
+let users_2fa: number[] = [];
+export let users_2fa_google: number[] = [];
+
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/login',
 		{ schema: { body: authSchema } },
-		async (req: any, reply: any) => {
-			const { username, password } = req.body;
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { username, password /*totp*/ } = req.body as {
+				username: string;
+				password: string;
+			};
 			try {
-				const user: User = await loginUser(username, password, fastify);
+				const user: User = await loginUser(
+					username,
+					password,
+					/*totp*/
+					fastify
+				);
+				if ((await getUser2faSecret(user, fastify)) !== '') {
+					users_2fa.push(user.id);
+					return reply.send({
+						twofa_status: true,
+						userid: user.id,
+					});
+				}
 				const token = fastify.jwt.sign(
 					{ username: user.username, id: user.id },
 					{ expiresIn: '10d' }
 				);
 				await unlockAchievement(user.id, 'login', fastify);
-				return reply.setCookie('token', token, {
-					httpOnly: true,
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
-					path: '/',
-				}).send({ message: 'Logged in!' });
+				return reply
+					.setCookie('token', token, {
+						httpOnly: true,
+						secure: process.env.NODE_ENV === 'production',
+						sameSite: 'strict',
+						path: '/',
+					})
+					.send({ message: 'Login successful!' });
 			} catch (error) {
 				if (error instanceof Error)
 					return reply.code(400).send({ message: error.message });
@@ -69,8 +99,12 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
 		'/register',
 		{ schema: { body: registerSchema } },
-		async (req: any, reply: any) => {
-			const { username, password, displayname } = req.body;
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { username, password, displayname } = req.body as {
+				username: string;
+				password: string;
+				displayname: string;
+			};
 			try {
 				await registerUser(username, password, displayname, fastify);
 				return reply.code(200).send({ message: 'User registered' });
@@ -83,6 +117,143 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
+	fastify.post(
+		'/2fa',
+		{
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						rescue_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 22,
+							errorMessage: {
+					type: 'Wrong rescue code',
+					minLength: 'Wrong rescue code',
+					maxLength: 'Wrong rescue code',
+				},
+						},
+						fa_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 6,
+							errorMessage: {
+					type: 'Wrong 2fa code',
+					minLength: 'Wrong 2fa code',
+					maxLength: 'Wrong 2fa code',
+				},
+						},
+					}
+				}
+			}
+		},
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { userid, fa_token, rescue_token } = req.body as {
+				userid: number;
+				fa_token: string;
+				rescue_token: string;
+			};
+
+			const user = await getUserById(userid, fastify);
+			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
+			if (rescue_token !== await getUser2faRescue(user, fastify)){
+				if (!userid || !fa_token)
+					return reply.code(401).send({error: 'Invalid 2fa code!'});
+				const index = users_2fa.findIndex((id) => id === Number(userid));
+				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
+				if ((await verify2fa(user, fa_token, fastify)) === false){
+					return reply.code(401).send({error: 'Invalid 2fa code!'});
+				}
+			}
+			users_2fa = users_2fa.filter((id) => id !== user.id);
+			if(rescue_token === await getUser2faRescue(user, fastify)){
+				await removeUser2fa(user, fastify);
+			}
+			const token = fastify.jwt.sign(
+				{ username: user.username, id: user.id },
+				{ expiresIn: '10d' }
+			);
+			await unlockAchievement(user.id, 'login', fastify);
+			return reply
+				.setCookie('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/',
+				})
+				.send({ message: 'Login successful with 2fa!' });
+		}
+	);
+	fastify.post(
+		'/2fa_google',
+		{
+			schema: {
+				body: {
+					type: 'object',
+					properties: {
+						rescue_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 22,
+							errorMessage: {
+					type: 'Wrong rescue code',
+					minLength: 'Wrong rescue code',
+					maxLength: 'Wrong rescue code',
+				},
+						},
+						fa_token: {
+							type: 'string',
+							minLength: 0,
+							maxLength: 6,
+							errorMessage: {
+					type: 'Wrong 2fa code',
+					minLength: 'Wrong 2fa code',
+					maxLength: 'Wrong 2fa code',
+				},
+						},
+					}
+				}
+			}
+		},
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { userid, fa_token, rescue_token } = req.body as {
+				userid: number;
+				fa_token: string;
+				rescue_token: string;
+			};
+			fastify.log.info(`Trying Google 2FA for userid: ${userid}`);
+			const user = await getUserById(userid, fastify);
+			if (!user) return reply.code(401).send({error: 'Invalid 2fa code! 1'});
+			if (rescue_token !== await getUser2faRescue(user, fastify)){
+				if (!userid || !fa_token)
+					return reply.code(401).send({error: 'Invalid 2fa code! 2'});
+				const index = users_2fa_google.findIndex((id) => id === Number(userid));
+				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code pls work!'});
+				if ((await verify2fa(user, fa_token, fastify)) === false){
+					return reply.code(401).send({error: 'Invalid 2fa code! 4'});
+				}
+			}
+			users_2fa_google = users_2fa_google.filter((id) => id !== user.id);
+			if(rescue_token === await getUser2faRescue(user, fastify)){
+				await removeUser2fa(user, fastify);
+			}
+			const token = fastify.jwt.sign(
+				{ username: user.username, id: user.id },
+				{ expiresIn: '10d' }
+			);
+			await unlockAchievement(user.id, 'login', fastify);
+			return reply
+				.setCookie('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/',
+				})
+				.send({ message: 'Login successful with 2fa!' });
+		}
+	);
 };
 
 export default auth;
+

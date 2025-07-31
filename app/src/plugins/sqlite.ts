@@ -42,7 +42,9 @@ export default fp(async (fastify) => {
 			click_count INTEGER DEFAULT 0,
 			title_first INTEGER,
 			title_second INTEGER,
-			title_third INTEGER
+			title_third INTEGER,
+			totp_secret TEXT,
+			totp_rescue TEXT
 		)
 		`);
 

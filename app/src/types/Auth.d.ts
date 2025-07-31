@@ -7,3 +7,9 @@ interface GoogleUserInfo {
 	family_name: string;
 	picture: string;
 }
+
+interface User2FASetup {
+  secret: string;
+  rescue: string;
+  qrcode: string;
+}

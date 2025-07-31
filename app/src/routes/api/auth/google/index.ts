@@ -6,6 +6,8 @@ import {
 	loginGoogleUser,
 } from '../../../../services/database/users';
 import { getGoogleProfile } from '../../../../services/google/user';
+import { users_2fa_google } from '../index';
+import { getUser2faSecret } from '../../../../services/database/totp';
 
 const google_callback: FastifyPluginAsync = async (
 	fastify,
@@ -52,6 +54,12 @@ const google_callback: FastifyPluginAsync = async (
 					user.id,
 					fastify
 				);
+
+				const twofaSecret = await getUser2faSecret(loggedGoogleUser, fastify);
+                if (twofaSecret !== '') {
+					users_2fa_google.push(loggedGoogleUser.id);
+                    return reply.redirect(`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`);
+                }
 
 				const jwt = fastify.jwt.sign(
 					{
