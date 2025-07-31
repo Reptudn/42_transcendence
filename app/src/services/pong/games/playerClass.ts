@@ -94,17 +94,12 @@ export class AiPlayer extends Player {
 	public aiMoveCoolDown: number;
 	public aiBrainData: AIBrainData;
 
-	constructor(id: number, game: Game, aiLevel: number) {
+	constructor(id: number, game: Game, aiLevel: number, aiBrainData: aiBrainData) {
 		// probably temp random ai names
 		const name = getRandomDefaultName();
 		super(id, game.config.playerLives, name, getRandomUserTitle(aiLevel > 3));
 		this.aiMoveCoolDown = aiLevel;
-		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
-		} as AIBrainData;
+		this.aiBrainData = aiBrainData;
 	}
 
 	isReady(): boolean {

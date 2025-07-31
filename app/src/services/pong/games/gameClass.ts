@@ -35,6 +35,8 @@ export class Game {
 	config: GameSettings;
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
+	aiBrainData: AIBrainData;
+
 	fastify: FastifyInstance;
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
@@ -60,6 +62,12 @@ export class Game {
 			},
 			objects: [],
 		} as GameState;
+		this.aiBrainData = {
+			aiLastBallDistance: 0,
+			aiDelayCounter: 0,
+			aiLastTargetParam: 0,
+			lastAIMovementDirection: 0,
+		} as AIBrainData;
 	}
 
 	async addUserPlayer(user: User) {
@@ -69,7 +77,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		if (
@@ -96,10 +104,10 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const aiPlayer = new AiPlayer(this.players.length, this, aiLevel);
+		const aiPlayer = new AiPlayer(this.players.length, this, aiLevel, this.aiBrainData);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
 		await this.updateLobbyState();
@@ -109,7 +117,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const localPlayer = new LocalPlayer(this.players.length, owner, this);
