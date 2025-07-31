@@ -53,7 +53,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					secure: process.env.NODE_ENV === 'production',
 					sameSite: 'strict',
 					path: '/',
-				});
+				}).send({ message: 'Logged in!' });
 			} catch (error) {
 				if (error instanceof Error)
 					return reply.code(400).send({ message: error.message });
