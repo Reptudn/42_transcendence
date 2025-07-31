@@ -1,20 +1,37 @@
 // import { updateGameSettings } from "./lobby.js";
 import { showLocalError, showLocalInfo } from './alert.js';
+import { loadPartialView } from './navigator.js';
 import {
 	closeAllPopups,
 	popupContainer,
 	updateCloseAllVisibility,
 } from './popup.js';
-import { loadPartialView } from './script.js';
 
 export let notifyEventSource: EventSource | null = null;
+export function closeEventSource()
+{
+	if (!notifyEventSource) return;
+
+	notifyEventSource.close();
+	notifyEventSource = null;
+}
 
 const loggedIntervalBase = 100;
-let loggedIntervalIncrement = loggedIntervalBase;
+export let game_over = false;
+export function setGameOverVar(val: boolean) {
+	game_over = val;
+}
+
 export function setupEventSource() {
-	if (window.sessionStorage.getItem('loggedIn') !== 'true') {
-		console.warn('EventSource not set up because user is not logged in');
+	if (window.localStorage.getItem('loggedIn') !== 'true')
 		return;
+
+	if (notifyEventSource && notifyEventSource.readyState === EventSource.OPEN)
+		return;
+
+	if (notifyEventSource) {
+		notifyEventSource.close();
+		notifyEventSource = null;
 	}
 
 	notifyEventSource = new EventSource('/events');
@@ -23,20 +40,16 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		showLocalInfo('Server connection closed');
+		setupEventSource();
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		loggedIntervalIncrement *= 3;
-		if (loggedIntervalIncrement > 30000) loggedIntervalIncrement = 30000;
-		showLocalError(
-			`A server connection error occurred!<br>Trying to reconnect in ${loggedIntervalIncrement}ms`
-		);
+		setupEventSource();
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
-		loggedIntervalIncrement = loggedIntervalBase;
 	};
 	notifyEventSource.onmessage = async (event) => {
 		// console.log('EventSource message received:', event);
@@ -79,8 +92,8 @@ export function setupEventSource() {
 				// case 'game_admin_request':
 				// 	await acceptGameInvite(data.gameId);
 				// 	break;
-				case 'game_setup_settings_update':
-					import('./game_setup.js')
+				case 'lobby_admin_settings_update':
+					import('./lobby_admin.js')
 						.then(({ updatePage }) => {
 							updatePage(data.html);
 						})
@@ -117,6 +130,7 @@ export function setupEventSource() {
 				}
 				case 'game_closed':
 					showLocalInfo(data.message);
+					game_over = true;
 					await loadPartialView('profile', true, null, true);
 					break;
 				case 'chat': {
@@ -144,9 +158,8 @@ setInterval(
 			setupEventSource();
 		}
 	},
-
-	window.sessionStorage.getItem('loggedIn') === 'true'
-		? loggedIntervalIncrement
+	window.localStorage.getItem('loggedIn') === 'true'
+		? loggedIntervalBase
 		: 5000
 );
 

@@ -85,24 +85,17 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					})
 					.send({ message: 'Login successful!' });
 			} catch (error) {
-				if (error instanceof Error) {
-					reply.code(400).send({ message: error.message });
-				} else {
-					reply
-						.code(400)
-						.send({ message: 'An unknown error occurred' });
-				}
-				return;
+				if (error instanceof Error)
+					return reply.code(400).send({ message: error.message });
+				return reply
+					.code(400)
+					.send({ message: 'An unknown error occurred' });
 			}
 		}
 	);
-	fastify.post(
-		'/logout',
-		async (req: FastifyRequest, reply: FastifyReply) => {
-			reply.clearCookie('token', { path: '/' });
-			reply.send({ message: 'Logged out successfully' });
-		}
-	);
+	fastify.post('/logout', async (req: any, reply: any) => {
+		return reply.clearCookie('token', { path: '/' }).send({ message: 'Logged out successfully' });
+	});
 	fastify.post(
 		'/register',
 		{ schema: { body: registerSchema } },
@@ -114,16 +107,13 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			};
 			try {
 				await registerUser(username, password, displayname, fastify);
-				reply.code(200).send({ message: 'User registered' });
+				return reply.code(200).send({ message: 'User registered' });
 			} catch (error) {
-				if (error instanceof Error) {
-					reply.code(400).send({ message: error.message });
-				} else {
-					reply
-						.code(400)
-						.send({ message: 'An unknown error occurred' });
-				}
-				return;
+				if (error instanceof Error)
+					return reply.code(400).send({ message: error.message });
+				return reply
+					.code(400)
+					.send({ message: 'An unknown error occurred' });
 			}
 		}
 	);

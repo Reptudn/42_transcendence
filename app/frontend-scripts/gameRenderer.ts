@@ -88,6 +88,7 @@ export function initCanvas()
 	if (!ctx) {
 		throw new Error('Failed to get 2D context from canvas');
 	}
+	startRendering();
 }
 
 export function isPointInsideCanvas(x: number, y: number): boolean {
@@ -369,7 +370,10 @@ export function detectBounce(state: GameState): void {
 	}
 }
 
+let animationId: number | null = null;
+let isRendering = false;
 export function render(): void {
+	if (!isRendering) return;
 	const now = performance.now();
 	const t = Math.min((now - lastUpdateTime) / tickInterval, 1);
 
@@ -437,16 +441,35 @@ export function render(): void {
 		drawBallTrail(scale, ballObj.radius);
 	}
 
-	requestAnimationFrame(render);
+	animationId = requestAnimationFrame(render);
 }
 
-requestAnimationFrame(render);
+export function startRendering(): void {
+	if (!isRendering) {
+		isRendering = true;
+		animationId = requestAnimationFrame(render);
+	}
+}
+
+export function stopRendering(): void {
+	isRendering = false;
+	if (animationId !== null) {
+		cancelAnimationFrame(animationId);
+		animationId = null;
+	}
+}
+
+startRendering();
 
 declare global
 {
 	interface Window {
 		initCanvas: () => void;
+		startRendering: () => void;
+        stopRendering: () => void;
 	}
 }
 
 window.initCanvas = initCanvas;
+window.startRendering = startRendering;
+window.stopRendering = stopRendering;

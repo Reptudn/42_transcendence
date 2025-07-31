@@ -1,7 +1,7 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { setupEventSource } from './events.js';
+import { updateMenu, loadPartialView } from './navigator.js';
 import './script.js';
-import { updateMenu, loadPartialView } from './script.js';
 
 const loginAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement)
@@ -28,7 +28,7 @@ const loginAction = async () => {
 			updateMenu();
 			await loadPartialView('profile');
 			showLocalInfo('You have logged in successfully');
-			window.sessionStorage.setItem("loggedIn", "true");
+			window.localStorage.setItem("loggedIn", "true");
 			setupEventSource();
 		} else {
 			const data = await response.json();
@@ -44,7 +44,7 @@ const loginButton = document.getElementById('loginButton');
 if (loginButton) {
 	console.log('loginButton found');
 	loginButton.addEventListener('click', loginAction, {
-		signal: window.abortController?.signal,
+		// signal: window.abortController?.signal,
 	});
 } else {
 	console.error('loginButton not found');

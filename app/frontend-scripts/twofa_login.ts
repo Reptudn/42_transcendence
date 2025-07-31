@@ -1,6 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { loadPartialView, updateMenu } from './script.js';
-
+import { updateMenu, loadPartialView } from './navigator.js';
 
 async function twofa_login() {
 	try {

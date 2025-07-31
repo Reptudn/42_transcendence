@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo, showLocalLog } from './alert.js';
+import { loadPartialView, updateMenu } from './navigator.js';
 import './script.js';
-import { loadPartialView, updateMenu } from './script.js';
 
 export function getFileAsDataURL(input: HTMLInputElement): Promise<string> {
 	return new Promise((resolve, reject) => {

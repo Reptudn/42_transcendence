@@ -1,5 +1,5 @@
-import { loadPartialView } from './script.js';
 import { showLocalError, showLocalInfo } from './alert.js';
+import { loadPartialView } from './navigator.js';
 
 export async function enable2fa() {
 	try {
