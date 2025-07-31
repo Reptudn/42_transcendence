@@ -93,10 +93,10 @@ async function logout(): Promise<void> {
 		if (response.ok) {
 			updateMenu();
 			await loadPartialView('index');
+			window.localStorage.setItem('loggedIn', 'false');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			showLocalInfo('You have been logged out with impeccable style!');
-			window.localStorage.setItem('loggedIn', 'false');
 		} else {
 			const data = await response.json();
 			showLocalError(`Error during logout: ${data.message}`);
