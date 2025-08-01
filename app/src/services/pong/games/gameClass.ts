@@ -23,7 +23,7 @@ export enum GameType {
 	TOURNAMENT = 'tournament',
 }
 
-const defaultGameSettings: GameSettings = {
+export const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
 	powerupsEnabled: false,

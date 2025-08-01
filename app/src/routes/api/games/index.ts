@@ -2,13 +2,19 @@ import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 // import { WebSocket as WSWebSocket } from 'ws';
 // import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
-import { Game, GameStatus, GameType } from '../../../services/pong/games/gameClass';
+import {
+	defaultGameSettings,
+	Game,
+	GameStatus,
+	GameType,
+} from '../../../services/pong/games/gameClass';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
-import { AiPlayer, UserPlayer } from '../../../services/pong/games/playerClass';
+import { UserPlayer } from '../../../services/pong/games/playerClass';
 import { Powerups } from '../../../types/Games';
+//import { GameSettings } from '../../../types/Games';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -42,11 +48,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				const game = new Game(id, user, fastify);
+				const game = new Game(id, user, fastify, defaultGameSettings, 0);
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
-				await game.addUserPlayer(user);// Adding the admin player
-
+				await game.addUserPlayer(user); // Adding the admin player
 
 				fastify.log.info(`Game created with ID: ${id}`);
 
@@ -68,15 +73,21 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {}, // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { gameType,powerupsEnabled, powerups, playerLives, gameDifficulty, map } =
-				request.body as {
-					gameType?: GameType;
-					powerupsEnabled?: boolean;
-					powerups?: Powerups[];
-					playerLives?: number;
-					gameDifficulty?: number;
-					map?: string;
-				};
+			const {
+				gameType,
+				powerupsEnabled,
+				powerups,
+				playerLives,
+				gameDifficulty,
+				map,
+			} = request.body as {
+				gameType?: GameType;
+				powerupsEnabled?: boolean;
+				powerups?: Powerups[];
+				playerLives?: number;
+				gameDifficulty?: number;
+				map?: string;
+			};
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
@@ -143,22 +154,33 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (gameType !== undefined){
+			if (gameType !== undefined) {
 				game.config.gameType = gameType;
-				if (gameType === GameType.TOURNAMENT){
+				if (gameType === GameType.TOURNAMENT) {
 					game.tournament = 1;
 					game.config.maxPlayers = 8;
-					for (let i = game.players.length; i < game.config.maxPlayers; i++){
+					for (
+						let i = game.players.length;
+						i < game.config.maxPlayers;
+						i++
+					) {
 						await game.addAiPlayer(game.config.gameDifficulty);
 					}
-				}
-				else if (gameType === GameType.CLASSIC){
+				} else if (gameType === GameType.CLASSIC) {
 					game.config.maxPlayers = 4;
 					game.tournament = 0;
-					for (let i = game.players.length; i < game.config.maxPlayers; i++){
+					for (
+						let i = game.players.length;
+						i < game.config.maxPlayers;
+						i++
+					) {
 						await game.addAiPlayer(game.config.gameDifficulty);
 					}
-					for (let i = game.players.length; i > game.config.maxPlayers; i--){
+					for (
+						let i = game.players.length;
+						i > game.config.maxPlayers;
+						i--
+					) {
 						await game.removePlayer(game.players[i].playerId);
 					}
 				}
@@ -413,7 +435,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					});
 			} catch (err) {
 				if (err instanceof Error)
-					return reply.code(404).send({ error: 'Failed to add player: ' + err.message });
+					return reply
+						.code(404)
+						.send({ error: 'Failed to add player: ' + err.message });
 				return reply.code(404).send({ error: 'Unknown error' });
 			}
 		}
@@ -481,7 +505,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const game = runningGames.find((g) => g.gameId === parsedGameId);
 			if (!game) {
-				const isApiRequest = request.headers['content-type']?.includes('application/json') ||
+				const isApiRequest =
+					request.headers['content-type']?.includes('application/json') ||
 					request.headers['accept']?.includes('application/json') ||
 					request.headers['x-requested-with'] === 'XMLHttpRequest';
 
