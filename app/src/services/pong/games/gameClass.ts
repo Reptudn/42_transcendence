@@ -10,11 +10,17 @@ import ejs from 'ejs';
 import { getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
+import { GameSettings } from '../../../types/Games';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
 	RUNNING = 'running',
 	ENDED = 'ended',
+}
+
+export enum GameType {
+	CLASSIC = 'classic',
+	TOURNAMENT = 'tournament',
 }
 
 const defaultGameSettings: GameSettings = {
@@ -24,6 +30,7 @@ const defaultGameSettings: GameSettings = {
 	powerups: [],
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
+	gameType: GameType.CLASSIC,
 };
 
 export class Game {
@@ -34,6 +41,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
+	tournament: number;
 
 	fastify: FastifyInstance;
 
@@ -43,8 +51,10 @@ export class Game {
 		gameId: number,
 		admin: User,
 		fastify: FastifyInstance,
-		config: GameSettings = defaultGameSettings
+		config: GameSettings = defaultGameSettings,
+		tournament: number
 	) {
+		this.tournament = 0;
 		this.gameId = gameId;
 		this.admin = admin;
 		this.status = GameStatus.WAITING;

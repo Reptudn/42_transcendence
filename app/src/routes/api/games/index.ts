@@ -2,12 +2,13 @@ import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 // import { WebSocket as WSWebSocket } from 'ws';
 // import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
-import { Game, GameStatus } from '../../../services/pong/games/gameClass';
+import { Game, GameStatus, GameType } from '../../../services/pong/games/gameClass';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
-import { UserPlayer } from '../../../services/pong/games/playerClass';
+import { AiPlayer, UserPlayer } from '../../../services/pong/games/playerClass';
+import { Powerups } from '../../../types/Games';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -44,7 +45,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				const game = new Game(id, user, fastify);
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
-				await game.addUserPlayer(user); // Adding the admin player
+				await game.addUserPlayer(user);// Adding the admin player
+
 
 				fastify.log.info(`Game created with ID: ${id}`);
 
@@ -66,8 +68,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {}, // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { powerupsEnabled, powerups, playerLives, gameDifficulty, map } =
+			const { gameType,powerupsEnabled, powerups, playerLives, gameDifficulty, map } =
 				request.body as {
+					gameType?: GameType;
 					powerupsEnabled?: boolean;
 					powerups?: Powerups[];
 					playerLives?: number;
@@ -137,6 +140,28 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					`Updating game difficulty for game ${game.gameId} by user ${user.username}`
 				);
 				game.config.gameDifficulty = gameDifficulty;
+				changed = true;
+			}
+
+			if (gameType !== undefined){
+				game.config.gameType = gameType;
+				if (gameType === GameType.TOURNAMENT){
+					game.tournament = 1;
+					game.config.maxPlayers = 8;
+					for (let i = game.players.length; i < game.config.maxPlayers; i++){
+						await game.addAiPlayer(game.config.gameDifficulty);
+					}
+				}
+				else if (gameType === GameType.CLASSIC){
+					game.config.maxPlayers = 4;
+					game.tournament = 0;
+					for (let i = game.players.length; i < game.config.maxPlayers; i++){
+						await game.addAiPlayer(game.config.gameDifficulty);
+					}
+					for (let i = game.players.length; i > game.config.maxPlayers; i--){
+						await game.removePlayer(game.players[i].playerId);
+					}
+				}
 				changed = true;
 			}
 

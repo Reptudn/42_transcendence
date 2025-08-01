@@ -95,6 +95,12 @@ mapSelect?.addEventListener('change', async (event) => {
 	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
 });
 
+const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
+gameTypeSelector?.addEventListener('change', async (event) => {
+	const selectedGameType = (event.target as HTMLSelectElement).value;
+	await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
+});
+
 export async function addPowerUp() {
 	console.log('Adding power-up...');
 	alert('Not implemented');

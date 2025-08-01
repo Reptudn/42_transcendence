@@ -17,6 +17,11 @@
 				<option value="">No maps available</option>
 			<% } %>
 		</select>
+		<label for="game-type-select">Game Type:</label>
+		<select name="Game Type" id="game-type-select">
+			<option value="classic">Classic / FFA</option>
+			<option value="tournament">Tournament</option>
+		</select>
 		<br>
 		<div>
 			<h2>Online Friends:</h2>
@@ -50,6 +55,7 @@
 		</div>
 		<br>
 		<br>
+		<% if (gameSettings.gameType === 'classic') { %>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>
 			<div id="playerList">
@@ -70,6 +76,38 @@
 				<% } %>
 			</div>
 		</div>
+		<% } else { %>
+			<h2 class="text-3xl mb-4">Tournament Tree</h2>
+				<div class="flex flex-row gap-16 justify-center items-start">
+				<!-- Quarterfinals: 4 matches (8 players) -->
+				<div class="flex flex-col gap-12 justify-center items-center">
+					<% for (let i = 0; i < 8; i += 2) { %>
+					<div class="bg-blue-500 rounded-lg p-4 min-w-[160px] flex flex-col items-center shadow">
+						<div class="font-bold text-white"><%= players[i]?.displayName || 'Waiting...' %></div>
+						<div class="text-xs text-gray-200 mb-2"><%= players[i]?.playerTitle || '' %></div>
+						<div class="font-bold text-white"><%= players[i+1]?.displayName || 'Waiting...' %></div>
+						<div class="text-xs text-gray-200"><%= players[i+1]?.playerTitle || '' %></div>
+					</div>
+					<% } %>
+				</div>
+				<!-- Semifinals: 2 matches (4 players) -->
+				<div class="flex flex-col justify-center items-center gap-32 mt-16">
+					<% for (let i = 0; i < 4; i += 2) { %>
+					<div class="bg-blue-700 rounded-lg p-4 min-w-[160px] flex flex-col items-center shadow">
+						<div class="font-bold text-white">Winner QF <%= i/2 + 1 %></div>
+						<div class="font-bold text-white mt-2">Winner QF <%= i/2 + 2 %></div>
+					</div>
+					<% } %>
+				</div>
+				<!-- Final: 1 match (2 players) -->
+				<div class="flex flex-col justify-center items-center mt-40">
+					<div class="bg-yellow-400 rounded-lg p-4 min-w-[160px] flex flex-col items-center shadow">
+					<div class="font-bold text-black">Winner SF 1</div>
+					<div class="font-bold text-black mt-2">Winner SF 2</div>
+					</div>
+				</div>
+			</div>
+		<% } %>
 <% if (initial) { %>
 		</div> <!-- End of lobby div -->
 	</div> <!-- End of page div -->

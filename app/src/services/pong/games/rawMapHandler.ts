@@ -3,6 +3,7 @@ import path, { join } from 'node:path';
 import type { Game } from './gameClass';
 import type { FastifyInstance } from 'fastify';
 import type { Player } from './playerClass';
+import { GameSettings } from '../../../types/Games';
 
 export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 	const jsonPath = join(

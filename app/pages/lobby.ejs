@@ -1,6 +1,7 @@
 <% if (initial)  {%>
-<div class="flex-row">
-	<button onclick="leaveGame()">Leave Game</button>
+	<div class="flex-row">
+		<button onclick="leaveGame()">Leave Game</button>
+		<button onclick="addLocalPlayer()">Add Local Player</button>
 	<script src="/static/js/lobby.js" type="module"></script>
 	<div id="lobby">
 <% } %>
@@ -24,10 +25,11 @@
 				<h3>Player Lives: <%= gameSettings.playerLives %></h3>
 				<h3>Game Difficulty: <%= gameSettings.gameDifficulty %></h3>
 				<h3>Current Map: <%= gameSettings.map.toUpperCase() %></h3>
+				<h3>Game Type: <%= (gameSettings.gameType || '').toUpperCase() %></h3>
 			</div>
 		</div>
 		<br>
-		<button onclick="addLocalPlayer()">Add Local Player</button>
+		<% if (gameSettings.gameType === 'classic') { %>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>
 			<div id="playerList">
@@ -45,7 +47,26 @@
 				<% } %>
 			</div>
 		</div>
-	
+		<% } else { %>
+			<h3>Tournament Tree</h3>
+			<div class="players">
+			<h2 class="text-3xl">Players:</h2>
+			<div id="playerList">
+				<% if (!players || players.length === 0) { %>
+					<p>No players joined.</p>
+				<% } else { %>
+					<% for (const player of players) { %>
+						<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+							<p class="glow-green"><%= player.displayName || 'Unknown Player' %></p>
+							<p class="glow-red"><%= player.playerTitle || 'Unknown Title' %></p>
+							<p class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></p>
+							<p class="glow-purple">Type: <%= player.type || 'Unknown' %></p>
+						</div>
+					<% } %>
+				<% } %>
+			</div>
+		</div>
+		<% } %>
 <% if (initial) { %>
 	</div> <!-- End of lobby div -->
 </div> <!-- End of page div -->
