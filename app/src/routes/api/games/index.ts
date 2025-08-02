@@ -48,7 +48,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				const game = new Game(id, user, fastify, defaultGameSettings, 0);
+				const game = new Game(id, user, fastify, defaultGameSettings);
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
 				await game.addUserPlayer(user); // Adding the admin player
@@ -157,7 +157,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (gameType !== undefined) {
 				game.config.gameType = gameType;
 				if (gameType === GameType.TOURNAMENT) {
-					game.tournament = 1;
 					game.config.maxPlayers = 8;
 					for (
 						let i = game.players.length;
@@ -168,7 +167,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 				} else if (gameType === GameType.CLASSIC) {
 					game.config.maxPlayers = 4;
-					game.tournament = 0;
 					for (
 						let i = game.players.length;
 						i < game.config.maxPlayers;

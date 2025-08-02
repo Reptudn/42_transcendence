@@ -11,6 +11,7 @@ import { getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
+import { Tournament } from './tournamentClass';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -41,7 +42,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
-	tournament: number;
+	tournament?: Tournament;
 
 	fastify: FastifyInstance;
 
@@ -52,9 +53,7 @@ export class Game {
 		admin: User,
 		fastify: FastifyInstance,
 		config: GameSettings = defaultGameSettings,
-		tournament: number
 	) {
-		this.tournament = 0;
 		this.gameId = gameId;
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
@@ -174,27 +173,75 @@ export class Game {
 		}
 	}
 
+	async onMatchEnd(matchIndex: number, winner: Player) {
+		if (!this.tournament) return;
+
+		this.tournament.advance(matchIndex, winner);
+
+		if (this.tournament.isFinished()) {
+			const finalMatch = this.tournament.rounds.at(-1)?.[0];
+			const champion = finalMatch?.winner;
+			// Announce winner, update stats, call this.endGame(), etc.
+			this.endGame(`Tournament finished! Winner: ${champion?.displayName}`);
+		} else {
+			// Start next round
+			const nextMatches = this.tournament.getCurrentMatches();
+			// Notify players in nextMatches, update state, etc.
+		}
+		// Optionally, update the lobby state to show bracket progress
+		await this.updateLobbyState();
+	}
+
 	async startGame() {
-		if (this.status !== GameStatus.WAITING)
-			throw new Error('Game already running!');
+		if (this.config.gameType === GameType.CLASSIC){
+			if (this.status !== GameStatus.WAITING)
+				throw new Error('Game already running!');
+	
+			if (this.players.length < 2)
+				throw new Error('Not enough players to start the game! (Min 2)');
+	
+			for (const player of this.players)
+				if (!player.joined)
+					throw new Error('All players must be joined to start the game!');
+	
+			this.status = GameStatus.RUNNING;
+			this.gameState = await getMapAsInitialGameState(this);
+	
+			for (const player of this.players)
+				if (player instanceof UserPlayer)
+					sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
+	
+			this.fastify.log.info(
+				`Game ${this.gameId} started with ${this.players.length} players.`
+			);
+		}
+		else if (this.config.gameType === GameType.TOURNAMENT){
+			if (this.status !== GameStatus.WAITING)
+				throw new Error('Game already running!');
+	
+			if (this.players.length < 8)
+				throw new Error('Not enough players to start the game! (Min 2)');
+	
+			for (const player of this.players)
+				if (!player.joined)
+					throw new Error('All players must be joined to start the game!');
+	
+			if (!this.tournament) {
+        		this.tournament = new Tournament(this.players);
+				const currentMatches = this.tournament.getCurrentMatches();
+    		}
 
-		if (this.players.length < 2)
-			throw new Error('Not enough players to start the game! (Min 2)');
-
-		for (const player of this.players)
-			if (!player.joined)
-				throw new Error('All players must be joined to start the game!');
-
-		this.status = GameStatus.RUNNING;
-		this.gameState = await getMapAsInitialGameState(this);
-
-		for (const player of this.players)
-			if (player instanceof UserPlayer)
-				sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
-
-		this.fastify.log.info(
-			`Game ${this.gameId} started with ${this.players.length} players.`
-		);
+			this.status = GameStatus.RUNNING;	
+			this.gameState = await getMapAsInitialGameState(this);
+	
+			for (const player of this.players)
+				if (player instanceof UserPlayer)
+					sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
+	
+			this.fastify.log.info(
+				`Game ${this.gameId} started with ${this.players.length} players.`
+			);
+		}
 	}
 
 	// this updates the lobby state for everyone
@@ -206,6 +253,7 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
+			tournament: this.tournament,
 		});
 
 		const lobbyHtml = await ejs.renderFile('./app/pages/lobby.ejs', {
@@ -213,6 +261,7 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
+			tournament: this.tournament,
 		});
 
 		for (const player of this.players) {
