@@ -1,9 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { game_over, setGameOverVar } from './events.js';
 import { initCanvas, updateGameState } from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
-
-setGameOverVar(false);
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -59,11 +56,6 @@ ws.onclose = (event) => {
 };
 
 ws.onmessage = (event) => {
-	if (game_over)
-	{
-		ws.close(1000, 'Game over closing!');
-		return;
-	}
 	try {
 		console.log(event.data);
 		const data = JSON.parse(event.data);
@@ -113,16 +105,24 @@ let leftPressed = false;
 let rightPressed = false;
 let lastSentDirection = 0;
 
-window.addEventListener('keydown', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = true;
+window.addEventListener(
+	'keydown',
+	(e) => {
+		if (e.key === 'ArrowLeft') leftPressed = true;
 
-	if (e.key === 'ArrowRight') rightPressed = true;
-}, { signal: window.abortController?.signal });
+		if (e.key === 'ArrowRight') rightPressed = true;
+	},
+	{ signal: window.abortController?.signal }
+);
 
-window.addEventListener('keyup', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = false;
-	if (e.key === 'ArrowRight') rightPressed = false;
-}, { signal: window.abortController?.signal });
+window.addEventListener(
+	'keyup',
+	(e) => {
+		if (e.key === 'ArrowLeft') leftPressed = false;
+		if (e.key === 'ArrowRight') rightPressed = false;
+	},
+	{ signal: window.abortController?.signal }
+);
 
 const input_interval = setInterval(() => {
 	if (leftPressed && !rightPressed) {
@@ -166,7 +166,7 @@ window.leaveWsGame = leaveWsGame;
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
 	window.stopRendering();
-	await leaveWsGame(); 
+	await leaveWsGame();
 });
 
 declare global {

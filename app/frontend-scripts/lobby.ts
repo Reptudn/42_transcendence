@@ -1,8 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { game_over, setGameOverVar } from './events.js';
-import { onUnloadPageAsync } from './navigator.js';
-
-setGameOverVar(false);
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
@@ -25,20 +22,29 @@ export async function addLocalPlayer() {
 	}
 }
 
-export async function leaveGame() {
+export async function renameLocalPlayer(id: number) {
+	const newName = prompt('Enter new name for local player:');
+	if (!newName) return;
 
-	if (game_over) return;
+	const res = await fetch(`/api/games/settings`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ localPlayerUpdate: { id, newName } }),
+	});
 
-	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
 		const data = await res.json();
-		console.log('Left game:', data);
-		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+		console.log('Local player renamed:', data);
+		showLocalInfo(`${data.message || 'Player renamed successfully!'}`);
 	} else {
 		const error = await res.json();
-		console.error('Error leaving game:', error);
-		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+		console.error('Error renaming local player:', error);
+		showLocalInfo(`${error.error || 'Failed to rename player: Unknown error'}`);
 	}
+}
+
+export async function leaveGame() {
+	await loadPartialView('profile');
 }
 
 setTimeout(() => {
@@ -47,15 +53,16 @@ setTimeout(() => {
 	});
 }, 0);
 
-
 declare global {
 	interface Window {
 		updatePage: (html: string) => void;
 		addLocalPlayer: () => Promise<void>;
 		leaveGame: () => Promise<void>;
+		renameLocalPlayer: (id: number) => Promise<void>;
 	}
 }
 
 window.updatePage = updatePage;
 window.addLocalPlayer = addLocalPlayer;
 window.leaveGame = leaveGame;
+window.renameLocalPlayer = renameLocalPlayer;

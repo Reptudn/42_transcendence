@@ -7,7 +7,11 @@ import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
-import { UserPlayer } from '../../../services/pong/games/playerClass';
+import {
+	AiPlayer,
+	LocalPlayer,
+	UserPlayer,
+} from '../../../services/pong/games/playerClass';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -66,21 +70,42 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {}, // TODO: add schema for parameter validation
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
-			const { powerupsEnabled, powerups, playerLives, gameDifficulty, map } =
-				request.body as {
-					powerupsEnabled?: boolean;
-					powerups?: Powerups[];
-					playerLives?: number;
-					gameDifficulty?: number;
-					map?: string;
+			const {
+				powerupsEnabled,
+				powerups,
+				playerLives,
+				gameDifficulty,
+				map,
+				aiUpdate,
+				localPlayerUpdate,
+			} = request.body as {
+				powerupsEnabled?: boolean;
+				powerups?: Powerups[];
+				playerLives?: number;
+				gameDifficulty?: number;
+				map?: string;
+				aiUpdate?: {
+					playerId?: number;
+					name?: string;
+					difficulty?: number;
 				};
+				localPlayerUpdate?: {
+					playerId?: number;
+					name?: string;
+				};
+			};
+
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
 			const game = runningGames.find(
-				(g) => g.admin.id === user.id && g.status === GameStatus.WAITING
+				(g) =>
+					g.status === GameStatus.WAITING &&
+					g.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === user.id
+					)
 			);
 			if (!game) {
 				return reply.code(404).send({
@@ -88,9 +113,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 
+			let isAdmin = game.admin.id === user.id;
 			let changed = false;
 
-			if (map !== undefined) {
+			if (isAdmin && map !== undefined) {
 				fastify.log.info(
 					`Updating map for game ${game.gameId} by user ${user.username}`
 				);
@@ -98,14 +124,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (powerupsEnabled !== undefined) {
+			if (isAdmin && powerupsEnabled !== undefined) {
 				fastify.log.info(
 					`Updating game settings for game ${game.gameId} by user ${user.username}`
 				);
 				game.config.powerupsEnabled = powerupsEnabled;
 				changed = true;
 			}
-			if (powerups !== undefined) {
+
+			if (isAdmin && powerups !== undefined) {
 				if (!game.config.powerupsEnabled) {
 					return reply.code(400).send({
 						error: 'Powerups are not enabled for this game. Turn on powerups first.',
@@ -118,7 +145,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					changed = true;
 				}
 			}
-			if (playerLives !== undefined) {
+
+			if (isAdmin && playerLives !== undefined) {
 				fastify.log.info(
 					`Updating player lives for game ${game.gameId} by user ${user.username}`
 				);
@@ -126,7 +154,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (gameDifficulty !== undefined) {
+			if (isAdmin && gameDifficulty !== undefined) {
 				if (gameDifficulty < 1 || gameDifficulty > 10) {
 					return reply.code(400).send({
 						error: 'Game difficulty must be between 1 and 10.',
@@ -138,6 +166,64 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				game.config.gameDifficulty = gameDifficulty;
 				changed = true;
+			}
+
+			if (
+				isAdmin &&
+				aiUpdate !== undefined &&
+				aiUpdate.playerId !== undefined
+			) {
+				const ai = game.players.find(
+					(p) => p instanceof AiPlayer && p.playerId === aiUpdate.playerId
+				);
+
+				if (ai === undefined) {
+					return reply.code(404).send({ error: 'AI player not found' });
+				}
+
+				if (aiUpdate.name !== undefined) {
+					fastify.log.info(
+						`Updating AI name for game ${game.gameId} by user ${user.username}`
+					);
+					(ai as AiPlayer).setName(aiUpdate.name);
+					changed = true;
+				}
+
+				if (aiUpdate.difficulty !== undefined) {
+					if (aiUpdate.difficulty < 1 || aiUpdate.difficulty > 10) {
+						return reply.code(400).send({
+							error: 'AI difficulty must be between 1 and 10.',
+						});
+					}
+					fastify.log.info(
+						`Updating AI difficulty for game ${game.gameId} by user ${user.username}`
+					);
+					(ai as AiPlayer).setDifficulty(aiUpdate.difficulty);
+					changed = true;
+				}
+			}
+
+			if (
+				localPlayerUpdate !== undefined &&
+				localPlayerUpdate.playerId !== undefined
+			) {
+				const localPlayer = game.players.find(
+					(p) =>
+						p instanceof LocalPlayer &&
+						p.playerId === localPlayerUpdate.playerId
+				);
+
+				if (localPlayer === undefined) {
+					return reply.code(404).send({ error: 'Local player not found' });
+				}
+
+				if (localPlayerUpdate.name !== undefined) {
+					fastify.log.info(
+						`Updating Local Player name for game ${game.gameId} by user ${user.username}`
+					);
+					(localPlayer as LocalPlayer).setName(localPlayerUpdate.name);
+					changed = true;
+				}
 			}
 
 			if (changed) {
@@ -374,6 +460,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						(p) => p instanceof UserPlayer && p.user.id === user.id
 					);
 					if (owner) {
+						const userLocalPlayerAmount = game.players.filter(
+							(p) =>
+								p instanceof LocalPlayer &&
+								p.owner.user.id === user.id
+						).length;
+
+						if (userLocalPlayerAmount >= 1) {
+							return reply.code(401).send({
+								error: 'You can only add one Local Player per User!',
+							});
+						}
 						await game.addLocalPlayer(owner as UserPlayer);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
@@ -388,7 +485,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					});
 			} catch (err) {
 				if (err instanceof Error)
-					return reply.code(404).send({ error: 'Failed to add player: ' + err.message });
+					return reply
+						.code(404)
+						.send({ error: 'Failed to add player: ' + err.message });
 				return reply.code(404).send({ error: 'Unknown error' });
 			}
 		}
@@ -456,7 +555,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			const game = runningGames.find((g) => g.gameId === parsedGameId);
 			if (!game) {
-				const isApiRequest = request.headers['content-type']?.includes('application/json') ||
+				const isApiRequest =
+					request.headers['content-type']?.includes('application/json') ||
 					request.headers['accept']?.includes('application/json') ||
 					request.headers['x-requested-with'] === 'XMLHttpRequest';
 

@@ -8,8 +8,7 @@ import {
 } from './popup.js';
 
 export let notifyEventSource: EventSource | null = null;
-export function closeEventSource()
-{
+export function closeEventSource() {
 	if (!notifyEventSource) return;
 
 	notifyEventSource.close();
@@ -17,14 +16,9 @@ export function closeEventSource()
 }
 
 const loggedIntervalBase = 100;
-export let game_over = false;
-export function setGameOverVar(val: boolean) {
-	game_over = val;
-}
 
 export function setupEventSource() {
-	if (window.localStorage.getItem('loggedIn') !== 'true')
-		return;
+	if (window.localStorage.getItem('loggedIn') !== 'true') return;
 
 	if (notifyEventSource && notifyEventSource.readyState === EventSource.OPEN)
 		return;
@@ -130,7 +124,6 @@ export function setupEventSource() {
 				}
 				case 'game_closed':
 					showLocalInfo(data.message);
-					game_over = true;
 					await loadPartialView('profile', true, null, true);
 					break;
 				case 'chat': {
@@ -158,9 +151,7 @@ setInterval(
 			setupEventSource();
 		}
 	},
-	window.localStorage.getItem('loggedIn') === 'true'
-		? loggedIntervalBase
-		: 5000
+	window.localStorage.getItem('loggedIn') === 'true' ? loggedIntervalBase : 5000
 );
 
 export async function sendPopup(

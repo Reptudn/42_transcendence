@@ -1,7 +1,7 @@
 import {
 	connectedClients,
 	sendSeeMessageByUserId,
-	sendSseHtmlByUserId
+	sendSseHtmlByUserId,
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -107,7 +107,12 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const aiPlayer = new AiPlayer(this.players.length, this, aiLevel, this.aiBrainData);
+		const aiPlayer = new AiPlayer(
+			this.players.length,
+			this,
+			aiLevel,
+			this.aiBrainData
+		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
 		await this.updateLobbyState();
@@ -204,13 +209,11 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
-		});
-
-		const lobbyHtml = await ejs.renderFile('./app/pages/lobby.ejs', {
-			players: players,
-			gameSettings: this.config,
-			initial: false,
-			ownerName: this.admin.displayname,
+			localPlayerId:
+				this.players.find(
+					(p) =>
+						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
+				)?.playerId || null,
 		});
 
 		for (const player of this.players) {
@@ -222,18 +225,34 @@ export class Game {
 					'lobby_admin_settings_update',
 					adminHtml
 				);
-			else
+			else {
+				const lobbyHtml = await ejs.renderFile('./app/pages/lobby.ejs', {
+					players: players,
+					gameSettings: this.config,
+					initial: false,
+					ownerName: this.admin.displayname,
+					selfId: player.playerId,
+					localPlayerId:
+						this.players.find(
+							(p) =>
+								p instanceof LocalPlayer &&
+								p.owner.user.id === player.user.id
+						)?.playerId || null,
+				});
 				sendSseHtmlByUserId(
 					player.user.id,
 					'game_settings_update',
 					lobbyHtml
 				);
+			}
 		}
 	}
 
 	// when null if given it means the game end because no players were left
 	async endGame(end_message: string) {
-		this.fastify.log.info(`Ending game ${this.gameId} with message: ${end_message}`);
+		this.fastify.log.info(
+			`Ending game ${this.gameId} with message: ${end_message}`
+		);
 
 		(async () => {
 			try {
