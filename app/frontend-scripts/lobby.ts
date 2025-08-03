@@ -29,7 +29,7 @@ export async function renameLocalPlayer(id: number) {
 	const res = await fetch(`/api/games/settings`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ localPlayerUpdate: { id, newName } }),
+		body: JSON.stringify({ localPlayerUpdate: { playerId: id, name: newName } }),
 	});
 
 	if (res.ok) {

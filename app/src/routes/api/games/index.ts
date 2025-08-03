@@ -177,6 +177,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					(p) => p instanceof AiPlayer && p.playerId === aiUpdate.playerId
 				);
 
+				fastify.log.info(`ai update`);
+
 				if (ai === undefined) {
 					return reply.code(404).send({ error: 'AI player not found' });
 				}
@@ -203,9 +205,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 			}
 
+			fastify.log.info(`local player update ${localPlayerUpdate || 'undefined obj'} with ${localPlayerUpdate!.playerId || 'undefined player id'} and ${localPlayerUpdate!.name  || 'undefined name'}`);
 			if (
 				localPlayerUpdate !== undefined &&
-				localPlayerUpdate.playerId !== undefined
+				localPlayerUpdate.playerId !== undefined &&
+				localPlayerUpdate.name !== undefined
 			) {
 				const localPlayer = game.players.find(
 					(p) =>
@@ -213,17 +217,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						p.playerId === localPlayerUpdate.playerId
 				);
 
+				fastify.log.info(`local player update`);
+
 				if (localPlayer === undefined) {
 					return reply.code(404).send({ error: 'Local player not found' });
 				}
-
-				if (localPlayerUpdate.name !== undefined) {
-					fastify.log.info(
-						`Updating Local Player name for game ${game.gameId} by user ${user.username}`
-					);
-					(localPlayer as LocalPlayer).setName(localPlayerUpdate.name);
-					changed = true;
-				}
+				fastify.log.info(
+					`Updating Local Player name for game ${game.gameId} by user ${user.username}`
+				);
+				(localPlayer as LocalPlayer).setName(localPlayerUpdate.name);
+				changed = true;
 			}
 
 			if (changed) {

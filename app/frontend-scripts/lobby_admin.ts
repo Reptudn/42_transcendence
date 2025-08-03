@@ -204,8 +204,8 @@ export async function renameLocalPlayer(id: number) {
 	await updateSettings(
 		{
 			localPlayerUpdate: {
-				id,
-				newName,
+				playerId: id,
+				name: newName,
 			},
 		},
 		true
