@@ -39,6 +39,7 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 			btn.disabled = false;
 		});
 }
+
 export function acceptFriendRequest(requestId: number) {
 	fetch('/api/friends/accept', {
 		method: 'POST',

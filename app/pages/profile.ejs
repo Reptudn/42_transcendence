@@ -8,6 +8,15 @@
 			<%= t('profile.edit_profile') %>
 		</a>
 	</div>
+	<% } else { %>
+		<div class="flex justify-end -mb-[45px]">
+		<button
+			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
+			onclick="alert('soon')"
+		>
+			Send Friend Request
+		</button>
+	</div>
 	<% } %>
 
 	<div class="flex items-center space-x-4">
