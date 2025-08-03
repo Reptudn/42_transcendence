@@ -25,6 +25,7 @@ export abstract class Player {
 	public movementDirection: number = 0; // -1 | 0 | 1
 
 	public joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
+	public isAi: boolean = false; // only for the frontend ejs rendering
 
 	constructor(
 		playerId: number,
@@ -101,6 +102,7 @@ export class AiPlayer extends Player {
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = aiBrainData;
 		this.aiDifficulty = 3;
+		this.isAi = true;
 	}
 
 	setName(name: string) {

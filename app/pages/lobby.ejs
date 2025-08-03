@@ -36,7 +36,7 @@
 				<% } else { %>
 					<% for (const player of players) { %>
 						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
-							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
+							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
 								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (Admin)</h3>
 							<% } else if (selfId && player.playerId === selfId) {%>
 								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>

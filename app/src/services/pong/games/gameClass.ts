@@ -213,7 +213,7 @@ export class Game {
 				this.players.find(
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
-				)?.playerId || null,
+				)?.playerId || -1,
 		});
 
 		for (const player of this.players) {
@@ -237,7 +237,7 @@ export class Game {
 							(p) =>
 								p instanceof LocalPlayer &&
 								p.owner.user.id === player.user.id
-						)?.playerId || null,
+						)?.playerId || -1,
 				});
 				sendSseHtmlByUserId(
 					player.user.id,

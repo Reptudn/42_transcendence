@@ -161,21 +161,18 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
-	/*
-		if (game_over) return;
 
-		console.log('Leaving game...');
-		const res = await fetch('/api/games/leave', { method: 'POST' });
-		if (res.ok) {
-			const data = await res.json();
-			console.log('Left game:', data);
-			showLocalInfo(`${data.message || 'Left game successfully!'}`);
-		} else {
-			const error = await res.json();
-			console.error('Error leaving game:', error);
-			showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
-		}
-	*/
+	console.log('Leaving game...');
+	const res = await fetch('/api/games/leave', { method: 'POST' });
+	if (res.ok) {
+		const data = await res.json();
+		console.log('Left game:', data);
+		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+	} else {
+		const error = await res.json();
+		console.error('Error leaving game:', error);
+		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+	}
 	await loadPartialView('profile');
 }
 
