@@ -12,6 +12,7 @@ export async function setLanguageCookie(lang: string) {
 	const is_in_game =
 		last_page?.startsWith('/partial/pages/lobby') ||
 		last_page?.startsWith('/partial/pages/lobby_admin') ||
+		last_page?.startsWith('/api/games/join') ||
 		last_page?.startsWith('/api/games/run');
 
 	if (is_in_game)
@@ -25,7 +26,8 @@ export async function setLanguageCookie(lang: string) {
 			console.log('Language change cancelled');
 		}
 	}
-	else await loadPartialView(`profile?lng=${lang}`, false);
+	else if (window.localStorage.getItem('loggedIn') === 'true') await loadPartialView(`profile?lng=${lang}`, false);
+	else loadPartialView(`index?lng=${lang}`, false);
 	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`);
 }
 
