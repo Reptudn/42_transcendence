@@ -212,6 +212,58 @@ export async function renameLocalPlayer(id: number) {
 	);
 }
 
+export async function renameAiPlayer(id: number) {
+	console.log(`Renaming AI player with ID: ${id}`);
+
+	const newName = prompt('Enter new name for AI player:');
+	if (!newName) return;
+
+	await updateSettings(
+		{
+			aiUpdate: {
+				playerId: id,
+				name: newName,
+			},
+		},
+		true
+	);
+}
+
+export async function setAiDifficulty(id: number, difficulty: string | number) {
+	const difficultyNum = typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
+	
+	if (isNaN(difficultyNum) || difficultyNum > 10) {
+		const correctedDifficulty = Math.min(10, Math.max(1, difficultyNum || 1));
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+	
+	if (difficultyNum < 1) {
+		const correctedDifficulty = 1;
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			difficulty: difficultyNum
+		}
+	}, true);
+}
+
 await refreshOnlineFriends();
 
 onUnloadPageAsync(async () => {
@@ -229,6 +281,8 @@ declare global {
 		addAIPlayer: () => Promise<void>;
 		startGame: () => Promise<void>;
 		renameLocalPlayer: (id: number) => Promise<void>;
+		renameAiPlayer: (id: number) => Promise<void>;
+		setAiDifficulty: (id: number, difficulty: number) => Promise<void>;
 	}
 }
 
@@ -241,3 +295,5 @@ window.addUserPlayer = addUserPlayer;
 window.addAIPlayer = addAIPlayer;
 window.startGame = startGame;
 window.renameLocalPlayer = renameLocalPlayer;
+window.renameAiPlayer = renameAiPlayer;
+window.setAiDifficulty = setAiDifficulty;

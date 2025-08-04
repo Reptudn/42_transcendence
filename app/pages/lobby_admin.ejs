@@ -71,11 +71,20 @@
 							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
 								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
-							<% if (player.isAi) { %>
-								<input type="range" name="AI Difficulty" id="ai-diff-range" min="1" max="10" value="<%= player.difficulty %>" onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
+							<% if (player.type === 'AI') { %>
+								<label for="ai-diff-range-<%= player.playerId %>">Difficulty:</label>
+								<input type="number" 
+									name="AI Difficulty" 
+									id="ai-diff-range-<%= player.playerId || 3%>" 
+									min="1" 
+									max="10" 
+									value="<%= player.aiDifficulty %>"
+									onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
 							<% } %>
 							<% if (localPlayerId && player.playerId === localPlayerId) { %>
 								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } else if (player.type === 'AI') { %>
+								<button onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
 							<% } %>
 						</div>
 					<% } %>

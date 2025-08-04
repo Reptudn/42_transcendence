@@ -63,11 +63,156 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
+
+	const gameSettingsSchema = {
+		type: 'object',
+		properties: {
+			powerupsEnabled: {
+				type: 'boolean',
+				errorMessage: {
+					type: 'Powerups enabled setting must be true or false'
+				}
+			},
+			powerups: {
+				type: 'array',
+				items: {
+					type: 'string',
+					enum: ['speed', 'multiball', 'bigpaddle', 'smallpaddle', 'freeze', 'reverse'],
+					errorMessage: {
+						type: 'Each powerup must be a text value',
+						enum: 'Each powerup must be one of: speed, multiball, bigpaddle, smallpaddle, freeze, reverse'
+					}
+				},
+				uniqueItems: true,
+				maxItems: 10,
+				errorMessage: {
+					type: 'Powerups must be an array of powerup names',
+					uniqueItems: 'Duplicate powerups are not allowed',
+					maxItems: 'Cannot have more than 10 powerups enabled'
+				}
+			},
+			playerLives: {
+				type: 'number',
+				minimum: 1,
+				maximum: 10,
+				errorMessage: {
+					type: 'Player lives must be a number',
+					minimum: 'Player lives must be at least 1',
+					maximum: 'Player lives cannot exceed 10'
+				}
+			},
+			gameDifficulty: {
+				type: 'number',
+				minimum: 1,
+				maximum: 10,
+				errorMessage: {
+					type: 'Game difficulty must be a number',
+					minimum: 'Game difficulty must be at least 1',
+					maximum: 'Game difficulty cannot exceed 10'
+				}
+			},
+			map: {
+				type: 'string',
+				minLength: 1,
+				maxLength: 50,
+				pattern: '^[a-zA-Z0-9_-]+$',
+				errorMessage: {
+					type: 'Map name must be a text value',
+					minLength: 'Map name cannot be empty',
+					maxLength: 'Map name cannot be longer than 50 characters',
+					pattern: 'Map name can only contain letters, numbers, underscores, and hyphens'
+				}
+			},
+			aiUpdate: {
+				type: 'object',
+				properties: {
+					playerId: {
+						type: 'number',
+						minimum: 0,
+						errorMessage: {
+							type: 'AI Player ID must be a number',
+							minimum: 'AI Player ID cannot be negative'
+						}
+					},
+					name: {
+						type: 'string',
+						minLength: 1,
+						maxLength: 32,
+						errorMessage: {
+							type: 'AI name must be a text value',
+							minLength: 'AI name cannot be empty',
+							maxLength: 'AI name cannot be longer than 32 characters'
+						}
+					},
+					difficulty: {
+						type: 'number',
+						minimum: 1,
+						maximum: 10,
+						errorMessage: {
+							type: 'AI difficulty must be a number',
+							minimum: 'AI difficulty must be at least 1',
+							maximum: 'AI difficulty cannot exceed 10'
+						}
+					}
+				},
+				required: ['playerId'],
+				additionalProperties: false,
+				errorMessage: {
+					required: {
+						playerId: 'Player ID is required for AI updates'
+					},
+					additionalProperties: 'Unknown field in AI update. Only playerId, name, and difficulty are allowed'
+				}
+			},
+			localPlayerUpdate: {
+				type: 'object',
+				properties: {
+					playerId: {
+						type: 'number',
+						minimum: 0,
+						errorMessage: {
+							type: 'Local Player ID must be a number',
+							minimum: 'Local Player ID cannot be negative'
+						}
+					},
+					name: {
+						type: 'string',
+						minLength: 1,
+						maxLength: 32,
+						errorMessage: {
+							type: 'Local player name must be a text value',
+							minLength: 'Local player name cannot be empty',
+							maxLength: 'Local player name cannot be longer than 32 characters'
+						}
+					}
+				},
+				required: ['playerId', 'name'],
+				additionalProperties: false,
+				errorMessage: {
+					required: {
+						playerId: 'Player ID is required for local player updates',
+						name: 'Name is required for local player updates'
+					},
+					additionalProperties: 'Unknown field in local player update. Only playerId and name are allowed'
+				}
+			}
+		},
+		required: [],
+		additionalProperties: false,
+		minProperties: 1,
+		errorMessage: {
+			minProperties: 'At least one setting must be provided to update',
+			additionalProperties: 'Unknown field provided. Only powerupsEnabled, powerups, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed'
+		}
+	};
+
 	fastify.post(
 		'/settings',
 		{
 			preValidation: [fastify.authenticate],
-			schema: {}, // TODO: add schema for parameter validation
+			schema: {
+				body: gameSettingsSchema
+			},
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const {
@@ -177,8 +322,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					(p) => p instanceof AiPlayer && p.playerId === aiUpdate.playerId
 				);
 
-				fastify.log.info(`ai update`);
-
 				if (ai === undefined) {
 					return reply.code(404).send({ error: 'AI player not found' });
 				}
@@ -205,7 +348,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 			}
 
-			fastify.log.info(`local player update ${localPlayerUpdate || 'undefined obj'} with ${localPlayerUpdate!.playerId || 'undefined player id'} and ${localPlayerUpdate!.name  || 'undefined name'}`);
 			if (
 				localPlayerUpdate !== undefined &&
 				localPlayerUpdate.playerId !== undefined &&
@@ -229,7 +371,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (changed) {
+			if (changed || localPlayerUpdate !== undefined) {
 				await game.updateLobbyState();
 				fastify.log.info(
 					`Game settings updated for game ${game.gameId} by user ${user.username}`

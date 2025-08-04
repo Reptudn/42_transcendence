@@ -25,7 +25,6 @@ export abstract class Player {
 	public movementDirection: number = 0; // -1 | 0 | 1
 
 	public joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
-	public isAi: boolean = false; // only for the frontend ejs rendering
 
 	constructor(
 		playerId: number,
@@ -97,22 +96,23 @@ export class AiPlayer extends Player {
 	public aiDifficulty: number;
 
 	constructor(id: number, game: Game, aiLevel: number, aiBrainData: AIBrainData) {
-		// probably temp random ai names
-		super(id, game.config.playerLives, `${getRandomDefaultName()}`, 'AI');
+		super(id, game.config.playerLives, `${getRandomDefaultName()}`, 'AI Level 3');
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = aiBrainData;
 		this.aiDifficulty = 3;
-		this.isAi = true;
 	}
 
 	setName(name: string) {
 		this.displayName = `${name} (AI)`;
 	}
 
+	get difficulty() { return this.aiDifficulty; }
+
 	setDifficulty(difficulty: number) {
 		if (difficulty < 1 && difficulty > 10)
-			throw new Error('AIs difficulty can only reach from 1 to 10');
+			return;
 		this.aiDifficulty = difficulty;
+		this.playerTitle = `AI Level ${difficulty}`;
 	}
 
 	isReady(): boolean {
@@ -134,7 +134,9 @@ export class LocalPlayer extends Player {
 		this.owner = owner;
 	}
 
+	// TODO: protect name change better
 	setName(name: string) {
+		if (name.length > 16) return;
 		this.displayName = `${name} (Local)`;
 		this.playerTitle = `Local from ${this.owner.displayName}`;
 	}
