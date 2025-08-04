@@ -206,6 +206,9 @@ export class Game {
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
+
+		if (this.status !== GameStatus.WAITING) return;
+
 		const players = this.players.map((player) => player.formatStateForClients());
 
 		const adminHtml = await ejs.renderFile('./app/pages/lobby_admin.ejs', {

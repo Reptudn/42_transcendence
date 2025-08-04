@@ -413,6 +413,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					});
 			}
 
+			const friendGame = runningGames.find((g) => (g.players.find(p => p instanceof UserPlayer && p.user.id === inviteUser.id)));
+			if (friendGame)
+				return reply.code(401).send({ error: 'Cant invite a user which is already in a game' });
+
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
 				`User ${user.username} is inviting user with ID ${parsedUserId} to their game.`
@@ -795,6 +799,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				gameSettings: game.config,
 				players: game.players,
 				initial: true, // to load the lobby script
+				localPlayerId: -1,
+				selfId: player?.playerId || -1,
 			});
 		}
 	);
@@ -871,9 +877,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			socket.on('message', (message: Buffer) => {
 				const msgStr = message.toString();
-				fastify.log.info(
-					`Received message from player ${player.playerId}: ${msgStr}`
-				);
+				// fastify.log.info(
+				// 	`Received message from player ${player.playerId}: ${msgStr}`
+				// );
 
 				try {
 					const data = JSON.parse(msgStr);
@@ -882,7 +888,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							player.movementDirection = data.dir;
 						else if (data.user === 'local' && localPlayer)
 							localPlayer.movementDirection = data.dir;
-						fastify.log.info('Server received movement data:', data);
+						// fastify.log.info('Server received movement data:', data);
 					}
 				} catch (err) {
 					fastify.log.error(
