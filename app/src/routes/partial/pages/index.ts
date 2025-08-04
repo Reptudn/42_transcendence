@@ -190,6 +190,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = players;
 					variables['gameSettings'] = existingGame.config;
+					variables['selfId'] = admin.playerId;
+					variables['localPlayerId'] = -1;
 
 					const maps = await getAvailableMaps(fastify);
 					variables['availableMaps'] = maps;

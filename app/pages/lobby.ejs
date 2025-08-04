@@ -35,10 +35,21 @@
 					<p>No players joined.</p>
 				<% } else { %>
 					<% for (const player of players) { %>
-						<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
-							<span class="glow-green"><%= player.displayName || 'Unknown Player' %></span>
+						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (Admin)</h3>
+							<% } else if (selfId && player.playerId === selfId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>
+							<% } else if (localPlayerId && player.playerId === localPlayerId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You as Local)</h3>
+							<% } else {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+							<% } %>
 							<span class="glow-red"><%= player.playerTitle || 'Unknown Title' %></span>
 							<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
+							<% if (localPlayerId && player.playerId === localPlayerId) { %>
+								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } %>
 						</div>
 						<br>
 					<% } %>
