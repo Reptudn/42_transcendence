@@ -854,6 +854,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				`Player ${player.playerId} connected to game ${parsedGameId}.`
 			);
 
+			const localPlayer = game.players.find((l) => l instanceof LocalPlayer && l.owner === player) as LocalPlayer | undefined;
+
 			socket.send(JSON.stringify({ type: 'state', state: game.gameState }));
 
 			socket.on('error', (error) => {
@@ -876,7 +878,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				try {
 					const data = JSON.parse(msgStr);
 					if (data.type === 'move') {
-						player.movementDirection = data.dir;
+						if (data.user === 'user')
+							player.movementDirection = data.dir;
+						else if (data.user === 'local' && localPlayer)
+							localPlayer.movementDirection = data.dir;
 						fastify.log.info('Server received movement data:', data);
 					}
 				} catch (err) {

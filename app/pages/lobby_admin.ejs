@@ -82,6 +82,7 @@
 									onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
 							<% } %>
 							<% if (localPlayerId && player.playerId === localPlayerId) { %>
+								<h3>Controls: A - Left | D - Right</h3>
 								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
 							<% } else if (player.type === 'AI') { %>
 								<button onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
