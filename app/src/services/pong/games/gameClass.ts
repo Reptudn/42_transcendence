@@ -39,6 +39,8 @@ export class Game {
 
 	fastify: FastifyInstance;
 
+	private nextPlayerId: number = 0;
+
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
 
 	constructor(
@@ -92,7 +94,7 @@ export class Game {
 			user,
 			this,
 			null,
-			this.players.length,
+			this.nextPlayerId++,
 			await getUserTitleString(user.id, this.fastify)
 		)
 		this.players.push(userPlayer);
@@ -108,7 +110,7 @@ export class Game {
 			throw new Error('Game max player amount already reached!');
 
 		const aiPlayer = new AiPlayer(
-			this.players.length,
+			this.nextPlayerId++,
 			this,
 			aiLevel,
 			this.aiBrainData
@@ -126,7 +128,7 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const localPlayer = new LocalPlayer(this.players.length, owner, this);
+		const localPlayer = new LocalPlayer(this.nextPlayerId++, owner, this);
 		localPlayer.joined = true; // Local players are always considered joined
 		this.players.push(localPlayer);
 		await this.updateLobbyState();
