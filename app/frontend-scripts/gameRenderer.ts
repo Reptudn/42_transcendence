@@ -274,7 +274,7 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	console.log('Drawing game state:', gameState);
+	// console.log('Drawing game state:', gameState);
 
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;

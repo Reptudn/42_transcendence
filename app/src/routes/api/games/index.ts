@@ -795,6 +795,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				gameSettings: game.config,
 				players: game.players,
 				initial: true, // to load the lobby script
+				localPlayerId: -1,
+				selfId: player?.playerId || -1,
 			});
 		}
 	);
