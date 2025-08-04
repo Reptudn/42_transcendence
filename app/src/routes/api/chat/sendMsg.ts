@@ -14,10 +14,27 @@ import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
 import { normError } from './utils';
 
+const chatMsgRequestSchema = {
+	body: {
+		type: 'object',
+		properties: {
+			chat: { type: 'number' },
+			message: {
+				type: 'string',
+				maxLength: 250,
+				errorMessage: {
+					maxLength: 'The message do not contain more than 250 chars',
+				},
+			},
+		},
+		required: ['chat', 'message'],
+	},
+};
+
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
 		'/',
-		{ preValidation: [fastify.authenticate] },
+		{ preValidation: [fastify.authenticate], schema: chatMsgRequestSchema },
 		async (req: FastifyRequest, res: FastifyReply) => {
 			try {
 				const body = req.body as {
@@ -113,8 +130,7 @@ function sendMsgGroup(
 			} else msg = createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
-				if (user.user_id === fromUser.id)
-					msg.ownMsg = true;
+				if (user.user_id === fromUser.id) msg.ownMsg = true;
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}

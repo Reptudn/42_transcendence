@@ -37,7 +37,7 @@ export async function checkCmd(
 			msg = 'chat.leave';
 			break;
 		case '/help':
-			msg = '/invite<br>/msg</br>/leave';
+			msg = '/invite username<br>/msg username msg</br>/leave';
 			break;
 		default:
 			throw new HttpError(400, `Invalid Command: ${cmd}`);
