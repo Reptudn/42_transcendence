@@ -16,7 +16,8 @@ import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
 import { UserPlayer } from '../../../services/pong/games/playerClass';
 import { getUserRecentGames } from '../../../services/database/games';
 import { getUser2faSecret } from '../../../services/database/totp';
-//import { getUser2faSecret } from '../../../services/database/totp';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/2fa_code', async (request, reply) => {
@@ -30,6 +31,13 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		isAuthenticated: false
 	}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
 });
+
+	const pageExists = (pageName: string): boolean => {
+		const viewsPath = path.join(__dirname, '../../../pages');
+		const pagePath = path.join(viewsPath, `${pageName}.ejs`);
+		return fs.existsSync(pagePath);
+	};
+
 	fastify.get(
 		'/:page/:username?',
 		{
@@ -76,8 +84,23 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
+			let defaultError: string = 'Woopsie.. seems like you teleported to the wrong location!';
 
 			fastify.log.info(`page is ${page}`);
+
+			if (!pageExists(page)) {
+				return reply.code(404).view(
+					'error.ejs',
+					{ 
+						err_code: 404,
+						err_message: `Page '${page}' not found`,
+						isAuthenticated: user !== null,
+						name: user && user.displayname,
+						t: req.t 
+					},
+					{ layout: layoutOption }
+				);
+			}
 
 			try {
 				if (page === 'profile') {
@@ -196,6 +219,11 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					const maps = await getAvailableMaps(fastify);
 					variables['availableMaps'] = maps;
 					fastify.log.info(`Maps ${maps}`);
+				}
+				else if (page === 'error')
+				{
+					variables['err_code'] = 404;
+					variables['err_message'] = defaultError;
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
