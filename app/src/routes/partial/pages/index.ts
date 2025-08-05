@@ -18,6 +18,7 @@ import { getUserRecentGames } from '../../../services/database/games';
 import { getUser2faSecret } from '../../../services/database/totp';
 import * as fs from 'fs';
 import * as path from 'path';
+import { connectedClients } from '../../../services/sse/handler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/2fa_code', async (request, reply) => {
@@ -126,6 +127,14 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile.profile_picture = '/profile/' + profileId + '/picture';
 					variables['user'] = profile;
 					variables['isSelf'] = isSelf;
+					if (user && user.id !== profile.id)
+					{
+						const currentUserFriends = await getFriends(user.id, fastify);
+						variables['isFriended'] = currentUserFriends.find((f) => f.id === user.id) !== undefined;
+					}
+					else variables['isFriended'] = false;
+					
+					variables['online'] = connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
 					variables['title'] = await getUserTitleString(
 						profile.id,
 						fastify
