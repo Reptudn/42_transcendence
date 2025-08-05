@@ -195,7 +195,6 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
-	window.stopRendering();
 	await leaveWsGame();
 });
 
