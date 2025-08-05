@@ -21,20 +21,21 @@ import * as path from 'path';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/2fa_code', async (request, reply) => {
-	const query = request.query as { google?: string; userid?: string };
-	const isGoogleLogin = query.google === '1';
-	const userid = query.userid;
-	return reply.view('2fa_code.ejs', {
-		isGoogleLogin,
-		userid,
-		t: request.t,
-		isAuthenticated: false
-	}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
-});
+		const query = request.query as { google?: string; userid?: string };
+		const isGoogleLogin = query.google === '1';
+		const userid = query.userid;
+		return reply.view('2fa_code.ejs', {
+			isGoogleLogin,
+			userid,
+			t: request.t,
+			isAuthenticated: false
+		}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
+	});
 
 	const pageExists = (pageName: string): boolean => {
-		const viewsPath = path.join(__dirname, '../../../pages');
+		const viewsPath = path.join(__dirname, '../../../../pages');
 		const pagePath = path.join(viewsPath, `${pageName}.ejs`);
+		// return true;
 		return fs.existsSync(pagePath);
 	};
 

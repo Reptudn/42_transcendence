@@ -60,6 +60,13 @@ async function fetchNumber(): Promise<void> {
 	}
 }
 async function updateNumber(increment: number): Promise<void> {
+
+	if (window.localStorage.getItem('loggedIn') !== 'true')
+	{
+		showLocalError('You need to be logged in to do this!');
+		return;
+	}
+
 	try {
 		const response = await fetch('/number', {
 			method: 'POST',
