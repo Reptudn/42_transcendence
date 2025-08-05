@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from "./alert.js";
+import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
 let currentState: GameState | null = null;
@@ -466,9 +467,13 @@ declare global
 	interface Window {
 		initCanvas: () => void;
 		startRendering: () => void;
-        stopRendering: () => void;
+		stopRendering: () => void;
 	}
 }
+
+onUnloadPageAsync(async () => {
+	stopRendering();
+});
 
 window.initCanvas = initCanvas;
 window.startRendering = startRendering;

@@ -1,20 +1,29 @@
 <div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
 	<% if (isSelf) { %>
-	<div class="flex justify-end -mb-[45px]">
-		<a
-			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
-			onclick="loadPartialView('edit_profile')"
-		>
-			<%= t('profile.edit_profile') %>
-		</a>
-	</div>
+		<div class="flex justify-end -mb-[45px]">
+			<a
+				class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
+				onclick="loadPartialView('edit_profile')"
+			>
+				<%= t('profile.edit_profile') %>
+			</a>
+		</div>
+	<% } else if (isFriended) { %>
+		<div class="flex justify-end -mb-[45px]">
+			<button
+				class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-green"
+				onclick="sendFriendRequest(<%= user.id %>)"
+			>
+				Send Friend Request
+			</button>
+		</div>
 	<% } else { %>
 		<div class="flex justify-end -mb-[45px]">
 		<button
-			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
-			onclick="alert('soon')"
+			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-red"
+			onclick="removeFriendRequest(<%= user.id %>)"
 		>
-			Send Friend Request
+			Remove Friend
 		</button>
 	</div>
 	<% } %>
@@ -29,17 +38,23 @@
 			<h2 class="text-4xl font-bold"><%= user.displayname %></h2>
 			<h3 class="text-3xl">@<%= user.username %></h3>
 			<h3 class="text-3xl">The <%= title %></h3>
+			<% if (online) { %>
+				<span class="text-green-500">Online</span>
+			<% } else { %>
+				<span class="text-red-500">Offline</span>
+			<% } %>
 		</div>
 	</div>
 
 	<% if (user.bio) { %>
 	<div class="mt-4">
-		<h4 class="font-bold text-3xl">bio:</h4>
+		<h4 class="font-bold text-3xl">Bio:</h4>
 		<p class="break-words hyphens-auto">
 			<%= user.bio || t('profile.no_bio') %>
 		</p>
 	</div>
-	<% } %> <% if (friends.length > 0 || isSelf ) { %>
+	<% } %>
+	<% if (friends.length > 0 || isSelf ) { %>
 	<div class="mt-6 border-t pt-4">
 		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.friends') %></h3>
 		<div class="flex flex-wrap gap-4">
