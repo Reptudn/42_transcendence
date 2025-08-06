@@ -1,5 +1,4 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { game_over, setGameOverVar } from './events.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 interface Friend {
@@ -7,8 +6,6 @@ interface Friend {
 	username: string;
 	displayname: string;
 }
-
-setGameOverVar(false);
 
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
@@ -53,7 +50,7 @@ export async function refreshOnlineFriends() {
 		.join('');
 }
 
-export async function updateSettings(newSettings: any) {
+export async function updateSettings(newSettings: any, error: boolean = false) {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
 		headers: {
@@ -65,12 +62,11 @@ export async function updateSettings(newSettings: any) {
 	if (!res.ok) {
 		const data = await res.json();
 		showLocalError(data.error);
+	} else {
+		if (!error) return;
+		const data = await res.json();
+		showLocalInfo(data.message);
 	}
-	// else
-	// {
-	// 	const data = await res.json();
-	// 	showLocalInfo(data.message);
-	// }
 }
 
 const powerupsToggle = document.getElementById(
@@ -172,8 +168,6 @@ export async function kickPlayer(playerId: number) {
 
 export async function leaveGame() {
 
-	if (game_over) return;
-
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -207,9 +201,80 @@ export function updatePage(html: string) {
 	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
+export async function renameLocalPlayer(id: number) {
+	console.log(`Renaming local player with ID: ${id}`);
+
+	const newName = prompt('Enter new name for local player:');
+	if (!newName) return;
+
+	await updateSettings(
+		{
+			localPlayerUpdate: {
+				playerId: id,
+				name: newName,
+			},
+		},
+		true
+	);
+}
+
+export async function renameAiPlayer(id: number) {
+	console.log(`Renaming AI player with ID: ${id}`);
+
+	const newName = prompt('Enter new name for AI player:');
+	if (!newName) return;
+
+	await updateSettings(
+		{
+			aiUpdate: {
+				playerId: id,
+				name: newName,
+			},
+		},
+		true
+	);
+}
+
+export async function setAiDifficulty(id: number, difficulty: string | number) {
+	const difficultyNum = typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
+	
+	if (isNaN(difficultyNum) || difficultyNum > 10) {
+		const correctedDifficulty = Math.min(10, Math.max(1, difficultyNum || 1));
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+	
+	if (difficultyNum < 1) {
+		const correctedDifficulty = 1;
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			difficulty: difficultyNum
+		}
+	}, true);
+}
+
 await refreshOnlineFriends();
 
-onUnloadPageAsync(async() => { await leaveGame(); });
+onUnloadPageAsync(async () => {
+	await leaveGame();
+});
 
 declare global {
 	interface Window {
@@ -221,6 +286,9 @@ declare global {
 		addUserPlayer: (friendId: number) => Promise<void>;
 		addAIPlayer: () => Promise<void>;
 		startGame: () => Promise<void>;
+		renameLocalPlayer: (id: number) => Promise<void>;
+		renameAiPlayer: (id: number) => Promise<void>;
+		setAiDifficulty: (id: number, difficulty: number) => Promise<void>;
 	}
 }
 
@@ -232,3 +300,6 @@ window.addLocalPlayer = addLocalPlayer;
 window.addUserPlayer = addUserPlayer;
 window.addAIPlayer = addAIPlayer;
 window.startGame = startGame;
+window.renameLocalPlayer = renameLocalPlayer;
+window.renameAiPlayer = renameAiPlayer;
+window.setAiDifficulty = setAiDifficulty;

@@ -1,9 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { game_over, setGameOverVar } from './events.js';
 import { initCanvas, updateGameState } from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
-
-setGameOverVar(false);
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -59,11 +56,6 @@ ws.onclose = (event) => {
 };
 
 ws.onmessage = (event) => {
-	if (game_over)
-	{
-		ws.close(1000, 'Game over closing!');
-		return;
-	}
 	try {
 		console.log(event.data);
 		const data = JSON.parse(event.data);
@@ -109,37 +101,75 @@ ws.onmessage = (event) => {
 
 // INPUT
 
-let leftPressed = false;
-let rightPressed = false;
-let lastSentDirection = 0;
+let userInputData = {
+	leftPressed: false,
+	rightPressed: false,
+	lastSentDirection: 0
+}
 
-window.addEventListener('keydown', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = true;
+let localUserInputData = {
+	leftPressed: false,
+	rightPressed: false,
+	lastSentDirection: 0
+}
 
-	if (e.key === 'ArrowRight') rightPressed = true;
-}, { signal: window.abortController?.signal });
+window.addEventListener(
+	'keydown',
+	(e) => {
+		if (e.key === 'ArrowLeft') userInputData.leftPressed = true;
+		if (e.key === 'ArrowRight') userInputData.rightPressed = true;
+		if (e.key === 'a') localUserInputData.leftPressed = true
+		if (e.key === 'd') localUserInputData.rightPressed = true;
+	},
+	{ signal: window.abortController?.signal }
+);
 
-window.addEventListener('keyup', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = false;
-	if (e.key === 'ArrowRight') rightPressed = false;
-}, { signal: window.abortController?.signal });
+window.addEventListener(
+	'keyup',
+	(e) => {
+		if (e.key === 'ArrowLeft') userInputData.leftPressed = false;
+		if (e.key === 'ArrowRight') userInputData.rightPressed = false;
+		if (e.key === 'a') localUserInputData.leftPressed = false
+		if (e.key === 'd') localUserInputData.rightPressed = false;
+	},
+	{ signal: window.abortController?.signal }
+);
 
 const input_interval = setInterval(() => {
-	if (leftPressed && !rightPressed) {
-		if (lastSentDirection !== -1) {
-			ws.send(JSON.stringify({ type: 'move', dir: -1 }));
+	// user
+	if (userInputData.leftPressed && !userInputData.rightPressed) {
+		if (userInputData.lastSentDirection !== -1) {
+			ws.send(JSON.stringify({ type: 'move', dir: -1, user: 'user' }));
 		}
-		lastSentDirection = -1;
-	} else if (rightPressed && !leftPressed) {
-		if (lastSentDirection !== 1) {
-			ws.send(JSON.stringify({ type: 'move', dir: 1 }));
+		userInputData.lastSentDirection = -1;
+	} else if (userInputData.rightPressed && !userInputData.leftPressed) {
+		if (userInputData.lastSentDirection !== 1) {
+			ws.send(JSON.stringify({ type: 'move', dir: 1, user: 'user' }));
 		}
-		lastSentDirection = 1;
+		userInputData.lastSentDirection = 1;
 	} else {
-		if (lastSentDirection !== 0) {
-			ws.send(JSON.stringify({ type: 'move', dir: 0 }));
+		if (userInputData.lastSentDirection !== 0) {
+			ws.send(JSON.stringify({ type: 'move', dir: 0, user: 'user' }));
 		}
-		lastSentDirection = 0;
+		userInputData.lastSentDirection = 0;
+	}
+
+	// local
+	if (localUserInputData.leftPressed && !localUserInputData.rightPressed) {
+		if (localUserInputData.lastSentDirection !== -1) {
+			ws.send(JSON.stringify({ type: 'move', dir: -1, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = -1;
+	} else if (localUserInputData.rightPressed && !localUserInputData.leftPressed) {
+		if (localUserInputData.lastSentDirection !== 1) {
+			ws.send(JSON.stringify({ type: 'move', dir: 1, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = 1;
+	} else {
+		if (localUserInputData.lastSentDirection !== 0) {
+			ws.send(JSON.stringify({ type: 'move', dir: 0, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = 0;
 	}
 }, 1000 / 30); // 30 FPS
 
@@ -165,8 +195,7 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
-	window.stopRendering();
-	await leaveWsGame(); 
+	await leaveWsGame();
 });
 
 declare global {

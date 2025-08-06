@@ -1,5 +1,5 @@
 import { Game } from './gameClass';
-import { getRandomUserTitle } from '../../database/users';
+// import { getRandomUserTitle } from '../../database/users';
 import { WebSocket as WSWebSocket } from 'ws';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -93,18 +93,26 @@ export class UserPlayer extends Player {
 export class AiPlayer extends Player {
 	public aiMoveCoolDown: number;
 	public aiBrainData: AIBrainData;
+	public aiDifficulty: number;
 
-	constructor(id: number, game: Game, aiLevel: number) {
-		// probably temp random ai names
-		const name = getRandomDefaultName();
-		super(id, game.config.playerLives, name, getRandomUserTitle(aiLevel > 3));
+	constructor(id: number, game: Game, aiLevel: number, aiBrainData: AIBrainData) {
+		super(id, game.config.playerLives, `${getRandomDefaultName()}`, 'AI Level 3');
 		this.aiMoveCoolDown = aiLevel;
-		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
-		} as AIBrainData;
+		this.aiBrainData = aiBrainData;
+		this.aiDifficulty = 3;
+	}
+
+	setName(name: string) {
+		this.displayName = `${name} (AI)`;
+	}
+
+	get difficulty() { return this.aiDifficulty; }
+
+	setDifficulty(difficulty: number) {
+		if (difficulty < 1 && difficulty > 10)
+			return;
+		this.aiDifficulty = difficulty;
+		this.playerTitle = `AI Level ${difficulty}`;
 	}
 
 	isReady(): boolean {
@@ -117,8 +125,20 @@ export class LocalPlayer extends Player {
 
 	// TODO: better way to handle local player with custom names
 	constructor(id: number, owner: UserPlayer, game: Game) {
-		super(id, game.config.playerLives, `${owner.displayName} (Local)`, 'Local');
+		super(
+			id,
+			game.config.playerLives,
+			`${owner.displayName} (Local)`,
+			`Local from ${owner.displayName}`
+		);
 		this.owner = owner;
+	}
+
+	// TODO: protect name change better
+	setName(name: string) {
+		if (name.length > 16) return;
+		this.displayName = `${name} (Local)`;
+		this.playerTitle = `Local from ${this.owner.displayName}`;
 	}
 
 	isReady(): boolean {

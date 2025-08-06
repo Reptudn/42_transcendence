@@ -63,17 +63,39 @@
 					<p>No players joined.</p>
 				<% } else { %>
 					<% for (const player of players) { %>
-						<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
-							<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>
+							<% } else if (localPlayerId && player.playerId === localPlayerId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You as Local)</h3>
+							<% } else {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+							<% } %>
 							<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
 							<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
 							<h3 class="glow-purple">Type: <%= player.type || 'Unknown' %></h3>
 							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
 								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
+							<% if (player.type === 'AI') { %>
+								<label for="ai-diff-range-<%= player.playerId %>">Difficulty:</label>
+								<input type="number" 
+									name="AI Difficulty" 
+									id="ai-diff-range-<%= player.playerId || 3%>" 
+									min="1" 
+									max="10" 
+									value="<%= player.aiDifficulty %>"
+									onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
+							<% } %>
+							<% if (localPlayerId && player.playerId === localPlayerId) { %>
+								<h3>Controls: A - Left | D - Right</h3>
+								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } else if (player.type === 'AI') { %>
+								<button onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } %>
 						</div>
 					<% } %>
-				<% } %>
+				<% } %> 
 			</div>
 		</div>
 		<% } else { %>

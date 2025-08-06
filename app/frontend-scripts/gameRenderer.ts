@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from "./alert.js";
+import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
 let currentState: GameState | null = null;
@@ -274,7 +275,7 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	console.log('Drawing game state:', gameState);
+	// console.log('Drawing game state:', gameState);
 
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;
@@ -466,9 +467,13 @@ declare global
 	interface Window {
 		initCanvas: () => void;
 		startRendering: () => void;
-        stopRendering: () => void;
+		stopRendering: () => void;
 	}
 }
+
+onUnloadPageAsync(async () => {
+	stopRendering();
+});
 
 window.initCanvas = initCanvas;
 window.startRendering = startRendering;

@@ -85,6 +85,7 @@ declare global {
 	interface Window {
 		twofa_login: () => Promise<void>;
 		twofa_login_google: () => Promise<void>;
+		user_id: number;
 	}
 }
 

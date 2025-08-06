@@ -16,33 +16,77 @@ const authSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 16,
-			pattern: '^[a-zA-Z0-9_]+$', // Nur alphanumerische Zeichen und Unterstriche
+			pattern: '^[a-zA-Z0-9_]+$',
+			errorMessage: {
+				type: 'Username must be a text value',
+				minLength: process.env.NODE_ENV === 'production' 
+					? 'Username must be at least 3 characters long'
+					: 'Username must be at least 1 character long',
+				maxLength: 'Username cannot be longer than 16 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores'
+			}
 		},
 		password: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 8 : 1,
 			maxLength: 32,
-			pattern:
-				process.env.NODE_ENV === 'production'
-					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
-					: '',
+			pattern: process.env.NODE_ENV === 'production'
+				? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
+				: '',
+			errorMessage: {
+				type: 'Password must be a text value',
+				minLength: process.env.NODE_ENV === 'production'
+					? 'Password must be at least 8 characters long'
+					: 'Password must be at least 1 character long',
+				maxLength: 'Password cannot be longer than 32 characters',
+				pattern: process.env.NODE_ENV === 'production'
+					? 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#+-)'
+					: 'Invalid password format'
+			}
 		},
 		displayname: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			errorMessage: {
+				type: 'Display name must be a text value',
+				minLength: process.env.NODE_ENV === 'production'
+					? 'Display name must be at least 3 characters long'
+					: 'Display name must be at least 1 character long',
+				maxLength: 'Display name cannot be longer than 32 characters'
+			}
 		},
 		totp: {
 			type: 'string',
+			pattern: '^[0-9]{6}$',
+			errorMessage: {
+				type: 'TOTP code must be a text value',
+				pattern: 'TOTP code must be exactly 6 digits'
+			}
 		},
 	},
-	required: ['username', 'password'], // 'displayname' nur für Registrierung erforderlich
+	required: ['username', 'password'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			username: 'Username is required',
+			password: 'Password is required'
+		},
+		additionalProperties: 'Unknown field provided. Only username, password, displayname, and totp are allowed'
+	}
 };
 
 const registerSchema = {
 	...authSchema,
-	required: [...authSchema.required, 'displayname'], // 'displayname' verpflichtend
+	required: [...authSchema.required, 'displayname'],
+	errorMessage: {
+		required: {
+			username: 'Username is required for registration',
+			password: 'Password is required for registration',
+			displayname: 'Display name is required for registration'
+		},
+		additionalProperties: 'Unknown field provided. Only username, password, displayname, and totp are allowed'
+	}
 };
 
 let users_2fa: number[] = [];
@@ -117,35 +161,68 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
+
+	const twoFactorAuthSchema = {
+		type: 'object',
+		properties: {
+			userid: {
+				type: 'number',
+				minimum: 1,
+				errorMessage: {
+					type: 'User ID must be a number',
+					minimum: 'User ID must be a positive number'
+				}
+			},
+			rescue_token: {
+				type: 'string',
+				minLength: 0,
+				maxLength: 22,
+				errorMessage: {
+					type: 'Rescue token must be a text value',
+					minLength: 'Invalid rescue token format',
+					maxLength: 'Rescue token is too long (maximum 22 characters)'
+				}
+			},
+			fa_token: {
+				type: 'string',
+				minLength: 6,
+				maxLength: 6,
+				pattern: '^[0-9]{6}$',
+				errorMessage: {
+					type: '2FA token must be a text value',
+					minLength: '2FA token must be exactly 6 digits',
+					maxLength: '2FA token must be exactly 6 digits',
+					pattern: '2FA token must be exactly 6 digits'
+				}
+			},
+		},
+		anyOf: [
+			{ 
+				required: ['userid', 'fa_token'],
+				properties: {
+					userid: { type: 'number', minimum: 1 },
+					fa_token: { type: 'string', minLength: 6, maxLength: 6, pattern: '^[0-9]{6}$' }
+				}
+			},
+			{ 
+				required: ['userid', 'rescue_token'],
+				properties: {
+					userid: { type: 'number', minimum: 1 },
+					rescue_token: { type: 'string', minLength: 0, maxLength: 22 }
+				}
+			}
+		],
+		additionalProperties: false,
+		errorMessage: {
+			anyOf: 'Either 2FA token or rescue token is required along with user ID',
+			additionalProperties: 'Unknown field provided. Only userid, fa_token, and rescue_token are allowed'
+		}
+	};
 	fastify.post(
 		'/2fa',
 		{
 			schema: {
-				body: {
-					type: 'object',
-					properties: {
-						rescue_token: {
-							type: 'string',
-							minLength: 0,
-							maxLength: 22,
-							errorMessage: {
-					type: 'Wrong rescue code',
-					minLength: 'Wrong rescue code',
-					maxLength: 'Wrong rescue code',
-				},
-						},
-						fa_token: {
-							type: 'string',
-							minLength: 0,
-							maxLength: 6,
-							errorMessage: {
-					type: 'Wrong 2fa code',
-					minLength: 'Wrong 2fa code',
-					maxLength: 'Wrong 2fa code',
-				},
-						},
-					}
-				}
+				body: twoFactorAuthSchema
 			}
 		},
 		async (req: FastifyRequest, reply: FastifyReply) => {

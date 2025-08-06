@@ -57,4 +57,9 @@ export class Tournament {
     isFinished(): boolean {
         return this.currentRound >= this.rounds.length;
     }
+
+    getCurrentPlayerId() : {id :number, id2: number}{
+        const match = getCurrentMatches();
+        return (match.player1.playerId, match.player2.playerId);
+    }
 }

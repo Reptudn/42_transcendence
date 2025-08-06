@@ -16,20 +16,30 @@ import { getAvailableMaps } from '../../../services/pong/games/rawMapHandler';
 import { UserPlayer } from '../../../services/pong/games/playerClass';
 import { getUserRecentGames } from '../../../services/database/games';
 import { getUser2faSecret } from '../../../services/database/totp';
-//import { getUser2faSecret } from '../../../services/database/totp';
+import * as fs from 'fs';
+import * as path from 'path';
+import { connectedClients } from '../../../services/sse/handler';
 
 const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/2fa_code', async (request, reply) => {
-	const query = request.query as { google?: string; userid?: string };
-	const isGoogleLogin = query.google === '1';
-	const userid = query.userid;
-	return reply.view('2fa_code.ejs', {
-		isGoogleLogin,
-		userid,
-		t: request.t,
-		isAuthenticated: false
-	}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
-});
+		const query = request.query as { google?: string; userid?: string };
+		const isGoogleLogin = query.google === '1';
+		const userid = query.userid;
+		return reply.view('2fa_code.ejs', {
+			isGoogleLogin,
+			userid,
+			t: request.t,
+			isAuthenticated: false
+		}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
+	});
+
+	const pageExists = (pageName: string): boolean => {
+		const viewsPath = path.join(__dirname, '../../../../pages');
+		const pagePath = path.join(viewsPath, `${pageName}.ejs`);
+		// return true;
+		return fs.existsSync(pagePath);
+	};
+
 	fastify.get(
 		'/:page/:username?',
 		{
@@ -76,8 +86,23 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
+			let defaultError: string = 'Woopsie.. seems like you teleported to the wrong location!';
 
 			fastify.log.info(`page is ${page}`);
+
+			if (!pageExists(page)) {
+				return reply.code(404).view(
+					'error.ejs',
+					{ 
+						err_code: 404,
+						err_message: `Page '${page}' not found`,
+						isAuthenticated: user !== null,
+						name: user && user.displayname,
+						t: req.t 
+					},
+					{ layout: layoutOption }
+				);
+			}
 
 			try {
 				if (page === 'profile') {
@@ -102,6 +127,14 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile.profile_picture = '/profile/' + profileId + '/picture';
 					variables['user'] = profile;
 					variables['isSelf'] = isSelf;
+					if (user && user.id !== profile.id)
+					{
+						const currentUserFriends = await getFriends(user.id, fastify);
+						variables['isFriended'] = currentUserFriends.find((f) => f.id === user.id) !== undefined;
+					}
+					else variables['isFriended'] = false;
+					
+					variables['online'] = connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
 					variables['title'] = await getUserTitleString(
 						profile.id,
 						fastify
@@ -190,10 +223,17 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = players;
 					variables['gameSettings'] = existingGame.config;
+					variables['selfId'] = admin.playerId;
+					variables['localPlayerId'] = -1;
 
 					const maps = await getAvailableMaps(fastify);
 					variables['availableMaps'] = maps;
 					fastify.log.info(`Maps ${maps}`);
+				}
+				else if (page === 'error')
+				{
+					variables['err_code'] = 404;
+					variables['err_message'] = defaultError;
 				}
 			} catch (err) {
 				variables['err_code'] = errorCode;
