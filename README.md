@@ -26,7 +26,7 @@
 
 ### Pong
 
--   [ ] Local Players
+-   [x] Local Players
 -   [x] Remote Players
 -   [x] AI Players
 -   [x] Server Side Pong (everything is calculated on the server and send as a state to the clients)
@@ -74,9 +74,9 @@
 -   [ ] Users can securely subscribe to the website.
 -   [ ] Registered users can securely log in.
 -   [x] Users can select a unique display name to participate in tournaments.
--   [ ] Users can update their information.
+-   [x] Users can update their information.
 -   [x] Users can upload an avatar, with a default option if none is provided.
--   [ ] Users can add others as friends and view their online status.
+-   [x] Users can add others as friends and view their online status.
 -   [x] User profiles display stats, such as wins and losses.
 -   [x] Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users.
 -   [ ] Logical and good managemnt for duplicate usernames and emails
@@ -134,18 +134,18 @@
 > Create user-friendly dashboards that provide users with insights into their gaming statistics.
 
 -   [x] Develop a separate dashboard for game sessions, showing detailed statistics, outcomes, and historical data for each match.
--   [ ] Ensure that the dashboards offer an intuitive and informative user interface for tracking and analyzing data.
--   [ ] Implement data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner.
--   [ ] Allow users to access and explore their own gaming history and performance metrics conveniently.
--   [ ] Feel free to add any metrics you deem useful.
+-   [x] Ensure that the dashboards offer an intuitive and informative user interface for tracking and analyzing data.
+-   [x] Implement data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner.
+-   [x] Allow users to access and explore their own gaming history and performance metrics conveniently.
+-   [x] Feel free to add any metrics you deem useful.
 
 ### Cyber Security
 
 #### Two-Factor Authentication (2FA) and JWT. (Major) (10 / 9 🤯)
 
--   [ ] Implement Two-Factor Authentication (2FA) as an additional layer of security for user accounts, requiring users to provide a secondary verification method, such as a one-time code, in addition to their password.
+-   [x] Implement Two-Factor Authentication (2FA) as an additional layer of security for user accounts, requiring users to provide a secondary verification method, such as a one-time code, in addition to their password.
 -   [x] Utilize JSON Web Tokens (JWT) as a secure method for authentication and authorization, ensuring that user sessions and access to resources are managed securely.
--   [ ] Provide a user-friendly setup process for enabling 2FA, with options for SMS codes, authenticator apps, or email-based verification.
+-   [x] Provide a user-friendly setup process for enabling 2FA, with options for SMS codes, authenticator apps, or email-based verification.
 -   [x] Ensure that JWT tokens are issued and validated securely to prevent unauthorized access to user accounts and sensitive data.
 
 # Other Things non subject related
