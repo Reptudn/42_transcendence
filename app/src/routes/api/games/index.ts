@@ -18,6 +18,7 @@ import {
 	UserPlayer,
 } from '../../../services/pong/games/playerClass';
 import { Powerups } from '../../../types/Games';
+import { Tournament } from '../../../services/pong/games/tournamentClass';
 //import { GameSettings } from '../../../types/Games';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -287,6 +288,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 
+			if (game.alreadyStarted)
+				return reply.code(401).send({ error: 'You cant change settings after the first tournament game has been played' });
+			
 			let isAdmin = game.admin.id === user.id;
 			let changed = false;
 
@@ -353,6 +357,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					) {
 						await game.addAiPlayer(game.config.gameDifficulty);
 					}
+					game.tournament = new Tournament(game.players);
 				} else if (gameType === GameType.CLASSIC) {
 					game.config.maxPlayers = 4;
 					for (
@@ -362,40 +367,43 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					) {
 						await game.removePlayer(game.players[i - 1].playerId);
 					}
+					game.tournament = undefined;
 				}
 				changed = true;
 			}
 
-			if (gameType !== undefined) {
-				game.config.gameType = gameType;
-				if (gameType === GameType.TOURNAMENT) {
-					game.config.maxPlayers = 8;
-					for (
-						let i = game.players.length;
-						i < game.config.maxPlayers;
-						i++
-					) {
-						await game.addAiPlayer(game.config.gameDifficulty);
-					}
-				} else if (gameType === GameType.CLASSIC) {
-					game.config.maxPlayers = 4;
-					for (
-						let i = game.players.length;
-						i < game.config.maxPlayers;
-						i++
-					) {
-						await game.addAiPlayer(game.config.gameDifficulty);
-					}
-					for (
-						let i = game.players.length;
-						i > game.config.maxPlayers;
-						i--
-					) {
-						await game.removePlayer(game.players[i].playerId);
-					}
-				}
-				changed = true;
-			}
+			// if (gameType !== undefined) {
+			// 	game.config.gameType = gameType;
+			// 	if (gameType === GameType.TOURNAMENT) {
+			// 		game.tournament = new Tournament(game.players);
+			// 		game.config.maxPlayers = 8;
+			// 		for (
+			// 			let i = game.players.length;
+			// 			i < game.config.maxPlayers;
+			// 			i++
+			// 		) {
+			// 			await game.addAiPlayer(game.config.gameDifficulty);
+			// 		}
+			// 	} else if (gameType === GameType.CLASSIC) {
+			// 		game.tournament = undefined
+			// 		game.config.maxPlayers = 4;
+			// 		for (
+			// 			let i = game.players.length;
+			// 			i < game.config.maxPlayers;
+			// 			i++
+			// 		) {
+			// 			await game.addAiPlayer(game.config.gameDifficulty);
+			// 		}
+			// 		for (
+			// 			let i = game.players.length;
+			// 			i > game.config.maxPlayers;
+			// 			i--
+			// 		) {
+			// 			await game.removePlayer(game.players[i].playerId);
+			// 		}
+			// 	}
+			// 	changed = true;
+			// }
 
 			if (
 				isAdmin &&
@@ -893,6 +901,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				initial: true, // to load the lobby script
 				localPlayerId: -1,
 				selfId: player?.playerId || -1,
+				tournamentTree: game.tournament ? game.tournament.getBracketJSON() : null,
 			});
 		}
 	);

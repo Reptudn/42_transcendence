@@ -45,7 +45,7 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 			if (
 				!isMapConditionFulfilled(
 					game.config,
-					game.players,
+					game.players.filter((p) => !p.spectator),
 					condition.condition,
 					condition.variable,
 					condition.target

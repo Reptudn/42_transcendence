@@ -59,7 +59,7 @@ setInterval(async () => {
 				});
 				winnerName = winner.displayName;
 			}
-			game.endGame(`Game ended.<br>Winner: ${winnerName}`);
+			game.endGame(`Game ended.<br>Winner: ${winnerName}`, playersAliveAfter[0]);
 		}
 	}
 }, 1000 / ticksPerSecond);

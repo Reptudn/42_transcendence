@@ -1,65 +1,150 @@
 import { Player } from "./playerClass";
 
 export interface TournamentMatch {
-    player1: Player | null;
-    player2: Player | null;
-    winner: Player | null;
+	player1: Player | null;
+	player2: Player | null;
+	winner: Player | null;
 }
 
 export class Tournament {
-    players: Player[];
-    rounds: TournamentMatch[][];
-    currentRound: number = 0;
+	players: Player[];
+	rounds: TournamentMatch[][];
+	private currentRound = 0;
+	private currentMatchIndex = 0;
 
-    constructor(players: Player[]) {
-        this.players = players;
-        this.rounds = this.generateBracket(players);
-    }
+	constructor(players: Player[]) {
+		this.players = players;
+		this.rounds = this.generateBracket(players);
+		this.autoAdvanceByes(); // Handle auto-wins from BYEs
+	}
 
-    private generateBracket(players: Player[]): TournamentMatch[][] {
-        // Quarterfinals (4 matches)
-        const qf: TournamentMatch[] = [];
-        for (let i = 0; i < 8; i += 2) {
-            qf.push({ player1: players[i] || null, player2: players[i + 1] || null, winner: null });
-        }
-        // Semifinals (2 matches), Final (1 match)
-        const sf: TournamentMatch[] = [
-            { player1: null, player2: null, winner: null },
-            { player1: null, player2: null, winner: null }
-        ];
-        const final: TournamentMatch[] = [
-            { player1: null, player2: null, winner: null }
-        ];
-        return [qf, sf, final];
-    }
+	private generateBracket(players: Player[]): TournamentMatch[][] {
+		const totalPlayers = players.length;
+		const nextPower = 2 ** Math.ceil(Math.log2(totalPlayers));
 
-    advance(matchIndex: number, winner: Player) {
-        const round = this.currentRound;
-        this.rounds[round][matchIndex].winner = winner;
+		// Copy original players to a padded array (can include nulls)
+		const padded: (Player | null)[] = [...players];
 
-        // Place winner in next round
-        if (round + 1 < this.rounds.length) {
-            const nextMatch = Math.floor(matchIndex / 2);
-            const slot = matchIndex % 2 === 0 ? 'player1' : 'player2';
-            (this.rounds[round + 1][nextMatch] as any)[slot] = winner;
-        }
+		while (padded.length < nextPower) {
+			padded.push(null); // BYE slots
+		}
 
-        // If all matches in round are done, advance round
-        if (this.rounds[round].every(m => m.winner !== null)) {
-            this.currentRound++;
-        }
-    }
+		const rounds: TournamentMatch[][] = [];
 
-    getCurrentMatches(): TournamentMatch[] {
-        return this.rounds[this.currentRound];
-    }
+		// First round
+		const firstRound: TournamentMatch[] = [];
+		for (let i = 0; i < padded.length; i += 2) {
+			firstRound.push({
+				player1: padded[i],
+				player2: padded[i + 1],
+				winner: null,
+			});
+		}
+		rounds.push(firstRound);
 
-    isFinished(): boolean {
-        return this.currentRound >= this.rounds.length;
-    }
+		// Following rounds (empty match slots)
+		let matchCount = firstRound.length;
+		while (matchCount > 1) {
+			const nextRound: TournamentMatch[] = Array.from({ length: Math.ceil(matchCount / 2) }, () => ({
+				player1: null,
+				player2: null,
+				winner: null,
+			}));
+			rounds.push(nextRound);
+			matchCount = nextRound.length;
+		}
 
-    getCurrentPlayerId() : {id :number, id2: number}{
-        const match = getCurrentMatches();
-        return (match.player1.playerId, match.player2.playerId);
-    }
+		return rounds;
+	}
+
+	private autoAdvanceByes(): void {
+		let changed = true;
+		while (changed && !this.isFinished()) {
+			const match = this.getCurrentMatch();
+			if (!match) break;
+
+			const { player1, player2 } = match;
+
+			if (player1 && !player2) {
+				this.advance(player1);
+				changed = true;
+			} else if (!player1 && player2) {
+				this.advance(player2);
+				changed = true;
+			}
+		}
+	}
+
+	advance(winner: Player): void {
+		const round = this.rounds[this.currentRound];
+		const match = round[this.currentMatchIndex];
+
+		if (!match) throw new Error("No match to advance");
+		if (match.winner) throw new Error("This match already has a winner");
+
+		if (
+			match.player1?.playerId !== winner.playerId &&
+			match.player2?.playerId !== winner.playerId
+		) {
+			throw new Error("Winner is not part of the current match");
+		}
+
+		match.winner = winner;
+
+		// Place winner into next round
+		if (this.currentRound + 1 < this.rounds.length) {
+			const nextMatchIndex = Math.floor(this.currentMatchIndex / 2);
+			const slot = this.currentMatchIndex % 2 === 0 ? 'player1' : 'player2';
+			const nextMatch = this.rounds[this.currentRound + 1][nextMatchIndex];
+			nextMatch[slot] = winner;
+		}
+
+		// Move to next match
+		this.currentMatchIndex++;
+		if (this.currentMatchIndex >= round.length) {
+			this.currentRound++;
+			this.currentMatchIndex = 0;
+		}
+
+		this.autoAdvanceByes(); // handle BYEs again if new match is one-sided
+	}
+
+	getBracketJSON(): any[] {
+		return this.rounds.map(round =>
+			round.map(match => ({
+				player1: match.player1
+					? { id: match.player1.playerId, name: match.player1.displayName, title: match.player1.playerTitle }
+					: null,
+				player2: match.player2
+					? { id: match.player2.playerId, name: match.player2.displayName, title: match.player2.playerTitle }
+					: null,
+				winner: match.winner
+					? { id: match.winner.playerId, name: match.winner.displayName }
+					: null,
+			}))
+		);
+	}
+
+	getCurrentMatch(): TournamentMatch | null {
+		if (this.isFinished()) return null;
+		return this.rounds[this.currentRound]?.[this.currentMatchIndex] ?? null;
+	}
+
+	getCurrentPlayerId(): { id: number | null; id2: number | null } {
+		const match = this.getCurrentMatch();
+		return {
+			id: match?.player1?.playerId ?? null,
+			id2: match?.player2?.playerId ?? null,
+		};
+	}
+
+	isFinished(): boolean {
+		const lastRound = this.rounds[this.rounds.length - 1];
+		return !!lastRound?.[0]?.winner;
+	}
+
+	getWinner(): Player | null {
+		if (!this.isFinished()) return null;
+		return this.rounds.at(-1)?.[0]?.winner ?? null;
+	}
 }

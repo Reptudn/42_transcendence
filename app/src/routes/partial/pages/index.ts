@@ -225,6 +225,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['gameSettings'] = existingGame.config;
 					variables['selfId'] = admin.playerId;
 					variables['localPlayerId'] = -1;
+					variables['tournamentTree'] = existingGame.tournament ? existingGame.tournament.getBracketJSON() : null;
 
 					const maps = await getAvailableMaps(fastify);
 					variables['availableMaps'] = maps;

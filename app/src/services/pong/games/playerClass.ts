@@ -25,6 +25,7 @@ export abstract class Player {
 	public movementDirection: number = 0; // -1 | 0 | 1
 
 	public joined: boolean = false; // true if player has joined the game, false if they are still waiting for the game to start
+	public spectator: boolean = false; // true if player is a spectator, false if they are an active player
 
 	constructor(
 		playerId: number,

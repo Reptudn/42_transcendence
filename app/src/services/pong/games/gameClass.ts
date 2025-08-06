@@ -2,6 +2,7 @@ import {
 	connectedClients,
 	sendSeeMessageByUserId,
 	sendSseHtmlByUserId,
+	sendSseRawByUserId,
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -49,6 +50,7 @@ export class Game {
 	fastify: FastifyInstance;
 
 	private nextPlayerId: number = 0;
+	public alreadyStarted: boolean = false;
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
 
@@ -190,24 +192,24 @@ export class Game {
 		}
 	}
 
-	async onMatchEnd(matchIndex: number, winner: Player) {
-		if (!this.tournament) return;
+	// async onMatchEnd(matchIndex: number, winner: Player) {
+	// 	if (!this.tournament) return;
 
-		this.tournament.advance(matchIndex, winner);
+	// 	this.tournament.advance(matchIndex, winner);
 
-		if (this.tournament.isFinished()) {
-			const finalMatch = this.tournament.rounds.at(-1)?.[0];
-			const champion = finalMatch?.winner;
-			// Announce winner, update stats, call this.endGame(), etc.
-			this.endGame(`Tournament finished! Winner: ${champion?.displayName}`);
-		} else {
-			// Start next round
-			//const nextMatches = this.tournament.getCurrentMatches();
-			// Notify players in nextMatches, update state, etc.
-		}
-		// Optionally, update the lobby state to show bracket progress
-		await this.updateLobbyState();
-	}
+	// 	if (this.tournament.isFinished()) {
+	// 		const finalMatch = this.tournament.rounds.at(-1)?.[0];
+	// 		const champion = finalMatch?.winner;
+	// 		// Announce winner, update stats, call this.endGame(), etc.
+	// 		this.endGame(`Tournament finished! Winner: ${champion?.displayName}`);
+	// 	} else {
+	// 		// Start next round
+	// 		//const nextMatches = this.tournament.getCurrentMatches();
+	// 		// Notify players in nextMatches, update state, etc.
+	// 	}
+	// 	// Optionally, update the lobby state to show bracket progress
+	// 	await this.updateLobbyState();
+	// }
 
 	async startGame() {
 		if (this.config.gameType === GameType.CLASSIC) {
@@ -246,22 +248,15 @@ export class Game {
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
 
-			if (!this.tournament) {
-				this.tournament = new Tournament(this.players);
+
+			const { id, id2 } = this.tournament!.getCurrentPlayerId();
+			for (let player of this.players) {
+				player.spectator = (player.playerId !== id && player.playerId !== id2);
 			}
 
-			const tournamet_playerids = getCurrentPlayerId();
-
-			for (let player of this.players){
-				if (player.playerId !== tournamet_playerids.player1 || player.playerId !== tournamet_playerids.player2){
-					player.spectator = true;
-				}
-				else{
-					player.spectator = false;
-				}
-			}
 
 			this.status = GameStatus.RUNNING;
+			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
 
 			for (const player of this.players)
@@ -308,6 +303,7 @@ export class Game {
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
+			tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
 		});
 
 		for (const player of this.players) {
@@ -332,6 +328,7 @@ export class Game {
 								p instanceof LocalPlayer &&
 								p.owner.user.id === player.user.id
 						)?.playerId || -1,
+					tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
 				});
 				sendSseHtmlByUserId(
 					player.user.id,
@@ -343,27 +340,69 @@ export class Game {
 	}
 
 	// when null if given it means the game end because no players were left
-	async endGame(end_message: string) {
+	async endGame(end_message: string, winner: Player | null = null) {
 		this.fastify.log.info(
 			`Ending game ${this.gameId} with message: ${end_message}`
 		);
 
-		(async () => {
-			try {
-				await saveCompletedGame(this, this.fastify);
-			} catch (_e) {
-				// already logged inside saveCompletedGame
+		this.status = GameStatus.WAITING;
+		
+		if (this.config.gameType === GameType.TOURNAMENT && this.tournament)
+		{
+			if (!winner)
+				throw new Error('Cant advance tournament match when there is no winner!');
+			this.tournament.advance(winner!);
+			if (this.tournament.isFinished())
+			{
+				// (async () => {
+				// 	try {
+				// 		await saveCompletedTournamentGame(this, this.fastify);
+				// 	} catch (_e) {
+				// 		// already logged inside saveCompletedGame
+				// 	}
+				// })();
+		
+				// this occurs when the game ends because its actually over because someone won or the admin left as of now
+				for (const player of this.players) {
+					if (!(player instanceof UserPlayer)) continue;
+					player.disconnect();
+					sendSeeMessageByUserId(player.user.id, 'game_closed', `Tournament ended,<br>Winner: ${this.tournament.getWinner()?.displayName || 'Unknown'}`);
+				}
+		
+				removeGame(this.gameId);
+				return;
 			}
-		})();
 
-		// this occurs when the game ends because its actually over because someone won or the admin left as of now
-		for (const player of this.players) {
-			if (!(player instanceof UserPlayer)) continue;
-			player.disconnect();
-			sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
+			for (const player of this.players) {
+				if (!(player instanceof UserPlayer)) continue;
+				sendSseRawByUserId(
+					player.user.id,
+					`data: ${JSON.stringify({
+						type: this.admin.id === player.user.id ? 'game_tournament_admin_lobby_warp' : 'game_tournament_lobby_warp',
+						gameId: this.gameId,
+					})}\n\n`
+				);
+			}
 		}
-
-		removeGame(this.gameId);
+		else
+		{
+			(async () => {
+				try {
+					await saveCompletedGame(this, this.fastify);
+				} catch (_e) {
+					// already logged inside saveCompletedGame
+				}
+			})();
+	
+			// this occurs when the game ends because its actually over because someone won or the admin left as of now
+			for (const player of this.players) {
+				if (!(player instanceof UserPlayer)) continue;
+				player.disconnect();
+				sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
+			}
+	
+			removeGame(this.gameId);
+		}
 	}
 
 	isReady() {
