@@ -1,7 +1,7 @@
 import {
 	connectedClients,
 	sendSeeMessageByUserId,
-	sendSseHtmlByUserId
+	sendSseHtmlByUserId,
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -52,7 +52,7 @@ export class Game {
 		gameId: number,
 		admin: User,
 		fastify: FastifyInstance,
-		config: GameSettings = defaultGameSettings,
+		config: GameSettings = defaultGameSettings
 	) {
 		this.gameId = gameId;
 		this.admin = admin;
@@ -185,7 +185,7 @@ export class Game {
 			this.endGame(`Tournament finished! Winner: ${champion?.displayName}`);
 		} else {
 			// Start next round
-			const nextMatches = this.tournament.getCurrentMatches();
+			//const nextMatches = this.tournament.getCurrentMatches();
 			// Notify players in nextMatches, update state, etc.
 		}
 		// Optionally, update the lobby state to show bracket progress
@@ -193,51 +193,58 @@ export class Game {
 	}
 
 	async startGame() {
-		if (this.config.gameType === GameType.CLASSIC){
+		if (this.config.gameType === GameType.CLASSIC) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
-	
+
 			if (this.players.length < 2)
 				throw new Error('Not enough players to start the game! (Min 2)');
-	
+
 			for (const player of this.players)
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
-	
+
 			this.status = GameStatus.RUNNING;
 			this.gameState = await getMapAsInitialGameState(this);
-	
+
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
-					sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
-	
+					sendSeeMessageByUserId(
+						player.user.id,
+						'game_started',
+						this.gameId
+					);
+
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
 			);
-		}
-		else if (this.config.gameType === GameType.TOURNAMENT){
+		} else if (this.config.gameType === GameType.TOURNAMENT) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
-	
+
 			if (this.players.length < 8)
 				throw new Error('Not enough players to start the game! (Min 2)');
-	
+
 			for (const player of this.players)
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
-	
-			if (!this.tournament) {
-        		this.tournament = new Tournament(this.players);
-				const currentMatches = this.tournament.getCurrentMatches();
-    		}
 
-			this.status = GameStatus.RUNNING;	
+			if (!this.tournament) {
+				this.tournament = new Tournament(this.players);
+				//const currentMatches = this.tournament.getCurrentMatches();
+			}
+
+			this.status = GameStatus.RUNNING;
 			this.gameState = await getMapAsInitialGameState(this);
-	
+
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
-					sendSeeMessageByUserId(player.user.id, 'game_started', this.gameId);
-	
+					sendSeeMessageByUserId(
+						player.user.id,
+						'game_started',
+						this.gameId
+					);
+
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
 			);
@@ -284,7 +291,9 @@ export class Game {
 
 	// when null if given it means the game end because no players were left
 	async endGame(end_message: string) {
-		this.fastify.log.info(`Ending game ${this.gameId} with message: ${end_message}`);
+		this.fastify.log.info(
+			`Ending game ${this.gameId} with message: ${end_message}`
+		);
 
 		(async () => {
 			try {
