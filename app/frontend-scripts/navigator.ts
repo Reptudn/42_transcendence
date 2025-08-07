@@ -115,13 +115,13 @@ export async function loadPartialView(
 			throw new Error(data.error);
 		}
 
-		const skipReset =
-			(last_page?.startsWith('/partial/pages/lobby') ||
-				last_page?.startsWith('/partial/pages/lobby_admin') ||
-				last_page?.startsWith('/api/games/join')) &&
-			url.startsWith('/api/games/run');
+		// const skipReset =
+		// 	(last_page?.startsWith('/partial/pages/lobby') ||
+		// 		last_page?.startsWith('/partial/pages/lobby_admin') ||
+		// 		last_page?.startsWith('/api/games/join')) &&
+		// 	url.startsWith('/api/games/run');
 
-		if (abort || !skipReset) {
+		if (abort) {
 			console.log('[Navigator] Resetting abort controller');
 			window.abortController = resetController();
 		} else {

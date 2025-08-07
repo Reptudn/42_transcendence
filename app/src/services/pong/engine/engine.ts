@@ -21,6 +21,7 @@ export function tickEngine(game: Game) {
 
 	// check hits
 	for (const player of game.players) {
+		// if (player.spectator) continue;
 		if (hasPlayerBeenHit(game.gameState, player.playerId)) {
 			player.lives--;
 			if (player.lives <= 0) {

@@ -256,6 +256,7 @@ export class Game {
 			const { id, id2 } = this.tournament!.getCurrentPlayerId();
 			for (let player of this.players) {
 				player.spectator = (player.playerId !== id && player.playerId !== id2);
+				player.lives = player.spectator ? 0 : this.config.playerLives;
 			}
 
 			this.status = GameStatus.RUNNING;

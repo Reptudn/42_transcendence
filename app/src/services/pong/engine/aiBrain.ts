@@ -43,6 +43,7 @@ export function updateAIMovement(game: Game): void {
 
 	for (const player of game.players) {
 		if (!(player instanceof AiPlayer)) continue;
+		if (player.spectator) continue;
 
 		const damageArea = game.gameState.objects.find(
 			(obj) =>

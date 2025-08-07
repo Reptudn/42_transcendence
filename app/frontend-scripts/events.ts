@@ -126,7 +126,7 @@ export function setupEventSource() {
 				case 'game_tournament_admin_lobby_warp': {
 					console.log('Game tournament admin lobby warp:', data);
 					await loadPartialView(
-						'lobby_admin', false, '', false, false
+						'lobby_admin', false, null, true, false
 					);
 					break;
 				}
