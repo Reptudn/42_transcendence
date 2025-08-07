@@ -134,7 +134,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 					else variables['isFriended'] = false;
 					
-					variables['online'] = connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
+					variables['online'] = isSelf || connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
 					variables['title'] = await getUserTitleString(
 						profile.id,
 						fastify

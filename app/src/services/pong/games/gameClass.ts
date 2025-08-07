@@ -13,6 +13,7 @@ import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
 import { Tournament } from './tournamentClass';
+import { sendPopupToClient } from '../../sse/popup';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -228,8 +229,8 @@ export class Game {
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
 
-			this.status = GameStatus.RUNNING;
 			this.gameState = await getMapAsInitialGameState(this);
+			this.status = GameStatus.RUNNING;
 
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
@@ -259,17 +260,25 @@ export class Game {
 				player.lives = player.spectator ? 0 : this.config.playerLives;
 			}
 
-			this.status = GameStatus.RUNNING;
+			this.aiBrainData = {
+				aiLastBallDistance: 0,
+				aiDelayCounter: 0,
+				aiLastTargetParam: 0,
+				lastAIMovementDirection: 0,
+			} as AIBrainData;
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
+			this.status = GameStatus.RUNNING;
 
 			for (const player of this.players)
+			{
 				if (player instanceof UserPlayer)
 					sendSeeMessageByUserId(
 						player.user.id,
 						'game_started',
 						this.gameId
 					);
+			}
 
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
@@ -376,10 +385,10 @@ export class Game {
 				return;
 			}
 			this.fastify.log.info('tournament advancing');
-
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
+				sendPopupToClient(this.fastify, player.user.id, 'Tournament advancing', 'Next match is starting once the admin clicks "Start Match" again');
 				sendSseRawByUserId(
 					player.user.id,
 					`data: ${JSON.stringify({
