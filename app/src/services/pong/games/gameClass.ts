@@ -363,6 +363,12 @@ export class Game {
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && winner)
 		{
 			this.tournament.advance(winner);
+			let match = this.tournament.getCurrentMatch();
+			while (!this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
+			{
+				this.tournament.advance(match.player1.aiDifficulty > match.player2.aiDifficulty ? match.player1 : match.player2);
+				match = this.tournament.getCurrentMatch();
+			}
 			if (this.tournament.isFinished())
 			{
 				this.fastify.log.info('tournament finished');
@@ -384,6 +390,7 @@ export class Game {
 				removeGame(this.gameId);
 				return;
 			}
+
 			this.fastify.log.info('tournament advancing');
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
