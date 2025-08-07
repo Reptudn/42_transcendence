@@ -85,7 +85,8 @@ export async function loadPartialView(
 	page: string,
 	pushState = true,
 	subroute: string | null = null,
-	isPartial: boolean = true
+	isPartial: boolean = true,
+	abort: boolean = true
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	let whole_page = false;
@@ -120,7 +121,7 @@ export async function loadPartialView(
 				last_page?.startsWith('/api/games/join')) &&
 			url.startsWith('/api/games/run');
 
-		if (!skipReset) {
+		if (abort || !skipReset) {
 			console.log('[Navigator] Resetting abort controller');
 			window.abortController = resetController();
 		} else {

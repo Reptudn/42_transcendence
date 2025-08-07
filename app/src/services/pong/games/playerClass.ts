@@ -55,7 +55,7 @@ export abstract class Player {
 					? 'Local'
 					: this instanceof AiPlayer
 					? 'AI'
-					: 'Unknown',
+					: 'Unknown'
 		};
 	}
 }

@@ -118,8 +118,21 @@ export function setupEventSource() {
 						'api',
 						true,
 						`games/run?gameId=${gameId}`,
+						false,
 						false
 					);
+					break;
+				}
+				case 'game_tournament_admin_lobby_warp': {
+					console.log('Game tournament admin lobby warp:', data);
+					await loadPartialView(
+						'lobby_admin', false, '', false, false
+					);
+					break;
+				}
+				case 'game_tournament_lobby_warp': {
+					console.log('Game tournament lobby warp:', data);
+					await loadPartialView('api', true, `games/join/${data.gameId}/true`, false, false);
 					break;
 				}
 				case 'game_closed':
@@ -194,7 +207,7 @@ export function testCallback() {
 
 export async function acceptGameInvite(gameId: number) {
 	console.log('Accepting game invite for gameId', gameId);
-	await loadPartialView('api', true, `games/join/${gameId}/true`, false);
+	await loadPartialView('api', true, `games/join/${gameId}/true`, false, true);
 }
 
 export async function declineGameInvite(gameId: number) {

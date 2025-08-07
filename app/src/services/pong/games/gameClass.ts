@@ -157,16 +157,21 @@ export class Game {
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
 
+			
 			this.players = this.players.filter(
 				(player) =>
 					!(
 						player instanceof LocalPlayer &&
 						player.owner.playerId !== playerToRemove.playerId
 					)
-			);
+				);
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
+
+			if (!this.alreadyStarted && this.tournament)
+				this.tournament.rebuild(this.players);
+
 			forced &&
 				sendSeeMessageByUserId(
 					playerToRemove.user.id,
@@ -241,19 +246,17 @@ export class Game {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
 
-			if (this.players.length < 8)
-				throw new Error('Not enough players to start the game! (Min 2)');
+			if (this.players.length < 4)
+				throw new Error('Not enough players to start the game! (Min 4)');
 
 			for (const player of this.players)
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
 
-
 			const { id, id2 } = this.tournament!.getCurrentPlayerId();
 			for (let player of this.players) {
 				player.spectator = (player.playerId !== id && player.playerId !== id2);
 			}
-
 
 			this.status = GameStatus.RUNNING;
 			this.alreadyStarted = true;
@@ -347,13 +350,12 @@ export class Game {
 
 		this.status = GameStatus.WAITING;
 		
-		if (this.config.gameType === GameType.TOURNAMENT && this.tournament)
+		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && winner)
 		{
-			if (!winner)
-				throw new Error('Cant advance tournament match when there is no winner!');
-			this.tournament.advance(winner!);
+			this.tournament.advance(winner);
 			if (this.tournament.isFinished())
 			{
+				this.fastify.log.info('tournament finished');
 				// (async () => {
 				// 	try {
 				// 		await saveCompletedTournamentGame(this, this.fastify);
@@ -372,8 +374,10 @@ export class Game {
 				removeGame(this.gameId);
 				return;
 			}
+			this.fastify.log.info('tournament advancing');
 
 			for (const player of this.players) {
+				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
 				sendSseRawByUserId(
 					player.user.id,
@@ -417,7 +421,7 @@ export class Game {
 	formatStateForClients() {
 		return {
 			...this.gameState,
-			players: this.players.map((player) => player.formatStateForClients()),
+			players: this.players.filter((player) => !player.spectator).map((player) => player.formatStateForClients()),
 		};
 	}
 }

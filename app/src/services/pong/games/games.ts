@@ -18,12 +18,12 @@ setInterval(async () => {
 
 		if (!game.isReady()) continue;
 
-		const playersAliveBefore = game.players.filter((p) => p.lives > 0);
+		const playersAliveBefore = game.players.filter((p) => p.lives > 0 && !p.spectator);
 
 		tickEngine(game);
 
 		// record scores for died players, end game if only one player left
-		const playersAliveAfter = game.players.filter((p) => p.lives > 0);
+		const playersAliveAfter = game.players.filter((p) => p.lives > 0 && !p.spectator);
 		if (playersAliveBefore.length > playersAliveAfter.length) {
 			const diedPlayers = playersAliveBefore.filter(
 				(p) => !playersAliveAfter.some((p2) => p2.playerId === p.playerId)

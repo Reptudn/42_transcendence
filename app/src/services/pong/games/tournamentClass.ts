@@ -15,23 +15,28 @@ export class Tournament {
 	constructor(players: Player[]) {
 		this.players = players;
 		this.rounds = this.generateBracket(players);
-		this.autoAdvanceByes(); // Handle auto-wins from BYEs
+		// this.autoAdvanceByes(); // Handle auto-wins from BYEs
 	}
 
 	private generateBracket(players: Player[]): TournamentMatch[][] {
+		if (players.length === 1) {
+			return [[{
+				player1: players[0],
+				player2: null,
+				winner: players[0],
+			}]];
+		}
+
 		const totalPlayers = players.length;
 		const nextPower = 2 ** Math.ceil(Math.log2(totalPlayers));
-
-		// Copy original players to a padded array (can include nulls)
 		const padded: (Player | null)[] = [...players];
 
 		while (padded.length < nextPower) {
-			padded.push(null); // BYE slots
+			padded.push(null);
 		}
 
 		const rounds: TournamentMatch[][] = [];
 
-		// First round
 		const firstRound: TournamentMatch[] = [];
 		for (let i = 0; i < padded.length; i += 2) {
 			firstRound.push({
@@ -42,7 +47,6 @@ export class Tournament {
 		}
 		rounds.push(firstRound);
 
-		// Following rounds (empty match slots)
 		let matchCount = firstRound.length;
 		while (matchCount > 1) {
 			const nextRound: TournamentMatch[] = Array.from({ length: Math.ceil(matchCount / 2) }, () => ({
@@ -57,23 +61,24 @@ export class Tournament {
 		return rounds;
 	}
 
-	private autoAdvanceByes(): void {
-		let changed = true;
-		while (changed && !this.isFinished()) {
-			const match = this.getCurrentMatch();
-			if (!match) break;
 
-			const { player1, player2 } = match;
+	// private autoAdvanceByes(): void {
+	// 	let changed = true;
+	// 	while (changed && !this.isFinished()) {
+	// 		const match = this.getCurrentMatch();
+	// 		if (!match) break;
 
-			if (player1 && !player2) {
-				this.advance(player1);
-				changed = true;
-			} else if (!player1 && player2) {
-				this.advance(player2);
-				changed = true;
-			}
-		}
-	}
+	// 		const { player1, player2 } = match;
+
+	// 		if (player1 && !player2) {
+	// 			this.advance(player1);
+	// 			changed = true;
+	// 		} else if (!player1 && player2) {
+	// 			this.advance(player2);
+	// 			changed = true;
+	// 		}
+	// 	}
+	// }
 
 	advance(winner: Player): void {
 		const round = this.rounds[this.currentRound];
@@ -106,7 +111,15 @@ export class Tournament {
 			this.currentMatchIndex = 0;
 		}
 
-		this.autoAdvanceByes(); // handle BYEs again if new match is one-sided
+		// this.autoAdvanceByes(); // handle BYEs again if new match is one-sided
+	}
+
+	rebuild(players: Player[]): void {
+		this.players = players;
+		this.rounds = this.generateBracket(players);
+		this.currentRound = 0;
+		this.currentMatchIndex = 0;
+		// this.autoAdvanceByes();
 	}
 
 	getBracketJSON(): any[] {

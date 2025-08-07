@@ -7,6 +7,7 @@ import {
 	Game,
 	GameStatus,
 	GameType,
+	// GameType,
 } from '../../../services/pong/games/gameClass';
 import { sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
@@ -19,6 +20,7 @@ import {
 } from '../../../services/pong/games/playerClass';
 import { Powerups } from '../../../types/Games';
 import { Tournament } from '../../../services/pong/games/tournamentClass';
+// import { Tournament } from '../../../services/pong/games/tournamentClass';
 //import { GameSettings } from '../../../types/Games';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -371,39 +373,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 				changed = true;
 			}
-
-			// if (gameType !== undefined) {
-			// 	game.config.gameType = gameType;
-			// 	if (gameType === GameType.TOURNAMENT) {
-			// 		game.tournament = new Tournament(game.players);
-			// 		game.config.maxPlayers = 8;
-			// 		for (
-			// 			let i = game.players.length;
-			// 			i < game.config.maxPlayers;
-			// 			i++
-			// 		) {
-			// 			await game.addAiPlayer(game.config.gameDifficulty);
-			// 		}
-			// 	} else if (gameType === GameType.CLASSIC) {
-			// 		game.tournament = undefined
-			// 		game.config.maxPlayers = 4;
-			// 		for (
-			// 			let i = game.players.length;
-			// 			i < game.config.maxPlayers;
-			// 			i++
-			// 		) {
-			// 			await game.addAiPlayer(game.config.gameDifficulty);
-			// 		}
-			// 		for (
-			// 			let i = game.players.length;
-			// 			i > game.config.maxPlayers;
-			// 			i--
-			// 		) {
-			// 			await game.removePlayer(game.players[i].playerId);
-			// 		}
-			// 	}
-			// 	changed = true;
-			// }
 
 			if (
 				isAdmin &&
