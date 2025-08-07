@@ -69,6 +69,25 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 	}
 }
 
+export async function resetGameSettings() {
+	console.log('Resetting game settings to default...');
+	const res = await fetch('/api/games/settings/reset', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`${error.error || 'Failed to reset settings: Unknown error'}`);
+		return;
+	}
+	const data = await res.json();
+	console.log('Game settings reset:', data);
+	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
+};
+
 const powerupsToggle = document.getElementById(
 	'powerups-toggle'
 ) as HTMLInputElement | null;

@@ -236,6 +236,32 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		},
 	};
 
+	fastify.post('/settings/reset', async (request: FastifyRequest, reply: FastifyReply) => {
+		const user = await checkAuth(request, false, fastify);
+		if (!user) {
+			return reply.code(401).send({ error: 'Unauthorized' });
+		}
+
+		const game = runningGames.find(
+			(g) =>
+				g.status === GameStatus.WAITING &&
+				g.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === user.id
+				)
+		);
+		if (!game) {
+			return reply.code(404).send({
+				error: 'No game found for the user in lobby phase to reset settings',
+			});
+		}
+
+		const oldGameType = game.config.gameType;
+		game.config = defaultGameSettings;
+		game.config.gameType = oldGameType; // Preserve the game type
+		await game.updateLobbyState();
+		return reply.code(200).send({ message: 'Game settings reset successfully!' });
+	});
+
 	fastify.post(
 		'/settings',
 		{

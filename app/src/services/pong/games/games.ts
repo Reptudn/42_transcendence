@@ -20,6 +20,8 @@ setInterval(async () => {
 
 		const playersAliveBefore = game.players.filter((p) => p.lives > 0 && !p.spectator);
 
+		console.log(`${ playersAliveBefore.map(p => p.displayName).join(', ') } Players alive before tick`);
+
 		tickEngine(game);
 
 		// record scores for died players, end game if only one player left
@@ -35,6 +37,8 @@ setInterval(async () => {
 				});
 			}
 		}
+
+		console.log(`${ playersAliveAfter.map(p => p.displayName).join(', ') } Players alive after tick`);
 
 		// send updated game state to clients
 		for (const player of game.players) {

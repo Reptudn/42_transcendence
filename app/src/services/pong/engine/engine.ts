@@ -6,6 +6,7 @@ import type { Game } from '../games/gameClass.js';
 export function tickEngine(game: Game) {
 	// move players
 	for (const player of game.players) {
+		console.log(`Ticking player ${player.displayName}: spectator=${player.spectator}, lives=${player.lives}, direction=${player.movementDirection}`);
 		if (player.spectator || player.lives <= 0) continue;
 		game.gameState = movePaddle(
 			game.gameState,
