@@ -365,7 +365,7 @@ export class Game {
 		{
 			this.tournament.advance(winner);
 			let match = this.tournament.getCurrentMatch();
-			while (!this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
+			while (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
 			{
 				this.tournament.advance(match.player1.aiDifficulty > match.player2.aiDifficulty ? match.player1 : match.player2);
 				match = this.tournament.getCurrentMatch();
