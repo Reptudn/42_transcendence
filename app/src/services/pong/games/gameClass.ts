@@ -34,6 +34,7 @@ export const defaultGameSettings: GameSettings = {
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
 	gameType: GameType.CLASSIC,
+	autoAdvance: true
 };
 
 export class Game {

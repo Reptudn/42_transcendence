@@ -280,6 +280,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				map,
 				aiUpdate,
 				localPlayerUpdate,
+				autoAdvance
 			} = request.body as {
 				gameType?: GameType;
 				powerupsEnabled?: boolean;
@@ -296,6 +297,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					playerId?: number;
 					name?: string;
 				};
+				autoAdvance?: boolean;
 			};
 
 			const user = await checkAuth(request, false, fastify);
@@ -357,6 +359,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					`Updating player lives for game ${game.gameId} by user ${user.username}`
 				);
 				game.config.playerLives = playerLives;
+				changed = true;
+			}
+
+			if (isAdmin && autoAdvance !== undefined) {
+				fastify.log.info(`Updating auto advance for game ${game.gameId} by user ${user.username}`);
+				game.config.autoAdvance = autoAdvance;
 				changed = true;
 			}
 

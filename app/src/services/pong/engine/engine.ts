@@ -1,5 +1,5 @@
 import { movePaddle } from './paddleMovement.js';
-import { moveBall, hasPlayerBeenHit } from './ballMovement.js';
+import { moveBall, hasPlayerBeenHit, resetBall } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
 import type { Game } from '../games/gameClass.js';
 
@@ -36,6 +36,7 @@ export function tickEngine(game: Game) {
 					game.gameState.objects.splice(index, 1);
 				}
 			}
+			game.gameState = resetBall(game.gameState, 3);
 		}
 	}
 }

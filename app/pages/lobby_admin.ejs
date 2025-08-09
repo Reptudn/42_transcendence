@@ -101,31 +101,7 @@
 		</div>
 		<% } else if (tournamentTree) { %>
 			<h2 class="text-3xl mb-4">Tournament Tree</h2>
-			<div class="flex flex-row gap-16 justify-center items-start overflow-x-auto pb-8">
-				<% for (let r = 0; r < tournamentTree.length; r++) { 
-					const round = tournamentTree[r];
-					const bgColor = ['bg-blue-500', 'bg-blue-700', 'bg-yellow-400', 'bg-green-400'][r] || 'bg-gray-400';
-					const textColor = r === tournamentTree.length - 1 ? 'text-black' : 'text-white';
-					const title = ['Quarterfinals', 'Semifinals', 'Final', 'Winner'][r] || `Round ${r + 1}`;
-				%>
-				<div class="flex flex-col gap-12 justify-center items-center">
-					<h3 class="text-xl font-bold mb-4 <%= textColor %>"><%= title %></h3>
-					<% for (const match of round) { %>
-						<div class="<%= bgColor %> rounded-lg p-4 min-w-[180px] flex flex-col items-center shadow">
-							<div class="font-bold <%= textColor %>"><%= match.player1?.name || 'Waiting...' %></div>
-							<div class="text-xs text-gray-200 mb-2"><%= match.player1?.title || '' %></div>
-							<div class="font-bold <%= textColor %>"><%= match.player2?.name || 'Waiting...' %></div>
-							<div class="text-xs text-gray-200"><%= match.player2?.title || '' %></div>
-							<% if (match.winner) { %>
-								<div class="mt-2 px-2 py-1 text-sm rounded <%= r === tournamentTree.length - 1 ? 'bg-black text-white' : 'bg-white text-black' %>">
-									Winner: <%= match.winner.name %>
-								</div>
-							<% } %>
-						</div>
-					<% } %>
-				</div>
-				<% } %>
-			</div>
+			<%- include('misc/tournament_tree') %>
 		<% } %>
 <% if (initial) { %>
 		</div> <!-- End of lobby div -->
