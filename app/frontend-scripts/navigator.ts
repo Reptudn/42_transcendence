@@ -85,15 +85,13 @@ export async function loadPartialView(
 	page: string,
 	pushState = true,
 	subroute: string | null = null,
-	isPartial: boolean = true
+	isPartial: boolean = true,
+	whole_page: boolean = false
 ): Promise<void> {
 	const token = localStorage.getItem('token');
-	let whole_page = false;
 	const headers: Record<string, string> = { loadpartial: 'true' };
-	if (page.includes('?lng=')) {
+	if (whole_page)
 		headers.loadpartial = 'false';
-		whole_page = true;
-	}
 	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
