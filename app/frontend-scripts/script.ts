@@ -100,7 +100,7 @@ async function logout(): Promise<void> {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			updateMenu();
-			await loadPartialView('index');
+			await loadPartialView('index', true, null, true, true);
 			window.localStorage.setItem('loggedIn', 'false');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null

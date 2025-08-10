@@ -21,13 +21,13 @@ export async function setLanguageCookie(lang: string) {
 		if (userConfirmed) {
 			document.cookie = `i18next=${lang}; path=/; max-age=${60 * 60 * 24 * 30}`;
 			console.log(`Language set to ${lang}`);
-			await loadPartialView(`profile?lng=${lang}`, false);
+			await loadPartialView(`profile?lng=${lang}`, false, null, true, true);
 		} else {
 			console.log('Language change cancelled');
 		}
 	}
-	else if (window.localStorage.getItem('loggedIn') === 'true') await loadPartialView(`profile?lng=${lang}`, false);
-	else loadPartialView(`index?lng=${lang}`, false);
+	else if (window.localStorage.getItem('loggedIn') === 'true') await loadPartialView(`profile?lng=${lang}`, false, null, true, true);
+	else loadPartialView(`index?lng=${lang}`, false, null, true, true);
 	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`);
 }
 
