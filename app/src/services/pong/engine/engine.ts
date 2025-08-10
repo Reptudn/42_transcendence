@@ -22,17 +22,11 @@ export function tickEngine(game: Game) {
 	// check hits
 	for (const player of game.players) {
 		if (hasPlayerBeenHit(game.gameState, player.playerId)) {
-			player.lives--;
-			if (player.lives <= 0) {
-				const objectsToRemove: number[] = [];
-				for (const obj of game.gameState.objects) {
-					if (obj.playerNbr === player.playerId) {
-						objectsToRemove.push(game.gameState.objects.indexOf(obj));
-					}
-				}
-				for (const index of objectsToRemove) {
-					game.gameState.objects.splice(index, 1);
-				}
+			player.lives = Math.max(0, player.lives - 1);
+			if (player.lives === 0) {
+				game.gameState.objects = game.gameState.objects.filter(
+					(o) => o.playerNbr !== player.playerId
+				);
 			}
 		}
 	}

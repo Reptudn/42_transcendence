@@ -63,33 +63,39 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-
 	const gameSettingsSchema = {
 		type: 'object',
 		properties: {
 			powerupsEnabled: {
 				type: 'boolean',
 				errorMessage: {
-					type: 'Powerups enabled setting must be true or false'
-				}
+					type: 'Powerups enabled setting must be true or false',
+				},
 			},
 			powerups: {
 				type: 'array',
 				items: {
 					type: 'string',
-					enum: ['speed', 'multiball', 'bigpaddle', 'smallpaddle', 'freeze', 'reverse'],
+					enum: [
+						'speed',
+						'multiball',
+						'bigpaddle',
+						'smallpaddle',
+						'freeze',
+						'reverse',
+					],
 					errorMessage: {
 						type: 'Each powerup must be a text value',
-						enum: 'Each powerup must be one of: speed, multiball, bigpaddle, smallpaddle, freeze, reverse'
-					}
+						enum: 'Each powerup must be one of: speed, multiball, bigpaddle, smallpaddle, freeze, reverse',
+					},
 				},
 				uniqueItems: true,
 				maxItems: 10,
 				errorMessage: {
 					type: 'Powerups must be an array of powerup names',
 					uniqueItems: 'Duplicate powerups are not allowed',
-					maxItems: 'Cannot have more than 10 powerups enabled'
-				}
+					maxItems: 'Cannot have more than 10 powerups enabled',
+				},
 			},
 			playerLives: {
 				type: 'number',
@@ -98,8 +104,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				errorMessage: {
 					type: 'Player lives must be a number',
 					minimum: 'Player lives must be at least 1',
-					maximum: 'Player lives cannot exceed 10'
-				}
+					maximum: 'Player lives cannot exceed 10',
+				},
 			},
 			gameDifficulty: {
 				type: 'number',
@@ -108,8 +114,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				errorMessage: {
 					type: 'Game difficulty must be a number',
 					minimum: 'Game difficulty must be at least 1',
-					maximum: 'Game difficulty cannot exceed 10'
-				}
+					maximum: 'Game difficulty cannot exceed 10',
+				},
 			},
 			map: {
 				type: 'string',
@@ -120,8 +126,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					type: 'Map name must be a text value',
 					minLength: 'Map name cannot be empty',
 					maxLength: 'Map name cannot be longer than 50 characters',
-					pattern: 'Map name can only contain letters, numbers, underscores, and hyphens'
-				}
+					pattern:
+						'Map name can only contain letters, numbers, underscores, and hyphens',
+				},
 			},
 			aiUpdate: {
 				type: 'object',
@@ -131,8 +138,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						minimum: 0,
 						errorMessage: {
 							type: 'AI Player ID must be a number',
-							minimum: 'AI Player ID cannot be negative'
-						}
+							minimum: 'AI Player ID cannot be negative',
+						},
 					},
 					name: {
 						type: 'string',
@@ -141,8 +148,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						errorMessage: {
 							type: 'AI name must be a text value',
 							minLength: 'AI name cannot be empty',
-							maxLength: 'AI name cannot be longer than 32 characters'
-						}
+							maxLength: 'AI name cannot be longer than 32 characters',
+						},
 					},
 					difficulty: {
 						type: 'number',
@@ -151,18 +158,19 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						errorMessage: {
 							type: 'AI difficulty must be a number',
 							minimum: 'AI difficulty must be at least 1',
-							maximum: 'AI difficulty cannot exceed 10'
-						}
-					}
+							maximum: 'AI difficulty cannot exceed 10',
+						},
+					},
 				},
 				required: ['playerId'],
 				additionalProperties: false,
 				errorMessage: {
 					required: {
-						playerId: 'Player ID is required for AI updates'
+						playerId: 'Player ID is required for AI updates',
 					},
-					additionalProperties: 'Unknown field in AI update. Only playerId, name, and difficulty are allowed'
-				}
+					additionalProperties:
+						'Unknown field in AI update. Only playerId, name, and difficulty are allowed',
+				},
 			},
 			localPlayerUpdate: {
 				type: 'object',
@@ -172,8 +180,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						minimum: 0,
 						errorMessage: {
 							type: 'Local Player ID must be a number',
-							minimum: 'Local Player ID cannot be negative'
-						}
+							minimum: 'Local Player ID cannot be negative',
+						},
 					},
 					name: {
 						type: 'string',
@@ -182,28 +190,31 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						errorMessage: {
 							type: 'Local player name must be a text value',
 							minLength: 'Local player name cannot be empty',
-							maxLength: 'Local player name cannot be longer than 32 characters'
-						}
-					}
+							maxLength:
+								'Local player name cannot be longer than 32 characters',
+						},
+					},
 				},
 				required: ['playerId', 'name'],
 				additionalProperties: false,
 				errorMessage: {
 					required: {
 						playerId: 'Player ID is required for local player updates',
-						name: 'Name is required for local player updates'
+						name: 'Name is required for local player updates',
 					},
-					additionalProperties: 'Unknown field in local player update. Only playerId and name are allowed'
-				}
-			}
+					additionalProperties:
+						'Unknown field in local player update. Only playerId and name are allowed',
+				},
+			},
 		},
 		required: [],
 		additionalProperties: false,
 		minProperties: 1,
 		errorMessage: {
 			minProperties: 'At least one setting must be provided to update',
-			additionalProperties: 'Unknown field provided. Only powerupsEnabled, powerups, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed'
-		}
+			additionalProperties:
+				'Unknown field provided. Only powerupsEnabled, powerups, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed',
+		},
 	};
 
 	fastify.post(
@@ -211,7 +222,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 			schema: {
-				body: gameSettingsSchema
+				body: gameSettingsSchema,
 			},
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
@@ -413,9 +424,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					});
 			}
 
-			const friendGame = runningGames.find((g) => (g.players.find(p => p instanceof UserPlayer && p.user.id === inviteUser.id)));
+			const friendGame = runningGames.find((g) =>
+				g.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === inviteUser.id
+				)
+			);
 			if (friendGame)
-				return reply.code(401).send({ error: 'Cant invite a user which is already in a game' });
+				return reply
+					.code(401)
+					.send({
+						error: 'Cant invite a user which is already in a game',
+					});
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
@@ -771,7 +790,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (player) {
 				if (accepted === 'false') {
 					try {
-						await game.removePlayer(user.id);
+						await game.removePlayer(player.playerId);
 						return reply.code(200).send({
 							message: 'You have declined the game invitation.',
 						});
@@ -860,7 +879,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				`Player ${player.playerId} connected to game ${parsedGameId}.`
 			);
 
-			const localPlayer = game.players.find((l) => l instanceof LocalPlayer && l.owner === player) as LocalPlayer | undefined;
+			const localPlayer = game.players.find(
+				(l) => l instanceof LocalPlayer && l.owner === player
+			) as LocalPlayer | undefined;
 
 			socket.send(JSON.stringify({ type: 'state', state: game.gameState }));
 
