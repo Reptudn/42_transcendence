@@ -30,68 +30,36 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 		throw new Error('Could not load map data.');
 	}
 
-	// 🏓 Only players that are NOT spectators can play
-	const activePlayers = game.players.filter((p) => !p.spectator);
-
 	const gameState: GameState = {
-		meta: map.meta,
+		meta: { name: '', author: '', size_x: 0, size_y: 0 },
 		objects: [],
 	};
-
-	// 1️⃣ Filter map objects — remove spectators & check conditions
-	const filteredObjects = map.objects.filter((object) => {
-		// Hide objects owned by spectators
-		if (typeof object.playerNbr === 'number') {
-			const player = game.players[object.playerNbr];
-			if (player?.spectator) return false;
-		}
-
-		// Condition check
+	gameState.meta = map.meta;
+	for (const object of map.objects) {
 		if (!object.conditions || object.conditions.length === 0) {
-			return true;
+			gameState.objects.push(object);
+			continue;
 		}
-
-		return object.conditions.every((cond: any) =>
-			isMapConditionFulfilled(
-				game.config,
-				activePlayers,
-				cond.condition,
-				cond.variable,
-				cond.target
-			)
-		);
-	});
-
-	// 2️⃣ Find all playerNbrs in use (only from active players)
-	const usedPlayerNbrs = [
-		...new Set(
-			filteredObjects
-				.filter((obj) => typeof obj.playerNbr === 'number')
-				.map((obj) => obj.playerNbr as number)
-		),
-	];
-
-	// 3️⃣ Create mapping from old playerNbr → new 0..N index for active players
-	const playerNbrMap = new Map<number, number>();
-	let nextIndex = 0;
-	for (const nbr of usedPlayerNbrs) {
-		if (nextIndex < activePlayers.length) {
-			playerNbrMap.set(nbr, nextIndex++);
+		let fulfilled = true;
+		for (const condition of object.conditions) {
+			if (
+				!isMapConditionFulfilled(
+					game.config,
+					game.players,
+					condition.condition,
+					condition.variable,
+					condition.target
+				)
+			) {
+				fulfilled = false;
+				break;
+			}
+		}
+		if (fulfilled) {
+			const { conditions, ...objectWithoutConditions } = object;
+			gameState.objects.push(objectWithoutConditions);
 		}
 	}
-
-	// 4️⃣ Apply remapping to objects
-	gameState.objects = filteredObjects
-		.map((obj) => {
-			if (typeof obj.playerNbr === 'number') {
-				const newNbr = playerNbrMap.get(obj.playerNbr);
-				if (newNbr === undefined) return null; // shouldn't happen but safety
-				return { ...obj, playerNbr: newNbr };
-			}
-			return obj;
-		})
-		.filter((obj): obj is GameObject => obj !== null);
-
 	return gameState;
 }
 
