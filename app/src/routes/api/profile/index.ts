@@ -280,7 +280,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					fastify
 				);
 
-				unlockAchievement(userId, 'change-title', fastify);
+				await unlockAchievement(userId, 'change-title', fastify);
 
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
