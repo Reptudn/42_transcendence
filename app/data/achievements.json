@@ -192,17 +192,9 @@
 		"title_third": "🥺"
 	},
 	{
-		"key": "singleplayer",
-		"name": "The Lone Wolf",
-		"description": "Play a game of Pong alone.",
-		"title_first": "Lone",
-		"title_second": "Wolf",
-		"title_third": "🐺"
-	},
-	{
 		"key": "long-bio",
 		"name": "The Storyteller",
-		"description": "Write a bio that is over 100 characters long.",
+		"description": "Write a bio that is at least 99 characters long.",
 		"title_first": "Verbose",
 		"title_second": "Storyteller",
 		"title_third": "📚"
@@ -298,7 +290,7 @@
 	{
 		"key": "close-death",
 		"name": "Whoa, that was close!",
-		"description": "Win a game of Pong with 1 health left.",
+		"description": "Win a game of Pong with 1 life left.",
 		"title_first": "Risky",
 		"title_second": "Risk-taker",
 		"title_third": "🎲"
@@ -310,85 +302,5 @@
 		"title_first": "Skilled",
 		"title_second": "Pong Professional",
 		"title_third": "💪"
-	},
-	{
-		"key": "bounce-10",
-		"name": "Ping, Pong, Peng, Pung",
-		"description": "Bounce the ball 10 times in a game of Pong.",
-		"title_first": "Bouncy",
-		"title_second": "Bouncer",
-		"title_third": "⛹"
-	},
-	{
-		"key": "bounce-100",
-		"name": "Angle of incidence = angle of reflection",
-		"description": "Bounce the ball 100 times in a game of Pong.",
-		"title_first": "Experienced",
-		"title_second": "Bounce-Enthusiast",
-		"title_third": "☄️"
-	},
-	{
-		"key": "bounce-500",
-		"name": "Bounce King",
-		"description": "Bounce the ball 500 times in a game of Pong.",
-		"title_first": "Masterful",
-		"title_second": "Bouncing Professional",
-		"title_third": "🔥"
-	},
-	{
-		"key": "bounce-1000",
-		"name": "King of the Bouncy Castle",
-		"description": "Bounce the ball 1000 times in a game of Pong.",
-		"title_first": "Superior",
-		"title_second": "Bouncemaster",
-		"title_third": "🔥🔥🔥"
-	},
-	{
-		"key": "powerup-1",
-		"name": "Powerup!",
-		"description": "Pick up a powerup in a game of Pong.",
-		"title_first": "Powered-up",
-		"title_second": "Powerup-User",
-		"title_third": "🔋"
-	},
-	{
-		"key": "powerup-5",
-		"name": "Powerup Pro",
-		"description": "Pick up 5 powerups in games of Pong.",
-		"title_first": "Powerful",
-		"title_second": "Powerup-Enthusiast",
-		"title_third": "💫"
-	},
-	{
-		"key": "powerup-10",
-		"name": "Powerup Master",
-		"description": "Pick up 10 powerups in games of Pong.",
-		"title_first": "Hyper-Powerful",
-		"title_second": "Powerup-Collector",
-		"title_third": "🌟"
-	},
-	{
-		"key": "powerup-25",
-		"name": "Powerup King",
-		"description": "Pick up 25 powerups in games of Pong.",
-		"title_first": "Power-up-ful",
-		"title_second": "Powerup-Addict",
-		"title_third": "⚡️⚡️⚡️"
-	},
-	{
-		"key": "powerup-ball-speed",
-		"name": "Speedy Gonzales",
-		"description": "Pick up a ball speed powerup in a game of Pong.",
-		"title_first": "Attentive",
-		"title_second": "Reaction - Master",
-		"title_third": "🏃"
-	},
-	{
-		"key": "powerup-paddle-speed",
-		"name": "I AM SPEED",
-		"description": "Pick up a paddle speed powerup in a game of Pong.",
-		"title_first": "Fast",
-		"title_second": "Speedster",
-		"title_third": "🏎️"
 	}
 ]
