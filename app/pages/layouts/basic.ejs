@@ -60,6 +60,9 @@
 			<div id="content" class="flex justify-center backdrop-blur-sm rounded border-[#00ff00] border mr-[25%] ml-[25%] mt-10">
 				<%- body %>
 			</div>
+			<% if (isAuthenticated) { %> <%-
+				include('misc/chat') %>
+			<% }%>
 		</main>
 		<div id="popup-wrapper" class="fixed bottom-8 pl-10 z-10000">
 			<div id="popup-container" class="flex flex-col-reverse gap-3 z-10000"></div>

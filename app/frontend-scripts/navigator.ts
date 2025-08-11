@@ -86,15 +86,13 @@ export async function loadPartialView(
 	pushState = true,
 	subroute: string | null = null,
 	isPartial: boolean = true,
-	abort: boolean = true
+	abort: boolean = true,
+	whole_page: boolean = false
 ): Promise<void> {
 	const token = localStorage.getItem('token');
-	let whole_page = false;
 	const headers: Record<string, string> = { loadpartial: 'true' };
-	if (page.includes('?lng=')) {
+	if (whole_page)
 		headers.loadpartial = 'false';
-		whole_page = true;
-	}
 	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
@@ -130,14 +128,12 @@ export async function loadPartialView(
 
 		const html: string = await response.text();
 
-		setupEventSource();
-
+		
 		if (whole_page) {
 			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
 			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
 			replaceEntireDocument(html);
 			initPopups();
-			setupEventSource();
 		} else {
 			const contentElement: HTMLElement | null = document.getElementById('content');
 			if (contentElement) {
@@ -147,6 +143,7 @@ export async function loadPartialView(
 				console.warn('Content element not found');
 			}
 		}
+		setupEventSource();
 
 		updateActiveMenu(page);
 

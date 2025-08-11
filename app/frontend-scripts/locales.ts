@@ -23,7 +23,7 @@ export async function setLanguageCookie(lang: string) {
 				60 * 60 * 24 * 30
 			}`;
 			console.log(`Language set to ${lang}`);
-			await loadPartialView(`profile?lng=${lang}`, false);
+			await loadPartialView(`profile?lng=${lang}`, false, null, true, true);
 		} else {
 			console.log('Language change cancelled');
 		}
