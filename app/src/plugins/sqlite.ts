@@ -132,7 +132,7 @@ export default fp(async (fastify) => {
 				id          INTEGER PRIMARY KEY AUTOINCREMENT,
 				ended_at    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
 				type		ENUM('classic', 'tournament') NOT NULL,
-				settings    TEXT       NOT NULL   -- JSON dump of final settings
+				settings    TEXT       NOT NULL   -- JSON dump of final settings,
 				tournament_tree TEXT       DEFAULT NULL   -- JSON dump of tournament bracket
 			);
 		`);
