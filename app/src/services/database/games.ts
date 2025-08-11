@@ -14,8 +14,8 @@ export async function saveCompletedGame(
 	await db.exec('BEGIN TRANSACTION');
 	try {
 		const res = await db.run(
-			`INSERT INTO completed_games (settings) VALUES (?)`,
-			[settingsJson]
+			`INSERT INTO completed_games (type, settings) VALUES (?, ?)`,
+			[game.config.gameType, settingsJson]
 		);
 		if (!res.lastID) throw new Error('No ID returned for completed_games');
 		const completedGameId = res.lastID;
@@ -66,6 +66,26 @@ export async function saveCompletedGame(
 	} catch (err) {
 		await db.exec('ROLLBACK');
 		fastify.log.error(`❌ Failed to save completed game ${game.gameId}:`, err);
+		throw err;
+	}
+}
+
+export async function saveCompletedTournamentGame(game: Game, fastify: FastifyInstance): Promise<void> {
+	const db = fastify.sqlite as Database;
+	const settingsJson = JSON.stringify(game.config);
+
+	const tournament = game.tournament;
+
+	if (!tournament)
+		throw new Error('No tournament found');
+
+	await db.exec('BEGIN TRANSACTION');
+	try {
+		await db.run(
+			`INSERT INTO completed_games (type, settings, tournament_tree) VALUES (?, ?, ?)`,
+			[game.config.gameType, settingsJson, tournament.getBracketJSON()]
+		);
+	} catch (err) {
 		throw err;
 	}
 }

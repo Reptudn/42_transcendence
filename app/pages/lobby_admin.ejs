@@ -52,6 +52,11 @@
 				<% } else { %>
 					<p>Power-ups are disabled.</p>
 				<% } %>
+				<% if (gameSettings.gameType === 'tournament') { %>
+					<h3 class="text-3xl">Tournament Specific Settings</h3>
+					<input type="checkbox" name="autoAdvance" id="autoAdvance" <%= gameSettings.autoAdvance ? 'checked' : '' %> onchange="setAutoAdvance(this.checked)">
+					<label for="autoAdvance">Auto Advance AI's</label>
+				<% } %>
 			</div>
 		</div>
 		<br>
@@ -102,6 +107,9 @@
 		<% } else if (tournamentTree) { %>
 			<h2 class="text-3xl mb-4">Tournament Tree</h2>
 			<%- include('misc/tournament_tree') %>
+		<% } else { %>
+			<p>Nothing to show... WHY?? :C</p>
+			<p>Try to change the game mode again</p>
 		<% } %>
 <% if (initial) { %>
 		</div> <!-- End of lobby div -->

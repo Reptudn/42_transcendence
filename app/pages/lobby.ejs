@@ -22,6 +22,9 @@
 					<p>Power-ups are disabled.</p>
 					<br>
 				<% } %>
+				<% if (gameSettings.gameType === 'tournament') { %>
+					<h3>Auto Advance AI's <%= gameSettings.autoAdvance ? 'Enabled' : 'Disabled' %></h3>
+				<% } %>
 				<h3>Player Lives: <%= gameSettings.playerLives %></h3>
 				<h3>Game Difficulty: <%= gameSettings.gameDifficulty %></h3>
 				<h3>Current Map: <%= gameSettings.map.toUpperCase() %></h3>

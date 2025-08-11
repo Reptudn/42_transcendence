@@ -160,6 +160,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						5,
 						fastify
 					);
+
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {

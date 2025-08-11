@@ -131,7 +131,9 @@ export default fp(async (fastify) => {
 			CREATE TABLE IF NOT EXISTS completed_games (
 				id          INTEGER PRIMARY KEY AUTOINCREMENT,
 				ended_at    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				type		ENUM('classic', 'tournament') NOT NULL,
 				settings    TEXT       NOT NULL   -- JSON dump of final settings
+				tournament_tree TEXT       DEFAULT NULL   -- JSON dump of tournament bracket
 			);
 		`);
 		await fastify.sqlite.exec(`
@@ -144,7 +146,7 @@ export default fp(async (fastify) => {
 				place       INTEGER NOT NULL,      -- 1=winner,2=runner-up,...
 				FOREIGN KEY (game_id)   REFERENCES completed_games(id) ON DELETE CASCADE,
 				FOREIGN KEY (user_id)   REFERENCES users(id)           ON DELETE CASCADE,
-				PRIMARY KEY (game_id, player_id)
+				PRIMARY KEY (game_id, player_id),
 			);
 		`);
 

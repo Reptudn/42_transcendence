@@ -121,6 +121,7 @@ export function setupEventSource() {
 						false,
 						false
 					);
+					import('./gameRenderer.js').then(({ startRendering }) => startRendering());
 					break;
 				}
 				case 'game_tournament_admin_lobby_warp': {

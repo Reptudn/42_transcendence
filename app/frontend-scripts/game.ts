@@ -1,5 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { initCanvas, updateGameState } from './gameRenderer.js';
+import { initCanvas, stopRendering, updateGameState } from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -195,6 +195,7 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
+	stopRendering();
 	await leaveWsGame();
 });
 

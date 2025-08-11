@@ -88,6 +88,11 @@ export async function resetGameSettings() {
 	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
 };
 
+export async function setAutoAdvance(enabled: boolean) {
+	console.log('Setting auto advance for AI:', enabled);
+	await updateSettings({ autoAdvance: enabled });
+}
+
 const powerupsToggle = document.getElementById(
 	'powerups-toggle'
 ) as HTMLInputElement | null;
@@ -308,6 +313,8 @@ declare global {
 		renameLocalPlayer: (id: number) => Promise<void>;
 		renameAiPlayer: (id: number) => Promise<void>;
 		setAiDifficulty: (id: number, difficulty: number) => Promise<void>;
+		setAutoAdvance: (enabled: boolean) => Promise<void>;
+		resetGameSettings: () => Promise<void>;
 	}
 }
 
@@ -322,3 +329,5 @@ window.startGame = startGame;
 window.renameLocalPlayer = renameLocalPlayer;
 window.renameAiPlayer = renameAiPlayer;
 window.setAiDifficulty = setAiDifficulty;
+window.setAutoAdvance = setAutoAdvance;
+window.resetGameSettings = resetGameSettings;

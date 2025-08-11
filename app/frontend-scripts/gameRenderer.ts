@@ -460,8 +460,6 @@ export function stopRendering(): void {
 	}
 }
 
-startRendering();
-
 declare global
 {
 	interface Window {

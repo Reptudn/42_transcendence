@@ -140,6 +140,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						'Map name can only contain letters, numbers, underscores, and hyphens',
 				},
 			},
+			autoAdvance: {
+				type: 'boolean',
+				errorMessage: {
+					type: 'Auto advance must be a boolean value',
+				},
+			},
 			gameType: {
 				type: 'string',
 				pattern: '^[a-zA-Z0-9_-]+$',
@@ -246,7 +252,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			(g) =>
 				g.status === GameStatus.WAITING &&
 				g.players.find(
-					(p) => p instanceof UserPlayer && p.user.id === user.id
+					(p) => p instanceof UserPlayer && g.admin.id === user.id
 				)
 		);
 		if (!game) {

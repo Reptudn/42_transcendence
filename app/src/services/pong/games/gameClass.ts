@@ -10,7 +10,7 @@ import { removeGame } from './games';
 import ejs from 'ejs';
 import { getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
-import { saveCompletedGame } from '../../database/games';
+import { saveCompletedGame, saveCompletedTournamentGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
 import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
@@ -365,6 +365,15 @@ export class Game {
 		{
 			this.tournament.advance(winner);
 			let match = this.tournament.getCurrentMatch();
+
+			if (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
+			{
+				for (const player of this.players)
+				{
+					if (player instanceof UserPlayer)
+						sendSeeMessageByUserId(player.user.id, 'message', 'AI players are advancing... (higher AI diff wins)');
+				}
+			}
 			while (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
 			{
 				this.tournament.advance(match.player1.aiDifficulty > match.player2.aiDifficulty ? match.player1 : match.player2);
@@ -373,13 +382,13 @@ export class Game {
 			if (this.tournament.isFinished())
 			{
 				this.fastify.log.info('tournament finished');
-				// (async () => {
-				// 	try {
-				// 		await saveCompletedTournamentGame(this, this.fastify);
-				// 	} catch (_e) {
-				// 		// already logged inside saveCompletedGame
-				// 	}
-				// })();
+				(async () => {
+					try {
+						await saveCompletedTournamentGame(this, this.fastify);
+					} catch (_e) {
+						// already logged inside saveCompletedGame
+					}
+				})();
 		
 				// this occurs when the game ends because its actually over because someone won or the admin left as of now
 				for (const player of this.players) {
@@ -393,10 +402,13 @@ export class Game {
 			}
 
 			this.fastify.log.info('tournament advancing');
+			match = this.tournament.getCurrentMatch();
+			const p1 = this.players.find((p) => p.playerId === match!.player1!.playerId);
+			const p2 = this.players.find((p) => p.playerId === match!.player2!.playerId);
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
-				sendPopupToClient(this.fastify, player.user.id, 'Tournament advancing', 'Next match is starting once the admin clicks "Start Match" again');
+				sendPopupToClient(this.fastify, player.user.id, 'Tournament advancing', `Next match: ${p1?.displayName} vs ${p2?.displayName}`);
 				sendSseRawByUserId(
 					player.user.id,
 					`data: ${JSON.stringify({
