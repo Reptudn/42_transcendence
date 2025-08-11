@@ -127,28 +127,29 @@ export default fp(async (fastify) => {
 			);
 		`);
 
-		await fastify.sqlite.exec(`
-			CREATE TABLE IF NOT EXISTS completed_games (
-				id          INTEGER PRIMARY KEY AUTOINCREMENT,
-				ended_at    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				type		ENUM('classic', 'tournament') NOT NULL,
-				settings    TEXT       NOT NULL   -- JSON dump of final settings,
-				tournament_tree TEXT       DEFAULT NULL   -- JSON dump of tournament bracket
-			);
-		`);
-		await fastify.sqlite.exec(`
-			CREATE TABLE IF NOT EXISTS game_results (
-				game_id     INTEGER NOT NULL,
-				player_id   INTEGER NOT NULL,
-				user_id     INTEGER,               -- nullable real user.id
-				player_type TEXT    NOT NULL,      -- 'User' | 'Local' | 'AI'
-				ai_level    INTEGER DEFAULT NULL,  -- only for AI, NULL otherwise
-				place       INTEGER NOT NULL,      -- 1=winner,2=runner-up,...
-				FOREIGN KEY (game_id)   REFERENCES completed_games(id) ON DELETE CASCADE,
-				FOREIGN KEY (user_id)   REFERENCES users(id)           ON DELETE CASCADE,
-				PRIMARY KEY (game_id, player_id),
-			);
-		`);
+        await fastify.sqlite.exec(`
+            CREATE TABLE IF NOT EXISTS completed_games (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                ended_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                type            TEXT NOT NULL CHECK (type IN ('classic','tournament')),
+                settings        TEXT NOT NULL,              -- JSON dump of final settings
+                tournament_tree TEXT DEFAULT NULL           -- JSON dump of tournament bracket
+            );
+        `);
+
+        await fastify.sqlite.exec(`
+            CREATE TABLE IF NOT EXISTS game_results (
+                game_id     INTEGER NOT NULL,
+                player_id   INTEGER NOT NULL,
+                user_id     INTEGER,               -- nullable real user.id
+                player_type TEXT    NOT NULL,      -- 'User' | 'Local' | 'AI'
+                ai_level    INTEGER DEFAULT NULL,  -- only for AI
+                place       INTEGER NOT NULL,      -- 1=winner,2=runner-up,...
+                FOREIGN KEY (game_id) REFERENCES completed_games(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id)           ON DELETE CASCADE,
+                PRIMARY KEY (game_id, player_id)
+            );
+        `);
 
 		for (const achievement of achievementsData) {
 			await fastify.sqlite.run(
