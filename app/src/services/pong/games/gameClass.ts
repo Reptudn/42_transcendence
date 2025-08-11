@@ -72,7 +72,7 @@ export class Game {
 		} as AIBrainData;
 	}
 
-	async addUserPlayer(user: User) : Promise<UserPlayer> {
+	async addUserPlayer(user: User): Promise<UserPlayer> {
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
 
@@ -96,13 +96,13 @@ export class Game {
 			null,
 			this.nextPlayerId++,
 			await getUserTitleString(user.id, this.fastify)
-		)
+		);
 		this.players.push(userPlayer);
 		await this.updateLobbyState();
 		return userPlayer;
 	}
 
-	async addAiPlayer(aiLevel: number) : Promise<AiPlayer> {
+	async addAiPlayer(aiLevel: number): Promise<AiPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -121,7 +121,7 @@ export class Game {
 		return aiPlayer;
 	}
 
-	async addLocalPlayer(owner: UserPlayer) : Promise<LocalPlayer> {
+	async addLocalPlayer(owner: UserPlayer): Promise<LocalPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -143,6 +143,11 @@ export class Game {
 		if (!playerToRemove) throw new Error('Player not found!');
 
 		this.players = this.players.filter((player) => player.playerId !== playerId);
+		if (this.status === GameStatus.RUNNING) {
+			this.gameState.objects = this.gameState.objects.filter(
+				(o) => o.playerNbr !== playerId
+			);
+		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
 
@@ -150,7 +155,7 @@ export class Game {
 				(player) =>
 					!(
 						player instanceof LocalPlayer &&
-						player.owner.playerId !== playerToRemove.playerId
+						player.owner.playerId === playerToRemove.playerId
 					)
 			);
 			this.fastify.log.info(
@@ -206,7 +211,6 @@ export class Game {
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
-
 		if (this.status !== GameStatus.WAITING) return;
 
 		const players = this.players.map((player) => player.formatStateForClients());
@@ -217,9 +221,14 @@ export class Game {
 				displayName: player.displayName,
 				playerTitle: player.playerTitle,
 				joined: player.joined,
-				type: player instanceof AiPlayer ? 'AI' : 
-					player instanceof LocalPlayer ? 'Local' : 'User',
-				aiDifficulty: player instanceof AiPlayer ? player.aiDifficulty : undefined // Make sure this is included
+				type:
+					player instanceof AiPlayer
+						? 'AI'
+						: player instanceof LocalPlayer
+						? 'Local'
+						: 'User',
+				aiDifficulty:
+					player instanceof AiPlayer ? player.aiDifficulty : undefined, // Make sure this is included
 			})),
 			gameSettings: this.config,
 			initial: false,
