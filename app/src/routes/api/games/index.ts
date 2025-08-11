@@ -397,7 +397,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i < game.config.maxPlayers;
 						i++
 					) {
-						await game.addAiPlayer(game.config.gameDifficulty);
+						await game.addAiPlayer(game.config.gameDifficulty, true);
 					}
 					game.tournament = new Tournament(game.players);
 				} else if (gameType === GameType.CLASSIC) {
@@ -407,7 +407,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i > game.config.maxPlayers;
 						i--
 					) {
-						await game.removePlayer(game.players[i - 1].playerId);
+						await game.removePlayer(game.players[i - 1].playerId, true, true);
 					}
 					game.tournament = undefined;
 				}
@@ -552,6 +552,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
+				if (game.config.gameType === GameType.TOURNAMENT)
+				{
+					const ai = game.players.find((p) => p instanceof AiPlayer);
+					if (ai) game.removePlayer(ai.playerId, false, true);
+				}
 				await game.addUserPlayer(inviteUser);
 			} catch (err) {
 				return reply.code(404).send({ error: err });
@@ -726,6 +731,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							return reply.code(401).send({
 								error: 'You can only add one Local Player per User!',
 							});
+						}
+						if (game.config.gameType === GameType.TOURNAMENT)
+						{
+							const ai = game.players.find((p) => p instanceof AiPlayer);
+							if (ai) game.removePlayer(ai.playerId, false, true);
 						}
 						await game.addLocalPlayer(owner as UserPlayer);
 						return reply.code(200).send({
