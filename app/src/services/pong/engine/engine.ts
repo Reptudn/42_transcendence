@@ -1,6 +1,8 @@
 import { movePaddle } from './paddleMovement.js';
 import { moveBall, hasPlayerBeenHit } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
+import { UserPlayer } from '../games/playerClass.js';
+import { unlockAchievement } from '../../database/achievements.js';
 import type { Game } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
@@ -27,6 +29,14 @@ export function tickEngine(game: Game) {
 				game.gameState.objects = game.gameState.objects.filter(
 					(o) => o.playerNbr !== player.playerId
 				);
+			}
+		}
+	}
+
+	for (const p of game.players) {
+		if (p instanceof UserPlayer) {
+			if (Math.random() < 0.0001) {
+				unlockAchievement(p.user.id, 'lucky', (game as any).fastify);
 			}
 		}
 	}
