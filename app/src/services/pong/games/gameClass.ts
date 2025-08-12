@@ -396,13 +396,13 @@ export class Game {
 			}
 			if (this.tournament.isFinished())
 			{
-				this.fastify.log.info('tournament finished');
+				console.log('tournament finished');
 				if (save_game)
 				{
 					(async () => {
 						try {
+							// TODO: save completed tournament game in db
 							// await saveCompletedTournamentGame(this, this.fastify);
-							await saveCompletedGame(this, this.fastify);
 						} catch (_e) {
 							// already logged inside saveCompletedGame
 						}
@@ -439,6 +439,7 @@ export class Game {
 		}
 		else
 		{
+			console.log('end game classic non tournament');
 			if (save_game)
 			{
 				(async () => {

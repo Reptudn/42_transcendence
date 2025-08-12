@@ -408,6 +408,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						await game.removePlayer(game.players[i - 1].playerId, true, true);
 					}
 					game.tournament = undefined;
+					game.alreadyStarted = false;
 					for (const player of game.players) {
 						player.spectator = false;
 						player.lives = game.config.playerLives;

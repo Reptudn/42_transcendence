@@ -9,18 +9,15 @@ export async function saveCompletedGame(
 	game: Game,
 	fastify: FastifyInstance
 ): Promise<void> {
-	fastify.log.info(`save normal game`);
 	const db = fastify.sqlite as Database;
 	const settingsJson = JSON.stringify(game.config);
 
 	await db.exec('BEGIN TRANSACTION');
 	try {
 		const res = await db.run(
-			`INSERT INTO completed_games (type, settings, tournament_tree) VALUES (?, ?, ?)`,
-			[game.config.gameType, settingsJson, game.tournament?.getBracketJSON() || null]
+			`INSERT INTO completed_games (settings) VALUES (?)`,
+			[settingsJson]
 		);
-
-		if (game.tournament) return;
 
 		if (!res.lastID) throw new Error('No ID returned for completed_games');
 		const completedGameId = res.lastID;
