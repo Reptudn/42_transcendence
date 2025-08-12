@@ -452,6 +452,8 @@ export function startRendering(): void {
 	}
 }
 
+startRendering();
+
 export function stopRendering(): void {
 	isRendering = false;
 	if (animationId !== null) {
@@ -459,8 +461,6 @@ export function stopRendering(): void {
 		animationId = null;
 	}
 }
-
-startRendering();
 
 declare global
 {

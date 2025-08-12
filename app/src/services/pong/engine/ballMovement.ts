@@ -208,6 +208,38 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	return gameState;
 }
 
+export function resetBall(gameState: GameState, ballSpeed: number): GameState {
+	const ball = gameState.objects.find((obj) => obj.type === 'ball');
+	if (!ball) {
+		console.warn('No ball found to reset.');
+		return gameState;
+	}
+
+	if (!('radius' in ball) || typeof ball.radius !== 'number') {
+		ball.radius = 2;
+	}
+
+	const { size_x, size_y } = gameState.meta;
+	ball.center = {
+		x: size_x / 2,
+		y: size_y / 2,
+	};
+
+	const angle = Math.random() * (Math.PI / 2) + Math.PI / 4; // 45°–135°
+	const directionX = Math.random() < 0.5 ? -1 : 1;
+	const directionY = Math.random() < 0.5 ? -1 : 1;
+
+	ball.velocity = {
+		x: Math.cos(angle) * ballSpeed * directionX,
+		y: Math.sin(angle) * ballSpeed * directionY,
+	};
+
+	console.log(`Ball reset to center at (${ball.center.x}, ${ball.center.y})`);
+
+	return gameState;
+}
+
+
 export function hasPlayerBeenHit(gameState: GameState, playerId: number): boolean {
 	const ball = gameState.objects.find((o) => o.type === 'ball');
 	if (!ball || !('center' in ball) || !('radius' in ball)) return false;

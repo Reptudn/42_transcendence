@@ -134,7 +134,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					}
 					else variables['isFriended'] = false;
 					
-					variables['online'] = connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
+					variables['online'] = isSelf || connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
 					variables['title'] = await getUserTitleString(
 						profile.id,
 						fastify
@@ -160,6 +160,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						5,
 						fastify
 					);
+
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {
@@ -225,10 +226,9 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['gameSettings'] = existingGame.config;
 					variables['selfId'] = admin.playerId;
 					variables['localPlayerId'] = -1;
-
-					const maps = await getAvailableMaps(fastify);
-					variables['availableMaps'] = maps;
-					fastify.log.info(`Maps ${maps}`);
+					variables['tournamentTree'] = existingGame.tournament ? existingGame.tournament.getBracketJSON() : null;
+					variables['availableMaps'] = existingGame.availableMaps || await getAvailableMaps(fastify);
+					fastify.log.info(`Maps ${variables['availableMaps']}`);
 				}
 				else if (page === 'error')
 				{

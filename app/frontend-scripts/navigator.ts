@@ -86,6 +86,7 @@ export async function loadPartialView(
 	pushState = true,
 	subroute: string | null = null,
 	isPartial: boolean = true,
+	abort: boolean = true,
 	whole_page: boolean = false
 ): Promise<void> {
 	const token = localStorage.getItem('token');
@@ -112,13 +113,13 @@ export async function loadPartialView(
 			throw new Error(data.error);
 		}
 
-		const skipReset =
-			(last_page?.startsWith('/partial/pages/lobby') ||
-				last_page?.startsWith('/partial/pages/lobby_admin') ||
-				last_page?.startsWith('/api/games/join')) &&
-			url.startsWith('/api/games/run');
+		// const skipReset =
+		// 	(last_page?.startsWith('/partial/pages/lobby') ||
+		// 		last_page?.startsWith('/partial/pages/lobby_admin') ||
+		// 		last_page?.startsWith('/api/games/join')) &&
+		// 	url.startsWith('/api/games/run');
 
-		if (!skipReset) {
+		if (abort) {
 			console.log('[Navigator] Resetting abort controller');
 			window.abortController = resetController();
 		} else {
@@ -127,14 +128,12 @@ export async function loadPartialView(
 
 		const html: string = await response.text();
 
-		setupEventSource();
-
+		
 		if (whole_page) {
 			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
 			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
 			replaceEntireDocument(html);
 			initPopups();
-			setupEventSource();
 		} else {
 			const contentElement: HTMLElement | null = document.getElementById('content');
 			if (contentElement) {
@@ -144,6 +143,7 @@ export async function loadPartialView(
 				console.warn('Content element not found');
 			}
 		}
+		setupEventSource();
 
 		updateActiveMenu(page);
 

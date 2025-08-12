@@ -8,7 +8,8 @@ import type { Game } from '../games/gameClass.js';
 export function tickEngine(game: Game) {
 	// move players
 	for (const player of game.players) {
-		if (player.lives <= 0) continue;
+		console.log(`Ticking player ${player.displayName}: spectator=${player.spectator}, lives=${player.lives}, direction=${player.movementDirection}`);
+		if (player.spectator || player.lives <= 0) continue;
 		game.gameState = movePaddle(
 			game.gameState,
 			player.playerId,
@@ -23,6 +24,7 @@ export function tickEngine(game: Game) {
 
 	// check hits
 	for (const player of game.players) {
+		// if (player.spectator) continue;
 		if (hasPlayerBeenHit(game.gameState, player.playerId)) {
 			player.lives = Math.max(0, player.lives - 1);
 			if (player.lives === 0) {
@@ -38,6 +40,7 @@ export function tickEngine(game: Game) {
 			if (Math.random() < 0.0001) {
 				unlockAchievement(p.user.id, 'lucky', (game as any).fastify);
 			}
+			// game.gameState = resetBall(game.gameState, 3);
 		}
 	}
 }
