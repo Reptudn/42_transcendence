@@ -145,11 +145,10 @@ export async function addUserPlayer(friendId: number) {
 	});
 	if (!response.ok) {
 		const error = await response.json();
-		showLocalError(`${error.error}`);
-		throw new Error(`Failed to invite friend: ${error.error}`);
+		showLocalError(error.error);
 	}
 	const data = (await response.json()) as { message: string };
-	showLocalInfo(`${data.message}`);
+	showLocalInfo(data.message);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
 

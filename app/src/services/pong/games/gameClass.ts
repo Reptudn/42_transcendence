@@ -233,6 +233,15 @@ export class Game {
 	}
 
 	async startGame() {
+
+		for (const player of this.players)
+		{
+			if (!(player instanceof UserPlayer)) continue;
+
+			if (connectedClients.get(player.user.id) === undefined)
+				throw new Error('Not all users are connected to SSE');
+		}
+
 		if (this.config.gameType === GameType.CLASSIC) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
@@ -245,16 +254,16 @@ export class Game {
 					throw new Error('All players must be joined to start the game!');
 
 			this.gameState = await getMapAsInitialGameState(this);
-			this.status = GameStatus.RUNNING;
-
+			
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
 					sendSeeMessageByUserId(
-						player.user.id,
-						'game_started',
-						this.gameId
-					);
-
+				player.user.id,
+				'game_started',
+				this.gameId
+			);
+			
+			this.status = GameStatus.RUNNING;
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
 			);
@@ -283,17 +292,17 @@ export class Game {
 			} as AIBrainData;
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
-			this.status = GameStatus.RUNNING;
-
+			
 			for (const player of this.players)
-			{
-				if (player instanceof UserPlayer)
-					sendSeeMessageByUserId(
-						player.user.id,
-						'game_started',
-						this.gameId
-					);
+				{
+					if (player instanceof UserPlayer)
+						sendSeeMessageByUserId(
+					player.user.id,
+					'game_started',
+					this.gameId
+				);
 			}
+			this.status = GameStatus.RUNNING;
 
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
