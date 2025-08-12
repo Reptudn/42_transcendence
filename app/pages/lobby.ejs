@@ -1,6 +1,7 @@
 <% if (initial)  {%>
-<div class="flex-row">
-	<button onclick="leaveGame()">Leave Game</button>
+	<div class="flex-row">
+		<button onclick="leaveGame()">Leave Game</button>
+		<button onclick="addLocalPlayer()">Add Local Player</button>
 	<script src="/static/js/lobby.js" type="module"></script>
 	<div id="lobby">
 <% } %>
@@ -10,24 +11,22 @@
 			<h2 class="text-3xl">Lobby Settings</h2>
 			<div id="lobbySettings">
 				<h3>Power-ups:</h3>
-				<% if (gameSettings.powerupsEnabled && gameSettings.powerups.length > 0) { %>
-					<% for (const powerup of gameSettings.powerups) { %>
-						<div class="powerup">
-							<span class="powerup-name"><%= powerup.name %></span>
-							<span class="powerup-description"><%= powerup.description %></span>
-						</div>
-					<% } %>
+				<% if (gameSettings.powerupsEnabled) { %>
+					<p>Power-Ups are enabled.</p>
 				<% } else { %>
-					<p>Power-ups are disabled.</p>
-					<br>
+					<p>Power-Ups are disabled.</p>
+				<% } %>
+				<% if (gameSettings.gameType === 'tournament') { %>
+					<h3>Auto Advance AI's <%= gameSettings.autoAdvance ? 'Enabled' : 'Disabled' %></h3>
 				<% } %>
 				<h3>Player Lives: <%= gameSettings.playerLives %></h3>
 				<h3>Game Difficulty: <%= gameSettings.gameDifficulty %></h3>
 				<h3>Current Map: <%= gameSettings.map.toUpperCase() %></h3>
+				<h3>Game Type: <%= (gameSettings.gameType || '').toUpperCase() %></h3>
 			</div>
 		</div>
 		<br>
-		<button onclick="addLocalPlayer()">Add Local Player</button>
+		<% if (gameSettings.gameType === 'classic') { %>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>
 			<div id="playerList">
@@ -56,7 +55,10 @@
 				<% } %>
 			</div>
 		</div>
-	
+		<% } else { %>
+			<h2 class="text-3xl mb-4">Tournament Tree</h2>
+			<%- include('misc/tournament_tree') %>
+		<% } %>
 <% if (initial) { %>
 	</div> <!-- End of lobby div -->
 </div> <!-- End of page div -->

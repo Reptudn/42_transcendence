@@ -48,12 +48,14 @@ const authSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Display name must be a text value',
 				minLength: process.env.NODE_ENV === 'production'
 					? 'Display name must be at least 3 characters long'
 					: 'Display name must be at least 1 character long',
-				maxLength: 'Display name cannot be longer than 32 characters'
+				maxLength: 'Display name cannot be longer than 32 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores'
 			}
 		},
 		totp: {
@@ -162,69 +164,9 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	const twoFactorAuthSchema = {
-		type: 'object',
-		properties: {
-			userid: {
-				type: 'number',
-				minimum: 1,
-				errorMessage: {
-					type: 'User ID must be a number',
-					minimum: 'User ID must be a positive number'
-				}
-			},
-			rescue_token: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 22,
-				errorMessage: {
-					type: 'Rescue token must be a text value',
-					minLength: 'Invalid rescue token format',
-					maxLength: 'Rescue token is too long (maximum 22 characters)'
-				}
-			},
-			fa_token: {
-				type: 'string',
-				minLength: 6,
-				maxLength: 6,
-				pattern: '^[0-9]{6}$',
-				errorMessage: {
-					type: '2FA token must be a text value',
-					minLength: '2FA token must be exactly 6 digits',
-					maxLength: '2FA token must be exactly 6 digits',
-					pattern: '2FA token must be exactly 6 digits'
-				}
-			},
-		},
-		anyOf: [
-			{ 
-				required: ['userid', 'fa_token'],
-				properties: {
-					userid: { type: 'number', minimum: 1 },
-					fa_token: { type: 'string', minLength: 6, maxLength: 6, pattern: '^[0-9]{6}$' }
-				}
-			},
-			{ 
-				required: ['userid', 'rescue_token'],
-				properties: {
-					userid: { type: 'number', minimum: 1 },
-					rescue_token: { type: 'string', minLength: 0, maxLength: 22 }
-				}
-			}
-		],
-		additionalProperties: false,
-		errorMessage: {
-			anyOf: 'Either 2FA token or rescue token is required along with user ID',
-			additionalProperties: 'Unknown field provided. Only userid, fa_token, and rescue_token are allowed'
-		}
-	};
+	
 	fastify.post(
 		'/2fa',
-		{
-			schema: {
-				body: twoFactorAuthSchema
-			}
-		},
 		async (req: FastifyRequest, reply: FastifyReply) => {
 			const { userid, fa_token, rescue_token } = req.body as {
 				userid: number;
