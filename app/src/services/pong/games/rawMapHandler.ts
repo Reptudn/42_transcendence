@@ -92,7 +92,7 @@ function isMapConditionFulfilled(
 	if (!players) return false;
 	if (variable === 'player_count') numVal = players.length;
 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
-	else if (variable === 'powerups') numVal = settings.powerups ? 1 : 0;
+	else if (variable === 'powerups') numVal = settings.powerupsEnabled ? 1 : 0;
 
 	if (condition === 'larger_than') return numVal > target;
 	if (condition === 'larger_than_or_equal') return numVal >= target;

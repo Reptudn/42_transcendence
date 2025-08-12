@@ -520,9 +520,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				)
 			);
 			if (friendGame)
-				return reply.code(401).send({
-					error: 'Cant invite a user which is already in a game',
-				});
+				return reply
+					.code(401)
+					.send({
+						error: 'Cant invite a user which is already in a game',
+					});
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
@@ -890,7 +892,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (player) {
 				if (accepted === 'false') {
 					try {
-						await game.removePlayer(user.id);
+						await game.removePlayer(player.playerId);
 						return reply.code(200).send({
 							message: 'You have declined the game invitation.',
 						});

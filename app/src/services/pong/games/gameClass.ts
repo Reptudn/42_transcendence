@@ -170,6 +170,11 @@ export class Game {
 		if (!playerToRemove) throw new Error('Player not found!');
 
 		this.players = this.players.filter((player) => player.playerId !== playerId);
+		if (this.status === GameStatus.RUNNING) {
+			this.gameState.objects = this.gameState.objects.filter(
+				(o) => o.playerNbr !== playerId
+			);
+		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
 
@@ -178,7 +183,7 @@ export class Game {
 				(player) =>
 					!(
 						player instanceof LocalPlayer &&
-						player.owner.playerId !== playerToRemove.playerId
+						player.owner.playerId === playerToRemove.playerId
 					)
 				);
 			this.fastify.log.info(
