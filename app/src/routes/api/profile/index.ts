@@ -10,6 +10,10 @@ import {
 	deleteUser,
 } from '../../../services/database/users';
 
+function containsLetter(str: string): boolean {
+    return /[a-zA-Z]/.test(str);
+}
+
 const editProfileSchema = {
 	type: 'object',
 	properties: {
@@ -17,26 +21,30 @@ const editProfileSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 16,
+			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Username must be a text value',
 				minLength:
-					process.env.NODE_ENV === 'production'
-						? 'Username must be at least 3 characters long'
-						: 'Username must be at least 1 character long',
+				process.env.NODE_ENV === 'production'
+				? 'Username must be at least 3 characters long'
+				: 'Username must be at least 1 character long',
 				maxLength: 'Username cannot be longer than 16 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores',
 			},
 		},
 		displayName: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Display name must be a text value',
 				minLength:
-					process.env.NODE_ENV === 'production'
-						? 'Display name must be at least 3 characters long'
-						: 'Display name must be at least 1 character long',
+				process.env.NODE_ENV === 'production'
+				? 'Display name must be at least 3 characters long'
+				: 'Display name must be at least 1 character long',
 				maxLength: 'Display name cannot be longer than 32 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores',
 			},
 		},
 		bio: {
@@ -131,14 +139,9 @@ const editTitleSchema = {
 			},
 		},
 	},
-	required: ['firstTitle', 'secondTitle', 'thirdTitle'],
+	required: [],
 	additionalProperties: false,
 	errorMessage: {
-		required: {
-			firstTitle: 'First title is required',
-			secondTitle: 'Second title is required',
-			thirdTitle: 'Third title is required',
-		},
 		additionalProperties:
 			'Unknown field provided. Only firstTitle, secondTitle, and thirdTitle are allowed',
 	},
@@ -216,16 +219,19 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							.send({ message: 'Invalid profile picture' });
 					}
 				}
+				
 
-				const lowercaseDisplayName = displayName.toLowerCase();
-				if (
-					lowercaseDisplayName == 'reptudn' ||
-					lowercaseDisplayName == 'freddy' ||
-					lowercaseDisplayName == 'lauch' ||
-					lowercaseDisplayName == 'nick' ||
-					lowercaseDisplayName == 'luca'
-				) {
-					await unlockAchievement(userId, 'name-change-creator', fastify);
+				if (displayName && containsLetter(displayName)){
+					const lowercaseDisplayName = displayName.toLowerCase();
+					if (
+						lowercaseDisplayName == 'reptudn' ||
+						lowercaseDisplayName == 'freddy' ||
+						lowercaseDisplayName == 'lauch' ||
+						lowercaseDisplayName == 'nick' ||
+						lowercaseDisplayName == 'luca'
+					) {
+						await unlockAchievement(userId, 'name-change-creator', fastify);
+					}
 				}
 				if (typeof bio == 'string')
 					if (bio.length >= 99)
@@ -339,5 +345,6 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 };
+
 
 export default profile;
