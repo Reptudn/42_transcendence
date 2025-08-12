@@ -6,10 +6,10 @@
 		<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_local_player') %></button>
 		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.start_game') %></button>
 		<button onclick="resetGameSettings()" class="glow-blue py-2 px-4 rounded text-2xl">Reset Game Settings</button>
-		<label for="game-type-select">Game Type:</label>
+		<label for="game-type-select"><%= t('lobby_admin.game_type') %></label>
 		<select name="Game Type" id="game-type-select">
-			<option value="classic">Classic / FFA</option>
-			<option value="tournament">Tournament</option>
+			<option value="classic"><%= t('lobby_admin.modes.classic') %></option>
+			<option value="tournament"><%= t('lobby_admin.modes.tournament') %></option>
 		</select>
 		<br>
 		<div>
@@ -33,17 +33,17 @@
 				<option value="">No maps available</option>
 			<% } %>
 		</select>
-		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> >Power-Ups enabled?</input>
-		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>">Game Difficulty</input>
-		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
+		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> ><%= t('lobby_admin.power_enabled_check') %></input>
+		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
+		<p><%= t('lobby_admin.player_count') %>: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl"><%= t('lobby_admin.lobby_settings') %></h2>
 			<div id="lobbySettings">
 				<h3 class="text-2xl"><%= t('lobby_admin.power_ups') %></h3>
 				<% if (gameSettings.powerupsEnabled) { %>
-					<p>Power-Ups are enabled.</p>
+					<p><%= t('lobby_admin.power_ups_active') %></p>
 				<% } else { %>
-					<p>Power-Ups are disabled.</p>
+					<p><%= t('lobby_admin.power_ups_deactive') %></p>
 				<% } %>
 				<% if (gameSettings.gameType === 'tournament') { %>
 					<h3 class="text-3xl">Tournament Specific Settings</h3>
@@ -108,6 +108,6 @@
 		</div> <!-- End of lobby div -->
 	</div> <!-- End of page div -->
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
-	<button onclick="leaveGame()">Leave Game</button> 
+	<button onclick="leaveGame()"><%= t('lobby_admin.leave_game') %></button> 
 	<script type="module" src="/static/js/lobby_admin.js" defer></script>
 <% } %>

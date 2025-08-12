@@ -74,37 +74,56 @@
 		"bio": "Bio"
 	},
 	"lobby_admin": {
-	"game": "Game",
-	"lobby_admin": "Game Settings",
-	"add_ai": "Add AI",
-	"start_game": "Start Game",
-	"add_local_player": "Add Local Player",
-	"general_settings": "General Settings",
-	"map": "Map",
-	"modes": {
-		"classic": "Classic"
+		"game": "Game",
+		"lobby_admin": "Game Settings",
+		"add_ai": "Add AI",
+		"start_game": "Start Game",
+		"game_type": "Game Type",
+		"add_local_player": "Add Local Player",
+		"general_settings": "General Settings",
+		"map": "Map",
+		"modes": {
+			"classic": "Classic",
+			"tournament": "Tournament"
+		},
+		"player_lives": "Player Lives",
+		"game_difficulty": "Game Difficulty",
+		"powerups_enabled": "Power-ups Enabled?",
+		"player_settings": "Player Settings",
+		"player_settings_description": "There must always be at least one player (that’s you) and never more than four.\nFor additional players, choose from: Friend (User), Local Player, or AI.",
+		"player": "Player",
+		"you": "You",
+		"control_scheme": "Control Scheme",
+		"controls": {
+			"arrow_keys": "Arrow Keys"
+		},
+		"add_player": "Add Player",
+		"remove_player": "Remove Player",
+		"online_friends": "Online Friends:",
+		"invite_description": "Click on a friend to invite them to join your game.",
+		"refresh": "Refresh",
+		"player_count": "Players",
+		"lobby_settings": "Lobby Settings",
+		"power_ups": "Power-ups:",
+		"power_ups_active": "Power-ups are enabled.",
+		"power_ups_deactive": "Power-ups are disabled.",
+		"players_header": "Players:",
+		"power_enabled_check": "Power-Ups enabled?",
+		"leave_game": "Leave game"
 	},
-	"player_lives": "Player Lives",
-	"game_difficulty": "Game Difficulty",
-	"powerups_enabled": "Power-ups Enabled?",
-	"player_settings": "Player Settings",
-	"player_settings_description": "There must always be at least one player (that’s you) and never more than four.\nFor additional players, choose from: Friend (User), Local Player, or AI.",
-	"player": "Player",
-	"you": "You",
-	"control_scheme": "Control Scheme",
-	"controls": {
-		"arrow_keys": "Arrow Keys"
-	},
-	"add_player": "Add Player",
-	"remove_player": "Remove Player",
-	"start_game": "Start Game",
-	"online_friends": "Online Friends:",
-	"invite_description": "Click on a friend to invite them to join your game.",
-	"refresh": "Refresh",
-	"player_count": "Players",
-	"lobby_settings": "Lobby Settings",
-	"power_ups": "Power-ups:",
-	"power_ups_description": "Bonuses are disabled.",
-	"players_header": "Players:"
+	"chat": {
+		"sent": "Send",
+		"global_chat": "Global chat",
+		"new_chat": "Create new group",
+		"block_user": "Block user",
+		"unblock_user": "Unblock user",
+		"invite_to_chat": "Invite user to chat",
+		"user_leave_chat": "Remove user from chat",
+		"create_new_group": "Create new group",
+		"invite_user": "Invite User",
+		"cancel": "Cancel",
+		"create_group": "Create Group",
+		"placeholder_search_people": "Search for people...",
+		"placeholder_group_name": "Enter group name..."
 	}
 }
