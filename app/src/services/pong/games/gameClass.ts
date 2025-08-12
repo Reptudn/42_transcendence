@@ -72,7 +72,7 @@ export class Game {
 		} as AIBrainData;
 	}
 
-	async addUserPlayer(user: User) : Promise<UserPlayer> {
+	async addUserPlayer(user: User, t: any) : Promise<UserPlayer> {
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
 
@@ -98,11 +98,11 @@ export class Game {
 			await getUserTitleString(user.id, this.fastify)
 		)
 		this.players.push(userPlayer);
-		await this.updateLobbyState();
+		await this.updateLobbyState(t);
 		return userPlayer;
 	}
 
-	async addAiPlayer(aiLevel: number) : Promise<AiPlayer> {
+	async addAiPlayer(aiLevel: number, t: any) : Promise<AiPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -117,11 +117,11 @@ export class Game {
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
-		await this.updateLobbyState();
+		await this.updateLobbyState(t);
 		return aiPlayer;
 	}
 
-	async addLocalPlayer(owner: UserPlayer) : Promise<LocalPlayer> {
+	async addLocalPlayer(owner: UserPlayer, t: any) : Promise<LocalPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -131,12 +131,12 @@ export class Game {
 		const localPlayer = new LocalPlayer(this.nextPlayerId++, owner, this);
 		localPlayer.joined = true; // Local players are always considered joined
 		this.players.push(localPlayer);
-		await this.updateLobbyState();
+		await this.updateLobbyState(t);
 		return localPlayer;
 	}
 
 	// TODO: implment logic when a player is leaving while the game is running...
-	async removePlayer(playerId: number, forced: boolean = false) {
+	async removePlayer(t: any, playerId: number, forced: boolean = false) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
@@ -164,7 +164,7 @@ export class Game {
 				);
 		}
 
-		await this.updateLobbyState();
+		await this.updateLobbyState(t);
 
 		// TODO: in the future dont end the game when just the owner leaves
 		try {
@@ -205,7 +205,7 @@ export class Game {
 	}
 
 	// this updates the lobby state for everyone
-	async updateLobbyState() {
+	async updateLobbyState(t: any) {
 
 		if (this.status !== GameStatus.WAITING) return;
 
@@ -229,6 +229,7 @@ export class Game {
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
+			t: t
 		});
 
 		for (const player of this.players) {
@@ -253,6 +254,7 @@ export class Game {
 								p instanceof LocalPlayer &&
 								p.owner.user.id === player.user.id
 						)?.playerId || -1,
+					t: t
 				});
 				sendSseHtmlByUserId(
 					player.user.id,

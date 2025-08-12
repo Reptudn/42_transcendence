@@ -74,25 +74,37 @@
 		"bio": "Bio"
 	},
 	"lobby_admin": {
-		"lobby_admin": "Game Setup",
-		"general_settings": "General Settings",
-		"map": "Map",
-		"modes": {
-			"classic": "Classic"
-		},
-		"player_lives": "Player Lives",
-		"game_difficulty": "Game Difficulty",
-		"powerups_enabled": "Powerups Enabled?",
-		"player_settings": "Player Settings",
-		"player_settings_description": "There must always be at least one player (that's you) and never more than four.\nFor additional players, choose from: Friend (User), Local Player, or AI.",
-		"player": "Player",
-		"you": "You",
-		"control_scheme": "Control Scheme",
-		"controls": {
-			"arrow_keys": "Arrow Keys"
-		},
-		"add_player": "Add Player",
-		"remove_player": "Remove Player",
-		"start_game": "Start Game"
+	"game": "Game",
+	"lobby_admin": "Game Settings",
+	"add_ai": "Add AI",
+	"start_game": "Start Game",
+	"add_local_player": "Add Local Player",
+	"general_settings": "General Settings",
+	"map": "Map",
+	"modes": {
+		"classic": "Classic"
+	},
+	"player_lives": "Player Lives",
+	"game_difficulty": "Game Difficulty",
+	"powerups_enabled": "Power-ups Enabled?",
+	"player_settings": "Player Settings",
+	"player_settings_description": "There must always be at least one player (that’s you) and never more than four.\nFor additional players, choose from: Friend (User), Local Player, or AI.",
+	"player": "Player",
+	"you": "You",
+	"control_scheme": "Control Scheme",
+	"controls": {
+		"arrow_keys": "Arrow Keys"
+	},
+	"add_player": "Add Player",
+	"remove_player": "Remove Player",
+	"start_game": "Start Game",
+	"online_friends": "Online Friends:",
+	"invite_description": "Click on a friend to invite them to join your game.",
+	"refresh": "Refresh",
+	"player_count": "Players",
+	"lobby_settings": "Lobby Settings",
+	"power_ups": "Power-ups:",
+	"power_ups_description": "Bonuses are disabled.",
+	"players_header": "Players:"
 	}
 }

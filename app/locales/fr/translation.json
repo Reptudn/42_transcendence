@@ -44,8 +44,8 @@
 	"profile": {
 		"edit_profile": "Profil bearbeiten",
 		"no_bio": "Dieser Benutzer hat keine Biografie.",
-		"friends": "Freunde",
-		"remove": "Entfernen",
+		"friends": "Amis",
+		"remove": "Supprimer",
 		"add_friends": "Ajouter des amis",
 		"locked_achievements": "Succès verrouillés",
 		"achievements": "Succès",
@@ -73,7 +73,11 @@
 		"bio": "Bio"
 	},
 	"lobby_admin": {
+		"game": "Jeu",
 		"lobby_admin": "Configuration du jeu",
+		"add_ai": "Ajouter l'IA",
+		"start_game": "Lancer le jeu",
+		"add_local_player": "Ajouter un lecteur local",
 		"general_settings": "Paramètres généraux",
 		"map": "Carte",
 		"modes": {
@@ -92,6 +96,32 @@
 		},
 		"add_player": "Ajouter un joueur",
 		"remove_player": "Supprimer un joueur",
-		"start_game": "Démarrer le jeu"
+		"start_game": "Démarrer le jeu",
+		"online_friends": "Amis en ligne :",
+		"invite_description": "Cliquez sur un ami pour l'inviter à rejoindre votre partie.",
+		"refresh": "Actualiser",
+		"player_count": "Joueurs",
+		"lobby_settings": "Paramètres du lobby",
+		"power_ups": "Améliorations :",
+		"power_ups_description": "Les bonus sont désactivés.",
+		"players_header": "Joueurs :"
+	},
+	"lobby": {
+		"game": "Jeu",
+		"add_ai": "Ajouter l'IA",
+		"add_local_player": "Ajouter un lecteur local",
+		"start_game": "Lancer le jeu",
+		"powerups_enabled": "Améliorations activées",
+		"game_diffculty": "Difficulté du jeu",
+		"map": "carte",
+		"online_friends": "Amis en ligne :",
+		"invite_description": "Cliquez sur un ami pour l'inviter à rejoindre votre partie.",
+		"no_friends_online": "Aucun ami en ligne",
+		"refresh": "Actualiser",
+		"player_count": "Joueurs",
+		"lobby_settings": "Paramètres du lobby",
+		"power_ups": "Améliorations :",
+		"power_ups_description": "Les bonus sont désactivés.",
+		"players_header": "Joueurs :"
 	}
 }

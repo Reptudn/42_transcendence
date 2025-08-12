@@ -26,8 +26,10 @@ export async function setLanguageCookie(lang: string) {
 			console.log('Language change cancelled');
 		}
 	}
-	else if (window.localStorage.getItem('loggedIn') === 'true') await loadPartialView(`profile?lng=${lang}`, false);
-	else loadPartialView(`index?lng=${lang}`, false);
+	// else if (window.localStorage.getItem('loggedIn') === 'true') await loadPartialView(`profile?lng=${lang}`, false);
+	// else loadPartialView(`index?lng=${lang}`, false);
+	window.location.href
+
 	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`);
 }
 
