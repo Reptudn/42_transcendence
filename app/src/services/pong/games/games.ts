@@ -2,6 +2,7 @@ import { tickEngine } from '../engine/engine.js';
 import type { Game } from './gameClass.js';
 import { UserPlayer } from './playerClass.js';
 import { GameStatus } from './gameClass.js';
+import { connectedClients } from '../../sse/handler.js';
 
 export let runningGames: Game[] = [];
 
@@ -21,6 +22,11 @@ setInterval(async () => {
 		const playersAliveBefore = game.players.filter((p) => p.lives > 0 && !p.spectator);
 
 		console.log(`${ playersAliveBefore.map(p => p.displayName).join(', ') } Players alive before tick`);
+		for (const player of game.players)
+		{
+			if (player instanceof UserPlayer && connectedClients.get(player.user.id) === undefined)
+				player.lives = 0;
+		}
 
 		tickEngine(game);
 
