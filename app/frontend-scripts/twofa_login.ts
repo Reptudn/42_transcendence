@@ -22,7 +22,8 @@ async function twofa_login() {
 		if (response.ok) {
 			updateMenu();
 			const data = await response.json();
-			showLocalInfo(data.message);
+
+			showLocalInfo(data.message || data.error);
 			loadPartialView('profile');
 		} else {
 			const data = await response.json();

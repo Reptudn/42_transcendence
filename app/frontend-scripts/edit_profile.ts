@@ -111,14 +111,12 @@ document
 			if (response.ok) {
 				showLocalInfo('Profile updated successfully! 🎉');
 				if (usernameField.value !== initialValues.username) {
-					localStorage.removeItem('token');
-					await loadPartialView('login');
-					updateMenu();
+					await loadPartialView('profile');
 				} else {
 					await loadPartialView('profile');
 				}
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -181,7 +179,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				await loadPartialView('profile');
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -232,7 +230,7 @@ document
 				await loadPartialView('login');
 				updateMenu();
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -276,7 +274,7 @@ document
 				await loadPartialView('register');
 				updateMenu();
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
