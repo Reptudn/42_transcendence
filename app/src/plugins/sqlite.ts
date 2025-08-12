@@ -43,7 +43,9 @@ export default fp(async (fastify) => {
 			click_count INTEGER DEFAULT 0,
 			title_first INTEGER,
 			title_second INTEGER,
-			title_third INTEGER
+			title_third INTEGER,
+			totp_secret TEXT,
+			totp_rescue TEXT
 		)
 		`);
 
@@ -132,7 +134,7 @@ export default fp(async (fastify) => {
 			);
 		`);
 
-		await fastify.sqlite.exec(`
+        await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS completed_games (
 				id          INTEGER PRIMARY KEY AUTOINCREMENT,
 				ended_at    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,

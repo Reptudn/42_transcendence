@@ -1,0 +1,113 @@
+<% if (initial) { %>
+	<!-- Initial Page things that only get loaded when the page is first loaded -->
+	<div class="flex-row">
+		<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
+		<button onclick="addAIPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add AI</button>
+		<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Local Player</button>
+		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.start_game') %></button>
+		<button onclick="resetGameSettings()" class="glow-blue py-2 px-4 rounded text-2xl">Reset Game Settings</button>
+		<label for="game-type-select">Game Type:</label>
+		<select name="Game Type" id="game-type-select">
+			<option value="classic">Classic / FFA</option>
+			<option value="tournament">Tournament</option>
+		</select>
+		<br>
+		<div>
+			<h2>Online Friends:</h2>
+			<p>Click on a friend to invite them to your game.</p>
+			<div id="onlineFriendsList" class="flex">
+				<!--Online friends will be inserted here-->
+			</div>
+			<button onclick="refreshOnlineFriends()">Refresh</button>
+		</div>
+		<br>
+		<div id="lobby">
+<% } %>
+		<label for="map-select">Map:</label>
+		<select name="Map" id="map-select">
+			<% if (availableMaps && availableMaps.length > 0) { %>
+				<% for (const map of availableMaps) { %>
+					<option value="<%= map %>"><%= map %></option>
+				<% } %>
+			<% } else { %>
+				<option value="">No maps available</option>
+			<% } %>
+		</select>
+		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> >Power-Ups enabled?</input>
+		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>">Game Difficulty</input>
+		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
+		<div class="settings">
+			<h2 class="text-3xl">Lobby Settings</h2>
+			<div id="lobbySettings">
+				<h3 class="text-2xl">Power-ups:</h3>
+				<% if (gameSettings.powerupsEnabled) { %>
+					<p>Power-Ups are enabled.</p>
+				<% } else { %>
+					<p>Power-Ups are disabled.</p>
+				<% } %>
+				<% if (gameSettings.gameType === 'tournament') { %>
+					<h3 class="text-3xl">Tournament Specific Settings</h3>
+					<input type="checkbox" name="autoAdvance" id="autoAdvance" <%= gameSettings.autoAdvance ? 'checked' : '' %> onchange="setAutoAdvance(this.checked)">
+					<label for="autoAdvance">Auto Advance AI's</label>
+				<% } %>
+			</div>
+		</div>
+		<br>
+		<br>
+		<% if (gameSettings.gameType === 'classic') { %>
+		<div class="players">
+			<h2 class="text-3xl">Players:</h2>
+			<div id="playerList">
+				<% if (!players || players.length === 0) { %>
+					<p>No players joined.</p>
+				<% } else { %>
+					<% for (const player of players) { %>
+						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>
+							<% } else if (localPlayerId && player.playerId === localPlayerId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You as Local)</h3>
+							<% } else {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+							<% } %>
+							<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
+							<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
+							<h3 class="glow-purple">Type: <%= player.type || 'Unknown' %></h3>
+							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
+								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+							<% } %>
+							<% if (player.type === 'AI') { %>
+								<label for="ai-diff-range-<%= player.playerId %>">Difficulty:</label>
+								<input type="number" 
+									name="AI Difficulty" 
+									id="ai-diff-range-<%= player.playerId || 3%>" 
+									min="1" 
+									max="10" 
+									value="<%= player.aiDifficulty %>"
+									onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
+							<% } %>
+							<% if (localPlayerId && player.playerId === localPlayerId) { %>
+								<h3>Controls: A - Left | D - Right</h3>
+								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } else if (player.type === 'AI') { %>
+								<button onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } %>
+						</div>
+					<% } %>
+				<% } %> 
+			</div>
+		</div>
+		<% } else if (tournamentTree) { %>
+			<h2 class="text-3xl mb-4">Tournament Tree</h2>
+			<%- include('misc/tournament_tree') %>
+		<% } else { %>
+			<p>Nothing to show... WHY?? :C</p>
+			<p>Try to change the game mode again</p>
+		<% } %>
+<% if (initial) { %>
+		</div> <!-- End of lobby div -->
+	</div> <!-- End of page div -->
+	<!-- Initial Page things that only get loaded when the page is first loaded -->
+	<button onclick="leaveGame()">Leave Game</button> 
+	<script type="module" src="/static/js/lobby_admin.js" defer></script>
+<% } %>

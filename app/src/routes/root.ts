@@ -15,6 +15,16 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			);
 		}
 	);
-};
+
+	fastify.get('/api/health', async (req, reply) => {
+		return reply.send({ status: 'ok' });
+	});
+
+	fastify.setNotFoundHandler((request, reply) => {
+		if (request.headers.accept?.includes('application/json'))
+			return reply.status(404).send({ error: 'Not found 😢' });
+		return reply.redirect('/partial/pages/error');
+	});
+}
 
 export default root;

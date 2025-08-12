@@ -15,10 +15,13 @@ declare global {
 	}
 }
 
-export function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
-	btn.textContent = 'Request sent';
-	btn.style.backgroundColor = 'green';
-	btn.disabled = true;
+export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | null = null) {
+	if (btn)
+	{
+		btn.textContent = 'Request sent';
+		btn.style.backgroundColor = 'green';
+		btn.disabled = true;
+	}
 
 	fetch('/api/friends/request', {
 		method: 'POST',
@@ -34,11 +37,15 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement) {
 		})
 		.catch((error) => {
 			showLocalError(`Error sending friend request: ${error}`);
-			btn.textContent = 'Send request';
-			btn.style.backgroundColor = '';
-			btn.disabled = false;
+			if (btn !== null)
+			{
+				btn.textContent = 'Send request';
+				btn.style.backgroundColor = '';
+				btn.disabled = false;
+			}
 		});
 }
+
 export function acceptFriendRequest(requestId: number) {
 	fetch('/api/friends/accept', {
 		method: 'POST',

@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+html {
+	scroll-behavior: smooth;
+}
+
 @theme {
 	--color-mint-500: oklch(0.72 0.11 178);
 	--color-background-dark: #121212; /* Dark grey */
@@ -17,7 +21,7 @@
 	.glow-rainbow-border {
 		position: relative;
 		border: 3px solid transparent;
-		background: linear-gradient(#00ff15, #00ff15) padding-box,
+		background: linear-gradient(#2222221a, #2222221a) padding-box,
 					conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000) border-box;
 	}
 

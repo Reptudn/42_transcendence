@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { initCanvas, updateGameState } from './gameRenderer.js';
-import { loadPartialView } from './script.js';
+import { initCanvas, stopRendering, updateGameState } from './gameRenderer.js';
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
@@ -10,8 +10,8 @@ const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
 	console.log('WebSocket connection established');
-	window.sessionStorage.setItem('ingame', 'game');
 	initCanvas();
+	window.startRendering();
 	showLocalInfo('Connected to game server');
 };
 
@@ -21,6 +21,8 @@ ws.onerror = (error) => {
 };
 
 ws.onclose = (event) => {
+	window.stopRendering();
+	clearInterval(input_interval);
 	console.log('WebSocket closed:', event.code, event.reason);
 
 	// Handle different close codes from your backend
@@ -99,64 +101,103 @@ ws.onmessage = (event) => {
 
 // INPUT
 
-let leftPressed = false;
-let rightPressed = false;
-let lastSentDirection = 0;
+let userInputData = {
+	leftPressed: false,
+	rightPressed: false,
+	lastSentDirection: 0
+}
 
-window.addEventListener('keydown', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = true;
+let localUserInputData = {
+	leftPressed: false,
+	rightPressed: false,
+	lastSentDirection: 0
+}
 
-	if (e.key === 'ArrowRight') rightPressed = true;
-});
+window.addEventListener(
+	'keydown',
+	(e) => {
+		if (e.key === 'ArrowLeft') userInputData.leftPressed = true;
+		if (e.key === 'ArrowRight') userInputData.rightPressed = true;
+		if (e.key === 'a') localUserInputData.leftPressed = true
+		if (e.key === 'd') localUserInputData.rightPressed = true;
+	},
+	{ signal: window.abortController?.signal }
+);
 
-window.addEventListener('keyup', (e) => {
-	if (e.key === 'ArrowLeft') leftPressed = false;
-	if (e.key === 'ArrowRight') rightPressed = false;
-});
+window.addEventListener(
+	'keyup',
+	(e) => {
+		if (e.key === 'ArrowLeft') userInputData.leftPressed = false;
+		if (e.key === 'ArrowRight') userInputData.rightPressed = false;
+		if (e.key === 'a') localUserInputData.leftPressed = false
+		if (e.key === 'd') localUserInputData.rightPressed = false;
+	},
+	{ signal: window.abortController?.signal }
+);
 
-setInterval(() => {
-	if (leftPressed && !rightPressed) {
-		if (lastSentDirection !== -1) {
-			ws.send(JSON.stringify({ type: 'move', dir: -1 }));
+const input_interval = setInterval(() => {
+	// user
+	if (userInputData.leftPressed && !userInputData.rightPressed) {
+		if (userInputData.lastSentDirection !== -1) {
+			ws.send(JSON.stringify({ type: 'move', dir: -1, user: 'user' }));
 		}
-		lastSentDirection = -1;
-	} else if (rightPressed && !leftPressed) {
-		if (lastSentDirection !== 1) {
-			ws.send(JSON.stringify({ type: 'move', dir: 1 }));
+		userInputData.lastSentDirection = -1;
+	} else if (userInputData.rightPressed && !userInputData.leftPressed) {
+		if (userInputData.lastSentDirection !== 1) {
+			ws.send(JSON.stringify({ type: 'move', dir: 1, user: 'user' }));
 		}
-		lastSentDirection = 1;
+		userInputData.lastSentDirection = 1;
 	} else {
-		if (lastSentDirection !== 0) {
-			ws.send(JSON.stringify({ type: 'move', dir: 0 }));
+		if (userInputData.lastSentDirection !== 0) {
+			ws.send(JSON.stringify({ type: 'move', dir: 0, user: 'user' }));
 		}
-		lastSentDirection = 0;
+		userInputData.lastSentDirection = 0;
+	}
+
+	// local
+	if (localUserInputData.leftPressed && !localUserInputData.rightPressed) {
+		if (localUserInputData.lastSentDirection !== -1) {
+			ws.send(JSON.stringify({ type: 'move', dir: -1, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = -1;
+	} else if (localUserInputData.rightPressed && !localUserInputData.leftPressed) {
+		if (localUserInputData.lastSentDirection !== 1) {
+			ws.send(JSON.stringify({ type: 'move', dir: 1, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = 1;
+	} else {
+		if (localUserInputData.lastSentDirection !== 0) {
+			ws.send(JSON.stringify({ type: 'move', dir: 0, user: 'local' }));
+		}
+		localUserInputData.lastSentDirection = 0;
 	}
 }, 1000 / 30); // 30 FPS
 
-// This probably wont work because we never actually unload?
-window.addEventListener('beforeunload', async () => {
-	if (ws.readyState === WebSocket.OPEN) {
-		ws.close(1000, 'Page unloading');
-		await leaveWsGame();
-	}
-});
+export async function leaveWsGame(manual: boolean = false) {
+	// const response = await fetch('/api/games/leave', {
+	// 	method: 'POST',
+	// });
 
-export async function leaveWsGame() {
-	const response = await fetch('/api/games/leave', {
-		method: 'POST',
-	});
+	// if (!response.ok) {
+	// 	showLocalError(`Failed to leave game: ${response.statusText}`);
+	// 	return;
+	// }
 
-	if (!response.ok) {
-		showLocalError(`Failed to leave game: ${response.statusText}`);
-		return;
-	}
+	// showLocalInfo('You have left the game successfully.');
 
-	showLocalInfo('You have left the game successfully.');
+	// if (game_over) return;
+
 	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
-	await loadPartialView('profile');
+	if (manual) loadPartialView('profile');
 }
 
 window.leaveWsGame = leaveWsGame;
+
+onUnloadPageAsync(async () => {
+	clearInterval(input_interval);
+	stopRendering();
+	await leaveWsGame();
+});
 
 declare global {
 	interface Window {

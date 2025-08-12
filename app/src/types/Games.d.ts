@@ -1,3 +1,5 @@
+import { GameType } from "../services/pong/games/gameClass";
+
 interface Powerups{
 	name: string; // name of the powerup
 	probability: number; // probability of this powerup spawning
@@ -24,4 +26,6 @@ interface GameSettings {
 	playerLives: number; // >= 1
 	maxPlayers: number;
 	gameDifficulty: number;
+	gameType: GameType;
+	autoAdvance: boolean //wether to auto advance when two bots are playing against each other in a bot match
 }

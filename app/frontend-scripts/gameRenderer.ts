@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from "./alert.js";
+import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
 let currentState: GameState | null = null;
@@ -88,6 +89,7 @@ export function initCanvas()
 	if (!ctx) {
 		throw new Error('Failed to get 2D context from canvas');
 	}
+	startRendering();
 }
 
 export function isPointInsideCanvas(x: number, y: number): boolean {
@@ -273,7 +275,7 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	console.log('Drawing game state:', gameState);
+	// console.log('Drawing game state:', gameState);
 
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;
@@ -369,7 +371,10 @@ export function detectBounce(state: GameState): void {
 	}
 }
 
+let animationId: number | null = null;
+let isRendering = false;
 export function render(): void {
+	if (!isRendering) return;
 	const now = performance.now();
 	const t = Math.min((now - lastUpdateTime) / tickInterval, 1);
 
@@ -437,16 +442,39 @@ export function render(): void {
 		drawBallTrail(scale, ballObj.radius);
 	}
 
-	requestAnimationFrame(render);
+	animationId = requestAnimationFrame(render);
 }
 
-requestAnimationFrame(render);
+export function startRendering(): void {
+	if (!isRendering) {
+		isRendering = true;
+		animationId = requestAnimationFrame(render);
+	}
+}
+
+startRendering();
+
+export function stopRendering(): void {
+	isRendering = false;
+	if (animationId !== null) {
+		cancelAnimationFrame(animationId);
+		animationId = null;
+	}
+}
 
 declare global
 {
 	interface Window {
 		initCanvas: () => void;
+		startRendering: () => void;
+		stopRendering: () => void;
 	}
 }
 
+onUnloadPageAsync(async () => {
+	stopRendering();
+});
+
 window.initCanvas = initCanvas;
+window.startRendering = startRendering;
+window.stopRendering = stopRendering;

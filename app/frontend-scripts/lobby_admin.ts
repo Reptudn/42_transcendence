@@ -1,13 +1,11 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { loadPartialView } from './script.js';
+import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 interface Friend {
 	id: number;
 	username: string;
 	displayname: string;
 }
-
-window.sessionStorage.setItem('ingame', 'lobby');
 
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
@@ -40,8 +38,8 @@ export async function refreshOnlineFriends() {
 			<span class="font-semibold">${friend.displayname}</span>
 			<span class="glow-blue">(@${friend.username})</span>
 		</div>
-		<button 
-			onclick="addUserPlayer(${friend.id})" 
+		<button
+			onclick="addUserPlayer(${friend.id})"
 			class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
 		>
 			Invite Friend
@@ -52,7 +50,7 @@ export async function refreshOnlineFriends() {
 		.join('');
 }
 
-export async function updateSettings(newSettings: any) {
+export async function updateSettings(newSettings: any, error: boolean = false) {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
 		headers: {
@@ -64,12 +62,32 @@ export async function updateSettings(newSettings: any) {
 	if (!res.ok) {
 		const data = await res.json();
 		showLocalError(data.error);
+	} else {
+		if (!error) return;
+		const data = await res.json();
+		showLocalInfo(data.message);
 	}
-	// else
-	// {
-	// 	const data = await res.json();
-	// 	showLocalInfo(data.message);
-	// }
+}
+
+export async function resetGameSettings() {
+	console.log('Resetting game settings to default...');
+	const res = await fetch('/api/games/settings/reset', {
+		method: 'POST'
+	});
+
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`${error.error || 'Failed to reset settings: Unknown error'}`);
+		return;
+	}
+	const data = await res.json();
+	console.log('Game settings reset:', data);
+	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
+};
+
+export async function setAutoAdvance(enabled: boolean) {
+	console.log('Setting auto advance for AI:', enabled);
+	await updateSettings({ autoAdvance: enabled });
 }
 
 const powerupsToggle = document.getElementById(
@@ -92,6 +110,12 @@ const mapSelect = document.getElementById('map-select') as HTMLSelectElement | n
 mapSelect?.addEventListener('change', async (event) => {
 	const selectedMap = (event.target as HTMLSelectElement).value;
 	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
+});
+
+const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
+gameTypeSelector?.addEventListener('change', async (event) => {
+	const selectedGameType = (event.target as HTMLSelectElement).value;
+	await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
 });
 
 export async function addPowerUp() {
@@ -164,6 +188,7 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
+
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -197,7 +222,80 @@ export function updatePage(html: string) {
 	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
+export async function renameLocalPlayer(id: number) {
+	console.log(`Renaming local player with ID: ${id}`);
+
+	const newName = prompt('Enter new name for local player:');
+	if (!newName) return;
+
+	await updateSettings(
+		{
+			localPlayerUpdate: {
+				playerId: id,
+				name: newName,
+			},
+		},
+		true
+	);
+}
+
+export async function renameAiPlayer(id: number) {
+	console.log(`Renaming AI player with ID: ${id}`);
+
+	const newName = prompt('Enter new name for AI player:');
+	if (!newName) return;
+
+	await updateSettings(
+		{
+			aiUpdate: {
+				playerId: id,
+				name: newName,
+			},
+		},
+		true
+	);
+}
+
+export async function setAiDifficulty(id: number, difficulty: string | number) {
+	const difficultyNum = typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
+	
+	if (isNaN(difficultyNum) || difficultyNum > 10) {
+		const correctedDifficulty = Math.min(10, Math.max(1, difficultyNum || 1));
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+	
+	if (difficultyNum < 1) {
+		const correctedDifficulty = 1;
+		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty
+			}
+		}, true);
+		return;
+	}
+
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			difficulty: difficultyNum
+		}
+	}, true);
+}
+
 await refreshOnlineFriends();
+
+onUnloadPageAsync(async () => {
+	await leaveGame();
+});
 
 declare global {
 	interface Window {
@@ -209,6 +307,11 @@ declare global {
 		addUserPlayer: (friendId: number) => Promise<void>;
 		addAIPlayer: () => Promise<void>;
 		startGame: () => Promise<void>;
+		renameLocalPlayer: (id: number) => Promise<void>;
+		renameAiPlayer: (id: number) => Promise<void>;
+		setAiDifficulty: (id: number, difficulty: number) => Promise<void>;
+		setAutoAdvance: (enabled: boolean) => Promise<void>;
+		resetGameSettings: () => Promise<void>;
 	}
 }
 
@@ -220,3 +323,8 @@ window.addLocalPlayer = addLocalPlayer;
 window.addUserPlayer = addUserPlayer;
 window.addAIPlayer = addAIPlayer;
 window.startGame = startGame;
+window.renameLocalPlayer = renameLocalPlayer;
+window.renameAiPlayer = renameAiPlayer;
+window.setAiDifficulty = setAiDifficulty;
+window.setAutoAdvance = setAutoAdvance;
+window.resetGameSettings = resetGameSettings;

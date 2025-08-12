@@ -73,8 +73,8 @@
 		"password": "Password",
 		"bio": "Bio"
 	},
-	"game_setup": {
-		"game_setup": "Game Setup",
+	"lobby_admin": {
+		"lobby_admin": "Game Setup",
 		"general_settings": "General Settings",
 		"map": "Map",
 		"modes": {

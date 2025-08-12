@@ -10,6 +10,10 @@ import {
 	deleteUser,
 } from '../../../services/database/users';
 
+function containsLetter(str: string): boolean {
+    return /[a-zA-Z]/.test(str);
+}
+
 const editProfileSchema = {
 	type: 'object',
 	properties: {
@@ -17,15 +21,39 @@ const editProfileSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 16,
+			pattern: '^[a-zA-Z0-9_]+$',
+			errorMessage: {
+				type: 'Username must be a text value',
+				minLength:
+				process.env.NODE_ENV === 'production'
+				? 'Username must be at least 3 characters long'
+				: 'Username must be at least 1 character long',
+				maxLength: 'Username cannot be longer than 16 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores',
+			},
 		},
 		displayName: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			pattern: '^[a-zA-Z0-9_]+$',
+			errorMessage: {
+				type: 'Display name must be a text value',
+				minLength:
+				process.env.NODE_ENV === 'production'
+				? 'Display name must be at least 3 characters long'
+				: 'Display name must be at least 1 character long',
+				maxLength: 'Display name cannot be longer than 32 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores',
+			},
 		},
 		bio: {
 			type: 'string',
 			maxLength: 100,
+			errorMessage: {
+				type: 'Bio must be a text value',
+				maxLength: 'Bio cannot be longer than 100 characters',
+			},
 		},
 		oldPassword: {
 			type: 'string',
@@ -35,6 +63,15 @@ const editProfileSchema = {
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
 					: '',
+			errorMessage: {
+				type: 'Current password must be a text value',
+				minLength: 'Current password must be at least 8 characters long',
+				maxLength: 'Current password cannot be longer than 32 characters',
+				pattern:
+					process.env.NODE_ENV === 'production'
+						? 'Current password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#+-)'
+						: 'Invalid password format',
+			},
 		},
 		newPassword: {
 			type: 'string',
@@ -44,34 +81,75 @@ const editProfileSchema = {
 				process.env.NODE_ENV === 'production'
 					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
 					: '',
+			errorMessage: {
+				type: 'New password must be a text value',
+				minLength: 'New password must be at least 8 characters long',
+				maxLength: 'New password cannot be longer than 32 characters',
+				pattern:
+					process.env.NODE_ENV === 'production'
+						? 'New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#+-)'
+						: 'Invalid password format',
+			},
 		},
 		profile_picture: {
 			type: 'string',
 			pattern: '^data:image/png;base64,[A-Za-z0-9+/=]+$',
-			maxLength: 1000000, // Adjust as needed for your use case
+			maxLength: 1000000,
+			errorMessage: {
+				type: 'Profile picture must be a text value',
+				pattern:
+					'Profile picture must be a valid PNG image encoded in base64 format (data:image/png;base64,...)',
+				maxLength: 'Profile picture file size is too large (maximum 1MB)',
+			},
 		},
 	},
-	required: ['username', 'displayName'],
+	required: [],
 	additionalProperties: false,
+	errorMessage: {
+		additionalProperties:
+			'Unknown field provided. Only username, displayName, bio, oldPassword, newPassword, and profile_picture are allowed',
+	},
 };
 
-// TODO: only allow titles that actually exist?
 const editTitleSchema = {
 	type: 'object',
 	properties: {
-		firstTitle: { type: 'string', maxLength: 50 },
-		secondTitle: { type: 'string', maxLength: 50 },
-		thirdTitle: { type: 'string', maxLength: 50 },
+		firstTitle: {
+			type: 'string',
+			maxLength: 50,
+			errorMessage: {
+				type: 'First title must be a text value',
+				maxLength: 'First title cannot be longer than 50 characters',
+			},
+		},
+		secondTitle: {
+			type: 'string',
+			maxLength: 50,
+			errorMessage: {
+				type: 'Second title must be a text value',
+				maxLength: 'Second title cannot be longer than 50 characters',
+			},
+		},
+		thirdTitle: {
+			type: 'string',
+			maxLength: 50,
+			errorMessage: {
+				type: 'Third title must be a text value',
+				maxLength: 'Third title cannot be longer than 50 characters',
+			},
+		},
 	},
-	required: ['firstTitle', 'secondTitle', 'thirdTitle'],
+	required: [],
 	additionalProperties: false,
+	errorMessage: {
+		additionalProperties:
+			'Unknown field provided. Only firstTitle, secondTitle, and thirdTitle are allowed',
+	},
 };
 
 const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	const DEFAULT_PROFILE_PIC_COUNT = 34;
-	const PROFILE_PIC_OFFSET = Math.floor(
-		Math.random() * DEFAULT_PROFILE_PIC_COUNT
-	);
+	const PROFILE_PIC_OFFSET = Math.floor(Math.random() * DEFAULT_PROFILE_PIC_COUNT);
 	fastify.get(
 		'/:id/picture',
 		{
@@ -102,7 +180,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (base64Data.startsWith(dataPrefix)) {
 				base64Data = base64Data.replace(dataPrefix, '');
 			}
-			reply
+			return reply
 				.header('Content-Type', 'image/png')
 				.send(Buffer.from(base64Data, 'base64'));
 		}
@@ -141,22 +219,22 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							.send({ message: 'Invalid profile picture' });
 					}
 				}
+				
 
-				if (
-					displayName == 'Reptudn' ||
-					displayName == 'Freddy' ||
-					displayName == 'Lauch' ||
-					displayName == 'Nick' ||
-					displayName == 'Luca'
-				) {
-					await unlockAchievement(
-						userId,
-						'name-change-creator',
-						fastify
-					);
+				if (displayName && containsLetter(displayName)){
+					const lowercaseDisplayName = displayName.toLowerCase();
+					if (
+						lowercaseDisplayName == 'reptudn' ||
+						lowercaseDisplayName == 'freddy' ||
+						lowercaseDisplayName == 'lauch' ||
+						lowercaseDisplayName == 'nick' ||
+						lowercaseDisplayName == 'luca'
+					) {
+						await unlockAchievement(userId, 'name-change-creator', fastify);
+					}
 				}
 				if (typeof bio == 'string')
-					if (bio.length > 100)
+					if (bio.length >= 99)
 						await unlockAchievement(userId, 'long-bio', fastify);
 				if (profile_picture) {
 					await unlockAchievement(userId, 'pfp-change', fastify);
@@ -170,12 +248,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile_picture,
 					fastify
 				);
-				await updateUserPassword(
-					userId,
-					oldPassword,
-					newPassword,
-					fastify
-				);
+				await updateUserPassword(userId, oldPassword, newPassword, fastify);
 
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
@@ -212,6 +285,8 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					thirdTitle,
 					fastify
 				);
+
+				await unlockAchievement(userId, 'change-title', fastify);
 
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {
@@ -251,20 +326,10 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 				const password = req.body.password;
 				if (!password) {
-					return reply
-						.code(400)
-						.send({ message: 'Password is required' });
+					return reply.code(400).send({ message: 'Password is required' });
 				}
-				if (
-					!(await verifyUserPassword(
-						currentUser.id,
-						password,
-						fastify
-					))
-				) {
-					return reply
-						.code(401)
-						.send({ message: 'Incorrect password' });
+				if (!(await verifyUserPassword(currentUser.id, password, fastify))) {
+					return reply.code(401).send({ message: 'Incorrect password' });
 				}
 				await deleteUser(currentUser.id, fastify);
 				return reply.code(200).send({ message: 'Profile deleted' });
@@ -280,5 +345,6 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 };
+
 
 export default profile;

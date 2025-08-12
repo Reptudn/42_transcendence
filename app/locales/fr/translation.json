@@ -1,7 +1,7 @@
 {
 	"header": {
 		"home": "Accueil",
-		"title": "Bienvenue sur Transcendence",
+		"title": "Transcendence",
 		"page_title": "Transcendence : Accueil"
 	},
 	"menu": {
@@ -72,8 +72,8 @@
 		"password": "Mot de passe",
 		"bio": "Bio"
 	},
-	"game_setup": {
-		"game_setup": "Configuration du jeu",
+	"lobby_admin": {
+		"lobby_admin": "Configuration du jeu",
 		"general_settings": "Paramètres généraux",
 		"map": "Carte",
 		"modes": {
