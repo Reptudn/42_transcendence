@@ -557,7 +557,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
-				if (game.config.gameType === GameType.TOURNAMENT)
+				if (game.config.gameType === GameType.TOURNAMENT && !game.alreadyStarted)
 				{
 					const ai = game.players.find((p) => p instanceof AiPlayer);
 					if (ai) game.removePlayer(ai.playerId, false, true);
