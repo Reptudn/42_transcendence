@@ -6,18 +6,6 @@
 		<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Add Local Player</button>
 		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.start_game') %></button>
 		<button onclick="resetGameSettings()" class="glow-blue py-2 px-4 rounded text-2xl">Reset Game Settings</button>
-		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle">Power-Ups enabled?</input>
-		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="5">Game Difficulty</input>
-		<label for="map-select">Map:</label>
-		<select name="Map" id="map-select">
-			<% if (availableMaps && availableMaps.length > 0) { %>
-				<% for (const map of availableMaps) { %>
-					<option value="<%= map %>"><%= map %></option>
-				<% } %>
-			<% } else { %>
-				<option value="">No maps available</option>
-			<% } %>
-		</select>
 		<label for="game-type-select">Game Type:</label>
 		<select name="Game Type" id="game-type-select">
 			<option value="classic">Classic / FFA</option>
@@ -35,6 +23,18 @@
 		<br>
 		<div id="lobby">
 <% } %>
+		<label for="map-select">Map:</label>
+		<select name="Map" id="map-select">
+			<% if (availableMaps && availableMaps.length > 0) { %>
+				<% for (const map of availableMaps) { %>
+					<option value="<%= map %>"><%= map %></option>
+				<% } %>
+			<% } else { %>
+				<option value="">No maps available</option>
+			<% } %>
+		</select>
+		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> >Power-Ups enabled?</input>
+		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>">Game Difficulty</input>
 		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl">Lobby Settings</h2>

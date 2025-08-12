@@ -8,9 +8,9 @@ import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
 import { removeGame } from './games';
 import ejs from 'ejs';
-import { getMapAsInitialGameState } from './rawMapHandler';
+import { getAvailableMaps, getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
-import { saveCompletedGame, saveCompletedTournamentGame } from '../../database/games';
+import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
 import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
@@ -29,7 +29,7 @@ export enum GameType {
 export const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
-	powerupsEnabled: false,
+	powerupsEnabled: true,
 	powerups: [],
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
@@ -45,6 +45,8 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
+
+	availableMaps: string[] | null = null;
 
 	aiBrainData: AIBrainData;
 	tournament?: Tournament;
@@ -86,6 +88,10 @@ export class Game {
 	}
 
 	async addUserPlayer(user: User, silent = false): Promise<UserPlayer> {
+
+		if (!this.availableMaps)
+			this.availableMaps = await getAvailableMaps(this.fastify);
+
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
 
@@ -201,7 +207,7 @@ export class Game {
 				);
 		}
 
-		if (this.config.gameType === GameType.TOURNAMENT && this.tournament)
+		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && !this.alreadyStarted)
 		{
 			for (let i = this.players.length; i < this.config.maxPlayers; i++)
 				this.addAiPlayer(this.config.gameDifficulty, true);
@@ -217,33 +223,14 @@ export class Game {
 				playerToRemove instanceof UserPlayer &&
 				playerToRemove.user.id == this.admin.id
 			)
-				this.endGame('Game admin left, game closed.');
+				this.endGame('Game admin left, game closed. (Game doesnt count)', playerToRemove, false);
 
 			if (this.players.length === 0)
-				this.endGame('No players left, game closed.');
+				this.endGame('No players left, game closed.', playerToRemove, false);
 		} catch (err) {
 			throw err;
 		}
 	}
-
-	// async onMatchEnd(matchIndex: number, winner: Player) {
-	// 	if (!this.tournament) return;
-
-	// 	this.tournament.advance(matchIndex, winner);
-
-	// 	if (this.tournament.isFinished()) {
-	// 		const finalMatch = this.tournament.rounds.at(-1)?.[0];
-	// 		const champion = finalMatch?.winner;
-	// 		// Announce winner, update stats, call this.endGame(), etc.
-	// 		this.endGame(`Tournament finished! Winner: ${champion?.displayName}`);
-	// 	} else {
-	// 		// Start next round
-	// 		//const nextMatches = this.tournament.getCurrentMatches();
-	// 		// Notify players in nextMatches, update state, etc.
-	// 	}
-	// 	// Optionally, update the lobby state to show bracket progress
-	// 	await this.updateLobbyState();
-	// }
 
 	async startGame() {
 		if (this.config.gameType === GameType.CLASSIC) {
@@ -345,6 +332,7 @@ export class Game {
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
 			tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
+			availableMaps: this.availableMaps,
 		});
 
 		for (const player of this.players) {
@@ -381,7 +369,7 @@ export class Game {
 	}
 
 	// when null if given it means the game end because no players were left
-	async endGame(end_message: string, winner: Player | null = null) {
+	async endGame(end_message: string, winner: Player | null = null, save_game = true) {
 		this.fastify.log.info(
 			`Ending game ${this.gameId} with message: ${end_message}`
 		);
@@ -409,13 +397,17 @@ export class Game {
 			if (this.tournament.isFinished())
 			{
 				this.fastify.log.info('tournament finished');
-				(async () => {
-					try {
-						await saveCompletedTournamentGame(this, this.fastify);
-					} catch (_e) {
-						// already logged inside saveCompletedGame
-					}
-				})();
+				if (save_game)
+				{
+					(async () => {
+						try {
+							// await saveCompletedTournamentGame(this, this.fastify);
+							await saveCompletedGame(this, this.fastify);
+						} catch (_e) {
+							// already logged inside saveCompletedGame
+						}
+					})();
+				}
 		
 				// this occurs when the game ends because its actually over because someone won or the admin left as of now
 				for (const player of this.players) {
@@ -447,13 +439,16 @@ export class Game {
 		}
 		else
 		{
-			(async () => {
-				try {
-					await saveCompletedGame(this, this.fastify);
-				} catch (_e) {
-					// already logged inside saveCompletedGame
-				}
-			})();
+			if (save_game)
+			{
+				(async () => {
+					try {
+						await saveCompletedGame(this, this.fastify);
+					} catch (_e) {
+						// already logged inside saveCompletedGame
+					}
+				})();
+			}
 	
 			// this occurs when the game ends because its actually over because someone won or the admin left as of now
 			for (const player of this.players) {

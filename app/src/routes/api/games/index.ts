@@ -20,8 +20,6 @@ import {
 } from '../../../services/pong/games/playerClass';
 import { Powerups } from '../../../types/Games';
 import { Tournament } from '../../../services/pong/games/tournamentClass';
-// import { Tournament } from '../../../services/pong/games/tournamentClass';
-//import { GameSettings } from '../../../types/Games';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -410,6 +408,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						await game.removePlayer(game.players[i - 1].playerId, true, true);
 					}
 					game.tournament = undefined;
+					for (const player of game.players) {
+						player.spectator = false;
+						player.lives = game.config.playerLives;
+					}
 				}
 				changed = true;
 			}

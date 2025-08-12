@@ -131,9 +131,7 @@ export default fp(async (fastify) => {
             CREATE TABLE IF NOT EXISTS completed_games (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
                 ended_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                type            TEXT NOT NULL CHECK (type IN ('classic','tournament')),
-                settings        TEXT NOT NULL,              -- JSON dump of final settings
-                tournament_tree TEXT DEFAULT NULL           -- JSON dump of tournament bracket
+                settings        TEXT NOT NULL              -- JSON dump of final settings
             );
         `);
 

@@ -227,10 +227,8 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['selfId'] = admin.playerId;
 					variables['localPlayerId'] = -1;
 					variables['tournamentTree'] = existingGame.tournament ? existingGame.tournament.getBracketJSON() : null;
-
-					const maps = await getAvailableMaps(fastify);
-					variables['availableMaps'] = maps;
-					fastify.log.info(`Maps ${maps}`);
+					variables['availableMaps'] = existingGame.availableMaps || await getAvailableMaps(fastify);
+					fastify.log.info(`Maps ${variables['availableMaps']}`);
 				}
 				else if (page === 'error')
 				{

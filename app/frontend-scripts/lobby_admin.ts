@@ -72,10 +72,7 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 export async function resetGameSettings() {
 	console.log('Resetting game settings to default...');
 	const res = await fetch('/api/games/settings/reset', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
+		method: 'POST'
 	});
 
 	if (!res.ok) {
