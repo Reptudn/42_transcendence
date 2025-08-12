@@ -41,16 +41,9 @@
 			<div id="lobbySettings">
 				<h3 class="text-2xl">Power-ups:</h3>
 				<% if (gameSettings.powerupsEnabled) { %>
-					<button onclick="addPowerUp()">Add Power Up</button>
-					<% for (const powerup of gameSettings.powerups) { %>
-						<div class="powerup">
-							<span class="powerup-name"><%= powerup.name %></span>
-							<span class="powerup-description"><%= powerup.description %></span>
-							<button onclick="removePowerup()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
-						</div>
-					<% } %>
+					<p>Power-Ups are enabled.</p>
 				<% } else { %>
-					<p>Power-ups are disabled.</p>
+					<p>Power-Ups are disabled.</p>
 				<% } %>
 				<% if (gameSettings.gameType === 'tournament') { %>
 					<h3 class="text-3xl">Tournament Specific Settings</h3>
