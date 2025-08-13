@@ -45,14 +45,16 @@ services:
             bash -c "if [ ! -f /etc/ssl/nginx.key ] || [ ! -f /etc/ssl/nginx.crt ]; then \
                 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx.key -out /etc/ssl/nginx.crt -subj '/CN=localhost'; \
             fi && nginx -g 'daemon off;'"
-    cloudflare:
-        image: cloudflare/cloudflared:latest
-        container_name: cloudflare
-        restart: unless-stopped
-        networks:
-            - transcendence_net
-        volumes:
-            - cloudflare:/etc/cloudflared
-        command: tunnel run
-        environment:
-            - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+
+    # uncomment this if you want to use cloudflare tunnels
+    # cloudflare:
+    #     image: cloudflare/cloudflared:latest
+    #     container_name: cloudflare
+    #     restart: unless-stopped
+    #     networks:
+    #         - transcendence_net
+    #     volumes:
+    #         - cloudflare:/etc/cloudflared
+    #     command: tunnel run
+    #     environment:
+    #         - TUNNEL_TOKEN=${TUNNEL_TOKEN}
