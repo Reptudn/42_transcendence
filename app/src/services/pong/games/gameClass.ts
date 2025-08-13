@@ -31,8 +31,8 @@ export enum PowerupType {
 	// RotatingBoard = 'ROTATING_BOARD',
 }
 
-export const powerupCheckDelay = 100;
-export const powerupSpawnChance = 0.42;
+export const powerupCheckDelay = 5000;
+export const powerupSpawnChance = 0.5;
 export const powerupDuration = 15000;
 export const powerupObjectRadius = 3;
 

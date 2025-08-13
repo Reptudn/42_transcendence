@@ -16,6 +16,44 @@ let lastVector: { x: number; y: number } | null = null;
 const ballTrail: TrailElement[] = [];
 const trailLifetime: number = 750;
 
+const powerupSettings = [
+	{
+		type: 'inverse_controls',
+		icon: '/static/assets/images/powerups/inverse_controls.png',
+		color: { r: 255, g: 0, b: 0 },
+	},
+];
+
+const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');
+const powerupSettingsMap = new Map(
+	powerupSettings.map((s) => [canonical(s.type), s])
+);
+
+const iconReady = new Map<string, HTMLImageElement>();
+const iconFailed = new Set<string>();
+const iconLoading = new Set<string>();
+function ensureIcon(path: string) {
+	if (iconReady.has(path) || iconFailed.has(path) || iconLoading.has(path)) return;
+	iconLoading.add(path);
+	const img = new Image();
+	img.onload = () => {
+		if (img.naturalWidth > 0) {
+			iconReady.set(path, img);
+		} else {
+			iconFailed.add(path);
+			console.warn('Powerup icon has zero size:', path);
+		}
+		iconLoading.delete(path);
+	};
+	img.onerror = () => {
+		iconFailed.add(path);
+		iconLoading.delete(path);
+		console.warn('Powerup icon failed to load:', path);
+	};
+	img.src = path;
+	img.decode?.().catch(() => {});
+}
+
 interface Point {
 	x: number;
 	y: number;
@@ -94,6 +132,7 @@ export function initCanvas() {
 	if (!ctx) {
 		throw new Error('Failed to get 2D context from canvas');
 	}
+	for (const s of powerupSettings) ensureIcon(s.icon);
 	startRendering();
 }
 
@@ -151,20 +190,27 @@ export function drawPolygon(
 	}
 }
 export function drawPowerupIcon(x: number, y: number, scale: number, type: string) {
-	console.log('Drawing a powerup icon at ', x, y, '!');
-	const r = 6 * scale;
 	if (!ctx) return;
+	const settings = powerupSettingsMap.get(canonical(type));
+	const radius = 3 * scale;
 	ctx.beginPath();
-	ctx.moveTo(x, y - r);
-	ctx.lineTo(x + r, y);
-	ctx.lineTo(x, y + r);
-	ctx.lineTo(x - r, y);
-	ctx.closePath();
-	ctx.fillStyle = type === 'INVERSE_CONTROLS' ? '#f5d442' : '#888';
+	ctx.arc(x, y, radius, 0, Math.PI * 2);
+	ctx.fillStyle = settings
+		? `rgb(${settings.color.r}, ${settings.color.g}, ${settings.color.b})`
+		: '#888';
 	ctx.fill();
 	ctx.strokeStyle = '#000';
 	ctx.lineWidth = 1;
 	ctx.stroke();
+	if (!settings) return;
+	const path = settings.icon;
+	const ready = iconReady.get(path);
+	if (ready) {
+		const size = radius * 1.6;
+		ctx.drawImage(ready, x - size / 2, y - size / 2, size, size);
+		return;
+	}
+	if (!iconFailed.has(path)) ensureIcon(path);
 }
 
 export function transformPoints(points: Point[], scale: number): Point[] {
@@ -332,9 +378,6 @@ export function drawGameState(gameState: GameState): void {
 		}
 	}
 	if (gameState.activePowerups) {
-		const scaleX = canvas.width / mapSizeX;
-		const scaleY = canvas.height / mapSizeY;
-		const scale = Math.min(scaleX, scaleY);
 		for (const p of gameState.activePowerups) {
 			if (!p.started) {
 				drawPowerupIcon(
