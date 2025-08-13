@@ -118,7 +118,7 @@ export class Game {
 		this.players = [adminPlayer, ...otherPlayers];
 	}
 
-	async addUserPlayer(user: User, silent = false, t: any): Promise<UserPlayer> {
+	async addUserPlayer(user: User, silent = false): Promise<UserPlayer> {
 
 		if (!this.availableMaps)
 			this.availableMaps = await getAvailableMaps(this.fastify);
@@ -155,11 +155,11 @@ export class Game {
 		}
 
 		if (!silent)
-			await this.updateLobbyState(t);
+			await this.updateLobbyState();
 		return userPlayer;
 	}
 
-	async addAiPlayer(aiLevel: number, silent = false, t: any): Promise<AiPlayer> {
+	async addAiPlayer(aiLevel: number, silent = false): Promise<AiPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -174,11 +174,12 @@ export class Game {
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
-		await this.updateLobbyState(t);
+		if (!silent)
+			await this.updateLobbyState();
 		return aiPlayer;
 	}
 
-	async addLocalPlayer(owner: UserPlayer, silent = false, t: any): Promise<LocalPlayer> {
+	async addLocalPlayer(owner: UserPlayer, silent = false): Promise<LocalPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -192,12 +193,12 @@ export class Game {
 			this.tournament.rebuild(this.players);
 		}
 		if (!silent)
-			await this.updateLobbyState(t);
+			await this.updateLobbyState();
 		return localPlayer;
 	}
 
 	// TODO: implment logic when a player is leaving while the game is running...
-	async removePlayer(t: any | null, playerId: number, forced: boolean = false, silent: boolean = false) {
+	async removePlayer(playerId: number, forced: boolean = false, silent: boolean = false) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
@@ -238,12 +239,12 @@ export class Game {
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && !this.alreadyStarted)
 		{
 			for (let i = this.players.length; i < this.config.maxPlayers; i++)
-				this.addAiPlayer(this.config.gameDifficulty, true, t);
+				this.addAiPlayer(this.config.gameDifficulty, true);
 			this.tournament.rebuild(this.players);
 		}
 
-		if (!silent && t)
-			await this.updateLobbyState(t);
+		if (!silent)
+			await this.updateLobbyState();
 
 		// TODO: in the future dont end the game when just the owner leaves
 		try {
@@ -343,7 +344,7 @@ export class Game {
 	}
 
 	// this updates the lobby state for everyone
-	async updateLobbyState(t: any) {
+	async updateLobbyState() {
 
 		if (this.status !== GameStatus.WAITING) return;
 
@@ -373,7 +374,7 @@ export class Game {
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
-			t: t,
+			t: (this.players.find((p) => p instanceof UserPlayer && p.user.id === this.admin.id) as UserPlayer)!.lang,
 			tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
 			availableMaps: this.availableMaps,
 		});
@@ -400,7 +401,7 @@ export class Game {
 								p instanceof LocalPlayer &&
 								p.owner.user.id === player.user.id
 						)?.playerId || -1,
-					t: t,
+					t: player.lang,
 					tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
 				});
 				sendSseHtmlByUserId(

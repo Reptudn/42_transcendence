@@ -13,7 +13,6 @@ import {
 import { getFriends } from '../../../services/database/friends';
 import { sendMsgDm } from './sendMsg';
 import escapeHTML from 'escape-html';
-import { request } from 'node:http';
 import { GameStatus, GameType } from '../../../services/pong/games/gameClass';
 import { runningGames } from '../../../services/pong/games/games';
 import { UserPlayer, AiPlayer } from '../../../services/pong/games/playerClass';
@@ -109,9 +108,9 @@ async function gameInviteCmd(
 	try {
 		if (game.config.gameType === GameType.TOURNAMENT) {
 			const ai = game.players.find((p) => p instanceof AiPlayer);
-			if (ai) game.removePlayer(request.t, ai.playerId, true);
+			if (ai) game.removePlayer(ai.playerId, true);
 		}
-		await game.addUserPlayer(inviteUser, false, request.t);
+		await game.addUserPlayer(inviteUser, false);
 	} catch (err) {
 		throw err;
 	}

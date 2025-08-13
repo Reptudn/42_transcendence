@@ -219,6 +219,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						players.push(player.formatStateForClients());
 					}
 					if (!admin) throw new Error('No Admin found!');
+					(admin as UserPlayer).lang = req.t;
 					admin.joined = true;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;

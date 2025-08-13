@@ -56,7 +56,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				const game = new Game(id, user, fastify, defaultGameSettings);
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
-				await game.addUserPlayer(user, false, request.t); // Adding the admin player
+				await game.addUserPlayer(user, false); // Adding the admin player
 
 				fastify.log.info(`Game created with ID: ${id}`);
 
@@ -262,7 +262,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const oldGameType = game.config.gameType;
 		game.config = defaultGameSettings;
 		game.config.gameType = oldGameType; // Preserve the game type
-		await game.updateLobbyState(request.t);
+		await game.updateLobbyState();
 		return reply.code(200).send({ message: 'Game settings reset successfully!' });
 	});
 
@@ -395,7 +395,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i < game.config.maxPlayers;
 						i++
 					) {
-						await game.addAiPlayer(game.config.gameDifficulty, true, request.t);
+						await game.addAiPlayer(game.config.gameDifficulty, true);
 					}
 					game.tournament = new Tournament(game.players);
 				} else if (gameType === GameType.CLASSIC) {
@@ -405,7 +405,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i > game.config.maxPlayers;
 						i--
 					) {
-						await game.removePlayer(request.t, game.players[i - 1].playerId, true);
+						await game.removePlayer(game.players[i - 1].playerId, true);
 					}
 					game.tournament = undefined;
 					game.alreadyStarted = false;
@@ -476,7 +476,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (changed || localPlayerUpdate !== undefined) {
-				await game.updateLobbyState(request.t);
+				await game.updateLobbyState();
 				fastify.log.info(
 					`Game settings updated for game ${game.gameId} by user ${user.username}`
 				);
@@ -560,9 +560,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (game.config.gameType === GameType.TOURNAMENT && !game.alreadyStarted)
 				{
 					const ai = game.players.find((p) => p instanceof AiPlayer);
-					if (ai) game.removePlayer(request.t, ai.playerId, true);
+					if (ai) game.removePlayer(ai.playerId, true);
 				}
-				await game.addUserPlayer(inviteUser, false, request.t);
+				await game.addUserPlayer(inviteUser, false);
 			} catch (err) {
 				return reply.code(404).send({ error: err });
 			}
@@ -610,7 +610,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			try {
 				if (!player) throw new Error('You are not a player in this game!');
-				game.removePlayer(request.t, player.playerId);
+				game.removePlayer(player.playerId);
 			} catch (err) {
 				if (err instanceof Error)
 					return reply
@@ -669,7 +669,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error: 'You cant kick yourself ( Just leave.. kicking yourself is not cool :c )',
 				});
 			try {
-				await game.removePlayer(request.t, parsedPlayerId, true);
+				await game.removePlayer(parsedPlayerId, true);
 				return reply.code(200).send({
 					message: `Player ${playerToKick.displayName} kicked from the game`,
 				});
@@ -713,7 +713,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				if (type === 'ai') {
 					if (user.id === game.admin.id) {
-						await game.addAiPlayer(4, false, request.t);
+						await game.addAiPlayer(4);
 						return reply
 							.code(200)
 							.send({ message: 'AI Player added successfully!' });
@@ -740,9 +740,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						if (game.config.gameType === GameType.TOURNAMENT)
 						{
 							const ai = game.players.find((p) => p instanceof AiPlayer);
-							if (ai) game.removePlayer(request.t, ai.playerId, false);
+							if (ai) game.removePlayer(ai.playerId, false, true);
 						}
-						await game.addLocalPlayer(owner as UserPlayer, false, request.t);
+						await game.addLocalPlayer(owner as UserPlayer);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
 						});
@@ -895,7 +895,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (player) {
 				if (accepted === 'false') {
 					try {
-						await game.removePlayer(request.t, player.playerId);
+						await game.removePlayer(player.playerId);
 						return reply.code(200).send({
 							message: 'You have declined the game invitation.',
 						});
@@ -917,7 +917,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-			game.updateLobbyState(request.t);
+			game.updateLobbyState();
+
+			(player as UserPlayer).lang = request.t;
+
 			return reply.code(200).view('lobby', {
 				ownerName: game.admin.displayname,
 				gameSettings: game.config,
@@ -926,6 +929,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				localPlayerId: -1,
 				selfId: player?.playerId || -1,
 				tournamentTree: game.tournament ? game.tournament.getBracketJSON() : null,
+				t: (player as UserPlayer).lang
 			});
 		}
 	);

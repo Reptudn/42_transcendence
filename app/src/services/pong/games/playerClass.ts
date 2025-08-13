@@ -3,6 +3,7 @@ import { Game } from './gameClass';
 import { WebSocket as WSWebSocket } from 'ws';
 import * as fs from 'fs';
 import * as path from 'path';
+import i18next from 'i18next';
 
 const defaultBotNames = JSON.parse(
 	fs.readFileSync(
@@ -63,6 +64,7 @@ export abstract class Player {
 export class UserPlayer extends Player {
 	public user: User;
 	public wsocket: WSWebSocket | null;
+	public lang: (key: string, options?: any) => string;
 
 	constructor(
 		user: User,
@@ -74,6 +76,7 @@ export class UserPlayer extends Player {
 		super(id, game.config.playerLives, user.displayname, playerTitle);
 		this.user = user;
 		this.wsocket = wsocket;
+		this.lang = i18next.getFixedT('en');
 	}
 
 	isReady(): boolean {
