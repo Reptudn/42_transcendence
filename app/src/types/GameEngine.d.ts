@@ -38,3 +38,10 @@ interface AIBrainData {
 	aiLastTargetParam: number;
 	lastAIMovementDirection: number;
 }
+
+interface PowerupInstance {
+	type: PowerupType;
+	position: Point;
+	started: boolean;
+	expiresAt: number;
+}

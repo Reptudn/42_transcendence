@@ -1,26 +1,32 @@
 import { movePaddle } from './paddleMovement.js';
 import { moveBall, hasPlayerBeenHit } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
-import { UserPlayer } from '../games/playerClass.js';
+import { LocalPlayer, UserPlayer } from '../games/playerClass.js';
 import { unlockAchievement } from '../../database/achievements.js';
 import type { Game } from '../games/gameClass.js';
+import { collectPowerups } from './powerups.js';
+import { PowerupType } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
 	// move players
 	for (const player of game.players) {
-		game.gameState = movePaddle(
-			game.gameState,
-			player.playerId,
-			player.movementDirection,
-			3
+		if (player.lives <= 0) continue;
+		const reversed = game.activePowerups.find(
+			(p) => p.type === PowerupType.InverseControls && p.started
 		);
+		const isHuman =
+			player instanceof UserPlayer || player instanceof LocalPlayer;
+		const dir =
+			reversed && isHuman
+				? -player.movementDirection
+				: player.movementDirection;
+		game.gameState = movePaddle(game.gameState, player.playerId, dir, 3);
 	}
 	updateAIMovement(game);
 
 	// move ball
-	game.gameState = moveBall(game.gameState, game.ballSpeed);
-	
-	if (game.ballSpeed < 6) game.ballSpeed += 0.025;
+	game.gameState = moveBall(game.gameState, 3);
+	collectPowerups(game);
 
 	// check hits
 	for (const player of game.players) {

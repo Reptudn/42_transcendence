@@ -18,7 +18,6 @@ import {
 	LocalPlayer,
 	UserPlayer,
 } from '../../../services/pong/games/playerClass';
-import { Powerups } from '../../../types/Games';
 import { Tournament } from '../../../services/pong/games/tournamentClass';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -78,31 +77,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				type: 'boolean',
 				errorMessage: {
 					type: 'Powerups enabled setting must be true or false',
-				},
-			},
-			powerups: {
-				type: 'array',
-				items: {
-					type: 'string',
-					enum: [
-						'speed',
-						'multiball',
-						'bigpaddle',
-						'smallpaddle',
-						'freeze',
-						'reverse',
-					],
-					errorMessage: {
-						type: 'Each powerup must be a text value',
-						enum: 'Each powerup must be one of: speed, multiball, bigpaddle, smallpaddle, freeze, reverse',
-					},
-				},
-				uniqueItems: true,
-				maxItems: 10,
-				errorMessage: {
-					type: 'Powerups must be an array of powerup names',
-					uniqueItems: 'Duplicate powerups are not allowed',
-					maxItems: 'Cannot have more than 10 powerups enabled',
 				},
 			},
 			playerLives: {
@@ -236,35 +210,40 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		errorMessage: {
 			minProperties: 'At least one setting must be provided to update',
 			additionalProperties:
-				'Unknown field provided. Only powerupsEnabled, powerups, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed',
+				'Unknown field provided. Only powerupsEnabled, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed',
 		},
 	};
 
-	fastify.post('/settings/reset', async (request: FastifyRequest, reply: FastifyReply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
+	fastify.post(
+		'/settings/reset',
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
 
-		const game = runningGames.find(
-			(g) =>
-				g.status === GameStatus.WAITING &&
-				g.players.find(
-					(p) => p instanceof UserPlayer && g.admin.id === user.id
-				)
-		);
-		if (!game) {
-			return reply.code(404).send({
-				error: 'No game found for the user in lobby phase to reset settings',
-			});
-		}
+			const game = runningGames.find(
+				(g) =>
+					g.status === GameStatus.WAITING &&
+					g.players.find(
+						(p) => p instanceof UserPlayer && g.admin.id === user.id
+					)
+			);
+			if (!game) {
+				return reply.code(404).send({
+					error: 'No game found for the user in lobby phase to reset settings',
+				});
+			}
 
-		const oldGameType = game.config.gameType;
-		game.config = defaultGameSettings;
-		game.config.gameType = oldGameType; // Preserve the game type
-		await game.updateLobbyState(request.t);
-		return reply.code(200).send({ message: 'Game settings reset successfully!' });
-	});
+			const oldGameType = game.config.gameType;
+			game.config = defaultGameSettings;
+			game.config.gameType = oldGameType; // Preserve the game type
+			await game.updateLobbyState(request.t);
+			return reply
+				.code(200)
+				.send({ message: 'Game settings reset successfully!' });
+		}
+	);
 
 	fastify.post(
 		'/settings',
@@ -278,17 +257,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const {
 				gameType,
 				powerupsEnabled,
-				powerups,
 				playerLives,
 				gameDifficulty,
 				map,
 				aiUpdate,
 				localPlayerUpdate,
-				autoAdvance
+				autoAdvance,
 			} = request.body as {
 				gameType?: GameType;
 				powerupsEnabled?: boolean;
-				powerups?: Powerups[];
 				playerLives?: number;
 				gameDifficulty?: number;
 				map?: string;
@@ -323,9 +300,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (game.alreadyStarted)
-				return reply.code(401).send({ error: 'You cant change settings after the first tournament game has been played' });
-			
-			let isAdmin = game.admin.id === user.id;
+				return reply.code(401).send({
+					error: 'You cant change settings after the first tournament game has been played',
+				});
+
+			const isAdmin = game.admin.id === user.id;
 			let changed = false;
 
 			if (isAdmin && map !== undefined) {
@@ -344,20 +323,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (isAdmin && powerups !== undefined) {
-				if (!game.config.powerupsEnabled) {
-					return reply.code(400).send({
-						error: 'Powerups are not enabled for this game. Turn on powerups first.',
-					});
-				} else {
-					fastify.log.info(
-						`Updating powerups for game ${game.gameId} by user ${user.username}`
-					);
-					game.config.powerups = powerups;
-					changed = true;
-				}
-			}
-
 			if (isAdmin && playerLives !== undefined) {
 				fastify.log.info(
 					`Updating player lives for game ${game.gameId} by user ${user.username}`
@@ -367,7 +332,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (isAdmin && autoAdvance !== undefined) {
-				fastify.log.info(`Updating auto advance for game ${game.gameId} by user ${user.username}`);
+				fastify.log.info(
+					`Updating auto advance for game ${game.gameId} by user ${user.username}`
+				);
 				game.config.autoAdvance = autoAdvance;
 				changed = true;
 			}
@@ -395,7 +362,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i < game.config.maxPlayers;
 						i++
 					) {
-						await game.addAiPlayer(game.config.gameDifficulty, true, request.t);
+						await game.addAiPlayer(
+							game.config.gameDifficulty,
+							true,
+							request.t
+						);
 					}
 					game.tournament = new Tournament(game.players);
 				} else if (gameType === GameType.CLASSIC) {
@@ -405,7 +376,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						i > game.config.maxPlayers;
 						i--
 					) {
-						await game.removePlayer(request.t, game.players[i - 1].playerId, true);
+						await game.removePlayer(
+							request.t,
+							game.players[i - 1].playerId,
+							true
+						);
 					}
 					game.tournament = undefined;
 					game.alreadyStarted = false;
@@ -523,11 +498,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				)
 			);
 			if (friendGame)
-				return reply
-					.code(401)
-					.send({
-						error: 'Cant invite a user which is already in a game',
-					});
+				return reply.code(401).send({
+					error: 'Cant invite a user which is already in a game',
+				});
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
@@ -557,8 +530,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
-				if (game.config.gameType === GameType.TOURNAMENT && !game.alreadyStarted)
-				{
+				if (
+					game.config.gameType === GameType.TOURNAMENT &&
+					!game.alreadyStarted
+				) {
 					const ai = game.players.find((p) => p instanceof AiPlayer);
 					if (ai) game.removePlayer(request.t, ai.playerId, true);
 				}
@@ -737,12 +712,17 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 								error: 'You can only add one Local Player per User!',
 							});
 						}
-						if (game.config.gameType === GameType.TOURNAMENT)
-						{
-							const ai = game.players.find((p) => p instanceof AiPlayer);
+						if (game.config.gameType === GameType.TOURNAMENT) {
+							const ai = game.players.find(
+								(p) => p instanceof AiPlayer
+							);
 							if (ai) game.removePlayer(request.t, ai.playerId, false);
 						}
-						await game.addLocalPlayer(owner as UserPlayer, false, request.t);
+						await game.addLocalPlayer(
+							owner as UserPlayer,
+							false,
+							request.t
+						);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
 						});
@@ -925,7 +905,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				initial: true, // to load the lobby script
 				localPlayerId: -1,
 				selfId: player?.playerId || -1,
-				tournamentTree: game.tournament ? game.tournament.getBracketJSON() : null,
+				tournamentTree: game.tournament
+					? game.tournament.getBracketJSON()
+					: null,
 			});
 		}
 	);
@@ -989,7 +971,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				(l) => l instanceof LocalPlayer && l.owner === player
 			) as LocalPlayer | undefined;
 
-			socket.send(JSON.stringify({ type: 'state', state: game.gameState }));
+			socket.send(
+				JSON.stringify({
+					type: 'state',
+					state: game.formatStateForClients(),
+				})
+			);
 
 			socket.on('error', (error) => {
 				fastify.log.error(

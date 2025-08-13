@@ -100,8 +100,8 @@
 
 #### Game Customization (Minor) (6.5 / 9)
 
--   [ ] Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.
--   [ ] Allow users to choose a default version of the game with basic features if they prefer a simpler experience.
+-   [x] Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.
+-   [x] Allow users to choose a default version of the game with basic features if they prefer a simpler experience.
 -   [x] Ensure that customization options are available and applicable to all games offered on the platform.
 -   [x] Implement user-friendly settings menus or interfaces for adjusting game parameters.
 -   [x] Maintain consistency in customization features across all games to provide a unified user experience.

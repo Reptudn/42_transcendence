@@ -59,7 +59,6 @@ ws.onclose = (event) => {
 
 ws.onmessage = (event) => {
 	try {
-		console.log(event.data);
 		const data = JSON.parse(event.data);
 		if (data.type === 'state') {
 			const state = document.getElementById('state');
@@ -87,6 +86,23 @@ ws.onmessage = (event) => {
 					}) (${player.type})</span>`;
 					playersList.appendChild(playerItem);
 				}
+
+				const powerupsList = document.getElementById('powerupsList');
+				if (powerupsList) {
+					powerupsList.innerHTML = '';
+					const now = Date.now();
+					for (const pu of data.state.activePowerups || []) {
+						const li = document.createElement('li');
+						const secs = Math.max(
+							0,
+							Math.ceil((pu.expiresAt - now) / 1000)
+						);
+						li.textContent = pu.started
+							? `${pu.type} (${secs}s)`
+							: `${pu.type} [pickup]`;
+						powerupsList.appendChild(li);
+					}
+				}
 			}
 		} else if (data.type === 'change_lobby_settings') {
 			const settings = document.getElementById('lobbySettings');
@@ -106,21 +122,21 @@ ws.onmessage = (event) => {
 let userInputData = {
 	leftPressed: false,
 	rightPressed: false,
-	lastSentDirection: 0
-}
+	lastSentDirection: 0,
+};
 
 let localUserInputData = {
 	leftPressed: false,
 	rightPressed: false,
-	lastSentDirection: 0
-}
+	lastSentDirection: 0,
+};
 
 window.addEventListener(
 	'keydown',
 	(e) => {
 		if (e.key === 'ArrowLeft') userInputData.leftPressed = true;
 		if (e.key === 'ArrowRight') userInputData.rightPressed = true;
-		if (e.key === 'a') localUserInputData.leftPressed = true
+		if (e.key === 'a') localUserInputData.leftPressed = true;
 		if (e.key === 'd') localUserInputData.rightPressed = true;
 	},
 	{ signal: window.abortController?.signal }
@@ -131,7 +147,7 @@ window.addEventListener(
 	(e) => {
 		if (e.key === 'ArrowLeft') userInputData.leftPressed = false;
 		if (e.key === 'ArrowRight') userInputData.rightPressed = false;
-		if (e.key === 'a') localUserInputData.leftPressed = false
+		if (e.key === 'a') localUserInputData.leftPressed = false;
 		if (e.key === 'd') localUserInputData.rightPressed = false;
 	},
 	{ signal: window.abortController?.signal }
