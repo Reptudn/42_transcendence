@@ -166,7 +166,8 @@ export function sendMsgDm(
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
-		return;
+		if (!blockerId.includes(user[0].user_id)) return;
+		throw new HttpError(400, 'You got blocked by the User');
 	}
 	throw new HttpError(400, 'User is Blocked');
 }

@@ -98,8 +98,8 @@
 	"chat": {
 		"group": "Group successfully created",
 		"block": "User blocked successfully",
-		"unblock": "User get successfully blocked",
-		"invite": "User get successfully invited",
+		"unblock": "User successfully unblocked",
+		"invite": "User successfully invited",
 		"leave": "You have successfully left the group"
 	}
 }
