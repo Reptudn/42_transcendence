@@ -116,7 +116,7 @@ document
 					await loadPartialView('profile');
 				}
 			} else {
-				showLocalError(data.error);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -179,7 +179,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				await loadPartialView('profile');
 			} else {
-				showLocalError(data.error);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -227,10 +227,11 @@ document
 			if (response.ok) {
 				showLocalInfo('Password updated successfully! 🎉');
 				localStorage.removeItem('token');
-				await loadPartialView('login');
+				localStorage.setItem('loggedIn', 'false');
+				await loadPartialView('login', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(data.error);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -270,11 +271,11 @@ document
 			const data = await response.json();
 			if (response.ok) {
 				showLocalInfo('Profile deleted successfully! 🎉');
-				localStorage.removeItem('token');
-				await loadPartialView('register');
+				localStorage.setItem('loggedIn', 'false');
+				await loadPartialView('register', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(data.error);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
