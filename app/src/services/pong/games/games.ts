@@ -53,10 +53,7 @@ function managePowerups(game: Game) {
 				}
 				if (
 					game.activePowerups.some(
-						(p) =>
-							!p.started &&
-							p.position.x === pos.x &&
-							p.position.y === pos.y
+						(p) => p.position.x === pos.x && p.position.y === pos.y
 					)
 				)
 					return;

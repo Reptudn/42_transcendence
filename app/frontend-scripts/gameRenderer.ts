@@ -217,6 +217,31 @@ export function drawPowerupIcon(x: number, y: number, scale: number, type: strin
 	}
 	if (!iconFailed.has(path)) ensureIcon(path);
 }
+function drawActivePowerupBadge(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	remainingSeconds: number
+) {
+	if (!ctx) return;
+	ctx.save();
+	ctx.globalAlpha = 0.5;
+	drawPowerupIcon(x, y, scale, type);
+	ctx.restore();
+
+	ctx.save();
+	const radius = 3 * scale;
+	const fontSize = Math.max(10, Math.floor(radius * 0.9));
+	ctx.font = `${fontSize}px "Courier New", monospace`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.lineWidth = 3;
+	ctx.strokeText(String(remainingSeconds), x, y);
+	ctx.fillStyle = '#fff';
+	ctx.fillText(String(remainingSeconds), x, y);
+	ctx.restore();
+}
 
 export function transformPoints(points: Point[], scale: number): Point[] {
 	return points.map((pt) => ({ x: pt.x * scale, y: pt.y * scale }));
@@ -383,14 +408,21 @@ export function drawGameState(gameState: GameState): void {
 		}
 	}
 	if (gameState.activePowerups) {
+		const nowMs = Date.now();
 		for (const p of gameState.activePowerups) {
-			if (!p.started) {
-				drawPowerupIcon(
-					p.position.x * scale,
-					p.position.y * scale,
-					scale,
-					p.type
-				);
+			const x = p.position.x * scale;
+			const y = p.position.y * scale;
+			if (p.started) {
+				const remainingMs = p.expiresAt - nowMs;
+				if (remainingMs > 0) {
+					const remainingSeconds = Math.max(
+						0,
+						Math.ceil(remainingMs / 1000)
+					);
+					drawActivePowerupBadge(x, y, scale, p.type, remainingSeconds);
+				}
+			} else {
+				drawPowerupIcon(x, y, scale, p.type);
 			}
 		}
 	}
