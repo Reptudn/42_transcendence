@@ -12,17 +12,22 @@ const totp: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/enable',
 		{ preValidation: [fastify.authenticate] },
 		async (request, reply) => {
+			console.log('2fa enable');
 			// enable 2fa for a user if not acivated aleady
 			const user = await checkAuth(request, false, fastify);
 			if (!user) return reply.code(401).send({ error: 'Unauthorized' });
+			console.log('user authorized');
 			const secret = await getUser2faSecret(user, fastify);
 			if (secret !== ''){
+				console.log('2fa already enabled');
 				return reply.code(300).send({ error: '2fa already enabled!' });
 			}
 
+			console.log('creating 2fa');
 			const totp: User2FASetup = await createUser2faSecret(user, fastify);
 			sendPopupToClient(fastify, user.id, 'Your 2fa QR Code', `<img src="${totp.qrcode}"></img>`);
-			sendPopupToClient(fastify, user.id, 'Your Rescue code (write this one down somewhere)', totp.rescue)
+			sendPopupToClient(fastify, user.id, 'Your Rescue code (write this one down somewhere)', totp.rescue);
+			console.log('sending 2fa code');
 			return reply.code(200).send({
 				qrcode: totp.qrcode,
 				rescue: totp.rescue,

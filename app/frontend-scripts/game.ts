@@ -1,11 +1,13 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { initCanvas, updateGameState } from './gameRenderer.js';
+import { initCanvas, stopRendering, updateGameState } from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 
-const wsUrl = `/api/games/connect?gameId=${gameId}`;
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsHost = window.location.host;
+const wsUrl = `${wsProtocol}//${wsHost}/api/games/connect?gameId=${gameId}`;
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
@@ -211,6 +213,7 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
+	stopRendering();
 	await leaveWsGame();
 });
 

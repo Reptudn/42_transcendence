@@ -58,6 +58,7 @@ const authSchema = {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 3 : 1,
 			maxLength: 32,
+			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Display name must be a text value',
 				minLength:
@@ -177,113 +178,43 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	const twoFactorAuthSchema = {
-		type: 'object',
-		properties: {
-			userid: {
-				type: 'number',
-				minimum: 1,
-				errorMessage: {
-					type: 'User ID must be a number',
-					minimum: 'User ID must be a positive number',
-				},
-			},
-			rescue_token: {
-				type: 'string',
-				minLength: 0,
-				maxLength: 22,
-				errorMessage: {
-					type: 'Rescue token must be a text value',
-					minLength: 'Invalid rescue token format',
-					maxLength: 'Rescue token is too long (maximum 22 characters)',
-				},
-			},
-			fa_token: {
-				type: 'string',
-				minLength: 6,
-				maxLength: 6,
-				pattern: '^[0-9]{6}$',
-				errorMessage: {
-					type: '2FA token must be a text value',
-					minLength: '2FA token must be exactly 6 digits',
-					maxLength: '2FA token must be exactly 6 digits',
-					pattern: '2FA token must be exactly 6 digits',
-				},
-			},
-		},
-		anyOf: [
-			{
-				required: ['userid', 'fa_token'],
-				properties: {
-					userid: { type: 'number', minimum: 1 },
-					fa_token: {
-						type: 'string',
-						minLength: 6,
-						maxLength: 6,
-						pattern: '^[0-9]{6}$',
-					},
-				},
-			},
-			{
-				required: ['userid', 'rescue_token'],
-				properties: {
-					userid: { type: 'number', minimum: 1 },
-					rescue_token: { type: 'string', minLength: 0, maxLength: 22 },
-				},
-			},
-		],
-		additionalProperties: false,
-		errorMessage: {
-			anyOf: 'Either 2FA token or rescue token is required along with user ID',
-			additionalProperties:
-				'Unknown field provided. Only userid, fa_token, and rescue_token are allowed',
-		},
-	};
-	fastify.post(
-		'/2fa',
-		{
-			schema: {
-				body: twoFactorAuthSchema,
-			},
-		},
-		async (req: FastifyRequest, reply: FastifyReply) => {
-			const { userid, fa_token, rescue_token } = req.body as {
-				userid: number;
-				fa_token: string;
-				rescue_token: string;
-			};
+	fastify.post('/2fa', async (req: FastifyRequest, reply: FastifyReply) => {
+		const { userid, fa_token, rescue_token } = req.body as {
+			userid: number;
+			fa_token: string;
+			rescue_token: string;
+		};
 
-			const user = await getUserById(userid, fastify);
-			if (!user) return reply.code(401).send({ error: 'Invalid 2fa code!' });
-			if (rescue_token !== (await getUser2faRescue(user, fastify))) {
-				if (!userid || !fa_token)
-					return reply.code(401).send({ error: 'Invalid 2fa code!' });
-				const index = users_2fa.findIndex((id) => id === Number(userid));
-				if (index === -1)
-					return reply.code(401).send({ error: 'Invalid 2fa code!' });
-				if ((await verify2fa(user, fa_token, fastify)) === false) {
-					return reply.code(401).send({ error: 'Invalid 2fa code!' });
-				}
+		const user = await getUserById(userid, fastify);
+		if (!user) return reply.code(401).send({ error: 'Invalid 2fa code!' });
+		if (rescue_token !== (await getUser2faRescue(user, fastify))) {
+			if (!userid || !fa_token)
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			const index = users_2fa.findIndex((id) => id === Number(userid));
+			if (index === -1)
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			if ((await verify2fa(user, fa_token, fastify)) === false) {
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
 			}
-			users_2fa = users_2fa.filter((id) => id !== user.id);
-			if (rescue_token === (await getUser2faRescue(user, fastify))) {
-				await removeUser2fa(user, fastify);
-			}
-			const token = fastify.jwt.sign(
-				{ username: user.username, id: user.id },
-				{ expiresIn: '10d' }
-			);
-			await unlockAchievement(user.id, 'login', fastify);
-			return reply
-				.setCookie('token', token, {
-					httpOnly: true,
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
-					path: '/',
-				})
-				.send({ message: 'Login successful with 2fa!' });
 		}
-	);
+		users_2fa = users_2fa.filter((id) => id !== user.id);
+		if (rescue_token === (await getUser2faRescue(user, fastify))) {
+			await removeUser2fa(user, fastify);
+		}
+		const token = fastify.jwt.sign(
+			{ username: user.username, id: user.id },
+			{ expiresIn: '10d' }
+		);
+		await unlockAchievement(user.id, 'login', fastify);
+		return reply
+			.setCookie('token', token, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				path: '/',
+			})
+			.send({ message: 'Login successful with 2fa!' });
+	});
 	fastify.post(
 		'/2fa_google',
 		{

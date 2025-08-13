@@ -69,6 +69,27 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 	}
 }
 
+export async function resetGameSettings() {
+	console.log('Resetting game settings to default...');
+	const res = await fetch('/api/games/settings/reset', {
+		method: 'POST'
+	});
+
+	if (!res.ok) {
+		const error = await res.json();
+		showLocalError(`${error.error || 'Failed to reset settings: Unknown error'}`);
+		return;
+	}
+	const data = await res.json();
+	console.log('Game settings reset:', data);
+	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
+};
+
+export async function setAutoAdvance(enabled: boolean) {
+	console.log('Setting auto advance for AI:', enabled);
+	await updateSettings({ autoAdvance: enabled });
+}
+
 const powerupsToggle = document.getElementById(
 	'powerups-toggle'
 ) as HTMLInputElement | null;
@@ -89,6 +110,12 @@ const mapSelect = document.getElementById('map-select') as HTMLSelectElement | n
 mapSelect?.addEventListener('change', async (event) => {
 	const selectedMap = (event.target as HTMLSelectElement).value;
 	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
+});
+
+const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
+gameTypeSelector?.addEventListener('change', async (event) => {
+	const selectedGameType = (event.target as HTMLSelectElement).value;
+	await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
 });
 
 export async function addPowerUp() {
@@ -118,11 +145,10 @@ export async function addUserPlayer(friendId: number) {
 	});
 	if (!response.ok) {
 		const error = await response.json();
-		showLocalError(`${error.error}`);
-		throw new Error(`Failed to invite friend: ${error.error}`);
+		showLocalError(error.error);
 	}
 	const data = (await response.json()) as { message: string };
-	showLocalInfo(`${data.message}`);
+	showLocalInfo(data.message);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
 
@@ -283,6 +309,8 @@ declare global {
 		renameLocalPlayer: (id: number) => Promise<void>;
 		renameAiPlayer: (id: number) => Promise<void>;
 		setAiDifficulty: (id: number, difficulty: number) => Promise<void>;
+		setAutoAdvance: (enabled: boolean) => Promise<void>;
+		resetGameSettings: () => Promise<void>;
 	}
 }
 
@@ -297,3 +325,5 @@ window.startGame = startGame;
 window.renameLocalPlayer = renameLocalPlayer;
 window.renameAiPlayer = renameAiPlayer;
 window.setAiDifficulty = setAiDifficulty;
+window.setAutoAdvance = setAutoAdvance;
+window.resetGameSettings = resetGameSettings;

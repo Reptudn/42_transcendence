@@ -27,19 +27,6 @@ export async function createGame() {
 	await loadPartialView('lobby_admin', true, null, true);
 }
 
-export async function leaveGame() {
-	const response = await fetch('/api/games/leave', {
-		method: 'POST',
-	});
-
-	if (!response.ok) {
-		showLocalError(`Failed to leave game: ${response.statusText}`);
-		return;
-	}
-
-	showLocalInfo('You have left the game successfully.');
-}
-
 // THE number
 let numberFetchFailed = false;
 
@@ -100,7 +87,7 @@ async function logout(): Promise<void> {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			updateMenu();
-			await loadPartialView('index', true, null, true, true);
+			await loadPartialView('index', true, null, true, true, true);
 			window.localStorage.setItem('loggedIn', 'false');
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null
@@ -156,6 +143,9 @@ document.addEventListener('keydown', (event) => {
 		setRandomBgPicture();
 	}
 });
+
+// if (window.localStorage.getItem("loggedIn") === "true")
+// 	window.localStorage.setItem("loggedIn", "false");
 
 window.logout = logout;
 window.fetchNumber = fetchNumber;

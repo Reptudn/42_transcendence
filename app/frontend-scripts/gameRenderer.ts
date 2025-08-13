@@ -607,6 +607,8 @@ export function startRendering(): void {
 	}
 }
 
+startRendering();
+
 export function stopRendering(): void {
 	isRendering = false;
 	if (animationId !== null) {

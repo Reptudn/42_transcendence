@@ -43,6 +43,7 @@ export function updateAIMovement(game: Game): void {
 
 	for (const player of game.players) {
 		if (!(player instanceof AiPlayer)) continue;
+		if (player.spectator) continue;
 
 		const damageArea = game.gameState.objects.find(
 			(obj) =>
@@ -55,6 +56,7 @@ export function updateAIMovement(game: Game): void {
 		const paddle = game.gameState.objects.find(
 			(obj) => obj.type === 'paddle' && obj.playerNbr === player.playerId
 		);
+
 		if (
 			!damageArea ||
 			!damageArea.shape ||
@@ -62,8 +64,12 @@ export function updateAIMovement(game: Game): void {
 			!paddlePath.shape ||
 			!paddle ||
 			!paddle.anchor1
-		)
+		) {
+			console.warn(
+				`AI Player ${player.displayName} missing damage area or paddle path or paddle`
+			);
 			continue;
+		}
 
 		// find the closest point on damage area to ball
 		const { param: targetParam, closestPoint } = projectPointOnPolyline(

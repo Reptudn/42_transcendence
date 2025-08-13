@@ -170,6 +170,17 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 		ball.velocity.y = ball.velocity.y - 2 * dot * combinedNormal.y;
 	}
 
+	// XXX: This would be the wiggly ball powerup
+	// const degreeRange = 20; // Range in degrees, e.g. 20 for ±10°
+	// const radRange = (degreeRange * Math.PI) / 180; // Convert to radians
+	// const angleAdjust = (Math.random() - 0.5) * radRange;
+	// const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
+	// const currentAngle = Math.atan2(ball.velocity.y, ball.velocity.x);
+	// const newAngle = currentAngle + angleAdjust;
+	// ball.velocity.x = Math.cos(newAngle) * speed;
+	// ball.velocity.y = Math.sin(newAngle) * speed;
+
+
 	// Game boundary collisions
 	const { size_x, size_y } = gameState.meta;
 	if (center.x - radius < 0 || center.x + radius > size_x) {
@@ -207,6 +218,38 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 
 	return gameState;
 }
+
+export function resetBall(gameState: GameState, ballSpeed: number): GameState {
+	const ball = gameState.objects.find((obj) => obj.type === 'ball');
+	if (!ball) {
+		console.warn('No ball found to reset.');
+		return gameState;
+	}
+
+	if (!('radius' in ball) || typeof ball.radius !== 'number') {
+		ball.radius = 2;
+	}
+
+	const { size_x, size_y } = gameState.meta;
+	ball.center = {
+		x: size_x / 2,
+		y: size_y / 2,
+	};
+
+	const angle = Math.random() * (Math.PI / 2) + Math.PI / 4; // 45°–135°
+	const directionX = Math.random() < 0.5 ? -1 : 1;
+	const directionY = Math.random() < 0.5 ? -1 : 1;
+
+	ball.velocity = {
+		x: Math.cos(angle) * ballSpeed * directionX,
+		y: Math.sin(angle) * ballSpeed * directionY,
+	};
+
+	console.log(`Ball reset to center at (${ball.center.x}, ${ball.center.y})`);
+
+	return gameState;
+}
+
 
 export function hasPlayerBeenHit(gameState: GameState, playerId: number): boolean {
 	const ball = gameState.objects.find((o) => o.type === 'ball');

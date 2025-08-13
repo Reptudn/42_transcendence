@@ -8,16 +8,16 @@
 	<!-- Mitte: Chat -->
 		<div id="chatMessages" class="border h-80 border-gray-300 overflow-y-auto"></div>
 		<input id="chatInput" type="text" class="border border-gray-300" placeholder="Type a message...">
-		<button id="sendChatButton" class="px-4 py-2 w-full bg-blue-500 text-white rounded">Send</button>
+		<button id="sendChatButton" class="px-4 py-2 w-full bg-blue-500 text-white rounded"><%= t('chat.sent') %></button>
 		
 		<!-- Rechte Spalte: Buttons -->
 		<div class="flex flex-col space-y-2">
-			<button id="globalChat" class="bg-green-500 text-white rounded px-4 py-2 w-full">Global Chat</button>
-			<button id="createGroup" class="bg-purple-500 text-white rounded px-4 py-2 w-full">Neue Gruppe erstellen</button>
-			<button id="blockUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full">Neue User blockiern</button>
-			<button id="unblockUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full">Neue User unblockiern</button>
-			<button id="inviteUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full">Invite User to Chat</button>
-			<button id="leaveUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full">Leave User from Chat</button>
+			<button id="globalChat" class="bg-green-500 text-white rounded px-4 py-2 w-full"><%= t('chat.global_chat') %></button>
+			<button id="createGroup" class="bg-purple-500 text-white rounded px-4 py-2 w-full"><%= t('chat.new_chat') %></button>
+			<button id="blockUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full"><%= t('chat.block_user') %></button>
+			<button id="unblockUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full"><%= t('chat.unblock_user') %></button>
+			<button id="inviteUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full"><%= t('chat.invite_to_chat') %></button>
+			<button id="leaveUser" class="bg-purple-500 text-white rounded px-4 py-2 w-full"><%= t('chat.user_leave_chat') %></button>
 		</div>
 	</div>
 </div>
@@ -25,84 +25,84 @@
 <!-- Modal für Gruppen-Erstellung -->
 <div id="groupWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
 	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
-		<h2 class="text-lg font-semibold">Neue Gruppe erstellen</h2>
+		<h2 class="text-lg font-semibold"><%= t('chat.create_new_group') %></h2>
 
 		<!-- Gruppenname-Eingabefeld -->
-		<input id="groupNameInput" type="text" class="w-full border px-3 py-2" placeholder="Gruppenname eingeben...">
+		<input id="groupNameInput" type="text" class="w-full border px-3 py-2" placeholder="<%= t('chat.placeholder_group_name') %>">
 
 		<!-- Personensuche -->
-		<input id="groupSearchInput" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+		<input id="groupSearchInput" type="text" class="w-full border px-3 py-2" placeholder="<%= t('chat.placeholder_search_people') %>">
 
 		<!-- Suchergebnisse -->
 		<div id="searchResults" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
 		</div>
 
 		<!-- Buttons -->
-		<div class="flex justify-end space-x-2">
-			<button id="closeGroupWindow" class="px-4 py-2 border">Abbrechen</button>
-			<button id="confirmCreateGroup" class="bg-blue-600 text-white px-4 py-2 rounded">Gruppe erstellen</button>
-		</div>
-	</div>
+        <div class="flex justify-end space-x-2">
+            <button id="closeGroupWindow" class="px-4 py-2 border"><%= t('chat.cancel') %></button>
+            <button id="confirmCreateGroup" class="bg-blue-600 text-white px-4 py-2 rounded"><%= t('chat.create_group') %></button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal für Block-User -->
 <div id="blockUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
-	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
-		<h2 class="text-lg font-semibold">BlockUser</h2>
+    <div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+        <h2 class="text-lg font-semibold"><%= t('chat.block_user') %></h2>
 
-		<!-- Personensuche -->
-		<input id="searchUserToBlock" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+        <!-- Personensuche -->
+        <input id="searchUserToBlock" type="text" class="w-full border px-3 py-2" placeholder="<%= t('chat.placeholder_search_people') %>">
 
-		<!-- Suchergebnisse -->
-		<div id="searchResultsToBlock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
-		</div>
+        <!-- Suchergebnisse -->
+        <div id="searchResultsToBlock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+        </div>
 
-		<!-- Buttons -->
-		<div class="flex justify-end space-x-2">
-			<button id="closeBlockUser" class="px-4 py-2 border">Abbrechen</button>
-			<button id="confirmBlockUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
-		</div>
-	</div>
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-2">
+            <button id="closeBlockUser" class="px-4 py-2 border"><%= t('chat.cancel') %></button>
+            <button id="confirmBlockUser" class="bg-blue-600 text-white px-4 py-2 rounded"><%= t('chat.block_user') %></button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal für Unblock-User -->
 <div id="unblockUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
-	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
-		<h2 class="text-lg font-semibold">UnblockUser</h2>
+    <div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+        <h2 class="text-lg font-semibold"><%= t('chat.unblock_user') %></h2>
 
-		<!-- Personensuche -->
-		<input id="searchUserToUnblock" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+        <!-- Personensuche -->
+        <input id="searchUserToUnblock" type="text" class="w-full border px-3 py-2" placeholder="<%= t('chat.placeholder_search_people') %>">
 
-		<!-- Suchergebnisse -->
-		<div id="searchResultsToUnblock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
-		</div>
+        <!-- Suchergebnisse -->
+        <div id="searchResultsToUnblock" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+        </div>
 
-		<!-- Buttons -->
-		<div class="flex justify-end space-x-2">
-			<button id="closeUnblockUser" class="px-4 py-2 border">Abbrechen</button>
-			<button id="confirmUnblockUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
-		</div>
-	</div>
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-2">
+            <button id="closeUnblockUser" class="px-4 py-2 border"><%= t('chat.cancel') %></button>
+            <button id="confirmUnblockUser" class="bg-blue-600 text-white px-4 py-2 rounded"><%= t('chat.unblock_user') %></button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal für invite-User -->
 <div id="inviteUserWindow" class="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center hidden z-50">
-	<div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
-		<h2 class="text-lg font-semibold">InviteUser</h2>
+    <div class="bg-blue-500 p-6 rounded shadow-lg w-96 space-y-4">
+        <h2 class="text-lg font-semibold"><%= t('chat.invite_to_chat') %></h2>
 
-		<!-- Personensuche -->
-		<input id="searchUserToInvite" type="text" class="w-full border px-3 py-2" placeholder="Personen suchen...">
+        <!-- Personensuche -->
+        <input id="searchUserToInvite" type="text" class="w-full border px-3 py-2" placeholder="<%= t('chat.placeholder_search_people') %>">
 
-		<!-- Suchergebnisse -->
-		<div id="searchResultsToInvite" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
-		</div>
+        <!-- Suchergebnisse -->
+        <div id="searchResultsToInvite" class="flex flex-col max-h-40 overflow-y-auto border p-2 space-y-1">
+        </div>
 
-		<!-- Buttons -->
-		<div class="flex justify-end space-x-2">
-			<button id="closeInviteUser" class="px-4 py-2 border">Abbrechen</button>
-			<button id="confirmInviteUser" class="bg-blue-600 text-white px-4 py-2 rounded">BlockUser</button>
-		</div>
-	</div>
+        <!-- Buttons -->
+        <div class="flex justify-end space-x-2">
+            <button id="closeInviteUser" class="px-4 py-2 border"><%= t('chat.cancel') %></button>
+            <button id="confirmInviteUser" class="bg-blue-600 text-white px-4 py-2 rounded"><%= t('chat.invite_to_chat') %></button>
+        </div>
+    </div>
 </div>
 
 <script type="module" src="/static/js/chat.js" defer></script>

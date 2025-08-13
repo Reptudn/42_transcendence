@@ -127,7 +127,7 @@ export default fp(async (fastify) => {
 			);
 		`);
 
-		await fastify.sqlite.exec(`
+        await fastify.sqlite.exec(`
 			CREATE TABLE IF NOT EXISTS completed_games (
 				id          INTEGER PRIMARY KEY AUTOINCREMENT,
 				ended_at    DATETIME   NOT NULL DEFAULT CURRENT_TIMESTAMP,

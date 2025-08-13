@@ -1,8 +1,9 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path, { join } from 'node:path';
-import type { Game } from './gameClass';
+import { GameType, type Game } from './gameClass';
 import type { FastifyInstance } from 'fastify';
 import type { Player } from './playerClass';
+import { GameSettings } from '../../../types/Games';
 
 export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 	const jsonPath = join(
@@ -29,12 +30,30 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 		throw new Error('Could not load map data.');
 	}
 
+	const reducedPlayers = game.players.filter((p) => !p.spectator);
+
 	const gameState: GameState = {
 		meta: { name: '', author: '', size_x: 0, size_y: 0 },
 		objects: [],
 	};
 	gameState.meta = map.meta;
+
+	if (game.config.gameType == GameType.TOURNAMENT)
+		map.objects = map.objects.filter(obj => {
+			return obj.type !== "paddle" || obj.playerNbr === 0 || obj.playerNbr === 1;
+		});
+
+
 	for (const object of map.objects) {
+
+		if (game.config.gameType == GameType.TOURNAMENT && object.playerNbr !== undefined)
+		{
+			if (object.playerNbr === 0)
+				object.playerNbr = reducedPlayers[0].playerId;
+			else if (object.playerNbr === 1)
+				object.playerNbr = reducedPlayers[1].playerId;
+		}
+
 		if (!object.conditions || object.conditions.length === 0) {
 			gameState.objects.push(object);
 			continue;
@@ -44,7 +63,7 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 			if (
 				!isMapConditionFulfilled(
 					game.config,
-					game.players,
+					reducedPlayers,
 					condition.condition,
 					condition.variable,
 					condition.target
@@ -61,6 +80,7 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 	}
 	return gameState;
 }
+
 function isMapConditionFulfilled(
 	settings: GameSettings,
 	players: Player[],
@@ -71,7 +91,6 @@ function isMapConditionFulfilled(
 	let numVal = 0;
 	if (!players) return false;
 	if (variable === 'player_count') numVal = players.length;
-	// gamesettings players dont contain the admin
 	else if (variable === 'difficulty') numVal = settings.gameDifficulty;
 	else if (variable === 'powerups') numVal = settings.powerupsEnabled ? 1 : 0;
 
@@ -91,13 +110,11 @@ export async function getAvailableMaps(fastify: FastifyInstance): Promise<string
 		fastify.log.info(`maps in folder: ${files}`);
 
 		const mapFiles = files.filter((file) => file.endsWith('.json'));
-
-		const mapNames = mapFiles.map((file) => {
-			return path.parse(file).name.toLocaleUpperCase();
-		});
+		const mapNames = mapFiles.map((file) =>
+			path.parse(file).name.toLocaleUpperCase()
+		);
 
 		fastify.log.info(`mapsNames: ${mapNames}`);
-
 		return mapNames;
 	} catch (error) {
 		return [];

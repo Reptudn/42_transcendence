@@ -297,9 +297,9 @@ export async function updateUserPassword(
 	oldPassword: string,
 	newPassword: string,
 	fastify: FastifyInstance
-) {
+) : Promise<boolean> {
 	if (!oldPassword && !newPassword) {
-		return;
+		return false;
 	}
 	if (!oldPassword || !newPassword) {
 		throw new Error(
@@ -324,6 +324,7 @@ export async function updateUserPassword(
 		hashedNew,
 		id,
 	]);
+	return true;
 }
 
 export async function deleteUser(id: number, fastify: FastifyInstance) {

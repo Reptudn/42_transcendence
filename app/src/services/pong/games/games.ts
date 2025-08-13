@@ -8,6 +8,7 @@ import {
 	powerupSpawnChance,
 } from './gameClass.js';
 import { PowerupType } from './gameClass.js';
+import { connectedClients } from '../../sse/handler.js';
 
 export let runningGames: Game[] = [];
 
@@ -81,12 +82,26 @@ setInterval(async () => {
 
 		if (!game.isReady()) continue;
 
-		const playersAliveBefore = game.players.filter((p) => p.lives > 0);
+		const playersAliveBefore = game.players.filter(
+			(p) => p.lives > 0 && !p.spectator
+		);
+
+		for (const player of game.players) {
+			if (
+				player instanceof UserPlayer &&
+				connectedClients.get(player.user.id) === undefined
+			) {
+				player.lives = 0;
+				game.removePlayer(null, player.playerId, false, false); // TODO: get the right t here so the lang is correct
+			}
+		}
 
 		tickEngine(game);
 
 		// record scores for died players, end game if only one player left
-		const playersAliveAfter = game.players.filter((p) => p.lives > 0);
+		const playersAliveAfter = game.players.filter(
+			(p) => p.lives > 0 && !p.spectator
+		);
 		if (playersAliveBefore.length > playersAliveAfter.length) {
 			const diedPlayers = playersAliveBefore.filter(
 				(p) => !playersAliveAfter.some((p2) => p2.playerId === p.playerId)
@@ -124,7 +139,11 @@ setInterval(async () => {
 				});
 				winnerName = winner.displayName;
 			}
-			game.endGame(`Game ended.<br>Winner: ${winnerName}`);
+			game.endGame(
+				`Game ended.<br>Winner: ${winnerName}`,
+				playersAliveAfter[0],
+				true
+			);
 		}
 	}
 }, 1000 / ticksPerSecond);
