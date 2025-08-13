@@ -44,8 +44,8 @@
 	"profile": {
 		"edit_profile": "Profil bearbeiten",
 		"no_bio": "Dieser Benutzer hat keine Biografie.",
-		"friends": "Freunde",
-		"remove": "Entfernen",
+		"friends": "Amis",
+		"remove": "Supprimer",
 		"add_friends": "Ajouter des amis",
 		"locked_achievements": "Succès verrouillés",
 		"achievements": "Succès",
@@ -73,11 +73,17 @@
 		"bio": "Bio"
 	},
 	"lobby_admin": {
+		"game": "Jeu",
 		"lobby_admin": "Configuration du jeu",
+		"add_ai": "Ajouter l'IA",
+		"start_game": "Lancer le jeu",
+		"game_type": "Type de jeu",
+		"add_local_player": "Ajouter un lecteur local",
 		"general_settings": "Paramètres généraux",
 		"map": "Carte",
 		"modes": {
-			"classic": "Classique"
+			"classic": "Classique",
+			"tournament": "Tournoi"
 		},
 		"player_lives": "Vies du joueur",
 		"game_difficulty": "Difficulté du jeu",
@@ -92,6 +98,49 @@
 		},
 		"add_player": "Ajouter un joueur",
 		"remove_player": "Supprimer un joueur",
-		"start_game": "Démarrer le jeu"
+		"online_friends": "Amis en ligne :",
+		"invite_description": "Cliquez sur un ami pour l'inviter à rejoindre votre partie.",
+		"refresh": "Actualiser",
+		"player_count": "Joueurs",
+		"lobby_settings": "Paramètres du lobby",
+		"power_ups": "Améliorations :",
+		"power_ups_active": "Les bonus sont activés.",
+		"power_ups_deactive": "Les bonus sont désactivés.",
+		"players_header": "Joueurs :",
+		"power_enabled_check": "Les bonus sont-ils activés?",
+		"leave_game": "Quitter le jeu"
+	},
+	"lobby": {
+		"game": "Jeu",
+		"add_ai": "Ajouter l'IA",
+		"add_local_player": "Ajouter un lecteur local",
+		"start_game": "Lancer le jeu",
+		"powerups_enabled": "Améliorations activées",
+		"game_diffculty": "Difficulté du jeu",
+		"map": "carte",
+		"online_friends": "Amis en ligne :",
+		"invite_description": "Cliquez sur un ami pour l'inviter à rejoindre votre partie.",
+		"no_friends_online": "Aucun ami en ligne",
+		"refresh": "Actualiser",
+		"player_count": "Joueurs",
+		"lobby_settings": "Paramètres du lobby",
+		"power_ups": "Améliorations :",
+		"power_ups_description": "Les bonus sont désactivés.",
+		"players_header": "Joueurs :"
+	},
+	"chat": {
+		"sent": "Envoyer",
+		"global_chat": "Chat global",
+		"new_chat": "Créer un nouveau groupe",
+		"block_user": "Bloquer l'utilisateur",
+		"unblock_user": "Débloquer l'utilisateur",
+		"invite_to_chat": "Inviter un utilisateur au chat",
+		"user_leave_chat": "Retirer l'utilisateur du chat",
+		"create_new_group": "Créer un nouveau groupe",
+		"invite_user": "Inviter un utilisateur",
+		"cancel": "Annuler",
+		"create_group": "Créer un groupe",
+		"placeholder_search_people": "Rechercher des personnes...",
+		"placeholder_group_name": "Entrez le nom du groupe..."
 	}
 }

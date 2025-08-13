@@ -144,6 +144,9 @@ document.addEventListener('keydown', (event) => {
 	}
 });
 
+// if (window.localStorage.getItem("loggedIn") === "true")
+// 	window.localStorage.setItem("loggedIn", "false");
+
 window.logout = logout;
 window.fetchNumber = fetchNumber;
 window.updateNumber = updateNumber;
