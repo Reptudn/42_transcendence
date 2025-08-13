@@ -34,18 +34,18 @@
 
 ### Tournament System
 
--   [ ] Players have to take turn playing against each other
--   [ ] Next Match has to be announced
--   [ ] Display who is and who will play against who
+-   [x] Players have to take turn playing against each other
+-   [x] Next Match has to be announced
+-   [x] Display who is and who will play against who
 
 ### Security
 
 -   [x] Any password stored in the database, if applicable, must be hashed.
--   [ ] Must be protected against SQL Injections and XSS Attacks
+-   [x] Must be protected against SQL Injections and XSS Attacks
 -   [ ] The Backend must run secure with HTTPS
--   [ ] The Sockets must use WSS instead of just WS
+-   [x] The Sockets must use WSS instead of just WS
 -   [x] Ensure routes are protected
--   [ ] Strong password hashing algo
+-   [x] Strong password hashing algo
 -   [x] Env stuff must be in a .env file and ignored by Git
 
 ## Modules (7 major for mandatory | 9 major for bonus)
@@ -91,7 +91,7 @@
 
 #### Remote Players (Major) (5 / 9)
 
--   [ ] Consider network issues, such as unexpected disconnections or lag. You must offer the best user experience possible.
+-   [x] Consider network issues, such as unexpected disconnections or lag. You must offer the best user experience possible.
 -   [x] Players can play remotely on completely different machines
 
 #### Multiple Players (Major) (6 / 9)

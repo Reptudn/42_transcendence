@@ -1,7 +1,6 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './navigator.js';
 import './script.js';
-import escapeHtml from 'escape-html';
 
 const registerAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;

@@ -109,7 +109,8 @@
 		"power_ups_deactive": "Power-ups are disabled.",
 		"players_header": "Players:",
 		"power_enabled_check": "Power-Ups enabled?",
-		"leave_game": "Leave game"
+		"leave_game": "Leave game",
+		"reset_game_settings": "Reset game settings"
 	},
 	"chat": {
 		"sent": "Send",

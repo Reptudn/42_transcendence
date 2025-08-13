@@ -44,6 +44,9 @@ export class Game {
 	players: Player[] = [];
 	gameState: GameState;
 	config: GameSettings;
+
+	ballSpeed: number = 3;
+
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
 	availableMaps: string[] | null = null;
@@ -53,7 +56,7 @@ export class Game {
 
 	fastify: FastifyInstance;
 
-	private nextPlayerId: number = 0;
+	// private nextPlayerId: number = 0;
 	public alreadyStarted: boolean = false;
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
@@ -87,6 +90,34 @@ export class Game {
 		} as AIBrainData;
 	}
 
+	private getNextAvailablePlayerId(): number {
+		const usedIds = new Set<number>(this.players.map(p => p.playerId));
+		for (let i = 0; i <= this.players.length; i++)
+			if (!usedIds.has(i))
+				return i;
+
+		const maxId = this.players.reduce((max, p) => Math.max(max, p.playerId), -1);
+		return maxId + 1;
+	}
+
+	private shufflePlayerIds(): void {
+		if (this.players.length <= 1) return;
+
+		const adminPlayer = this.players[0];
+		const otherPlayers = this.players.slice(1);
+
+		for (let i = otherPlayers.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[otherPlayers[i], otherPlayers[j]] = [otherPlayers[j], otherPlayers[i]];
+		}
+
+		adminPlayer.playerId = 0;
+		otherPlayers.forEach((player, idx) => {
+			player.playerId = idx + 1;
+		});
+		this.players = [adminPlayer, ...otherPlayers];
+	}
+
 	async addUserPlayer(user: User, silent = false, t: any): Promise<UserPlayer> {
 
 		if (!this.availableMaps)
@@ -113,10 +144,11 @@ export class Game {
 			user,
 			this,
 			null,
-			this.nextPlayerId++,
+			this.getNextAvailablePlayerId(),
 			await getUserTitleString(user.id, this.fastify)
 		);
 		this.players.push(userPlayer);
+
 
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament) {
 			this.tournament.rebuild(this.players);
@@ -135,7 +167,7 @@ export class Game {
 			throw new Error('Game max player amount already reached!');
 
 		const aiPlayer = new AiPlayer(
-			this.nextPlayerId++,
+			this.getNextAvailablePlayerId(),
 			this,
 			aiLevel,
 			this.aiBrainData
@@ -153,7 +185,7 @@ export class Game {
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const localPlayer = new LocalPlayer(this.nextPlayerId++, owner, this);
+		const localPlayer = new LocalPlayer(this.getNextAvailablePlayerId(), owner, this);
 		localPlayer.joined = true; // Local players are always considered joined
 		this.players.push(localPlayer);
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament) {
@@ -165,7 +197,7 @@ export class Game {
 	}
 
 	// TODO: implment logic when a player is leaving while the game is running...
-	async removePlayer(t: any, playerId: number, forced: boolean = false, silent: boolean = false) {
+	async removePlayer(t: any | null, playerId: number, forced: boolean = false, silent: boolean = false) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
@@ -210,7 +242,7 @@ export class Game {
 			this.tournament.rebuild(this.players);
 		}
 
-		if (!silent)
+		if (!silent && t)
 			await this.updateLobbyState(t);
 
 		// TODO: in the future dont end the game when just the owner leaves
@@ -229,6 +261,18 @@ export class Game {
 	}
 
 	async startGame() {
+
+		for (const player of this.players)
+		{
+			if (!(player instanceof UserPlayer)) continue;
+
+			if (connectedClients.get(player.user.id) === undefined)
+				throw new Error('Not all users are connected to SSE');
+		}
+
+
+		this.shufflePlayerIds();
+
 		if (this.config.gameType === GameType.CLASSIC) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
@@ -240,17 +284,18 @@ export class Game {
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
 
-			this.gameState = await getMapAsInitialGameState(this);
-			this.status = GameStatus.RUNNING;
 
+			this.gameState = await getMapAsInitialGameState(this);
+			
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
 					sendSeeMessageByUserId(
-						player.user.id,
-						'game_started',
-						this.gameId
-					);
-
+				player.user.id,
+				'game_started',
+				this.gameId
+			);
+			
+			this.status = GameStatus.RUNNING;
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
 			);
@@ -279,17 +324,17 @@ export class Game {
 			} as AIBrainData;
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
-			this.status = GameStatus.RUNNING;
-
+			
 			for (const player of this.players)
-			{
-				if (player instanceof UserPlayer)
-					sendSeeMessageByUserId(
-						player.user.id,
-						'game_started',
-						this.gameId
-					);
+				{
+					if (player instanceof UserPlayer)
+						sendSeeMessageByUserId(
+					player.user.id,
+					'game_started',
+					this.gameId
+				);
 			}
+			this.status = GameStatus.RUNNING;
 
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
@@ -377,7 +422,16 @@ export class Game {
 		
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && winner)
 		{
-			this.tournament.advance(winner);
+			try {
+				this.tournament.advance(winner);
+			} catch (e) {
+				this.fastify.log.error(`Error advancing tournament: ${e}`);
+				for (const player of this.players) {
+					if (!(player instanceof UserPlayer)) continue;
+					player.disconnect();
+					sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
+				}
+			}
 			let match = this.tournament.getCurrentMatch();
 
 			if (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
