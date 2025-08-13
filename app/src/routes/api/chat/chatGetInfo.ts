@@ -160,12 +160,21 @@ export async function getAllChats(fastify: FastifyInstance) {
 
 				for (const chat of userChats) {
 					if (Boolean(chat.is_group) === false) {
-						const name = await getFriendsDisplayname(
-							fastify,
-							chat.id,
-							userId
-						);
-						if (name) chat.name = name.displayname;
+						try {
+							const name = await getFriendsDisplayname(
+								fastify,
+								chat.id,
+								userId
+							);
+							if (name)
+								chat.name = name.displayname;
+							else
+								chat.name = 'Deleted User';
+							console.log('chat.name = ', chat.name);
+						}
+						catch {
+							chat.name = 'Deleted User';
+						}
 					}
 				}
 				return res.status(200).send({ chats: userChats });

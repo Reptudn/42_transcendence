@@ -46,7 +46,7 @@ export async function checkCmd(
 			break;
 		case '/help':
 			msg =
-				'/group invite username<br>/game invite username</br>/msg username msg<br>/leave</br>';
+				'/group-invite username<br>/game-invite username</br>/msg username msg<br>/leave</br>';
 			break;
 		default:
 			throw new HttpError(400, `Invalid Command: ${escapeHTML(cmd)}`);
@@ -105,15 +105,12 @@ async function gameInviteCmd(
 	if (game.status !== GameStatus.WAITING) {
 		throw new Error('Cannot invite players to a game that has already started');
 	}
-	try {
-		if (game.config.gameType === GameType.TOURNAMENT) {
-			const ai = game.players.find((p) => p instanceof AiPlayer);
-			if (ai) game.removePlayer(ai.playerId, true);
-		}
-		await game.addUserPlayer(inviteUser, false);
-	} catch (err) {
-		throw err;
+
+	if (game.config.gameType === GameType.TOURNAMENT) {
+		const ai = game.players.find((p) => p instanceof AiPlayer);
+		if (ai) game.removePlayer(ai.playerId, true);
 	}
+	await game.addUserPlayer(inviteUser, false);
 
 	sendSseRawByUserId(
 		inviteUser.id,

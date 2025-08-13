@@ -23,13 +23,20 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
+
 			butt.addEventListener('click', async () => {
-				const pos = userIds.indexOf(friend.id.toString());
-				if (pos === -1) userIds.push(friend.id.toString());
-				else userIds.splice(pos, 1);
+			const pos = userIds.indexOf(friend.id.toString());
+			if (pos === -1) {
+				userIds.push(friend.id.toString());
+				butt.classList.add('bg-green-200');
+			} else {
+				userIds.splice(pos, 1);
+				butt.classList.remove('bg-green-200');
+			}
 			});
+
 			butt.textContent = friend.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded transition-colors';
 			userList.appendChild(butt);
 		}
 	}

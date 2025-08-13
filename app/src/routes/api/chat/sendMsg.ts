@@ -153,6 +153,8 @@ export async function sendMsgDm(
 	// wenn fromUser blockiert wurde von der person kann er die nachricht noch in den chat schreiben aber toUser bekommt sie nicht
 	const user = toUser.filter((b) => b.user_id !== fromUser.id);
 
+	if (user.length === 0) throw new HttpError(400, 'User is deleted');
+
 	if (!blockedId.includes(user[0].user_id)) {
 		const msg = await createHtmlMsg(fromUser, chatInfo, content, false);
 		if (!blockerId.includes(user[0].user_id)) {

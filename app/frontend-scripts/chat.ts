@@ -31,7 +31,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		});
 		const data = await res.json();
 		if (!res.ok) {
-			return showLocalError(data.error);
+			return showLocalInfo(data.error);
 		}
 		if (data.msg !== 'ok') showLocalInfo(data.msg);
 	}
@@ -49,7 +49,7 @@ searchUser?.addEventListener('input', async () => {
 	const res = await fetch('/api/chat/chats');
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalError(data.error);
+		return showLocalInfo(data.error);
 	}
 	const input = searchUser.value.trim().toLowerCase();
 	if (input === '') {
@@ -104,7 +104,7 @@ export async function getChats() {
 	const res = await fetch('/api/chat/chats');
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalError(data.error);
+		return showLocalInfo(data.error);
 	}
 	const userList = document.getElementById('userList');
 	if (userList) {
@@ -132,7 +132,7 @@ export async function getMessages(chat_id: string | null) {
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalError(data.error);
+		return showLocalInfo(data.error);
 	}
 	const msgs = data.msgs as htmlMsg[];
 
