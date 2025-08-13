@@ -1,4 +1,9 @@
-import { powerupDuration, powerupObjectRadius, type Game } from '../games/gameClass';
+import {
+	powerupDuration,
+	powerupObjectRadius,
+	PowerupType,
+	type Game,
+} from '../games/gameClass.js';
 
 export function collectPowerups(game: Game) {
 	for (const powerup of game.activePowerups) {
@@ -18,6 +23,17 @@ export function collectPowerups(game: Game) {
 			if (distance < collectDistance) {
 				powerup.started = true;
 				powerup.expiresAt = Date.now() + powerupDuration;
+
+				if (powerup.type === PowerupType.Redirection) {
+					if (ball.velocity) {
+						const speed =
+							Math.hypot(ball.velocity.x, ball.velocity.y) || 3;
+						const theta = Math.random() * 2 * Math.PI;
+						ball.velocity.x = Math.cos(theta) * speed;
+						ball.velocity.y = Math.sin(theta) * speed;
+					}
+					powerup.expiresAt = Date.now();
+				}
 			}
 		}
 	}

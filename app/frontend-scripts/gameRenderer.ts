@@ -22,6 +22,11 @@ const powerupSettings = [
 		icon: '/static/assets/images/powerups/inverse_controls.png',
 		color: { r: 255, g: 0, b: 0 },
 	},
+	{
+		type: 'redirection',
+		icon: '/static/assets/images/powerups/redirection.png',
+		color: { r: 0, g: 255, b: 0 },
+	},
 ];
 
 const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');

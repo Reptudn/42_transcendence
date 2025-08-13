@@ -27,6 +27,7 @@ const defaultGameSettings: GameSettings = {
 
 export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
+	Redirection = 'REDIRECTION',
 	// WonkyBall = 'WONKY_BALL',
 	// RotatingBoard = 'ROTATING_BOARD',
 }

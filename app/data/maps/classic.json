@@ -509,6 +509,20 @@
 				"x": 45,
 				"y": 55
 			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 45,
+				"y": 55
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 55,
+				"y": 45
+			}
 		}
 	]
 }
