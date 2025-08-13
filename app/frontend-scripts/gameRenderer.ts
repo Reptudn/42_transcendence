@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
 import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
@@ -15,6 +15,54 @@ let lastVector: { x: number; y: number } | null = null;
 
 const ballTrail: TrailElement[] = [];
 const trailLifetime: number = 750;
+
+const powerupSettings = [
+	{
+		type: 'inverse_controls',
+		icon: '/static/assets/images/powerups/inverse_controls.png',
+		color: { r: 255, g: 0, b: 0 },
+	},
+	{
+		type: 'redirection',
+		icon: '/static/assets/images/powerups/redirection.png',
+		color: { r: 0, g: 255, b: 0 },
+	},
+	{
+		type: 'nausea',
+		icon: '/static/assets/images/powerups/nausea.png',
+		color: { r: 0, g: 0, b: 255 },
+	},
+];
+
+const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');
+const powerupSettingsMap = new Map(
+	powerupSettings.map((s) => [canonical(s.type), s])
+);
+
+const iconReady = new Map<string, HTMLImageElement>();
+const iconFailed = new Set<string>();
+const iconLoading = new Set<string>();
+function ensureIcon(path: string) {
+	if (iconReady.has(path) || iconFailed.has(path) || iconLoading.has(path)) return;
+	iconLoading.add(path);
+	const img = new Image();
+	img.onload = () => {
+		if (img.naturalWidth > 0) {
+			iconReady.set(path, img);
+		} else {
+			iconFailed.add(path);
+			console.warn('Powerup icon has zero size:', path);
+		}
+		iconLoading.delete(path);
+	};
+	img.onerror = () => {
+		iconFailed.add(path);
+		iconLoading.delete(path);
+		console.warn('Powerup icon failed to load:', path);
+	};
+	img.src = path;
+	img.decode?.().catch(() => {});
+}
 
 interface Point {
 	x: number;
@@ -38,6 +86,12 @@ interface GameState {
 	objects: GameObject[];
 	mapWidth?: number;
 	mapHeight?: number;
+	activePowerups?: {
+		type: string;
+		position: Point;
+		started: boolean;
+		expiresAt: number;
+	}[];
 }
 
 interface TrailElement {
@@ -82,13 +136,39 @@ if (!ctx) {
 	throw new Error('Failed to get 2D context from canvas');
 }
 
-export function initCanvas()
-{
+let nauseaEffectEnabled = false;
+
+function setNauseaEffectEnabled(enabled: boolean) {
+	const canvasWrapper = document.getElementById(
+		'game-canvas-wrapper'
+	) as HTMLElement;
+	if (enabled && !nauseaEffectEnabled) {
+		canvasWrapper.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas.classList.remove('game-canvas-background');
+		nauseaEffectEnabled = true;
+	} else if (!enabled && nauseaEffectEnabled) {
+		canvasWrapper.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas.classList.add('game-canvas-background');
+		nauseaEffectEnabled = false;
+	}
+}
+
+function isPowerupActive(state: GameState | null, type: string): boolean {
+	if (!state?.activePowerups) return false;
+	const now = Date.now();
+	const key = canonical(type);
+	return state.activePowerups.some(
+		(p) => canonical(p.type) === key && p.started && p.expiresAt > now
+	);
+}
+
+export function initCanvas() {
 	canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 	ctx = canvas.getContext('2d');
 	if (!ctx) {
 		throw new Error('Failed to get 2D context from canvas');
 	}
+	for (const s of powerupSettings) ensureIcon(s.icon);
 	startRendering();
 }
 
@@ -119,7 +199,6 @@ export function drawCircle(
 		showLocalError('Canvas context is null');
 	}
 }
-
 export function drawPolygon(
 	points: Point[],
 	strokeStyle: string,
@@ -145,6 +224,67 @@ export function drawPolygon(
 	} else {
 		showLocalError('Canvas context is null');
 	}
+}
+export function drawPowerupIcon(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	fill = true
+) {
+	if (!ctx) return;
+	const settings = powerupSettingsMap.get(canonical(type));
+	const radius = 3 * scale;
+	const color = settings
+		? `rgb(${settings.color.r}, ${settings.color.g}, ${settings.color.b})`
+		: '#888';
+
+	ctx.beginPath();
+	ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+	if (fill) {
+		ctx.fillStyle = color;
+		ctx.fill();
+
+		if (!settings) return;
+		const path = settings.icon;
+		const ready = iconReady.get(path);
+		if (ready) {
+			const size = radius * 1.6;
+			ctx.drawImage(ready, x - size / 2, y - size / 2, size, size);
+			return;
+		}
+		if (!iconFailed.has(path)) ensureIcon(path);
+	} else {
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = color;
+		ctx.stroke();
+	}
+}
+function drawActivePowerupBadge(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	remainingSeconds: number
+) {
+	if (!ctx) return;
+	ctx.save();
+	ctx.globalAlpha = 0.5;
+	drawPowerupIcon(x, y, scale, type, false);
+	ctx.restore();
+
+	ctx.save();
+	const radius = 3 * scale;
+	const fontSize = Math.max(10, Math.floor(radius * 0.9));
+	ctx.font = `${fontSize}px "Courier New", monospace`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.lineWidth = 3;
+	ctx.strokeText(String(remainingSeconds), x, y);
+	ctx.fillStyle = '#fff';
+	ctx.fillText(String(remainingSeconds), x, y);
+	ctx.restore();
 }
 
 export function transformPoints(points: Point[], scale: number): Point[] {
@@ -275,8 +415,6 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	// console.log('Drawing game state:', gameState);
-
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;
 	const scale = Math.min(scaleX, scaleY);
@@ -313,7 +451,26 @@ export function drawGameState(gameState: GameState): void {
 				break;
 		}
 	}
-	console.log("gamestate drawn");
+	if (gameState.activePowerups) {
+		const nowMs = Date.now();
+		for (const p of gameState.activePowerups) {
+			const x = p.position.x * scale;
+			const y = p.position.y * scale;
+			if (p.started) {
+				const remainingMs = p.expiresAt - nowMs;
+				if (remainingMs > 0) {
+					const remainingSeconds = Math.max(
+						0,
+						Math.ceil(remainingMs / 1000)
+					);
+					drawActivePowerupBadge(x, y, scale, p.type, remainingSeconds);
+				}
+			} else {
+				drawPowerupIcon(x, y, scale, p.type);
+			}
+		}
+	}
+	setNauseaEffectEnabled(isPowerupActive(gameState, 'nausea'));
 }
 
 export function updateGameState(
@@ -358,10 +515,7 @@ export function detectBounce(state: GameState): void {
 		if (obj.type === 'ball' && obj.velocity) {
 			const newVector = { x: obj.velocity.x, y: obj.velocity.y };
 			if (lastVector) {
-				const angleDiff = calculateAngleDifference(
-					lastVector,
-					newVector
-				);
+				const angleDiff = calculateAngleDifference(lastVector, newVector);
 				if (angleDiff > 10) {
 					trailColor = randomColor();
 				}
@@ -417,6 +571,7 @@ export function render(): void {
 		const interpolatedState: GameState = {
 			mapWidth: currentState.mapWidth,
 			mapHeight: currentState.mapHeight,
+			activePowerups: currentState.activePowerups,
 			objects: currentState.objects.map((currObj, index) => {
 				const prevObj = previousState
 					? previousState.objects[index]
@@ -462,8 +617,9 @@ export function stopRendering(): void {
 	}
 }
 
-declare global
-{
+startRendering();
+
+declare global {
 	interface Window {
 		initCanvas: () => void;
 		startRendering: () => void;
