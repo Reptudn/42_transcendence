@@ -422,7 +422,16 @@ export class Game {
 		
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && winner)
 		{
-			this.tournament.advance(winner);
+			try {
+				this.tournament.advance(winner);
+			} catch (e) {
+				this.fastify.log.error(`Error advancing tournament: ${e}`);
+				for (const player of this.players) {
+					if (!(player instanceof UserPlayer)) continue;
+					player.disconnect();
+					sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
+				}
+			}
 			let match = this.tournament.getCurrentMatch();
 
 			if (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
