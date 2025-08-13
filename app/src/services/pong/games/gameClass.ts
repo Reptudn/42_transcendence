@@ -28,13 +28,14 @@ const defaultGameSettings: GameSettings = {
 export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
 	Redirection = 'REDIRECTION',
+	Nausea = 'NAUSEA',
 	// WonkyBall = 'WONKY_BALL',
 	// RotatingBoard = 'ROTATING_BOARD',
 }
 
 export const powerupCheckDelay = 5000;
 export const powerupSpawnChance = 0.5;
-export const powerupDuration = 15000;
+export const powerupDuration = 10000;
 export const powerupObjectRadius = 3;
 
 export class Game {

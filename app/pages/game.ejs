@@ -2,7 +2,9 @@
 	<h2 class="text-2xl font-bold mb-4"><%= ownerName %>'s game</h2>
 	<button onclick="leaveWsGame(true)">Leave Game</button>
 	<!-- class="glow-rainbow-border" -->
-	<canvas id="gameCanvas" width="500" height="500" class="game-canvas-background"></canvas>
+	<div id="game-canvas-wrapper">
+		<canvas id="gameCanvas" width="500" height="500" class="game-canvas-background"></canvas>
+	</div>
 	<p>Players:</p>
 	<ul id="playersList">
 		<% players.forEach(player => { %>

@@ -27,6 +27,11 @@ const powerupSettings = [
 		icon: '/static/assets/images/powerups/redirection.png',
 		color: { r: 0, g: 255, b: 0 },
 	},
+	{
+		type: 'nausea',
+		icon: '/static/assets/images/powerups/nausea.png',
+		color: { r: 0, g: 0, b: 255 },
+	},
 ];
 
 const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');
@@ -131,6 +136,32 @@ if (!ctx) {
 	throw new Error('Failed to get 2D context from canvas');
 }
 
+let nauseaEffectEnabled = false;
+
+function setNauseaEffectEnabled(enabled: boolean) {
+	const canvasWrapper = document.getElementById(
+		'game-canvas-wrapper'
+	) as HTMLElement;
+	if (enabled && !nauseaEffectEnabled) {
+		canvasWrapper.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas.classList.remove('game-canvas-background');
+		nauseaEffectEnabled = true;
+	} else if (!enabled && nauseaEffectEnabled) {
+		canvasWrapper.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas.classList.add('game-canvas-background');
+		nauseaEffectEnabled = false;
+	}
+}
+
+function isPowerupActive(state: GameState | null, type: string): boolean {
+	if (!state?.activePowerups) return false;
+	const now = Date.now();
+	const key = canonical(type);
+	return state.activePowerups.some(
+		(p) => canonical(p.type) === key && p.started && p.expiresAt > now
+	);
+}
+
 export function initCanvas() {
 	canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 	ctx = canvas.getContext('2d');
@@ -194,28 +225,41 @@ export function drawPolygon(
 		showLocalError('Canvas context is null');
 	}
 }
-export function drawPowerupIcon(x: number, y: number, scale: number, type: string) {
+export function drawPowerupIcon(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	fill = true
+) {
 	if (!ctx) return;
 	const settings = powerupSettingsMap.get(canonical(type));
 	const radius = 3 * scale;
-	ctx.beginPath();
-	ctx.arc(x, y, radius, 0, Math.PI * 2);
-	ctx.fillStyle = settings
+	const color = settings
 		? `rgb(${settings.color.r}, ${settings.color.g}, ${settings.color.b})`
 		: '#888';
-	ctx.fill();
-	ctx.strokeStyle = '#000';
-	ctx.lineWidth = 1;
-	ctx.stroke();
-	if (!settings) return;
-	const path = settings.icon;
-	const ready = iconReady.get(path);
-	if (ready) {
-		const size = radius * 1.6;
-		ctx.drawImage(ready, x - size / 2, y - size / 2, size, size);
-		return;
+
+	ctx.beginPath();
+	ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+	if (fill) {
+		ctx.fillStyle = color;
+		ctx.fill();
+
+		if (!settings) return;
+		const path = settings.icon;
+		const ready = iconReady.get(path);
+		if (ready) {
+			const size = radius * 1.6;
+			ctx.drawImage(ready, x - size / 2, y - size / 2, size, size);
+			return;
+		}
+		if (!iconFailed.has(path)) ensureIcon(path);
+	} else {
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = color;
+		ctx.stroke();
 	}
-	if (!iconFailed.has(path)) ensureIcon(path);
 }
 function drawActivePowerupBadge(
 	x: number,
@@ -227,7 +271,7 @@ function drawActivePowerupBadge(
 	if (!ctx) return;
 	ctx.save();
 	ctx.globalAlpha = 0.5;
-	drawPowerupIcon(x, y, scale, type);
+	drawPowerupIcon(x, y, scale, type, false);
 	ctx.restore();
 
 	ctx.save();
@@ -426,6 +470,7 @@ export function drawGameState(gameState: GameState): void {
 			}
 		}
 	}
+	setNauseaEffectEnabled(isPowerupActive(gameState, 'nausea'));
 }
 
 export function updateGameState(
