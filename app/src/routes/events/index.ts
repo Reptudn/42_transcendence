@@ -186,7 +186,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (userGames)
 				{
 					const gamePlayer = userGames.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
-					if (gamePlayer) userGames.removePlayer(gamePlayer.playerId);
+					if (gamePlayer) userGames.removePlayer(request.t, gamePlayer.playerId, false, true);
 				}
 				console.log('Client disconnected', user.id);
 				reply.raw.end();

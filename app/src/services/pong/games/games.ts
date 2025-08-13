@@ -26,7 +26,7 @@ setInterval(async () => {
 			if (player instanceof UserPlayer && connectedClients.get(player.user.id) === undefined)
 			{
 				player.lives = 0;
-				game.removePlayer(player.playerId);
+				game.removePlayer(null, player.playerId, false, false); // TODO: get the right t here so the lang is correct
 			}
 		}
 
