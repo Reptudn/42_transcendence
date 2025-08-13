@@ -21,10 +21,20 @@ const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
 	powerupsEnabled: false,
-	powerups: [],
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
 };
+
+export enum PowerupType {
+	InverseControls = 'INVERSE_CONTROLS',
+	// WonkyBall = 'WONKY_BALL',
+	// RotatingBoard = 'ROTATING_BOARD',
+}
+
+export const powerupCheckDelay = 100;
+export const powerupSpawnChance = 0.42;
+export const powerupDuration = 15000;
+export const powerupObjectRadius = 3;
 
 export class Game {
 	gameId: number;
@@ -35,11 +45,14 @@ export class Game {
 	config: GameSettings;
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
+	activePowerups: PowerupInstance[] = [];
+	nextPowerupCheckAt: number = Date.now() + powerupCheckDelay;
+
 	aiBrainData: AIBrainData;
 
 	fastify: FastifyInstance;
 
-	private nextPlayerId: number = 0;
+	private nextPlayerId = 0;
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
 
@@ -70,9 +83,11 @@ export class Game {
 			aiLastTargetParam: 0,
 			lastAIMovementDirection: 0,
 		} as AIBrainData;
+		this.activePowerups = [];
+		this.nextPowerupCheckAt = Date.now() + powerupCheckDelay;
 	}
 
-	async addUserPlayer(user: User) : Promise<UserPlayer> {
+	async addUserPlayer(user: User): Promise<UserPlayer> {
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
 
@@ -96,13 +111,13 @@ export class Game {
 			null,
 			this.nextPlayerId++,
 			await getUserTitleString(user.id, this.fastify)
-		)
+		);
 		this.players.push(userPlayer);
 		await this.updateLobbyState();
 		return userPlayer;
 	}
 
-	async addAiPlayer(aiLevel: number) : Promise<AiPlayer> {
+	async addAiPlayer(aiLevel: number): Promise<AiPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -121,7 +136,7 @@ export class Game {
 		return aiPlayer;
 	}
 
-	async addLocalPlayer(owner: UserPlayer) : Promise<LocalPlayer> {
+	async addLocalPlayer(owner: UserPlayer): Promise<LocalPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
@@ -206,7 +221,6 @@ export class Game {
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
-
 		if (this.status !== GameStatus.WAITING) return;
 
 		const players = this.players.map((player) => player.formatStateForClients());
@@ -217,9 +231,14 @@ export class Game {
 				displayName: player.displayName,
 				playerTitle: player.playerTitle,
 				joined: player.joined,
-				type: player instanceof AiPlayer ? 'AI' : 
-					player instanceof LocalPlayer ? 'Local' : 'User',
-				aiDifficulty: player instanceof AiPlayer ? player.aiDifficulty : undefined // Make sure this is included
+				type:
+					player instanceof AiPlayer
+						? 'AI'
+						: player instanceof LocalPlayer
+						? 'Local'
+						: 'User',
+				aiDifficulty:
+					player instanceof AiPlayer ? player.aiDifficulty : undefined, // Make sure this is included
 			})),
 			gameSettings: this.config,
 			initial: false,
@@ -300,6 +319,7 @@ export class Game {
 		return {
 			...this.gameState,
 			players: this.players.map((player) => player.formatStateForClients()),
+			activePowerups: this.activePowerups,
 		};
 	}
 }

@@ -30,25 +30,6 @@
 		<div id="lobby">
 <% } %>
 		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
-		<div class="settings">
-			<h2 class="text-3xl">Lobby Settings</h2>
-			<div id="lobbySettings">
-				<h3 class="text-2xl">Power-ups:</h3>
-				<% if (gameSettings.powerupsEnabled) { %>
-					<button onclick="addPowerUp()">Add Power Up</button>
-					<% for (const powerup of gameSettings.powerups) { %>
-						<div class="powerup">
-							<span class="powerup-name"><%= powerup.name %></span>
-							<span class="powerup-description"><%= powerup.description %></span>
-							<button onclick="removePowerup()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
-						</div>
-					<% } %>
-				<% } else { %>
-					<p>Power-ups are disabled.</p>
-				<% } %>
-			</div>
-		</div>
-		<br>
 		<br>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>

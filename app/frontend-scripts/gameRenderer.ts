@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
 import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
@@ -38,6 +38,12 @@ interface GameState {
 	objects: GameObject[];
 	mapWidth?: number;
 	mapHeight?: number;
+	activePowerups?: {
+		type: string;
+		position: Point;
+		started: boolean;
+		expiresAt: number;
+	}[];
 }
 
 interface TrailElement {
@@ -82,8 +88,7 @@ if (!ctx) {
 	throw new Error('Failed to get 2D context from canvas');
 }
 
-export function initCanvas()
-{
+export function initCanvas() {
 	canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 	ctx = canvas.getContext('2d');
 	if (!ctx) {
@@ -119,7 +124,6 @@ export function drawCircle(
 		showLocalError('Canvas context is null');
 	}
 }
-
 export function drawPolygon(
 	points: Point[],
 	strokeStyle: string,
@@ -145,6 +149,22 @@ export function drawPolygon(
 	} else {
 		showLocalError('Canvas context is null');
 	}
+}
+export function drawPowerupIcon(x: number, y: number, scale: number, type: string) {
+	console.log('Drawing a powerup icon at ', x, y, '!');
+	const r = 6 * scale;
+	if (!ctx) return;
+	ctx.beginPath();
+	ctx.moveTo(x, y - r);
+	ctx.lineTo(x + r, y);
+	ctx.lineTo(x, y + r);
+	ctx.lineTo(x - r, y);
+	ctx.closePath();
+	ctx.fillStyle = type === 'INVERSE_CONTROLS' ? '#f5d442' : '#888';
+	ctx.fill();
+	ctx.strokeStyle = '#000';
+	ctx.lineWidth = 1;
+	ctx.stroke();
 }
 
 export function transformPoints(points: Point[], scale: number): Point[] {
@@ -275,8 +295,6 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	// console.log('Drawing game state:', gameState);
-
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;
 	const scale = Math.min(scaleX, scaleY);
@@ -313,7 +331,21 @@ export function drawGameState(gameState: GameState): void {
 				break;
 		}
 	}
-	console.log("gamestate drawn");
+	if (gameState.activePowerups) {
+		const scaleX = canvas.width / mapSizeX;
+		const scaleY = canvas.height / mapSizeY;
+		const scale = Math.min(scaleX, scaleY);
+		for (const p of gameState.activePowerups) {
+			if (!p.started) {
+				drawPowerupIcon(
+					p.position.x * scale,
+					p.position.y * scale,
+					scale,
+					p.type
+				);
+			}
+		}
+	}
 }
 
 export function updateGameState(
@@ -358,10 +390,7 @@ export function detectBounce(state: GameState): void {
 		if (obj.type === 'ball' && obj.velocity) {
 			const newVector = { x: obj.velocity.x, y: obj.velocity.y };
 			if (lastVector) {
-				const angleDiff = calculateAngleDifference(
-					lastVector,
-					newVector
-				);
+				const angleDiff = calculateAngleDifference(lastVector, newVector);
 				if (angleDiff > 10) {
 					trailColor = randomColor();
 				}
@@ -417,6 +446,7 @@ export function render(): void {
 		const interpolatedState: GameState = {
 			mapWidth: currentState.mapWidth,
 			mapHeight: currentState.mapHeight,
+			activePowerups: currentState.activePowerups,
 			objects: currentState.objects.map((currObj, index) => {
 				const prevObj = previousState
 					? previousState.objects[index]
@@ -462,8 +492,7 @@ export function stopRendering(): void {
 
 startRendering();
 
-declare global
-{
+declare global {
 	interface Window {
 		initCanvas: () => void;
 		startRendering: () => void;

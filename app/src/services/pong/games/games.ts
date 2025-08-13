@@ -1,9 +1,75 @@
 import { tickEngine } from '../engine/engine.js';
 import type { Game } from './gameClass.js';
 import { UserPlayer } from './playerClass.js';
-import { GameStatus } from './gameClass.js';
+import {
+	GameStatus,
+	powerupCheckDelay,
+	powerupDuration,
+	powerupSpawnChance,
+} from './gameClass.js';
+import { PowerupType } from './gameClass.js';
 
 export let runningGames: Game[] = [];
+
+// powerups
+
+function getPowerupSpawns(game: Game): Point[] {
+	const spawns: Point[] = [];
+	for (const o of game.gameState.objects) {
+		if (o.type === 'powerup_spawn') {
+			if ((o as any).center) spawns.push((o as any).center as Point);
+			else if (o.shape && o.shape.length > 0) spawns.push(o.shape[0]);
+		}
+	}
+	return spawns;
+}
+function choosePowerupType(_game: Game): PowerupType {
+	const vals = Object.values(PowerupType);
+	const isNumericEnum = vals.some((v) => typeof v === 'number');
+	const values = (isNumericEnum
+		? vals.filter((v) => typeof v === 'number')
+		: vals.filter((v) => typeof v === 'string')) as unknown as PowerupType[];
+	const idx = Math.floor(Math.random() * values.length);
+	return values[idx];
+}
+function managePowerups(game: Game) {
+	if (game.status !== GameStatus.RUNNING) return;
+	const now = Date.now();
+	if (game.activePowerups.length) {
+		game.activePowerups = game.activePowerups.filter((p) =>
+			p.started ? p.expiresAt > now : true
+		);
+	}
+	if (!game.config.powerupsEnabled) return;
+	if (now >= game.nextPowerupCheckAt) {
+		game.nextPowerupCheckAt = now + powerupCheckDelay;
+		if (Math.random() < powerupSpawnChance) {
+			const spawns = getPowerupSpawns(game);
+			if (spawns.length) {
+				const pos = spawns[Math.floor(Math.random() * spawns.length)];
+				const type = choosePowerupType(game);
+				if (game.activePowerups.filter((p) => p.type === type).length > 0) {
+					return;
+				}
+				if (
+					game.activePowerups.some(
+						(p) =>
+							!p.started &&
+							p.position.x === pos.x &&
+							p.position.y === pos.y
+					)
+				)
+					return;
+				game.activePowerups.push({
+					type,
+					position: { x: pos.x, y: pos.y },
+					expiresAt: now + powerupDuration,
+					started: false,
+				});
+			}
+		}
+	}
+}
 
 export function removeGame(gameId: number) {
 	// log all content stringified of the ame to be deleted
@@ -35,6 +101,8 @@ setInterval(async () => {
 				});
 			}
 		}
+
+		managePowerups(game);
 
 		// send updated game state to clients
 		for (const player of game.players) {

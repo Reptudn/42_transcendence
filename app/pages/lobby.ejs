@@ -10,13 +10,8 @@
 			<h2 class="text-3xl">Lobby Settings</h2>
 			<div id="lobbySettings">
 				<h3>Power-ups:</h3>
-				<% if (gameSettings.powerupsEnabled && gameSettings.powerups.length > 0) { %>
-					<% for (const powerup of gameSettings.powerups) { %>
-						<div class="powerup">
-							<span class="powerup-name"><%= powerup.name %></span>
-							<span class="powerup-description"><%= powerup.description %></span>
-						</div>
-					<% } %>
+				<% if (gameSettings.powerupsEnabled) { %>
+					<p>Powerups are enabled</p>
 				<% } else { %>
 					<p>Power-ups are disabled.</p>
 					<br>
