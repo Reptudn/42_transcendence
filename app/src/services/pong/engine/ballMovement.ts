@@ -170,6 +170,15 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 		ball.velocity.y = ball.velocity.y - 2 * dot * combinedNormal.y;
 	}
 
+	// XXX: This would be the wiggly ball powerup
+	// const angleAdjust = (Math.random() - 0.5) * (Math.PI / 18); // -5° to +5° in radians
+	// const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
+	// const currentAngle = Math.atan2(ball.velocity.y, ball.velocity.x);
+	// const newAngle = currentAngle + angleAdjust;
+	// ball.velocity.x = Math.cos(newAngle) * speed;
+	// ball.velocity.y = Math.sin(newAngle) * speed;
+
+
 	// Game boundary collisions
 	const { size_x, size_y } = gameState.meta;
 	if (center.x - radius < 0 || center.x + radius > size_x) {

@@ -19,12 +19,12 @@ export function tickEngine(game: Game) {
 
 	// move ball
 	game.gameState = moveBall(game.gameState, game.ballSpeed);
-
-	game.ballSpeed += 0.025;
+	
+	if (game.ballSpeed < 6) game.ballSpeed += 0.025;
 
 	// check hits
 	for (const player of game.players) {
-		// if (player.spectator) continue;
+		if (player.spectator) continue;
 		if (hasPlayerBeenHit(game.gameState, player.playerId)) {
 			game.ballSpeed = 3;
 			player.lives = Math.max(0, player.lives - 1);
@@ -41,7 +41,6 @@ export function tickEngine(game: Game) {
 			if (Math.random() < 0.0001) {
 				unlockAchievement(p.user.id, 'lucky', (game as any).fastify);
 			}
-			// game.gameState = resetBall(game.gameState, 3);
 		}
 	}
 }
