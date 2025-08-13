@@ -130,6 +130,7 @@
 		"block": "Benutzer erfolgreich gesperrt",
 		"unblock": "Benutzer erfolgreich entsperrt",
 		"invite": "Benutzer erfolgreich eingeladen",
+		"game-invite": "Benutzer erfolgreich zum Spiel hinzugefügt",
 		"leave": "Sie haben die Gruppe erfolgreich verlassen"
 	}
 }

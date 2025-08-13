@@ -147,6 +147,7 @@
 		"block": "Utilisateur bloqué avec succès",
 		"unblock": "L'utilisateur a été bloqué avec succès",
 		"invite": "L'utilisateur a été invité avec succès",
+		"game-invite": "Utilisateur ajouté avec succès au jeu",
 		"leave": "Vous avez quitté le groupe avec succès."
 	}
 }

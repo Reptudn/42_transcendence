@@ -130,6 +130,7 @@
 		"block": "User blocked successfully",
 		"unblock": "User successfully unblocked",
 		"invite": "User successfully invited",
+		"game-invite": "User successfully added to game",
 		"leave": "You have successfully left the group"
 	}
 }

@@ -36,6 +36,7 @@ export async function checkCmd(
 			break;
 		case '/game-invite':
 			await gameInviteCmd(fastify, fromUser, args);
+			msg = 'chat.game-invite';
 			break;
 		case '/msg':
 			await sendMsgCmd(fastify, fromUser, args);
@@ -137,7 +138,7 @@ async function inviteCmd(
 			await invite(fastify, chatID, fromUser, toUser.id);
 		else throw new HttpError(400, 'User not found');
 	} else {
-		throw new HttpError(400, 'Wrong Number of Command Arguments');
+		throw new HttpError(400, 'Invalid use of command: /group-invite <username>');
 	}
 }
 
@@ -150,7 +151,7 @@ async function leaveCmd(
 	if (args.length === 0) {
 		await leave(fastify, chatId, fromUser);
 	} else {
-		throw new HttpError(400, 'Wrong Number of Command Arguments');
+		throw new HttpError(400, 'Invalid use of command: /leave');
 	}
 }
 
@@ -160,7 +161,7 @@ async function sendMsgCmd(
 	args: string[]
 ) {
 	if (args.length < 2)
-		throw new HttpError(400, 'Wrong Number of Command Arguments');
+		throw new HttpError(400, 'Invalid use of command: /msg <username> <msg>');
 	const user = await getUserById(fromUser, fastify);
 	if (!user) throw new HttpError(400, 'User not found');
 

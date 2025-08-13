@@ -9,6 +9,7 @@ await getMessages(sessionStorage.getItem('chat_id'));
 document.getElementById('globalChat')?.addEventListener('click', async () => {
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages(sessionStorage.getItem('chat_id'));
+	document.getElementById('optionModal')?.classList.add('hidden');
 });
 
 document.getElementById('sendChatButton')?.addEventListener('click', async () => {

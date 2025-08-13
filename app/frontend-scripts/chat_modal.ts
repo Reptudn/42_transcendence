@@ -25,18 +25,19 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 			const butt = document.createElement('button');
 
 			butt.addEventListener('click', async () => {
-			const pos = userIds.indexOf(friend.id.toString());
-			if (pos === -1) {
-				userIds.push(friend.id.toString());
-				butt.classList.add('bg-green-200');
-			} else {
-				userIds.splice(pos, 1);
-				butt.classList.remove('bg-green-200');
-			}
+				const pos = userIds.indexOf(friend.id.toString());
+				if (pos === -1) {
+					userIds.push(friend.id.toString());
+					butt.classList.add('bg-green-200');
+				} else {
+					userIds.splice(pos, 1);
+					butt.classList.remove('bg-green-200');
+				}
 			});
 
 			butt.textContent = friend.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded transition-colors';
+			butt.className =
+				'hover:bg-gray-100 cursor-pointer p-1 rounded transition-colors';
 			userList.appendChild(butt);
 		}
 	}
@@ -250,7 +251,7 @@ document.getElementById('closeInviteUser')?.addEventListener('click', async () =
 	document.getElementById('inviteUserWindow')?.classList.add('hidden');
 });
 
-// Leave User Modal
+// Leave User
 
 document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const res = await fetch(
@@ -259,10 +260,18 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const data = await res.json();
 	if (!res.ok) {
 		showLocalError(data.error);
+		document.getElementById('optionModal')?.classList.add('hidden');
 		return;
 	}
 	showLocalInfo(data.msg);
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages('1');
 	await getChats();
+	document.getElementById('optionModal')?.classList.add('hidden');
+});
+
+// Options Modal
+
+document.getElementById('optionButton')?.addEventListener('click', async () => {
+	document.getElementById('optionModal')?.classList.remove('hidden');
 });
