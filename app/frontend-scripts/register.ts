@@ -1,15 +1,14 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './navigator.js';
 import './script.js';
+import escapeHtml from 'escape-html';
 
 const registerAction = async () => {
-	const username = (document.querySelector('#username') as HTMLInputElement)
+	const username = (document.querySelector('#username') as HTMLInputElement).value;
+	const displayname = (document.querySelector('#displayname') as HTMLInputElement)
 		.value;
-	const displayname = (
-		document.querySelector('#displayname') as HTMLInputElement
-	).value;
-	const password = (document.querySelector('#password') as HTMLInputElement)
-		.value;
+	const password = (document.querySelector('#password') as HTMLInputElement).value;
+
 	try {
 		const response = await fetch('/api/auth/register', {
 			method: 'POST',
@@ -48,9 +47,7 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 				(input as HTMLInputElement).value.length
 			}/${max}`;
 		});
-		counter.textContent = `${
-			(input as HTMLInputElement).value.length
-		}/${max}`;
+		counter.textContent = `${(input as HTMLInputElement).value.length}/${max}`;
 	}
 }
 updateCounter('username', 'usernameCounter', 16);
