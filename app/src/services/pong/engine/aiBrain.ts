@@ -57,7 +57,6 @@ export function updateAIMovement(game: Game): void {
 			(obj) => obj.type === 'paddle' && obj.playerNbr === player.playerId
 		);
 
-		console.log(`before AI Player ${player.displayName} - Ball Position: ${ballPos.x}, ${ballPos.y}`);
 		if (
 			!damageArea ||
 			!damageArea.shape ||
@@ -71,7 +70,6 @@ export function updateAIMovement(game: Game): void {
 			);
 			continue;
 		}
-		console.log(`after AI Player ${player.displayName} - Ball Position: ${ballPos.x}, ${ballPos.y}`);
 
 		// find the closest point on damage area to ball
 		const { param: targetParam, closestPoint } = projectPointOnPolyline(

@@ -11,6 +11,8 @@ import {
 	sendSseHeaders,
 	sendSseMessage,
 } from '../../services/sse/handler';
+import { runningGames } from '../../services/pong/games/games';
+import { UserPlayer } from '../../services/pong/games/playerClass';
 
 const sendServerNotificationSchema = {
 	type: 'object',
@@ -179,6 +181,13 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			request.raw.on('close', () => {
 				connectedClients.delete(user.id);
+
+				const userGames = runningGames.find((game) => game.players.some((p) => p instanceof UserPlayer && p.user.id === user.id));
+				if (userGames)
+				{
+					const gamePlayer = userGames.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
+					if (gamePlayer) userGames.removePlayer(request.t, gamePlayer.playerId, false, true);
+				}
 				console.log('Client disconnected', user.id);
 				reply.raw.end();
 			});

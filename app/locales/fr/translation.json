@@ -108,7 +108,8 @@
 		"power_ups_deactive": "Les bonus sont désactivés.",
 		"players_header": "Joueurs :",
 		"power_enabled_check": "Les bonus sont-ils activés?",
-		"leave_game": "Quitter le jeu"
+		"leave_game": "Quitter le jeu",
+		"reset_game_settings": "Réinitialiser les paramètres du jeu"
 	},
 	"lobby": {
 		"game": "Jeu",

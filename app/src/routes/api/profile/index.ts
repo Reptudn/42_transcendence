@@ -248,7 +248,9 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile_picture,
 					fastify
 				);
-				await updateUserPassword(userId, oldPassword, newPassword, fastify);
+				if (await updateUserPassword(userId, oldPassword, newPassword, fastify)){
+					reply.clearCookie('token', { path: '/' });
+				}
 
 				return reply.code(200).send({ message: 'Profile updated' });
 			} catch (error) {

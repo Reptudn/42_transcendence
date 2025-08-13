@@ -5,7 +5,9 @@ import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 const urlParams = new URLSearchParams(window.location.search);
 const gameId = urlParams.get('gameId');
 
-const wsUrl = `/api/games/connect?gameId=${gameId}`;
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsHost = window.location.host;
+const wsUrl = `${wsProtocol}//${wsHost}/api/games/connect?gameId=${gameId}`;
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
