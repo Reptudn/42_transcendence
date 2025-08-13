@@ -47,9 +47,7 @@ async function fetchNumber(): Promise<void> {
 	}
 }
 async function updateNumber(increment: number): Promise<void> {
-
-	if (window.localStorage.getItem('loggedIn') !== 'true')
-	{
+	if (window.localStorage.getItem('loggedIn') !== 'true') {
 		showLocalError('You need to be logged in to do this!');
 		return;
 	}
@@ -87,10 +85,11 @@ async function logout(): Promise<void> {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			updateMenu();
-			await loadPartialView('index', true, null, true, true, true);
+			sessionStorage.setItem('chat_id', '1');
 			window.localStorage.setItem('loggedIn', 'false');
+			await loadPartialView('index', true, null, true, true, true);
 			window.notifyEventSource?.close();
-			window.notifyEventSource = null
+			window.notifyEventSource = null;
 			closeAllPopups();
 			showLocalInfo('You have been logged out with impeccable style!');
 		} else {

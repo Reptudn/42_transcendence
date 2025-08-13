@@ -1,4 +1,4 @@
-import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { sendPopupToClient } from '../../services/sse/popup';
 import { checkAuth } from '../../services/auth/auth';
 import {

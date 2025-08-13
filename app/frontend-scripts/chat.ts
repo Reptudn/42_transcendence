@@ -33,7 +33,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		if (!res.ok) {
 			return showLocalError(data.error);
 		}
-		if (data.msg !== 'Command executed') showLocalInfo(data.msg);
+		if (data.msg !== 'ok') showLocalInfo(data.msg);
 	}
 });
 
@@ -80,14 +80,7 @@ export function appendToChatBox(rawMessage: string) {
 	const msg = JSON.parse(rawMessage) as htmlMsg;
 
 	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) {
-		if (msg.blocked) return;
-		showLocalInfo(
-			`You recived a new Msg from ${msg.fromUserName}`,
-			`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
-		);
-		return;
-	}
+	if (!chatMessages) return;
 
 	const nowChatId = sessionStorage.getItem('chat_id');
 	if (nowChatId) {
@@ -100,9 +93,10 @@ export function appendToChatBox(rawMessage: string) {
 		}
 	}
 	if (msg.blocked || msg.ownMsg) return;
+	console.log('test hier');
 	showLocalInfo(
 		`You recived a new Msg from ${msg.fromUserName}`,
-		`loadPartialView('chat', true, null, true); sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+		`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
 	);
 }
 

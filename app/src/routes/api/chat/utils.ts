@@ -96,16 +96,16 @@ export async function getMsgForGroup(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
 			continue;
 		}
 		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
 		else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) {
-				htmlMsgs.push(createHtmlMsg(user, null, 'Msg blocked', true));
-			} else htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+				htmlMsgs.push(await createHtmlMsg(user, null, 'Msg blocked', true));
+			} else htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
 		}
 	}
 	return htmlMsgs;
@@ -125,15 +125,15 @@ export async function getMsgForDm(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
 			continue;
 		}
 		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
 		else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content, false));
+			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
 		}
 	}
 	return htmlMsgs;

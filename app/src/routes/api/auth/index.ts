@@ -7,7 +7,14 @@ import {
 	loginUser,
 	registerUser,
 } from '../../../services/database/users';
-import { getUser2faRescue, getUser2faSecret, removeUser2fa, verify2fa } from '../../../services/database/totp';
+import {
+	getUser2faRescue,
+	getUser2faSecret,
+	removeUser2fa,
+	verify2fa,
+} from '../../../services/database/totp';
+import { checkAuth } from '../../../services/auth/auth';
+import { forceCloseSseByUserId } from '../../../services/sse/handler';
 
 const authSchema = {
 	type: 'object',
@@ -19,30 +26,35 @@ const authSchema = {
 			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Username must be a text value',
-				minLength: process.env.NODE_ENV === 'production' 
-					? 'Username must be at least 3 characters long'
-					: 'Username must be at least 1 character long',
+				minLength:
+					process.env.NODE_ENV === 'production'
+						? 'Username must be at least 3 characters long'
+						: 'Username must be at least 1 character long',
 				maxLength: 'Username cannot be longer than 16 characters',
-				pattern: 'Username can only contain letters, numbers, and underscores'
-			}
+				pattern:
+					'Username can only contain letters, numbers, and underscores',
+			},
 		},
 		password: {
 			type: 'string',
 			minLength: process.env.NODE_ENV === 'production' ? 8 : 1,
 			maxLength: 32,
-			pattern: process.env.NODE_ENV === 'production'
-				? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
-				: '',
+			pattern:
+				process.env.NODE_ENV === 'production'
+					? '^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&#+-])[A-Za-z\\d@$!%*?&#+-]+$'
+					: '',
 			errorMessage: {
 				type: 'Password must be a text value',
-				minLength: process.env.NODE_ENV === 'production'
-					? 'Password must be at least 8 characters long'
-					: 'Password must be at least 1 character long',
+				minLength:
+					process.env.NODE_ENV === 'production'
+						? 'Password must be at least 8 characters long'
+						: 'Password must be at least 1 character long',
 				maxLength: 'Password cannot be longer than 32 characters',
-				pattern: process.env.NODE_ENV === 'production'
-					? 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#+-)'
-					: 'Invalid password format'
-			}
+				pattern:
+					process.env.NODE_ENV === 'production'
+						? 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#+-)'
+						: 'Invalid password format',
+			},
 		},
 		displayname: {
 			type: 'string',
@@ -51,20 +63,22 @@ const authSchema = {
 			pattern: '^[a-zA-Z0-9_]+$',
 			errorMessage: {
 				type: 'Display name must be a text value',
-				minLength: process.env.NODE_ENV === 'production'
-					? 'Display name must be at least 3 characters long'
-					: 'Display name must be at least 1 character long',
+				minLength:
+					process.env.NODE_ENV === 'production'
+						? 'Display name must be at least 3 characters long'
+						: 'Display name must be at least 1 character long',
 				maxLength: 'Display name cannot be longer than 32 characters',
-				pattern: 'Username can only contain letters, numbers, and underscores'
-			}
+				pattern:
+					'Username can only contain letters, numbers, and underscores',
+			},
 		},
 		totp: {
 			type: 'string',
 			pattern: '^[0-9]{6}$',
 			errorMessage: {
 				type: 'TOTP code must be a text value',
-				pattern: 'TOTP code must be exactly 6 digits'
-			}
+				pattern: 'TOTP code must be exactly 6 digits',
+			},
 		},
 	},
 	required: ['username', 'password'],
@@ -72,10 +86,11 @@ const authSchema = {
 	errorMessage: {
 		required: {
 			username: 'Username is required',
-			password: 'Password is required'
+			password: 'Password is required',
 		},
-		additionalProperties: 'Unknown field provided. Only username, password, displayname, and totp are allowed'
-	}
+		additionalProperties:
+			'Unknown field provided. Only username, password, displayname, and totp are allowed',
+	},
 };
 
 const registerSchema = {
@@ -85,10 +100,11 @@ const registerSchema = {
 		required: {
 			username: 'Username is required for registration',
 			password: 'Password is required for registration',
-			displayname: 'Display name is required for registration'
+			displayname: 'Display name is required for registration',
 		},
-		additionalProperties: 'Unknown field provided. Only username, password, displayname, and totp are allowed'
-	}
+		additionalProperties:
+			'Unknown field provided. Only username, password, displayname, and totp are allowed',
+	},
 };
 
 let users_2fa: number[] = [];
@@ -139,8 +155,19 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
-	fastify.post('/logout', async (req: any, reply: any) => {
-		return reply.clearCookie('token', { path: '/' }).send({ message: 'Logged out successfully' });
+	fastify.post('/logout', async (req: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const user = await checkAuth(req, true, fastify);
+			if (user) forceCloseSseByUserId(user.id);
+
+			return reply
+				.clearCookie('token', { path: '/' })
+				.send({ message: 'Logged out successfully' });
+		} catch (e) {
+			if (e instanceof Error)
+				return reply.code(401).send({ error: e.message });
+			else return reply.code(401).send({ error: 'Failed to logout!' });
+		}
 	});
 	fastify.post(
 		'/register',
@@ -164,46 +191,43 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	
-	fastify.post(
-		'/2fa',
-		async (req: FastifyRequest, reply: FastifyReply) => {
-			const { userid, fa_token, rescue_token } = req.body as {
-				userid: number;
-				fa_token: string;
-				rescue_token: string;
-			};
+	fastify.post('/2fa', async (req: FastifyRequest, reply: FastifyReply) => {
+		const { userid, fa_token, rescue_token } = req.body as {
+			userid: number;
+			fa_token: string;
+			rescue_token: string;
+		};
 
-			const user = await getUserById(userid, fastify);
-			if (!user) return reply.code(401).send({error: 'Invalid 2fa code!'});
-			if (rescue_token !== await getUser2faRescue(user, fastify)){
-				if (!userid || !fa_token)
-					return reply.code(401).send({error: 'Invalid 2fa code!'});
-				const index = users_2fa.findIndex((id) => id === Number(userid));
-				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code!'});
-				if ((await verify2fa(user, fa_token, fastify)) === false){
-					return reply.code(401).send({error: 'Invalid 2fa code!'});
-				}
+		const user = await getUserById(userid, fastify);
+		if (!user) return reply.code(401).send({ error: 'Invalid 2fa code!' });
+		if (rescue_token !== (await getUser2faRescue(user, fastify))) {
+			if (!userid || !fa_token)
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			const index = users_2fa.findIndex((id) => id === Number(userid));
+			if (index === -1)
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			if ((await verify2fa(user, fa_token, fastify)) === false) {
+				return reply.code(401).send({ error: 'Invalid 2fa code!' });
 			}
-			users_2fa = users_2fa.filter((id) => id !== user.id);
-			if(rescue_token === await getUser2faRescue(user, fastify)){
-				await removeUser2fa(user, fastify);
-			}
-			const token = fastify.jwt.sign(
-				{ username: user.username, id: user.id },
-				{ expiresIn: '10d' }
-			);
-			await unlockAchievement(user.id, 'login', fastify);
-			return reply
-				.setCookie('token', token, {
-					httpOnly: true,
-					secure: process.env.NODE_ENV === 'production',
-					sameSite: 'strict',
-					path: '/',
-				})
-				.send({ message: 'Login successful with 2fa!' });
 		}
-	);
+		users_2fa = users_2fa.filter((id) => id !== user.id);
+		if (rescue_token === (await getUser2faRescue(user, fastify))) {
+			await removeUser2fa(user, fastify);
+		}
+		const token = fastify.jwt.sign(
+			{ username: user.username, id: user.id },
+			{ expiresIn: '10d' }
+		);
+		await unlockAchievement(user.id, 'login', fastify);
+		return reply
+			.setCookie('token', token, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'strict',
+				path: '/',
+			})
+			.send({ message: 'Login successful with 2fa!' });
+	});
 	fastify.post(
 		'/2fa_google',
 		{
@@ -216,24 +240,24 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							minLength: 0,
 							maxLength: 22,
 							errorMessage: {
-					type: 'Wrong rescue code',
-					minLength: 'Wrong rescue code',
-					maxLength: 'Wrong rescue code',
-				},
+								type: 'Wrong rescue code',
+								minLength: 'Wrong rescue code',
+								maxLength: 'Wrong rescue code',
+							},
 						},
 						fa_token: {
 							type: 'string',
 							minLength: 0,
 							maxLength: 6,
 							errorMessage: {
-					type: 'Wrong 2fa code',
-					minLength: 'Wrong 2fa code',
-					maxLength: 'Wrong 2fa code',
-				},
+								type: 'Wrong 2fa code',
+								minLength: 'Wrong 2fa code',
+								maxLength: 'Wrong 2fa code',
+							},
 						},
-					}
-				}
-			}
+					},
+				},
+			},
 		},
 		async (req: FastifyRequest, reply: FastifyReply) => {
 			const { userid, fa_token, rescue_token } = req.body as {
@@ -243,18 +267,23 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			};
 			fastify.log.info(`Trying Google 2FA for userid: ${userid}`);
 			const user = await getUserById(userid, fastify);
-			if (!user) return reply.code(401).send({error: 'Invalid 2fa code! 1'});
-			if (rescue_token !== await getUser2faRescue(user, fastify)){
+			if (!user) return reply.code(401).send({ error: 'Invalid 2fa code! 1' });
+			if (rescue_token !== (await getUser2faRescue(user, fastify))) {
 				if (!userid || !fa_token)
-					return reply.code(401).send({error: 'Invalid 2fa code! 2'});
-				const index = users_2fa_google.findIndex((id) => id === Number(userid));
-				if (index === -1) return reply.code(401).send({error: 'Invalid 2fa code pls work!'});
-				if ((await verify2fa(user, fa_token, fastify)) === false){
-					return reply.code(401).send({error: 'Invalid 2fa code! 4'});
+					return reply.code(401).send({ error: 'Invalid 2fa code! 2' });
+				const index = users_2fa_google.findIndex(
+					(id) => id === Number(userid)
+				);
+				if (index === -1)
+					return reply
+						.code(401)
+						.send({ error: 'Invalid 2fa code pls work!' });
+				if ((await verify2fa(user, fa_token, fastify)) === false) {
+					return reply.code(401).send({ error: 'Invalid 2fa code! 4' });
 				}
 			}
 			users_2fa_google = users_2fa_google.filter((id) => id !== user.id);
-			if(rescue_token === await getUser2faRescue(user, fastify)){
+			if (rescue_token === (await getUser2faRescue(user, fastify))) {
 				await removeUser2fa(user, fastify);
 			}
 			const token = fastify.jwt.sign(
@@ -275,4 +304,3 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 };
 
 export default auth;
-
