@@ -26,8 +26,9 @@
 		<label for="map-select">Map:</label>
 		<select name="Map" id="map-select">
 			<% if (availableMaps && availableMaps.length > 0) { %>
+				<% const currentMap = (gameSettings.map || '').toLowerCase(); %>
 				<% for (const map of availableMaps) { %>
-					<option value="<%= map %>"><%= map %></option>
+					<option value="<%= map %>" <%= map.toLowerCase() === currentMap ? 'selected' : '' %>><%= map %></option>
 				<% } %>
 			<% } else { %>
 				<option value="">No maps available</option>
@@ -97,7 +98,7 @@
 				<% } %> 
 			</div>
 		</div>
-		<% } else if (tournamentTree) { %>
+		<% } else if (gameSettings.gameType === 'tournament') { %>
 			<h2 class="text-3xl mb-4">Tournament Tree</h2>
 			<%- include('misc/tournament_tree') %>
 		<% } else { %>

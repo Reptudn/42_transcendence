@@ -19,8 +19,19 @@
 		}
 	},
 	"index": {
-		"title": "Willkommen bei Transcendence, Fremder...",
-		"description": "Nur du und deine Lachsnase!"
+		"title": "Willkommen bei Transcendence Fremder...",
+		"what_you_can_do": "Was du hier tun kannst:",
+		"add_friends": "🤝 Füge Freunde hinzu und erweitere deinen Gaming-Kreis.",
+		"adjust_profile": "🖼️ Passe dein Profil an – aktualisiere deinen Avatar, Spitznamen und mehr.",
+		"enable_2fa": "🔒 Aktiviere 2FA für zusätzliche Kontosicherheit.",
+		"pong_heart": "🏓 Spiele Pong – das Herzstück des Erlebnisses:",
+		"tournament_mode_title": "Turniermodus",
+		"tournament_mode_desc": "Tritt gegen andere an und beweise dein Können.",
+		"classic_mode_title": "Klassischer Modus",
+		"classic_mode_desc": "Genieße lockere Matches gegen Freunde oder KI.",
+		"powerups_title": "Lustige Powerups",
+		"powerups_desc": "Bringe Chaos und Spannung in jedes Spiel.",
+		"ready": "Bereit zu spielen? Melde dich an und leg los!"
 	},
 	"login": {
 		"title": "Einloggen",
