@@ -54,7 +54,7 @@ function computeCollisionResponse(
 	radius: number,
 	polygon: Point[]
 ): { normal: Point; penetration: number } | null {
-	let bestPenetration = -Infinity;
+	let bestPenetration = Number.NEGATIVE_INFINITY;
 	let bestNormal: Point | null = null;
 	for (let i = 0; i < polygon.length; i++) {
 		const a = polygon[i];
@@ -130,7 +130,7 @@ export function moveBall(
 	}
 
 	const potentialCollisions: Point[][] = [];
-	for (let obj of gameState.objects) {
+	for (const obj of gameState.objects) {
 		if (!obj.shape) continue;
 		// Skip objects were inside of to avoid getting stuck within them.
 		if (circlePolygonCollision(center, radius, obj.shape)) {
@@ -176,6 +176,34 @@ export function moveBall(
 				ball.velocity.x -= 2 * dot * c.normal.x;
 				ball.velocity.y -= 2 * dot * c.normal.y;
 			}
+		}
+	}
+
+	// end of tick collision resolving safety net if something went wrong before
+	{
+		const allPolys: Point[][] = [];
+		for (const o of gameState.objects) {
+			if (o.shape && (o.type === 'paddle' || o.type === 'wall'))
+				allPolys.push(o.shape);
+		}
+		for (let i = 0; i < 4; i++) {
+			let fixed = false;
+			for (const poly of allPolys) {
+				if (!circlePolygonCollision(center, radius, poly)) continue;
+				const resp = computeCollisionResponse(center, radius, poly);
+				if (!resp) continue;
+				center.x += resp.normal.x * resp.penetration;
+				center.y += resp.normal.y * resp.penetration;
+				const dot =
+					ball.velocity.x * resp.normal.x +
+					ball.velocity.y * resp.normal.y;
+				if (dot < 0) {
+					ball.velocity.x -= 2 * dot * resp.normal.x;
+					ball.velocity.y -= 2 * dot * resp.normal.y;
+				}
+				fixed = true;
+			}
+			if (!fixed) break;
 		}
 	}
 
