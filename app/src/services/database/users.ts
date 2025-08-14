@@ -42,8 +42,8 @@ export async function registerUser(
 	if (username.length > 16) {
 		throw new Error('Username must be 16 or fewer characters');
 	}
-	if (displayname.length > 16) {
-		throw new Error('Display name must be 16 or fewer characters');
+	if (displayname.length > 32) {
+		throw new Error('Display name must be 32 or fewer characters');
 	}
 	if (password.length < 8 || password.length > 32) {
 		throw new Error('Password must be between 8 and 32 characters long');
@@ -206,8 +206,8 @@ export async function updateUserProfile(
 	if (username && username.length > 16) {
 		throw new Error('Username must be 16 or fewer characters');
 	}
-	if (displayname && displayname.length > 16) {
-		throw new Error('Display name must be 16 or fewer characters');
+	if (displayname && displayname.length > 32) {
+		throw new Error('Display name must be 32 or fewer characters');
 	}
 	if (bio && bio.length >= 1024) {
 		throw new Error('Bio must be under 1024 characters');
