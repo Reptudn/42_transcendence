@@ -9,7 +9,7 @@ import {
 	GameType,
 	// GameType,
 } from '../../../services/pong/games/gameClass';
-import { sendSseRawByUserId } from '../../../services/sse/handler';
+import { connectedClients, sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
@@ -31,6 +31,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
 				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+
+			if (!connectedClients.get(user.id)) {
+				fastify.log.warn(`User ${user.username} is not connected`);
+				return reply.code(400).send({ error: 'User is not connected to SSE' });
 			}
 
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
@@ -576,7 +581,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					)
 			);
 			if (!game) {
-				return reply.code(404).send({ error: 'No game found for the user' });
+				// TODO: get from the db if its a past game
+				return reply.code(200).send({ message: 'No game found for the user or game is over' });
 			}
 
 			const player = game.players.find(

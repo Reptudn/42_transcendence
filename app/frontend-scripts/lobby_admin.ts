@@ -197,7 +197,8 @@ export async function leaveGame() {
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+		if (error.error !== 'No game found for the user')
+			showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
 	}
 	await loadPartialView('profile');
 }

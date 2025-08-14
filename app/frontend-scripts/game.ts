@@ -22,7 +22,7 @@ ws.onerror = (error) => {
 	showLocalError('Failed to connect to game server');
 };
 
-ws.onclose = (event) => {
+ws.onclose = async (event) => {
 	window.stopRendering();
 	clearInterval(input_interval);
 	console.log('WebSocket closed:', event.code, event.reason);
@@ -31,16 +31,16 @@ ws.onclose = (event) => {
 	switch (event.code) {
 		case 1008: // Policy violation (your custom error codes)
 			showLocalError(`Connection rejected: ${event.reason}`);
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 
 		case 1000: // Normal closure
 			showLocalInfo('Connection to game closed!');
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 		case 1001: // Going away
 			showLocalInfo('Server is shutting down!');
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 
 		// case 1006:

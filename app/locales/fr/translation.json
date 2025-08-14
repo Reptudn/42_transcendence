@@ -42,8 +42,8 @@
 		"title": "À propos"
 	},
 	"profile": {
-		"edit_profile": "Profil bearbeiten",
-		"no_bio": "Dieser Benutzer hat keine Biografie.",
+		"edit_profile": "Editer votre profil",
+		"no_bio": "Il n'a pas une bio",
 		"friends": "Amis",
 		"remove": "Supprimer",
 		"add_friends": "Ajouter des amis",

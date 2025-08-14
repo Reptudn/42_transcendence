@@ -46,8 +46,8 @@ export function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = async (event) => {
-		// console.log('EventSource message received:', event);
-		// console.log('EventSource data:', event.data);
+		console.log('EventSource message received:', event);
+		console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 			switch (data.type) {
@@ -71,16 +71,16 @@ export function setupEventSource() {
 					break;
 				case 'game_invite':
 					console.log('👫 Game invite received:', data);
-					// await sendPopup(
-					// 	'Game Invite',
-					// 	'You have been invited to play a game!',
-					// 	'blue',
-					// 	`acceptGameInvite(${data.gameId})`,
-					// 	'Accept'
-					// );
+					await sendPopup(
+						'Game Invite',
+						'You have been invited to play a game!',
+						'blue',
+						`acceptGameInvite(${data.gameId})`,
+						'Accept'
+					);
 					// TODO: make this a sendPopupCall with actual buttons
 					showLocalInfo(
-						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><button onclick="declineInvite(${data.gameId})">Decline</button>`
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><br><br><button onclick="declineInvite(${data.gameId})">Decline</button>`
 					);
 					break;
 				// case 'game_admin_request':
