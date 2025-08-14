@@ -138,7 +138,9 @@ export class Game {
 			this.availableMaps = await getAvailableMaps(this.fastify);
 
 		if (this.alreadyStarted)
-			throw new Error('Cant add a user when the first tournament round has been played already');
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
@@ -202,7 +204,9 @@ export class Game {
 			throw new Error('Game already running!');
 
 		if (this.alreadyStarted)
-			throw new Error('Cant add a user when the first tournament round has been played already');
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
@@ -235,7 +239,9 @@ export class Game {
 		if (!playerToRemove) throw new Error('Player not found!');
 
 		if (forced && this.alreadyStarted)
-			throw new Error('Cant add a user when the first tournament round has been played already');
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		this.players = this.players.filter((player) => player.playerId !== playerId);
 		if (this.status === GameStatus.RUNNING) {
