@@ -55,7 +55,7 @@ export abstract class Player {
 					? 'Local'
 					: this instanceof AiPlayer
 					? 'AI'
-					: 'Unknown'
+					: 'Unknown',
 		};
 	}
 }
@@ -97,7 +97,12 @@ export class AiPlayer extends Player {
 	public aiDifficulty: number;
 
 	constructor(id: number, game: Game, aiLevel: number, aiBrainData: AIBrainData) {
-		super(id, game.config.playerLives, `${getRandomDefaultName()}`, 'AI Level 3');
+		super(
+			id,
+			game.config.playerLives,
+			`${getRandomDefaultName()}`,
+			'AI Level 3'
+		);
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = aiBrainData;
 		this.aiDifficulty = 3;
@@ -107,11 +112,12 @@ export class AiPlayer extends Player {
 		this.displayName = `${name} (AI)`;
 	}
 
-	get difficulty() { return this.aiDifficulty; }
+	get difficulty() {
+		return this.aiDifficulty;
+	}
 
 	setDifficulty(difficulty: number) {
-		if (difficulty < 1 && difficulty > 10)
-			return;
+		if (difficulty < 1 || difficulty > 10) return;
 		this.aiDifficulty = difficulty;
 		this.playerTitle = `AI Level ${difficulty}`;
 	}

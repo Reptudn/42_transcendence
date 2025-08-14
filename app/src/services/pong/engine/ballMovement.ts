@@ -38,9 +38,10 @@ export function circlePolygonCollision(
 	// Check if the circle's center is inside the polygon.
 	if (pointInPolygon(center, polygon)) return true;
 	// Otherwise, check distance from circle center to each polygon edge.
-	for (let i = 0; i < polygon.length - 1; i++) {
+	const n = polygon.length;
+	for (let i = 0; i < n; i++) {
 		const a = polygon[i];
-		const b = polygon[i + 1];
+		const b = polygon[(i + 1) % n];
 		if (distanceToSegment(center, a, b) <= radius) return true;
 	}
 	return false;
@@ -57,7 +58,7 @@ function computeCollisionResponse(
 	let bestNormal: Point | null = null;
 	for (let i = 0; i < polygon.length - 1; i++) {
 		const a = polygon[i];
-		const b = polygon[i + 1];
+		const b = polygon[(i + 1) % polygon.length];
 		const dist = distanceToSegment(center, a, b);
 		const penetration = radius - dist;
 		if (penetration > bestPenetration && penetration > 0) {
