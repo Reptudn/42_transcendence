@@ -56,13 +56,14 @@ export function computeCollisionResponse(
 ): { normal: Point; penetration: number } | null {
 	let bestPenetration = Number.NEGATIVE_INFINITY;
 	let bestNormal: Point | null = null;
+	let minDist = Number.POSITIVE_INFINITY;
+	let closestPoint: Point = polygon[0];
+
 	for (let i = 0; i < polygon.length; i++) {
 		const a = polygon[i];
 		const b = polygon[(i + 1) % polygon.length];
 		const dist = distanceToSegment(center, a, b);
-		const penetration = radius - dist;
-		if (penetration > bestPenetration && penetration > 0) {
-			bestPenetration = penetration;
+		if (dist < minDist) {
 			const ab = subtractPoints(b, a);
 			const abLenSq = ab.x * ab.x + ab.y * ab.y;
 			let t = 0;
@@ -75,14 +76,34 @@ export function computeCollisionResponse(
 					)
 				);
 			}
-			const closest = { x: a.x + t * ab.x, y: a.y + t * ab.y };
+			closestPoint = { x: a.x + t * ab.x, y: a.y + t * ab.y };
+			minDist = dist;
+		}
+
+		const penetration = radius - dist;
+		if (penetration > bestPenetration && penetration > 0) {
+			bestPenetration = penetration;
 			bestNormal = normalize({
-				x: center.x - closest.x,
-				y: center.y - closest.y,
+				x: center.x - closestPoint.x,
+				y: center.y - closestPoint.y,
 			});
 		}
 	}
-	return bestNormal ? { normal: bestNormal, penetration: bestPenetration } : null;
+
+	if (bestNormal) {
+		return { normal: bestNormal, penetration: bestPenetration };
+	}
+
+	if (pointInPolygon(center, polygon)) {
+		const outNormal = normalize({
+			x: closestPoint.x - center.x,
+			y: closestPoint.y - center.y,
+		});
+		const penetration = minDist + radius;
+		return { normal: outNormal, penetration };
+	}
+
+	return null;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -133,9 +154,7 @@ export function moveBall(
 	for (const obj of gameState.objects) {
 		if (!obj.shape) continue;
 		// Skip objects were inside of to avoid getting stuck within them.
-		if (circlePolygonCollision(center, radius, obj.shape)) {
-			continue;
-		}
+		if (pointInPolygon(center, obj.shape)) continue;
 		if (obj.type === 'paddle' || obj.type === 'wall') {
 			potentialCollisions.push(obj.shape);
 		}
