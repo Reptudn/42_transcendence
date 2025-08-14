@@ -1,28 +1,3 @@
-<!-- <div class="flex flex-row gap-16 justify-center items-start overflow-x-auto pb-8">
-	<% for (let r = 0; r < tournamentTree.length; r++) { 
-		const round = tournamentTree[r];
-		const bgColor = ['bg-blue-500', 'bg-blue-700', 'bg-yellow-400', 'bg-green-400'][r] || 'bg-gray-400';
-		const textColor = r === tournamentTree.length - 1 ? 'text-black' : 'text-white';
-		const title = ['Quarterfinals', 'Semifinals', 'Final', 'Winner'][r] || `Round ${r + 1}`;
-	%>
-	<div class="flex flex-col gap-12 justify-center items-center">
-		<h3 class="text-xl font-bold mb-4 <%= textColor %>"><%= title %></h3>
-		<% for (const match of round) { %>
-			<div class="<%= bgColor %> rounded-lg p-4 min-w-[180px] flex flex-col items-center shadow">
-				<div class="font-bold <%= textColor %>"><%= match.player1?.name || 'Waiting...' %></div>
-				<div class="text-xs text-gray-200 mb-2"><%= match.player1?.title || '' %></div>
-				<div class="font-bold <%= textColor %>"><%= match.player2?.name || 'Waiting...' %></div>
-				<div class="text-xs text-gray-200"><%= match.player2?.title || '' %></div>
-				<% if (match.winner) { %>
-					<div class="mt-2 px-2 py-1 text-sm rounded <%= r === tournamentTree.length - 1 ? 'bg-black text-white' : 'bg-white text-black' %>">
-						Winner: <%= match.winner.name %>
-					</div>
-				<% } %>
-			</div>
-		<% } %>
-	</div>
-	<% } %>
-</div> -->
 <%
 const rounds = tournamentTree || [];
 if (Array.isArray(rounds) && rounds.length > 0) {
@@ -36,8 +11,8 @@ if (Array.isArray(rounds) && rounds.length > 0) {
     const UNIT_H = MATCH_H + MATCH_GAP;                   // vertical stride per first-round match
     const TOTAL_H = firstRoundMatches * UNIT_H - MATCH_GAP; // full bracket height (excl. title)
 %>
-<div class="w-full overflow-x-auto pb-4">
-    <div class="flex flex-row gap-20 font-mono text-green-400 min-w-max"
+<div class="w-full overflow-x-auto pb-4 glow-green">
+    <div class="flex flex-row gap-20 font-mono  min-w-max"
          style="height:<%= TITLE_H + TOTAL_H %>px;">
         <% for (let r = 0; r < rounds.length; r++) {
             const round = rounds[r];
@@ -48,7 +23,7 @@ if (Array.isArray(rounds) && rounds.length > 0) {
         %>
         <div class="relative" style="height:<%= TITLE_H + TOTAL_H %>px; min-width:250px;">
             <!-- Round title -->
-            <div class="uppercase tracking-wider text-[11px] text-emerald-300 border-b border-green-700 pb-1"
+            <div class="uppercase tracking-wider text-[11px] border-b border-green-700 pb-1"
                  style="height:<%= TITLE_H %>px;">
                 <%= title %>
             </div>
@@ -62,16 +37,17 @@ if (Array.isArray(rounds) && rounds.length > 0) {
                     : m * spanHeight + (spanHeight / 2) - (MATCH_H / 2);
                 const top = TITLE_H + topCore;
             %>
-            <div class="absolute w-[240px] border border-green-500/50 rounded px-3 py-2 bg-transparent backdrop-blur-sm"
-                 style="top:<%= top %>px; height:<%= MATCH_H %>px;">
+            <div class="absolute w-[240px] border border-green-500/50 rounded px-3 py-2 backdrop-sepia hover:bg-cover hover:bg-center"
+                 style="top:<%= top %>px; height:<%= MATCH_H %>px;" onmouseover="this.style.backgroundImage='url(https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg)';"
+     onmouseout="this.style.backgroundImage='none';">
                 <pre class="m-0 text-[11px] leading-snug whitespace-pre-wrap">
-P1: <span class="<%= match.player1 ? 'text-green-300' : 'text-green-800' %>"><%= match.player1?.name || 'Waiting...' %></span>
-    <span class="text-emerald-500"><%= match.player1?.title || '' %></span>
-P2: <span class="<%= match.player2 ? 'text-green-300' : 'text-green-800' %>"><%= match.player2?.name || 'Waiting...' %></span>
-    <span class="text-emerald-500"><%= match.player2?.title || '' %></span>
-WIN:<span class="<%= match.winner ? 'text-lime-400 font-semibold ml-1' : 'text-green-800 ml-1' %>"><%= match.winner ? match.winner.name : 'TBD' %></span>
+P1: <span class="glow-green"><%= match.player1?.name || 'Waiting...' %></span>
+    <span class="glow-green"><%= match.player1?.title || '' %></span>
+P2: <span class="glow-green"><%= match.player2?.name || 'Waiting...' %></span>
+    <span class="glow-green"><%= match.player2?.title || '' %></span>
+WIN:<span class="<%= match.winner ? 'glow-green font-semibold ml-1' : 'glow-green ml-1' %>"><%= match.winner ? match.winner.name : 'TBD' %></span>
                 </pre>
-                <div class="absolute -top-2 -left-2 px-1 py-[2px] text-[9px] bg-green-900 text-lime-300 font-bold rounded">
+                <div class="absolute -top-2 -left-2 px-1 py-[2px] text-[9px] bg-gray-900 glow-green font-bold rounded">
                     M<%= m + 1 %>
                 </div>
             </div>

@@ -97,7 +97,7 @@
 				<% } %> 
 			</div>
 		</div>
-		<% } else if (tournamentTree) { %>
+		<% } else if (gameSettings.gameType === 'tournament') { %>
 			<h2 class="text-3xl mb-4">Tournament Tree</h2>
 			<%- include('misc/tournament_tree') %>
 		<% } else { %>

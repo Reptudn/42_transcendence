@@ -12,8 +12,8 @@ import { getAvailableMaps, getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
-import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
+import { Tournament } from './tournamentClass';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -88,6 +88,7 @@ export class Game {
 		this.fastify = fastify;
 		this.config = config;
 		this.players = [];
+		this.config = defaultGameSettings;
 		this.gameState = {
 			meta: {
 				name: 'test',
@@ -391,7 +392,6 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
-			tournament: this.tournament,
 			localPlayerId:
 				this.players.find(
 					(p) =>
