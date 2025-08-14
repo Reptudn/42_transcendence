@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Blocked, Msg, htmlMsg } from '../../../types/chat';
+import type { Blocked, Chat, Msg, htmlMsg } from '../../../types/chat';
 import { createHtmlMsg } from './sendMsg';
 import { getUserById } from '../../../services/database/users';
 import {
@@ -10,6 +10,8 @@ import {
 	HttpError,
 	removeChat,
 	getAllBlockerUser,
+	getFriendsDisplayname,
+	getAllChatsFromSqlByUserId,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
 
@@ -158,4 +160,24 @@ export function normError(err: unknown) {
 		errorMsg = 'Unknown Error';
 	}
 	return { errorCode, errorMsg };
+}
+
+export async function getChatName(
+	fastify: FastifyInstance,
+	userId: number
+): Promise<Chat[]> {
+	const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
+
+	for (const chat of userChats) {
+		if (Boolean(chat.is_group) === false) {
+			try {
+				const name = await getFriendsDisplayname(fastify, chat.id, userId);
+				if (name) chat.name = name.displayname;
+				else chat.name = 'Deleted User';
+			} catch {
+				chat.name = 'Deleted User';
+			}
+		}
+	}
+	return userChats;
 }

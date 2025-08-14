@@ -64,7 +64,7 @@ async function gameInviteCmd(
 	if (!self) throw new Error('Unauthorized!');
 
 	if (args.length !== 1)
-		throw new Error('Invalid use of command: /game-invite <username>');
+		throw new Error('Invalid use of command: /game-invite username');
 
 	const inviteUser = await getUserByUsername(args[0], fastify);
 	if (!inviteUser) throw new Error('No such user found!');
@@ -134,7 +134,7 @@ async function inviteCmd(
 			await invite(fastify, chatID, fromUser, toUser.id);
 		else throw new HttpError(400, 'User not found');
 	} else {
-		throw new HttpError(400, 'Invalid use of command: /group-invite <username>');
+		throw new HttpError(400, 'Invalid use of command: /group-invite username');
 	}
 }
 
@@ -157,7 +157,7 @@ async function sendMsgCmd(
 	args: string[]
 ) {
 	if (args.length < 2)
-		throw new HttpError(400, 'Invalid use of command: /msg <username> <msg>');
+		throw new HttpError(400, 'Invalid use of command: /msg username msg');
 	const user = await getUserById(fromUser, fastify);
 	if (!user) throw new HttpError(400, 'User not found');
 

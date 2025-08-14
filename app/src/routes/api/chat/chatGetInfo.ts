@@ -7,12 +7,11 @@ import {
 	getMsgForGroup,
 	normError,
 	inviteUserToChat,
+	getChatName,
 } from './utils';
 import { getUserById } from '../../../services/database/users';
 import {
 	saveNewChatInfo,
-	getAllChatsFromSqlByUserId,
-	getFriendsDisplayname,
 	getAllBlockerUser,
 	addToBlockedUsers,
 	deleteFromBlockedUsers,
@@ -122,6 +121,10 @@ export async function getAllMsg(fastify: FastifyInstance) {
 
 				const blockedId = blocked.map((b) => b.blocked_id);
 
+				const chats = await getChatName(fastify, userId);
+
+				const found = chats.find((c) => c.id === chat.id);
+
 				let htmlMsgs: htmlMsg[] = [];
 
 				if (Boolean(chat.is_group) === false && chat.name === null) {
@@ -139,6 +142,16 @@ export async function getAllMsg(fastify: FastifyInstance) {
 						blockedId
 					);
 				}
+
+				htmlMsgs.push({
+					fromUserName: '',
+					chatName: found ? (found.name ? found.name : '') : '',
+					chatId: 0,
+					htmlMsg: '',
+					blocked: false,
+					ownMsg: true,
+				});
+
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
 				const nError = normError(err);
@@ -156,23 +169,8 @@ export async function getAllChats(fastify: FastifyInstance) {
 			try {
 				const userId = (req.user as { id: number }).id;
 
-				const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
+				const userChats = await getChatName(fastify, userId);
 
-				for (const chat of userChats) {
-					if (Boolean(chat.is_group) === false) {
-						try {
-							const name = await getFriendsDisplayname(
-								fastify,
-								chat.id,
-								userId
-							);
-							if (name) chat.name = name.displayname;
-							else chat.name = 'Deleted User';
-						} catch {
-							chat.name = 'Deleted User';
-						}
-					}
-				}
 				return res.status(200).send({ chats: userChats });
 			} catch (err) {
 				const nError = normError(err);

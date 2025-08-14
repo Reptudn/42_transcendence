@@ -138,6 +138,15 @@ export async function getMessages(chat_id: string | null) {
 	}
 	const msgs = data.msgs as htmlMsg[];
 
+	const currChat = document.getElementById('currentChat');
+	if (!currChat) return;
+
+	const chatName = msgs.at(-1)?.chatName;
+	currChat.innerHTML = '';
+	if (chat_id === '1')
+		currChat.innerHTML = '<div>Current Chat: Global Chat </div>';
+	else currChat.innerHTML = `<div>Current Chat: ${chatName} </div>`;
+
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
 		return;

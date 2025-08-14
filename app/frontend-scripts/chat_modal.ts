@@ -119,6 +119,7 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
+			butt.id = friend.id.toString();
 			butt.textContent = friend.displayname;
 			butt.classList.add(
 				'px-4',
@@ -139,9 +140,20 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 					butt.classList.add('bg-green-500', 'text-white');
 					butt.classList.remove('bg-transparent');
 				} else {
-					userIdToBlock = '';
-					butt.classList.remove('bg-green-500', 'text-white');
-					butt.classList.add('bg-transparent');
+					if (userIdToBlock === friend.id.toString()) {
+						userIdToBlock = '';
+						butt.classList.remove('bg-green-500', 'text-white');
+						butt.classList.add('bg-transparent');
+					} else {
+						const oldbutt = document.getElementById(userIdToBlock);
+						if (oldbutt) {
+							oldbutt.classList.remove('bg-green-500', 'text-white');
+							oldbutt.classList.add('bg-transparent');
+						}
+						userIdToBlock = friend.id.toString();
+						butt.classList.add('bg-green-500', 'text-white');
+						butt.classList.remove('bg-transparent');
+					}
 				}
 			});
 			userList.appendChild(butt);
@@ -189,6 +201,7 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
+			butt.id = friend.id.toString();
 			butt.textContent = friend.displayname;
 			butt.classList.add(
 				'px-4',
@@ -209,9 +222,20 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 					butt.classList.add('bg-green-500', 'text-white');
 					butt.classList.remove('bg-transparent');
 				} else {
-					userIdToBlock = '';
-					butt.classList.remove('bg-green-500', 'text-white');
-					butt.classList.add('bg-transparent');
+					if (userIdToBlock === friend.id.toString()) {
+						userIdToBlock = '';
+						butt.classList.remove('bg-green-500', 'text-white');
+						butt.classList.add('bg-transparent');
+					} else {
+						const oldbutt = document.getElementById(userIdToBlock);
+						if (oldbutt) {
+							oldbutt.classList.remove('bg-green-500', 'text-white');
+							oldbutt.classList.add('bg-transparent');
+						}
+						userIdToBlock = friend.id.toString();
+						butt.classList.add('bg-green-500', 'text-white');
+						butt.classList.remove('bg-transparent');
+					}
 				}
 			});
 			userList.appendChild(butt);
