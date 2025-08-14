@@ -42,7 +42,7 @@
 
 -   [x] Any password stored in the database, if applicable, must be hashed.
 -   [x] Must be protected against SQL Injections and XSS Attacks
--   [ ] The Backend must run secure with HTTPS
+-   [x] The Backend must run secure with HTTPS
 -   [x] The Sockets must use WSS instead of just WS
 -   [x] Ensure routes are protected
 -   [x] Strong password hashing algo
@@ -71,8 +71,8 @@
 
 #### Standard user management, authentication and users across tournaments (Major) (3 / 9)
 
--   [ ] Users can securely subscribe to the website.
--   [ ] Registered users can securely log in.
+-   [x] Users can securely subscribe to the website.
+-   [x] Registered users can securely log in.
 -   [x] Users can select a unique display name to participate in tournaments.
 -   [x] Users can update their information.
 -   [x] Users can upload an avatar, with a default option if none is provided.
