@@ -143,31 +143,36 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	// collect all collision normals to compute all collisions in a tick at once
 	const maxIterations = 5;
 	for (let iter = 0; iter < maxIterations; iter++) {
-		let collisionOccurred = false;
-		let combinedNormal = { x: 0, y: 0 };
-		let maxPenetration = 0;
+		const collisions: { normal: Point; penetration: number }[] = [];
 		for (const polygon of potentialCollisions) {
 			if (circlePolygonCollision(center, radius, polygon)) {
 				const response = computeCollisionResponse(center, radius, polygon);
-				if (response) {
-					combinedNormal.x += response.normal.x;
-					combinedNormal.y += response.normal.y;
-					// We pick the maximum penetration to ensure a sufficient push.
-					maxPenetration = Math.max(maxPenetration, response.penetration);
-					collisionOccurred = true;
-				}
+				if (response) collisions.push(response);
 			}
 		}
-		if (!collisionOccurred) break;
-		combinedNormal = normalize(combinedNormal);
-		// Adjust the ball's position to resolve penetration.
-		center.x += combinedNormal.x * maxPenetration;
-		center.y += combinedNormal.y * maxPenetration;
-		// Reflect the velocity using the combined collision normal.
-		const dot =
-			ball.velocity.x * combinedNormal.x + ball.velocity.y * combinedNormal.y;
-		ball.velocity.x = ball.velocity.x - 2 * dot * combinedNormal.x;
-		ball.velocity.y = ball.velocity.y - 2 * dot * combinedNormal.y;
+		if (collisions.length === 0) break;
+
+		const sep = { x: 0, y: 0 };
+		let maxPen = 0;
+		for (const c of collisions) {
+			sep.x += c.normal.x * c.penetration;
+			sep.y += c.normal.y * c.penetration;
+			if (c.penetration > maxPen) maxPen = c.penetration;
+		}
+		const sepLen = Math.hypot(sep.x, sep.y);
+		if (sepLen > 0) {
+			const scale = Math.min(1, maxPen / sepLen);
+			center.x += sep.x * scale;
+			center.y += sep.y * scale;
+		}
+
+		for (const c of collisions) {
+			const dot = ball.velocity.x * c.normal.x + ball.velocity.y * c.normal.y;
+			if (dot < 0) {
+				ball.velocity.x -= 2 * dot * c.normal.x;
+				ball.velocity.y -= 2 * dot * c.normal.y;
+			}
+		}
 	}
 
 	// XXX: This would be the wiggly ball powerup
