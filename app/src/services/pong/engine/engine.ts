@@ -14,18 +14,19 @@ export function tickEngine(game: Game) {
 		const reversed = game.activePowerups.find(
 			(p) => p.type === PowerupType.InverseControls && p.started
 		);
-		const isHuman =
-			player instanceof UserPlayer || player instanceof LocalPlayer;
-		const dir =
-			reversed && isHuman
-				? -player.movementDirection
-				: player.movementDirection;
+		const dir = reversed ? -player.movementDirection : player.movementDirection;
 		game.gameState = movePaddle(game.gameState, player.playerId, dir, 3);
 	}
-	updateAIMovement(game);
+	void updateAIMovement(game);
 
 	// move ball
-	game.gameState = moveBall(game.gameState, 3);
+	game.gameState = moveBall(
+		game.gameState,
+		3,
+		game.activePowerups.find(
+			(p) => p.type === PowerupType.WonkyBall && p.started
+		) !== undefined
+	);
 	collectPowerups(game);
 
 	// check hits
@@ -38,6 +39,16 @@ export function tickEngine(game: Game) {
 				game.gameState.objects = game.gameState.objects.filter(
 					(o) => o.playerNbr !== player.playerId
 				);
+				for (const localPlayer of game.players) {
+					if (
+						localPlayer instanceof LocalPlayer &&
+						localPlayer.owner.playerId === player.playerId
+					) {
+						game.gameState.objects = game.gameState.objects.filter(
+							(o) => o.playerNbr !== localPlayer.playerId
+						);
+					}
+				}
 			}
 		}
 	}

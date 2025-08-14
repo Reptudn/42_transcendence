@@ -9,7 +9,7 @@ import {
 	GameType,
 	// GameType,
 } from '../../../services/pong/games/gameClass';
-import { sendSseRawByUserId } from '../../../services/sse/handler';
+import { connectedClients, sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
@@ -33,6 +33,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
+			if (!connectedClients.get(user.id)) {
+				fastify.log.warn(`User ${user.username} is not connected`);
+				return reply.code(400).send({ error: 'User is not connected to SSE' });
+			}
+
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
 				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin
@@ -43,7 +48,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				const game = new Game(id, user, fastify, defaultGameSettings);
+				const game = new Game(id, user, fastify, { ...defaultGameSettings });
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
 				await game.addUserPlayer(user, false, request.t); // Adding the admin player
@@ -227,8 +232,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			const oldGameType = game.config.gameType;
-			game.config = defaultGameSettings;
-			game.config.gameType = oldGameType; // Preserve the game type
+			game.config = { ...defaultGameSettings, gameType: oldGameType };
 			await game.updateLobbyState(request.t);
 			return reply
 				.code(200)
@@ -592,7 +596,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					)
 			);
 			if (!game) {
-				return reply.code(404).send({ error: 'No game found for the user' });
+				// TODO: get from the db if its a past game
+				return reply.code(200).send({ message: 'No game found for the user or game is over' });
 			}
 
 			const player = game.players.find(

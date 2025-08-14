@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { notifyEventSource } from './events.js';
 import { loadPartialView, updateMenu } from './navigator.js';
 import { closeAllPopups } from './popup.js';
 
@@ -13,6 +14,12 @@ declare global {
 }
 
 export async function createGame() {
+
+	if (!notifyEventSource || notifyEventSource.readyState !== EventSource.OPEN) {
+		showLocalError('Cant create game when the Event source is not available');
+		return;
+	}
+
 	const res = await fetch('/api/games/create', {
 		method: 'POST',
 	});

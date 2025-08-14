@@ -20,7 +20,19 @@
 	},
 	"index": {
 		"title": "Bienvenue sur Transcendence, étranger...",
-		"description": "Juste toi et ton nez de saumon !"
+		"description": "Juste toi et ton nez de saumon !",
+		"what_you_can_do": "Ce que vous pouvez faire ici :",
+		"add_friends": "🤝 Ajoutez des amis et élargissez votre cercle de jeu.",
+		"adjust_profile": "🖼️ Modifiez votre profil - mettez à jour votre avatar, pseudo, et plus encore.",
+		"enable_2fa": "🔒 Activez la double authentification pour plus de sécurité.",
+		"pong_heart": "🏓 Jouez à Pong - le cœur de l'expérience :",
+		"tournament_mode_title": "Mode Tournoi",
+		"tournament_mode_desc": "Affrontez les autres et prouvez votre talent.",
+		"classic_mode_title": "Mode Classique",
+		"classic_mode_desc": "Profitez de parties décontractées entre amis ou contre l'IA.",
+		"powerups_title": "Bonus amusants",
+		"powerups_desc": "Ajoutez du chaos et du fun à chaque partie.",
+		"ready": "Prêt à jouer ? Connectez-vous et commencez !"
 	},
 	"login": {
 		"title": "Connexion",
@@ -42,8 +54,8 @@
 		"title": "À propos"
 	},
 	"profile": {
-		"edit_profile": "Profil bearbeiten",
-		"no_bio": "Dieser Benutzer hat keine Biografie.",
+		"edit_profile": "Editer votre profil",
+		"no_bio": "Il n'a pas une bio",
 		"friends": "Amis",
 		"remove": "Supprimer",
 		"add_friends": "Ajouter des amis",

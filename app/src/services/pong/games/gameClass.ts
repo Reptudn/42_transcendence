@@ -12,8 +12,8 @@ import { getAvailableMaps, getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
-import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
+import { Tournament } from './tournamentClass';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -40,11 +40,12 @@ export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
 	Redirection = 'REDIRECTION',
 	Nausea = 'NAUSEA',
-	// WonkyBall = 'WONKY_BALL',
-	// RotatingBoard = 'ROTATING_BOARD',
+	WonkyBall = 'WONKY_BALL',
+	PhasingPaddle = 'PHASING_PADDLE',
+	PhasingBall = 'PHASING_BALL',
 }
 
-export const powerupCheckDelay = 5000;
+export const powerupCheckDelay = 2000;
 export const powerupSpawnChance = 0.5;
 export const powerupDuration = 10000;
 export const powerupObjectRadius = 3;
@@ -57,7 +58,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 
-	ballSpeed: number = 3;
+	ballSpeed = 3;
 
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
@@ -86,8 +87,9 @@ export class Game {
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
 		this.fastify = fastify;
-		this.config = config;
+		this.config = { ...config };
 		this.players = [];
+		this.config = defaultGameSettings;
 		this.gameState = {
 			meta: {
 				name: 'test',
@@ -98,10 +100,8 @@ export class Game {
 			objects: [],
 		} as GameState;
 		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
+			intendedPercent: 50,
+			nextRecalcAt: Date.now(),
 		} as AIBrainData;
 		this.activePowerups = [];
 		this.nextPowerupCheckAt = Date.now() + powerupCheckDelay;
@@ -187,7 +187,7 @@ export class Game {
 			this.getNextAvailablePlayerId(),
 			this,
 			aiLevel,
-			this.aiBrainData
+			{ intendedPercent: 0.5, nextRecalcAt: 0 } as AIBrainData
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
@@ -248,6 +248,16 @@ export class Game {
 			this.gameState.objects = this.gameState.objects.filter(
 				(o) => o.playerNbr !== playerId
 			);
+			for (const player of this.players) {
+				if (
+					player instanceof LocalPlayer &&
+					player.owner.playerId === playerId
+				) {
+					this.gameState.objects = this.gameState.objects.filter(
+						(o) => o.playerNbr !== player.playerId
+					);
+				}
+			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
@@ -359,10 +369,8 @@ export class Game {
 			}
 
 			this.aiBrainData = {
-				aiLastBallDistance: 0,
-				aiDelayCounter: 0,
-				aiLastTargetParam: 0,
-				lastAIMovementDirection: 0,
+				intendedPercent: 50,
+				nextRecalcAt: Date.now(),
 			} as AIBrainData;
 			this.results = [];
 			this.alreadyStarted = true;
@@ -408,7 +416,6 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
-			tournament: this.tournament,
 			localPlayerId:
 				this.players.find(
 					(p) =>
