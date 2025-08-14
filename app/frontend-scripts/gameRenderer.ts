@@ -16,6 +16,17 @@ let lastVector: { x: number; y: number } | null = null;
 const ballTrail: TrailElement[] = [];
 const trailLifetime: number = 750;
 
+const playerColors = [
+	{ r: 255, g: 160, b: 160 },
+	{ r: 255, g: 255, b: 170 },
+	{ r: 180, g: 255, b: 180 },
+	{ r: 180, g: 210, b: 255 },
+];
+export function getPlayerColor(index: number) {
+	const c = playerColors[index % playerColors.length];
+	return { r: c.r, g: c.g, b: c.b };
+}
+
 const powerupSettings = [
 	{
 		type: 'inverse_controls',
@@ -439,7 +450,12 @@ export function drawGameState(gameState: GameState): void {
 			case 'paddle':
 				if (obj.shape && obj.shape.length > 0) {
 					const points = transformPoints(obj.shape, scale);
-					drawPolygon(points, '', 'blue');
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					drawPolygon(
+						points,
+						'rgba(0,0,0,0)',
+						`rgb(${c.r}, ${c.g}, ${c.b})`
+					);
 				} else showLocalInfo(`Paddle object does not have a shape: ${obj}`);
 				break;
 
@@ -486,12 +502,20 @@ export function updateGameState(
 	detectBounce(newState);
 }
 
-export function randomColor(): { r: number; g: number; b: number } {
-	return {
-		r: Math.floor(Math.random() * 256),
-		g: Math.floor(Math.random() * 256),
-		b: Math.floor(Math.random() * 256),
-	};
+export function randomLightColor(): { r: number; g: number; b: number } {
+	const min = 160;
+	const max = 255;
+	let r = min + Math.floor(Math.random() * (max - min + 1));
+	let g = min + Math.floor(Math.random() * (max - min + 1));
+	let b = min + Math.floor(Math.random() * (max - min + 1));
+	const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	if (luminance < 190) {
+		const boost = 190 - luminance;
+		r = Math.min(255, Math.round(r + boost * 0.3));
+		g = Math.min(255, Math.round(g + boost * 0.6));
+		b = Math.min(255, Math.round(b + boost * 0.1));
+	}
+	return { r, g, b };
 }
 export function detectBounce(state: GameState): void {
 	function calculateAngleDifference(
@@ -517,7 +541,7 @@ export function detectBounce(state: GameState): void {
 			if (lastVector) {
 				const angleDiff = calculateAngleDifference(lastVector, newVector);
 				if (angleDiff > 10) {
-					trailColor = randomColor();
+					trailColor = randomLightColor();
 				}
 			}
 			lastVector = newVector;
