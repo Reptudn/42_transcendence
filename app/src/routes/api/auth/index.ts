@@ -153,6 +153,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	);
 	fastify.post('/logout', async (req: any, reply: any) => {
 		return reply
+			.code(200)
 			.clearCookie('token', { path: '/' })
 			.send({ message: 'Logged out successfully' });
 	});

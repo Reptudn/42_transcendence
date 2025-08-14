@@ -72,32 +72,32 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 export async function resetGameSettings() {
 	console.log('Resetting game settings to default...');
 	const res = await fetch('/api/games/settings/reset', {
-		method: 'POST'
+		method: 'POST',
 	});
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`${error.error || 'Failed to reset settings: Unknown error'}`);
+		showLocalError(
+			`${error.error || 'Failed to reset settings: Unknown error'}`
+		);
 		return;
 	}
 	const data = await res.json();
 	console.log('Game settings reset:', data);
 	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
-};
+}
 
 export async function setAutoAdvance(enabled: boolean) {
 	console.log('Setting auto advance for AI:', enabled);
 	await updateSettings({ autoAdvance: enabled });
 }
 
-export async function togglePowerups(enabled: boolean)
-{
+export async function togglePowerups(enabled: boolean) {
 	console.log('Changing powerup enabled status');
 	await updateSettings({ powerupsEnabled: enabled });
 }
 
-export function initLobbyButtons()
-{
+export function initLobbyButtons() {
 	const powerupsToggle = document.getElementById(
 		'powerups-toggle'
 	) as HTMLInputElement | null;
@@ -105,7 +105,7 @@ export function initLobbyButtons()
 		const isChecked = (event.target as HTMLInputElement).checked;
 		await updateSettings({ powerupsEnabled: isChecked });
 	});
-	
+
 	const maxPlayerSlider = document.getElementById(
 		'difficulty-input'
 	) as HTMLInputElement | null;
@@ -113,14 +113,18 @@ export function initLobbyButtons()
 		const newValue = (event.target as HTMLInputElement).value;
 		await updateSettings({ gameDifficulty: Number(newValue) });
 	});
-	
-	const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
+
+	const mapSelect = document.getElementById(
+		'map-select'
+	) as HTMLSelectElement | null;
 	mapSelect?.addEventListener('change', async (event) => {
 		const selectedMap = (event.target as HTMLSelectElement).value;
 		await updateSettings({ map: selectedMap.toLocaleLowerCase() });
 	});
-	
-	const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
+
+	const gameTypeSelector = document.getElementById(
+		'game-type-select'
+	) as HTMLSelectElement | null;
 	gameTypeSelector?.addEventListener('change', async (event) => {
 		const selectedGameType = (event.target as HTMLSelectElement).value;
 		await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
@@ -193,7 +197,6 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
-
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -226,8 +229,7 @@ export function updatePage(html: string) {
 	if (lobbyContainer) {
 		lobbyContainer.innerHTML = html;
 		initLobbyButtons();
-	}
-	else showLocalError('Failed to update lobby due to missing lobby div.');
+	} else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 export async function renameLocalPlayer(id: number) {
@@ -265,38 +267,52 @@ export async function renameAiPlayer(id: number) {
 }
 
 export async function setAiDifficulty(id: number, difficulty: string | number) {
-	const difficultyNum = typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
-	
+	const difficultyNum =
+		typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
+
 	if (isNaN(difficultyNum) || difficultyNum > 10) {
 		const correctedDifficulty = Math.min(10, Math.max(1, difficultyNum || 1));
-		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
-		await updateSettings({
-			aiUpdate: {
-				playerId: id,
-				difficulty: correctedDifficulty
-			}
-		}, true);
-		return;
-	}
-	
-	if (difficultyNum < 1) {
-		const correctedDifficulty = 1;
-		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
-		await updateSettings({
-			aiUpdate: {
-				playerId: id,
-				difficulty: correctedDifficulty
-			}
-		}, true);
+		console.log(
+			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
+		);
+		await updateSettings(
+			{
+				aiUpdate: {
+					playerId: id,
+					difficulty: correctedDifficulty,
+				},
+			},
+			true
+		);
 		return;
 	}
 
-	await updateSettings({
-		aiUpdate: {
-			playerId: id,
-			difficulty: difficultyNum
-		}
-	}, true);
+	if (difficultyNum < 1) {
+		const correctedDifficulty = 1;
+		console.log(
+			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
+		);
+		await updateSettings(
+			{
+				aiUpdate: {
+					playerId: id,
+					difficulty: correctedDifficulty,
+				},
+			},
+			true
+		);
+		return;
+	}
+
+	await updateSettings(
+		{
+			aiUpdate: {
+				playerId: id,
+				difficulty: difficultyNum,
+			},
+		},
+		true
+	);
 }
 
 await refreshOnlineFriends();

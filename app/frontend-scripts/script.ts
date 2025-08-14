@@ -47,9 +47,7 @@ async function fetchNumber(): Promise<void> {
 	}
 }
 async function updateNumber(increment: number): Promise<void> {
-
-	if (window.localStorage.getItem('loggedIn') !== 'true')
-	{
+	if (window.localStorage.getItem('loggedIn') !== 'true') {
 		showLocalError('You need to be logged in to do this!');
 		return;
 	}
@@ -90,16 +88,18 @@ async function logout(): Promise<void> {
 			await loadPartialView('index', true, null, true, true, true);
 			window.localStorage.setItem('loggedIn', 'false');
 			window.notifyEventSource?.close();
-			window.notifyEventSource = null
+			window.notifyEventSource = null;
 			closeAllPopups();
 			showLocalInfo('You have been logged out with impeccable style!');
 		} else {
-			const data = await response.json();
-			showLocalError(`Error during logout: ${data.message}`);
+			// const data = await response.json();
+			// showLocalError(`Error during logout: ${data.message}`);
+			showLocalError('Failed to logout');
 		}
 	} catch (error) {
 		console.error('Logout error:', error);
 		showLocalError('An error occurred during logout. Do try again, old chap!');
+		await loadPartialView('index', true, null, true, true, true);
 	}
 }
 

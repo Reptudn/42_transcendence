@@ -59,11 +59,23 @@ export async function registerUser(
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
 	const hashedPassword: string = await bcrypt.hash(password, 10);
-	const user = await fastify.sqlite.run(
-		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
-		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
-	);
-	if (user.changes !== 0 && typeof user.lastID === 'number') {
+	let user: any;
+	try {
+		user = await fastify.sqlite.run(
+			'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
+			[
+				username,
+				hashedPassword,
+				displayname,
+				titleFirst,
+				titleSecond,
+				titleThird,
+			]
+		);
+	} catch (e) {
+		throw new Error('Username already exists.. choose a different one!');
+	}
+	if (user && user.changes !== 0 && typeof user.lastID === 'number') {
 		inviteUserToChat(fastify, user.lastID, user.lastID, 1);
 	}
 }
@@ -126,20 +138,18 @@ export async function loginUser(
 	/*totp: string,*/
 	fastify: FastifyInstance
 ): Promise<User> {
-	const user = await fastify.sqlite.get(
-		'SELECT * FROM users WHERE username = ?',
-		username
-	);
+	let user: User | undefined;
+	try {
+		user = await fastify.sqlite.get(
+			'SELECT * FROM users WHERE username = ?',
+			username
+		);
+	} catch (e) {
+		throw new Error('Incorrect username or password');
+	}
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
-	/*const two_fa = await getUser2faSecret(user, fastify);
-	if (two_fa !== '') {
-		if ((await verify2fa(user, totp, fastify)) === false) {
-			fastify.log.info('False 2fa code when login');
-			throw new Error('Invalid 2fa code');
-		}
-	}*/
 	return user;
 }
 
@@ -297,7 +307,7 @@ export async function updateUserPassword(
 	oldPassword: string,
 	newPassword: string,
 	fastify: FastifyInstance
-) : Promise<boolean> {
+): Promise<boolean> {
 	if (!oldPassword && !newPassword) {
 		return false;
 	}

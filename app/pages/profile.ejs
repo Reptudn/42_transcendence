@@ -38,10 +38,12 @@
 			<h2 class="text-4xl font-bold"><%= user.displayname %></h2>
 			<h3 class="text-3xl">@<%= user.username %></h3>
 			<h3 class="text-3xl">The <%= title %></h3>
-			<% if (online) { %>
-				<span class="text-green-500">Online</span>
+			<% if (ingame) { %>
+				<span class="glow-blue">In a Game</span>
+			<% } else if (online) { %>
+				<span class="glow-green">Online</span>
 			<% } else { %>
-				<span class="text-red-500">Offline</span>
+				<span class="glow-red">Offline</span>
 			<% } %>
 		</div>
 	</div>
