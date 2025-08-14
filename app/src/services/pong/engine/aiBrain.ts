@@ -146,6 +146,20 @@ export function projectPointOnPolyline(
 	return { param: bestParam, closestPoint: bestPoint };
 }
 
+function worsifyIntendedPercentBasedOnAiLevel(
+	intendedPercent: number,
+	aiLevel: number
+): number {
+	const L = Math.max(1, Math.min(10, aiLevel));
+	const MAX_AMP = 0.5;
+	const r = (10 - 3) / 9;
+	const P = Math.log(0.07 / MAX_AMP) / Math.log(r);
+	const t = (10 - L) / 9;
+	const amp = MAX_AMP * Math.pow(t, P);
+	const noisy = intendedPercent + (Math.random() * 2 - 1) * amp;
+	return Math.max(0, Math.min(1, noisy));
+}
+
 export async function updateAIMovement(game: Game): Promise<void> {
 	if (!game.gameState) return;
 
@@ -173,7 +187,11 @@ export async function updateAIMovement(game: Game): Promise<void> {
 				simulateAheadFindTargetPercent(game.gameState, player.playerId, 5) ??
 				null;
 			if (targetPercent !== null) {
-				(player.aiBrainData as any).intendedPercent = targetPercent;
+				(player.aiBrainData as any).intendedPercent =
+					worsifyIntendedPercentBasedOnAiLevel(
+						targetPercent,
+						player.aiDifficulty
+					);
 			} else if (
 				typeof (player.aiBrainData as any).intendedPercent !== 'number'
 			) {
@@ -181,7 +199,11 @@ export async function updateAIMovement(game: Game): Promise<void> {
 					paddle.anchor1,
 					paddlePath.shape
 				);
-				(player.aiBrainData as any).intendedPercent = currentPercent;
+				(player.aiBrainData as any).intendedPercent =
+					worsifyIntendedPercentBasedOnAiLevel(
+						currentPercent,
+						player.aiDifficulty
+					);
 			}
 			(player.aiBrainData as any).nextRecalcAt = now + 1000;
 		}
