@@ -156,8 +156,9 @@ export async function addUserPlayer(friendId: number) {
 	if (!response.ok) {
 		const error = await response.json();
 		showLocalError(error.error);
+		return;
 	}
-	const data = (await response.json()) as { message: string };
+	const data = await response.json();
 	showLocalInfo(data.message);
 	console.log(`Friend ${friendId} invited successfully.`);
 }

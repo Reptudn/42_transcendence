@@ -251,6 +251,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['availableMaps'] =
 						existingGame.availableMaps ||
 						(await getAvailableMaps(fastify));
+					await existingGame.updateLobbyState(req.t);
 				} else if (page === 'error') {
 					variables['err_code'] = 404;
 					variables['err_message'] = defaultError;

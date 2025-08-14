@@ -477,11 +477,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 			const { userId } = request.params as { userId: string };
+			if (!userId)
+				return reply.code(400).send({
+					error: 'Please specifiy a user id you want to invite.',
+				});
+
 			const parsedUserId = Number.parseInt(userId, 10);
 
 			const inviteUser = await getUserById(parsedUserId, fastify);
 			if (!inviteUser)
-				return reply.code(404).send({ error: `No such user found!` });
+				return reply.code(401).send({ error: `No such user found!` });
 
 			const friends = await getFriends(user.id, fastify);
 			if (friends) {
@@ -529,17 +534,23 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error: 'Cannot invite players to a game that has already started',
 				});
 			}
-			try {
+			try { // TODO: invite issue here
 				if (
 					game.config.gameType === GameType.TOURNAMENT &&
 					!game.alreadyStarted
 				) {
 					const ai = game.players.find((p) => p instanceof AiPlayer);
-					if (ai) game.removePlayer(request.t, ai.playerId, true);
+					if (ai)
+						await game.removePlayer(request.t, ai.playerId, true, true);
 				}
 				await game.addUserPlayer(inviteUser, false, request.t);
 			} catch (err) {
-				return reply.code(404).send({ error: err });
+				if (err instanceof Error) {
+					return reply.code(404).send({ error: err.message });
+				}
+				return reply
+					.code(404)
+					.send({ error: 'Failed to invite user to game' });
 			}
 
 			sendSseRawByUserId(
@@ -585,7 +596,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			try {
 				if (!player) throw new Error('You are not a player in this game!');
-				game.removePlayer(request.t, player.playerId);
+				await game.removePlayer(request.t, player.playerId);
 			} catch (err) {
 				if (err instanceof Error)
 					return reply
@@ -716,7 +727,12 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							const ai = game.players.find(
 								(p) => p instanceof AiPlayer
 							);
-							if (ai) game.removePlayer(request.t, ai.playerId, false);
+							if (ai)
+								await game.removePlayer(
+									request.t,
+									ai.playerId,
+									false
+								);
 						}
 						await game.addLocalPlayer(
 							owner as UserPlayer,
@@ -897,7 +913,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-			game.updateLobbyState(request.t);
+			await game.updateLobbyState(request.t);
 			return reply.code(200).view('lobby', {
 				ownerName: game.admin.displayname,
 				gameSettings: game.config,
