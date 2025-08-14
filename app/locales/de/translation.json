@@ -1,7 +1,7 @@
 {
 	"header": {
 		"home": "Startseite",
-		"title": "Willkommen bei Transcendence",
+		"title": "Transcendence",
 		"page_title": "Transcendence: Startseite"
 	},
 	"menu": {
@@ -49,7 +49,9 @@
 		"remove": "Entfernen",
 		"add_friends": "Mehr Freunde hinzufügen",
 		"locked_achievements": "Gesperrte Erfolge",
-		"achievements": "Erfolge"
+		"achievements": "Erfolge",
+		"match_history": "Spiel Historie",
+		"no_match_history": "Noch keine Runden gespielt."
 	},
 	"edit_profile": {
 		"edit_profile": "Profil bearbeiten",
@@ -71,26 +73,58 @@
 		"password": "Passwort",
 		"bio": "Bio"
 	},
-	"game_setup": {
-		"game_setup": "Spiel-Einstellungen",
+	"lobby_admin": {
+		"game": "Spiel",
+		"lobby_admin": "Spieleinstellungen",
+		"add_ai": "KI hinzufügen",
+		"start_game": "Spiel starten",
+		"game_type": "Spieltyp",
+		"add_local_player": "Lokalen Spieler hinzufügen",
 		"general_settings": "Allgemeine Einstellungen",
 		"map": "Karte",
 		"modes": {
-			"classic": "Klassisch"
+			"classic": "Klassisch",
+			"tournament": "Turnier"
 		},
 		"player_lives": "Spielerleben",
 		"game_difficulty": "Spielschwierigkeit",
 		"powerups_enabled": "Power-ups aktiviert?",
 		"player_settings": "Spielereinstellungen",
-		"player_settings_description": "Es muss immer mindestens ein Spieler (das bist du) und niemals mehr als vier geben.\nür zusätzliche Spieler wähle aus: Freund (Benutzer), lokaler Spieler oder KI.",
+		"player_settings_description": "Es muss immer mindestens ein Spieler vorhanden sein (das sind Sie) und niemals mehr als vier.\nFür zusätzliche Spieler wählen Sie: Freund (Benutzer), Lokaler Spieler oder KI.",
 		"player": "Spieler",
-		"you": "Du",
+		"you": "Sie",
 		"control_scheme": "Steuerungsschema",
 		"controls": {
 			"arrow_keys": "Pfeiltasten"
 		},
 		"add_player": "Spieler hinzufügen",
 		"remove_player": "Spieler entfernen",
-		"start_game": "Spiel starten"
+		"online_friends": "Online-Freunde:",
+		"invite_description": "Klicken Sie auf einen Freund, um ihn zu Ihrer Partie einzuladen.",
+		"refresh": "Aktualisieren",
+		"player_count": "Spieler",
+		"lobby_settings": "Lobby-Einstellungen",
+		"power_ups": "Verbesserungen:",
+		"power_ups_active": "Power-ups sind aktiviert.",
+		"power_ups_deactive": "Power-ups sind deaktiviert.",
+		"players_header": "Spieler:",
+		"power_enabled_check": "Power-Ups aktiviert?",
+		"leave_game": "Spiel verlassen",
+		"reset_game_settings": "Spiel Einstellungen zurücksetzen"
+	},
+	"chat": {
+		"sent": "Senden",
+		"global_chat": "Globaler Chat",
+		"new_chat": "Neue Gruppe erstellen",
+		"block_user": "Benutzer blockieren",
+		"unblock_user": "Benutzer entblockieren",
+		"invite_to_chat": "Benutzer zu Chat einladen",
+		"user_leave_chat": "Benutzer von Chat entfernen",
+		"create_new_group": "Neue Gruppe erstellen",
+		"invite_user": "Benutzer einladen",
+		"cancel": "Abbrechen",
+		"create_group": "Gruppe erstellen",
+		"placeholder_search_people": "Personen suchen...",
+		"placeholder_group_name": "Gruppenname eingeben..."
 	}
 }

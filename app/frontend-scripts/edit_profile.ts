@@ -1,6 +1,6 @@
 import { showLocalError, showLocalInfo, showLocalLog } from './alert.js';
+import { loadPartialView, updateMenu } from './navigator.js';
 import './script.js';
-import { loadPartialView, updateMenu } from './script.js';
 
 export function getFileAsDataURL(input: HTMLInputElement): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -111,14 +111,12 @@ document
 			if (response.ok) {
 				showLocalInfo('Profile updated successfully! 🎉');
 				if (usernameField.value !== initialValues.username) {
-					localStorage.removeItem('token');
-					await loadPartialView('login');
-					updateMenu();
+					await loadPartialView('profile');
 				} else {
 					await loadPartialView('profile');
 				}
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -181,7 +179,7 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				await loadPartialView('profile');
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -229,10 +227,11 @@ document
 			if (response.ok) {
 				showLocalInfo('Password updated successfully! 🎉');
 				localStorage.removeItem('token');
-				await loadPartialView('login');
+				localStorage.setItem('loggedIn', 'false');
+				await loadPartialView('login', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(`${data.message}`);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -272,11 +271,11 @@ document
 			const data = await response.json();
 			if (response.ok) {
 				showLocalInfo('Profile deleted successfully! 🎉');
-				localStorage.removeItem('token');
-				await loadPartialView('register');
+				localStorage.setItem('loggedIn', 'false');
+				await loadPartialView('register', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(`Error: ${data.message}`);
+				showLocalError(data.message || data.error);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);

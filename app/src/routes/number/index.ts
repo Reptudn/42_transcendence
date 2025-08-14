@@ -6,7 +6,7 @@ let theNumber: number = 0;
 
 const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/', async (req: any, reply: any) => {
-		reply.send({ number: theNumber });
+		return reply.send({ number: theNumber });
 	});
 
 	fastify.post(
@@ -40,7 +40,7 @@ const number: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				await unlockAchievement(req.user.id, 'number-3', fastify);
 			}
 
-			reply.code(200).send({ number: theNumber });
+			return reply.code(200).send({ number: theNumber });
 		}
 	);
 };

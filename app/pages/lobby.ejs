@@ -1,33 +1,32 @@
 <% if (initial)  {%>
-<div class="flex-row">
-	<script src="/static/js/lobby.js" type="module"></script>
-	<div id="lobby">
-		<% } %>
-		<h1 class="text-4xl mt-10 mb-5"><%= ownerName %>'s Game</h1>
-		<button onclick="leaveGame()" class="bg-red-500 px-2 py-2 rounded">Leave Game</button>
+	<div class="flex-row">
+		<script src="/static/js/lobby.js" type="module"></script>
+		<div id="lobby">
+			<% } %>
+			<h1 class="text-4xl mt-5 mb-5"><%= ownerName %>'s Game</h1>
+			<button onclick="addLocalPlayer()" class="bg-blue-500 px-2 py-2 rounded">Add Local Player</button>
+			<button onclick="leaveGame()" class="bg-red-500 px-2 py-2 rounded">Leave Game</button>
 		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl">Lobby Settings</h2>
 			<div id="lobbySettings">
 				<h3>Power-ups:</h3>
-				<% if (gameSettings.powerupsEnabled && gameSettings.powerups.length > 0) { %>
-					<% for (const powerup of gameSettings.powerups) { %>
-						<div class="powerup">
-							<span class="powerup-name"><%= powerup.name %></span>
-							<span class="powerup-description"><%= powerup.description %></span>
-						</div>
-					<% } %>
+				<% if (gameSettings.powerupsEnabled) { %>
+					<p>Powerups are enabled</p>
 				<% } else { %>
-					<p>Power-ups are disabled.</p>
-					<br>
+					<p>Power-Ups are disabled.</p>
+				<% } %>
+				<% if (gameSettings.gameType === 'tournament') { %>
+					<h3>Auto Advance AI's <%= gameSettings.autoAdvance ? 'Enabled' : 'Disabled' %></h3>
 				<% } %>
 				<h3>Player Lives: <%= gameSettings.playerLives %></h3>
 				<h3>Game Difficulty: <%= gameSettings.gameDifficulty %></h3>
 				<h3>Current Map: <%= gameSettings.map.toUpperCase() %></h3>
+				<h3>Game Type: <%= (gameSettings.gameType || '').toUpperCase() %></h3>
 			</div>
 		</div>
 		<br>
-		<button onclick="addLocalPlayer()" class="bg-blue-500 px-2 py-2 rounded">Add Local Player</button>
+		<% if (gameSettings.gameType === 'classic') { %>
 		<div class="players">
 			<h2 class="text-3xl">Players:</h2>
 			<div id="playerList">
@@ -35,17 +34,31 @@
 					<p>No players joined.</p>
 				<% } else { %>
 					<% for (const player of players) { %>
-						<div class="<%= player.joined ? 'border-green-500' : 'border-red-500' %>">
-							<span class="glow-green"><%= player.displayName || 'Unknown Player' %></span>
+						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (Admin)</h3>
+							<% } else if (selfId && player.playerId === selfId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>
+							<% } else if (localPlayerId && player.playerId === localPlayerId) {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You as Local)</h3>
+							<% } else {%>
+								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
+							<% } %>
 							<span class="glow-red"><%= player.playerTitle || 'Unknown Title' %></span>
 							<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
+							<% if (localPlayerId && player.playerId === localPlayerId) { %>
+								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+							<% } %>
 						</div>
 						<br>
 					<% } %>
 				<% } %>
 			</div>
 		</div>
-	
+		<% } else { %>
+			<h2 class="text-3xl mb-4">Tournament Tree</h2>
+			<%- include('misc/tournament_tree') %>
+		<% } %>
 <% if (initial) { %>
 	</div> <!-- End of lobby div -->
 </div> <!-- End of page div -->

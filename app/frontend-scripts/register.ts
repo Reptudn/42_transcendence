@@ -1,15 +1,13 @@
 import { showLocalInfo, showLocalError } from './alert.js';
+import { loadPartialView } from './navigator.js';
 import './script.js';
-import { loadPartialView } from './script.js';
 
 const registerAction = async () => {
-	const username = (document.querySelector('#username') as HTMLInputElement)
+	const username = (document.querySelector('#username') as HTMLInputElement).value;
+	const displayname = (document.querySelector('#displayname') as HTMLInputElement)
 		.value;
-	const displayname = (
-		document.querySelector('#displayname') as HTMLInputElement
-	).value;
-	const password = (document.querySelector('#password') as HTMLInputElement)
-		.value;
+	const password = (document.querySelector('#password') as HTMLInputElement).value;
+
 	try {
 		const response = await fetch('/api/auth/register', {
 			method: 'POST',
@@ -35,7 +33,7 @@ const registerButton = document.getElementById('registerButton');
 if (registerButton) {
 	console.log('registerButton found');
 	registerButton.addEventListener('click', registerAction, {
-		signal: window.abortController?.signal,
+		// signal: window.abortController?.signal,
 	});
 } else console.error('registerButton not found');
 
@@ -48,9 +46,7 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 				(input as HTMLInputElement).value.length
 			}/${max}`;
 		});
-		counter.textContent = `${
-			(input as HTMLInputElement).value.length
-		}/${max}`;
+		counter.textContent = `${(input as HTMLInputElement).value.length}/${max}`;
 	}
 }
 updateCounter('username', 'usernameCounter', 16);

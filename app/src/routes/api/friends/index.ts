@@ -22,37 +22,89 @@ import {
 const friendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { type: 'number' },
+		requestId: { 
+			type: 'number',
+			minimum: 1,
+			errorMessage: {
+				type: 'Request ID must be a number',
+				minimum: 'Request ID must be a positive number'
+			}
+		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			requestId: 'Request ID is required'
+		},
+		additionalProperties: 'Unknown field provided. Only requestId is allowed'
+	}
 };
 
 const removeFriendshipSchema = {
 	type: 'object',
 	properties: {
-		friendId: { type: 'number' },
+		friendId: { 
+			type: 'number',
+			minimum: 1,
+			errorMessage: {
+				type: 'Friend ID must be a number',
+				minimum: 'Friend ID must be a positive number'
+			}
+		},
 	},
 	required: ['friendId'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			friendId: 'Friend ID is required'
+		},
+		additionalProperties: 'Unknown field provided. Only friendId is allowed'
+	}
 };
 
 const acceptFriendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { type: 'number' },
+		requestId: { 
+			type: 'number',
+			minimum: 1,
+			errorMessage: {
+				type: 'Request ID must be a number',
+				minimum: 'Request ID must be a positive number'
+			}
+		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			requestId: 'Request ID is required to accept the friend request'
+		},
+		additionalProperties: 'Unknown field provided. Only requestId is allowed'
+	}
 };
 
 const declineFriendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { type: 'number' },
+		requestId: { 
+			type: 'number',
+			minimum: 1,
+			errorMessage: {
+				type: 'Request ID must be a number',
+				minimum: 'Request ID must be a positive number'
+			}
+		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
+	errorMessage: {
+		required: {
+			requestId: 'Request ID is required to decline the friend request'
+		},
+		additionalProperties: 'Unknown field provided. Only requestId is allowed'
+	}
 };
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -129,8 +181,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
-				reply.code(400).send({ message: 'Friend request already sent' });
-				return;
+				return reply.code(400).send({ message: 'Friend request already sent' });
 			}
 
 			try {
@@ -160,7 +211,6 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						message:
 							'User not connected, sent friend request will be received later.',
 					});
-					return;
 				}
 				return reply.code(200).send({ message: 'Friend request sent' });
 			} catch (err: any) {
@@ -218,7 +268,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						chat_id
 					);
 				}
-				reply.send({ message: 'Friend request accepted' });
+				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
 				return reply.code(400).send({ message: err.message });
 			}
@@ -278,7 +328,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (chat_id) {
 					removeChat(fastify, chat_id);
 				}
-				reply.send({ message: 'Friendship removed' });
+				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				// reply.code(400).send({ message: err.message });
 				return reply

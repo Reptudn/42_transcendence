@@ -70,8 +70,7 @@ function computeCollisionResponse(
 					0,
 					Math.min(
 						1,
-						((center.x - a.x) * ab.x + (center.y - a.y) * ab.y) /
-							abLenSq
+						((center.x - a.x) * ab.x + (center.y - a.y) * ab.y) / abLenSq
 					)
 				);
 			}
@@ -82,9 +81,7 @@ function computeCollisionResponse(
 			});
 		}
 	}
-	return bestNormal
-		? { normal: bestNormal, penetration: bestPenetration }
-		: null;
+	return bestNormal ? { normal: bestNormal, penetration: bestPenetration } : null;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -121,9 +118,7 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 
 	// Set ballSpeed - matching velocity
 	{
-		const currentSpeed = Math.sqrt(
-			ball.velocity.x ** 2 + ball.velocity.y ** 2
-		);
+		const currentSpeed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
 		if (currentSpeed !== 0) {
 			ball.velocity.x = (ball.velocity.x / currentSpeed) * ballSpeed;
 			ball.velocity.y = (ball.velocity.y / currentSpeed) * ballSpeed;
@@ -153,19 +148,12 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 		let maxPenetration = 0;
 		for (const polygon of potentialCollisions) {
 			if (circlePolygonCollision(center, radius, polygon)) {
-				const response = computeCollisionResponse(
-					center,
-					radius,
-					polygon
-				);
+				const response = computeCollisionResponse(center, radius, polygon);
 				if (response) {
 					combinedNormal.x += response.normal.x;
 					combinedNormal.y += response.normal.y;
 					// We pick the maximum penetration to ensure a sufficient push.
-					maxPenetration = Math.max(
-						maxPenetration,
-						response.penetration
-					);
+					maxPenetration = Math.max(maxPenetration, response.penetration);
 					collisionOccurred = true;
 				}
 			}
@@ -177,11 +165,21 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 		center.y += combinedNormal.y * maxPenetration;
 		// Reflect the velocity using the combined collision normal.
 		const dot =
-			ball.velocity.x * combinedNormal.x +
-			ball.velocity.y * combinedNormal.y;
+			ball.velocity.x * combinedNormal.x + ball.velocity.y * combinedNormal.y;
 		ball.velocity.x = ball.velocity.x - 2 * dot * combinedNormal.x;
 		ball.velocity.y = ball.velocity.y - 2 * dot * combinedNormal.y;
 	}
+
+	// XXX: This would be the wiggly ball powerup
+	// const degreeRange = 20; // Range in degrees, e.g. 20 for ±10°
+	// const radRange = (degreeRange * Math.PI) / 180; // Convert to radians
+	// const angleAdjust = (Math.random() - 0.5) * radRange;
+	// const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
+	// const currentAngle = Math.atan2(ball.velocity.y, ball.velocity.x);
+	// const newAngle = currentAngle + angleAdjust;
+	// ball.velocity.x = Math.cos(newAngle) * speed;
+	// ball.velocity.y = Math.sin(newAngle) * speed;
+
 
 	// Game boundary collisions
 	const { size_x, size_y } = gameState.meta;
@@ -219,4 +217,62 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	normalize(ball.velocity, ballSpeed);
 
 	return gameState;
+}
+
+export function resetBall(gameState: GameState, ballSpeed: number): GameState {
+	const ball = gameState.objects.find((obj) => obj.type === 'ball');
+	if (!ball) {
+		console.warn('No ball found to reset.');
+		return gameState;
+	}
+
+	if (!('radius' in ball) || typeof ball.radius !== 'number') {
+		ball.radius = 2;
+	}
+
+	const { size_x, size_y } = gameState.meta;
+	ball.center = {
+		x: size_x / 2,
+		y: size_y / 2,
+	};
+
+	const angle = Math.random() * (Math.PI / 2) + Math.PI / 4; // 45°–135°
+	const directionX = Math.random() < 0.5 ? -1 : 1;
+	const directionY = Math.random() < 0.5 ? -1 : 1;
+
+	ball.velocity = {
+		x: Math.cos(angle) * ballSpeed * directionX,
+		y: Math.sin(angle) * ballSpeed * directionY,
+	};
+
+	console.log(`Ball reset to center at (${ball.center.x}, ${ball.center.y})`);
+
+	return gameState;
+}
+
+
+export function hasPlayerBeenHit(gameState: GameState, playerId: number): boolean {
+	const ball = gameState.objects.find((o) => o.type === 'ball');
+	if (!ball || !('center' in ball) || !('radius' in ball)) return false;
+
+	const center = (ball as any).center as Point;
+	const radius = (ball as any).radius as number;
+
+	const dmg = gameState.objects.find(
+		(o) => o.type === 'player_damage_area' && o.playerNbr === playerId
+	);
+	if (!dmg || !dmg.shape) return false;
+
+	const isOverlapping = circlePolygonCollision(center, radius, dmg.shape);
+
+	if (isOverlapping) {
+		if (!dmg.overlapping_ball) {
+			dmg.overlapping_ball = true;
+			return true;
+		}
+		return false;
+	} else {
+		dmg.overlapping_ball = false;
+		return false;
+	}
 }

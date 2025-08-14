@@ -6,6 +6,8 @@ import {
 	loginGoogleUser,
 } from '../../../../services/database/users';
 import { getGoogleProfile } from '../../../../services/google/user';
+import { users_2fa_google } from '../index';
+import { getUser2faSecret } from '../../../../services/database/totp';
 
 const google_callback: FastifyPluginAsync = async (
 	fastify,
@@ -25,8 +27,7 @@ const google_callback: FastifyPluginAsync = async (
 				user = await getGoogleProfile(token.access_token);
 			} catch (error) {
 				fastify.log.error('Error getting Google Profile', error);
-				reply.send(error);
-				return;
+				return reply.code(400).send(error);
 			}
 
 			let dbUser: User | null = null;
@@ -35,8 +36,7 @@ const google_callback: FastifyPluginAsync = async (
 				dbUser = await getGoogleUser(user.id, fastify);
 			} catch (error) {
 				fastify.log.error('Error getting Google User', error);
-				reply.send(error);
-				return;
+				return reply.code(400).send(error);
 			}
 			if (dbUser === null) {
 				try {
@@ -44,8 +44,7 @@ const google_callback: FastifyPluginAsync = async (
 					await registerGoogleUser(user, fastify);
 				} catch (error) {
 					fastify.log.error('Error Google Register', error);
-					reply.send(error);
-					return;
+					return reply.code(400).send(error);
 				}
 			}
 
@@ -55,6 +54,12 @@ const google_callback: FastifyPluginAsync = async (
 					user.id,
 					fastify
 				);
+
+				const twofaSecret = await getUser2faSecret(loggedGoogleUser, fastify);
+                if (twofaSecret !== '') {
+					users_2fa_google.push(loggedGoogleUser.id);
+                    return reply.redirect(`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`);
+                }
 
 				const jwt = fastify.jwt.sign(
 					{
@@ -71,14 +76,14 @@ const google_callback: FastifyPluginAsync = async (
 					sameSite: 'lax',
 					path: '/',
 				});
-				reply.redirect('/partial/pages/profile');
+				return reply.redirect('/partial/pages/profile');
 			} catch (error) {
 				fastify.log.error('Error trying to login google user', error);
-				reply.send(error);
+				return reply.code(400).send(error);
 			}
 		} catch (error) {
 			fastify.log.error('Error Google Login', error);
-			reply.send(error);
+			return reply.code(400).send(error);
 		}
 	});
 };

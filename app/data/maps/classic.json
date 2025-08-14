@@ -17,7 +17,7 @@
 			"radius": 2,
 			"velocity": {
 				"x": 1,
-				"y": 0
+				"y": 1
 			}
 		},
 		{
@@ -497,22 +497,32 @@
 			]
 		},
 		{
-			"type": "powerup_pos",
-			"shape": [
-				{
-					"x": 55,
-					"y": 55
-				}
-			]
+			"type": "powerup_spawn",
+			"center": {
+				"x": 55,
+				"y": 55
+			}
 		},
 		{
-			"type": "powerup_pos",
-			"shape": [
-				{
-					"x": 45,
-					"y": 55
-				}
-			]
+			"type": "powerup_spawn",
+			"center": {
+				"x": 45,
+				"y": 55
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 45,
+				"y": 45
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 55,
+				"y": 45
+			}
 		}
 	]
 }

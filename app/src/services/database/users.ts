@@ -1,12 +1,15 @@
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
+import crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { getUserAchievements } from './achievements.js';
 
 import { getImageFromLink } from '../google/user.js';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { inviteUserToChat } from '../../routes/api/chat/utils.js';
+import { achievementsData } from '../../plugins/sqlite.js';
+// import { verify2fa } from './totp.js';
+// import { getUser2faSecret } from './totp.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -81,7 +84,7 @@ export async function registerGoogleUser(
 		);
 		return !user;
 	};
-	let base_username = username;
+	const base_username = username;
 	while (!(await isUniqueUsername(username))) {
 		username += Math.floor(Math.random() * 10);
 		if (username.length > 20) username = base_username;
@@ -120,6 +123,7 @@ export async function loginGoogleUser(
 export async function loginUser(
 	username: string,
 	password: string,
+	/*totp: string,*/
 	fastify: FastifyInstance
 ): Promise<User> {
 	const user = await fastify.sqlite.get(
@@ -129,6 +133,13 @@ export async function loginUser(
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
+	/*const two_fa = await getUser2faSecret(user, fastify);
+	if (two_fa !== '') {
+		if ((await verify2fa(user, totp, fastify)) === false) {
+			fastify.log.info('False 2fa code when login');
+			throw new Error('Invalid 2fa code');
+		}
+	}*/
 	return user;
 }
 
@@ -158,7 +169,7 @@ export async function getGoogleUser(
 	google_id: string,
 	fastify: FastifyInstance
 ): Promise<User | null> {
-	let user;
+	let user: any;
 	try {
 		user = await fastify.sqlite.get(
 			'SELECT id, username, displayname, bio, profile_picture, click_count, title_first, title_second, title_third FROM users WHERE google_id = ?',
@@ -235,7 +246,7 @@ export async function updateUserProfile(
 	) {
 		return;
 	}
-	if (username && username != undefined)
+	if (username && username !== undefined)
 		await fastify.sqlite.run('UPDATE users SET username = ? WHERE id = ?', [
 			username,
 			id,
@@ -286,9 +297,9 @@ export async function updateUserPassword(
 	oldPassword: string,
 	newPassword: string,
 	fastify: FastifyInstance
-) {
+) : Promise<boolean> {
 	if (!oldPassword && !newPassword) {
-		return;
+		return false;
 	}
 	if (!oldPassword || !newPassword) {
 		throw new Error(
@@ -313,6 +324,7 @@ export async function updateUserPassword(
 		hashedNew,
 		id,
 	]);
+	return true;
 }
 
 export async function deleteUser(id: number, fastify: FastifyInstance) {
@@ -405,6 +417,42 @@ export async function getUserTitleString(userId: number, fastify: FastifyInstanc
 		' ' +
 		(await getUserTitle(userId, 3, fastify))
 	);
+}
+
+export function getRandomUserTitle(achievements: boolean): string {
+	let allFirstTitles = [...default_titles_first];
+	let allSecondTitles = [...default_titles_second];
+	let allThirdTitles = [...default_titles_third];
+
+	if (achievements && achievementsData) {
+		allFirstTitles = [
+			...default_titles_first,
+			...achievementsData
+				.map((a: Achievement) => a.title_first)
+				.filter(Boolean),
+		];
+		allSecondTitles = [
+			...default_titles_second,
+			...achievementsData
+				.map((a: Achievement) => a.title_second)
+				.filter(Boolean),
+		];
+		allThirdTitles = [
+			...default_titles_third,
+			...achievementsData
+				.map((a: Achievement) => a.title_third)
+				.filter(Boolean),
+		];
+	}
+
+	const firstTitle =
+		allFirstTitles[Math.floor(Math.random() * allFirstTitles.length)];
+	const secondTitle =
+		allSecondTitles[Math.floor(Math.random() * allSecondTitles.length)];
+	const thirdTitle =
+		allThirdTitles[Math.floor(Math.random() * allThirdTitles.length)];
+
+	return `${firstTitle} ${secondTitle} ${thirdTitle}`;
 }
 
 export async function getUserTitles(

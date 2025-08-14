@@ -1,5 +1,5 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { loadPartialView } from './script.js';
+import { loadPartialView } from './navigator.js';
 
 interface Friend {
 	id: number;

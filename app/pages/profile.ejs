@@ -1,12 +1,30 @@
 <div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
 	<% if (isSelf) { %>
-	<div class="flex justify-end -mb-[45px]">
-		<a
-			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
-			onclick="loadPartialView('edit_profile')"
+		<div class="flex justify-end -mb-[45px]">
+			<a
+				class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-blue"
+				onclick="loadPartialView('edit_profile')"
+			>
+				<%= t('profile.edit_profile') %>
+			</a>
+		</div>
+	<% } else if (isFriended) { %>
+		<div class="flex justify-end -mb-[45px]">
+			<button
+				class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-green"
+				onclick="sendFriendRequest(<%= user.id %>)"
+			>
+				Send Friend Request
+			</button>
+		</div>
+	<% } else { %>
+		<div class="flex justify-end -mb-[45px]">
+		<button
+			class="cursor-pointer hover:glow-red text-3xl text-white font-bold py-2 px-4 rounded-full glow-red"
+			onclick="removeFriendRequest(<%= user.id %>)"
 		>
-			<%= t('profile.edit_profile') %>
-		</a>
+			Remove Friend
+		</button>
 	</div>
 	<% } %>
 
@@ -20,17 +38,23 @@
 			<h2 class="text-4xl font-bold"><%= user.displayname %></h2>
 			<h3 class="text-3xl">@<%= user.username %></h3>
 			<h3 class="text-3xl">The <%= title %></h3>
+			<% if (online) { %>
+				<span class="text-green-500">Online</span>
+			<% } else { %>
+				<span class="text-red-500">Offline</span>
+			<% } %>
 		</div>
 	</div>
 
 	<% if (user.bio) { %>
 	<div class="mt-4">
-		<h4 class="font-bold text-3xl">bio:</h4>
+		<h4 class="font-bold text-3xl">Bio:</h4>
 		<p class="break-words hyphens-auto">
 			<%= user.bio || t('profile.no_bio') %>
 		</p>
 	</div>
-	<% } %> <% if (friends.length > 0 || isSelf ) { %>
+	<% } %>
+	<% if (friends.length > 0 || isSelf ) { %>
 	<div class="mt-6 border-t pt-4">
 		<h3 class="font-bold mb-4 text-3xl"><%= t('profile.friends') %></h3>
 		<div class="flex flex-wrap gap-4">
@@ -82,10 +106,59 @@
 	</div>
 	<% } %>
 
-	<!-- <div class="mt-6 border-t pt-4">
-		<h4 class="text-2xl font-bold mb-4">Match History</h4>
-		<p class="text-gray-500">Coming soon...</p>
-	</div> -->
+	<div class="mt-6 border-t pt-4">
+		<h3 class="font-bold mb-4 text-3xl">
+			<%= t('profile.match_history') %> 🎮
+		</h3>
+
+		<% if (games && games.length) { %>
+			<% games.forEach(game => { %>
+			<div class="mb-4 p-4 bg-gray-800 rounded-lg">
+			<div class="flex justify-between items-center mb-2">
+				<span class="text-xl text-gray-200">
+				<%= new Date(game.endedAt).toLocaleString('en-GB', {
+					day: '2-digit', month: 'short', year: 'numeric',
+					hour: '2-digit', minute: '2-digit'
+				}) %>
+				</span>
+				<span class="text-lg text-gray-400">
+				Game #<%= game.gameId %>
+				</span>
+			</div>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+				<% game.players.forEach(p => {
+				let badge = '📍 ' + p.place;
+				if (p.place === 1) badge = '🏆';
+				if (p.place === 2) badge = '🥈';
+				if (p.place === 3) badge = '🥉';
+				%>
+				<div class="flex items-center space-x-3 p-2 bg-gray-700 rounded">
+				<div class="text-2xl"><%= badge %></div>
+				<div>
+					<% if (p.playerType === 'User') { %>
+					<!-- Real user: show their details -->
+					<div class="font-bold text-white"><%= p.displayname || 'Guest' %></div>
+					<div class="text-gray-300">@<%= p.username || 'unknown' %></div>
+					<% if (p.title) { %>
+						<div class="text-yellow-300 italic"><%= p.title %></div>
+					<% } %>
+					<% } else { %>
+					<!-- Bot/local/AI: just show their type -->
+					<div class="font-bold text-white"><%= p.playerType %></div>
+					<% } %>
+				</div>
+				</div>
+				<% }) %>
+			</div>
+			</div>
+			<% }) %>
+		<% } else { %>
+			<p class="text-light-gray-500 italic">
+			<%= t('profile.no_match_history') %> 😉
+			</p>
+		<% } %>
+	</div>
 
 	<div class="mt-6 border-t pt-4">
 		<h3 class="font-bold mb-4 text-3xl">
@@ -133,3 +206,7 @@
 	</div>
 	<% } %>
 </div>
+
+<script>
+window.sessionStorage.setItem('loggedIn', 'true');
+</script>
