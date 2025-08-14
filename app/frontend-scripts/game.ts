@@ -191,7 +191,7 @@ const pingInterval = setInterval(() => {
 }, 30000);
 
 export async function leaveWsGame(manual: boolean = false) {
-	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
+	if (ws && ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
 	if (manual) loadPartialView('profile');
 }
 

@@ -50,7 +50,10 @@ export async function refreshOnlineFriends() {
 		.join('');
 }
 
-export async function updateSettings(newSettings: any, error: boolean = false) {
+export async function updateSettings(
+	newSettings: any,
+	success_info: boolean = false
+) {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
 		headers: {
@@ -63,7 +66,7 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 		const data = await res.json();
 		showLocalError(data.error);
 	} else {
-		if (!error) return;
+		if (!success_info) return;
 		const data = await res.json();
 		showLocalInfo(data.message);
 	}
@@ -231,7 +234,7 @@ export function updatePage(html: string) {
 	if (lobbyContainer) {
 		lobbyContainer.innerHTML = html;
 		initLobbyButtons();
-	} else showLocalError('Failed to update lobby due to missing lobby div.');
+	}
 }
 
 export async function renameLocalPlayer(id: number) {
@@ -240,15 +243,12 @@ export async function renameLocalPlayer(id: number) {
 	const newName = prompt('Enter new name for local player:');
 	if (!newName) return;
 
-	await updateSettings(
-		{
-			localPlayerUpdate: {
-				playerId: id,
-				name: newName,
-			},
+	await updateSettings({
+		localPlayerUpdate: {
+			playerId: id,
+			name: newName,
 		},
-		true
-	);
+	});
 }
 
 export async function renameAiPlayer(id: number) {
@@ -257,15 +257,12 @@ export async function renameAiPlayer(id: number) {
 	const newName = prompt('Enter new name for AI player:');
 	if (!newName) return;
 
-	await updateSettings(
-		{
-			aiUpdate: {
-				playerId: id,
-				name: newName,
-			},
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			name: newName,
 		},
-		true
-	);
+	});
 }
 
 export async function setAiDifficulty(id: number, difficulty: string | number) {
@@ -277,15 +274,12 @@ export async function setAiDifficulty(id: number, difficulty: string | number) {
 		console.log(
 			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
 		);
-		await updateSettings(
-			{
-				aiUpdate: {
-					playerId: id,
-					difficulty: correctedDifficulty,
-				},
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty,
 			},
-			true
-		);
+		});
 		return;
 	}
 
@@ -294,27 +288,21 @@ export async function setAiDifficulty(id: number, difficulty: string | number) {
 		console.log(
 			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
 		);
-		await updateSettings(
-			{
-				aiUpdate: {
-					playerId: id,
-					difficulty: correctedDifficulty,
-				},
+		await updateSettings({
+			aiUpdate: {
+				playerId: id,
+				difficulty: correctedDifficulty,
 			},
-			true
-		);
+		});
 		return;
 	}
 
-	await updateSettings(
-		{
-			aiUpdate: {
-				playerId: id,
-				difficulty: difficultyNum,
-			},
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			difficulty: difficultyNum,
 		},
-		true
-	);
+	});
 }
 
 await refreshOnlineFriends();
