@@ -41,10 +41,11 @@ export enum PowerupType {
 	Redirection = 'REDIRECTION',
 	Nausea = 'NAUSEA',
 	WonkyBall = 'WONKY_BALL',
-	// RotatingBoard = 'ROTATING_BOARD',
+	PhasingPaddle = 'PHASING_PADDLE',
+	PhasingBall = 'PHASING_BALL',
 }
 
-export const powerupCheckDelay = 5000;
+export const powerupCheckDelay = 2000;
 export const powerupSpawnChance = 0.5;
 export const powerupDuration = 10000;
 export const powerupObjectRadius = 3;
