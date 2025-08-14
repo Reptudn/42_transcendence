@@ -302,5 +302,53 @@
 		"title_first": "Skilled",
 		"title_second": "Pong Professional",
 		"title_third": "💪"
+	},
+	{
+		"key": "powerup-inverse-controls",
+		"name": "Inverse Controls Powerup",
+		"description": "Experience the effects of the inverse controls powerup",
+		"title_first": "Confused",
+		"title_second": "Confusion Incarnate",
+		"title_third": "🤪"
+	},
+	{
+		"key": "powerup-redirection",
+		"name": "Redirection Powerup",
+		"description": "Experience the effects of the redirection powerup",
+		"title_first": "Disoriented",
+		"title_second": "Roundabout enthusiast",
+		"title_third": "🎸"
+	},
+	{
+		"key": "powerup-nausea",
+		"name": "Nausea Powerup",
+		"description": "Experience the effects of the nausea powerup",
+		"title_first": "Nauseous",
+		"title_second": "Weak Stomach Owner",
+		"title_third": "🤢"
+	},
+	{
+		"key": "powerup-wonky-ball",
+		"name": "Wonky Ball Powerup",
+		"description": "Experience the effects of the wonky ball powerup",
+		"title_first": "Wonky",
+		"title_second": "Ball Enthusiast",
+		"title_third": "🌀"
+	},
+	{
+		"key": "powerup-phasing-paddle",
+		"name": "Phasing Paddle Powerup",
+		"description": "Experience the effects of the phasing paddle powerup",
+		"title_first": "Phasing",
+		"title_second": "Paddle Enthusiast",
+		"title_third": "🛶"
+	},
+	{
+		"key": "powerup-phasing-ball",
+		"name": "Phasing Ball Powerup",
+		"description": "Experience the effects of the phasing ball powerup",
+		"title_first": "Unphased",
+		"title_second": "Balls Lover",
+		"title_third": "⚽"
 	}
 ]
