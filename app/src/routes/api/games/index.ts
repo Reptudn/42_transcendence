@@ -36,16 +36,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
 				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin
-				if (existingGame && existingGame.status === GameStatus.WAITING) {
-					return reply.code(200).send({
-						message:
-							'You already have a game in lobby phase.. putting you back in there!',
-						gameId: existingGame.gameId,
-					});
-				} else if (
-					existingGame &&
-					existingGame.status === GameStatus.RUNNING
-				) {
+				if (existingGame && existingGame.status === GameStatus.RUNNING) {
 					return reply.code(401).send({
 						error: 'Seems like you have a running game already.. wait for it to end before creating a new one (yes you shouldnt have ended up here!)',
 					});
@@ -534,14 +525,28 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error: 'Cannot invite players to a game that has already started',
 				});
 			}
-			try { // TODO: invite issue here
+			try {
+				// TODO: invite issue here
 				if (
 					game.config.gameType === GameType.TOURNAMENT &&
 					!game.alreadyStarted
 				) {
+					console.log('checking for ai');
 					const ai = game.players.find((p) => p instanceof AiPlayer);
-					if (ai)
-						await game.removePlayer(request.t, ai.playerId, true, true);
+					if (ai) {
+						console.log(
+							`Removing AI player ${ai.playerId} for user invitation`
+						);
+						await game.removePlayer(
+							request.t,
+							ai.playerId,
+							false,
+							false,
+							true
+						);
+					} else {
+						console.log('no ai players found');
+					}
 				}
 				await game.addUserPlayer(inviteUser, false, request.t);
 			} catch (err) {
@@ -731,7 +736,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 								await game.removePlayer(
 									request.t,
 									ai.playerId,
-									false
+									false,
+									true,
+									true
 								);
 						}
 						await game.addLocalPlayer(
@@ -993,6 +1000,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					state: game.formatStateForClients(),
 				})
 			);
+
+			socket.on('ping', () => {
+				socket.pong();
+			});
 
 			socket.on('error', (error) => {
 				fastify.log.error(

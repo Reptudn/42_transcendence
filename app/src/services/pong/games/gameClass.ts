@@ -137,6 +137,9 @@ export class Game {
 		if (!this.availableMaps)
 			this.availableMaps = await getAvailableMaps(this.fastify);
 
+		if (this.alreadyStarted)
+			throw new Error('Cant add a user when the first tournament round has been played already');
+
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
 
@@ -198,6 +201,9 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
+		if (this.alreadyStarted)
+			throw new Error('Cant add a user when the first tournament round has been played already');
+
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
@@ -220,12 +226,16 @@ export class Game {
 		t: any | null,
 		playerId: number,
 		forced: boolean = false,
-		silent: boolean = false
+		silent: boolean = false,
+		skipAutoRefill: boolean = false
 	) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
 		if (!playerToRemove) throw new Error('Player not found!');
+
+		if (forced && this.alreadyStarted)
+			throw new Error('Cant add a user when the first tournament round has been played already');
 
 		this.players = this.players.filter((player) => player.playerId !== playerId);
 		if (this.status === GameStatus.RUNNING) {
@@ -261,7 +271,8 @@ export class Game {
 		if (
 			this.config.gameType === GameType.TOURNAMENT &&
 			this.tournament &&
-			!this.alreadyStarted
+			!this.alreadyStarted &&
+			!skipAutoRefill
 		) {
 			for (let i = this.players.length; i < this.config.maxPlayers; i++)
 				this.addAiPlayer(this.config.gameDifficulty, true, t);
