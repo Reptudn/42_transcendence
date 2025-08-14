@@ -108,12 +108,11 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	const radius: number = (ball as any).radius;
 
 	if (!ball.velocity || (ball.velocity.x === 0 && ball.velocity.y === 0)) {
-		const normFactor = Math.sqrt(2) / 2;
+		const theta = Math.random() * 2 * Math.PI;
 		ball.velocity = {
-			x: ballSpeed * normFactor,
-			y: ballSpeed * normFactor,
+			x: Math.cos(theta) * ballSpeed,
+			y: Math.sin(theta) * ballSpeed,
 		};
-		console.warn('Ball has no velocity. Defaulting to (1, 1).');
 	}
 
 	// Set ballSpeed - matching velocity
@@ -198,58 +197,32 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 
 	// 45-degree magnetism to prevent single-path stuck balls
 	{
-		let velocityXSign = ball.velocity.x > 0 ? 1 : -1;
-		let velocityYSign = ball.velocity.y > 0 ? 1 : -1;
+		const speed = Math.hypot(ball.velocity.x, ball.velocity.y) || ballSpeed;
+		const angle = Math.atan2(ball.velocity.y, ball.velocity.x);
 
-		ball.velocity.x = Math.abs(ball.velocity.x);
-		ball.velocity.y = Math.abs(ball.velocity.y);
+		const low = (40 * Math.PI) / 180;
+		const high = (50 * Math.PI) / 180;
+		const halfPi = Math.PI / 2;
 
-		const nudgeFactor = 0.0015 * ballSpeed;
-		if (ball.velocity.x < ball.velocity.y) {
-			ball.velocity.x += nudgeFactor;
-			ball.velocity.y -= nudgeFactor;
+		let phi = angle % halfPi;
+		if (phi < 0) phi += halfPi;
+
+		let newAngle = angle;
+		const maxStep = (0.25 * Math.PI) / 180;
+
+		if (phi < low) {
+			const delta = Math.min(low - phi, maxStep);
+			newAngle += delta;
+		} else if (phi > high) {
+			const delta = Math.min(phi - high, maxStep);
+			newAngle -= delta;
 		}
-		if (ball.velocity.y < ball.velocity.x) {
-			ball.velocity.y += nudgeFactor;
-			ball.velocity.x -= nudgeFactor;
-		}
 
-		ball.velocity.x *= velocityXSign;
-		ball.velocity.y *= velocityYSign;
+		ball.velocity.x = Math.cos(newAngle) * speed;
+		ball.velocity.y = Math.sin(newAngle) * speed;
 	}
 
 	normalize(ball.velocity, ballSpeed);
-
-	return gameState;
-}
-
-export function resetBall(gameState: GameState, ballSpeed: number): GameState {
-	const ball = gameState.objects.find((obj) => obj.type === 'ball');
-	if (!ball) {
-		console.warn('No ball found to reset.');
-		return gameState;
-	}
-
-	if (!('radius' in ball) || typeof ball.radius !== 'number') {
-		ball.radius = 2;
-	}
-
-	const { size_x, size_y } = gameState.meta;
-	ball.center = {
-		x: size_x / 2,
-		y: size_y / 2,
-	};
-
-	const angle = Math.random() * (Math.PI / 2) + Math.PI / 4; // 45°–135°
-	const directionX = Math.random() < 0.5 ? -1 : 1;
-	const directionY = Math.random() < 0.5 ? -1 : 1;
-
-	ball.velocity = {
-		x: Math.cos(angle) * ballSpeed * directionX,
-		y: Math.sin(angle) * ballSpeed * directionY,
-	};
-
-	console.log(`Ball reset to center at (${ball.center.x}, ${ball.center.y})`);
 
 	return gameState;
 }
