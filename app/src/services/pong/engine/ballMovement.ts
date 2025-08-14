@@ -56,7 +56,7 @@ function computeCollisionResponse(
 ): { normal: Point; penetration: number } | null {
 	let bestPenetration = -Infinity;
 	let bestNormal: Point | null = null;
-	for (let i = 0; i < polygon.length - 1; i++) {
+	for (let i = 0; i < polygon.length; i++) {
 		const a = polygon[i];
 		const b = polygon[(i + 1) % polygon.length];
 		const dist = distanceToSegment(center, a, b);
