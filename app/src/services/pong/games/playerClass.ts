@@ -56,7 +56,7 @@ export abstract class Player {
 					? 'Local'
 					: this instanceof AiPlayer
 					? 'AI'
-					: 'Unknown'
+					: 'Unknown',
 		};
 	}
 }
@@ -64,7 +64,7 @@ export abstract class Player {
 export class UserPlayer extends Player {
 	public user: User;
 	public wsocket: WSWebSocket | null;
-	public lang: (key: string, options?: any) => string;
+	public lang = i18next.getFixedT('en');
 
 	constructor(
 		user: User,
@@ -76,7 +76,6 @@ export class UserPlayer extends Player {
 		super(id, game.config.playerLives, user.displayname, playerTitle);
 		this.user = user;
 		this.wsocket = wsocket;
-		this.lang = i18next.getFixedT('en');
 	}
 
 	isReady(): boolean {
@@ -100,7 +99,12 @@ export class AiPlayer extends Player {
 	public aiDifficulty: number;
 
 	constructor(id: number, game: Game, aiLevel: number, aiBrainData: AIBrainData) {
-		super(id, game.config.playerLives, `${getRandomDefaultName()}`, 'AI Level 3');
+		super(
+			id,
+			game.config.playerLives,
+			`${getRandomDefaultName()}`,
+			'AI Level 3'
+		);
 		this.aiMoveCoolDown = aiLevel;
 		this.aiBrainData = aiBrainData;
 		this.aiDifficulty = 3;
@@ -110,11 +114,12 @@ export class AiPlayer extends Player {
 		this.displayName = `${name} (AI)`;
 	}
 
-	get difficulty() { return this.aiDifficulty; }
+	get difficulty() {
+		return this.aiDifficulty;
+	}
 
 	setDifficulty(difficulty: number) {
-		if (difficulty < 1 && difficulty > 10)
-			return;
+		if (difficulty < 1 && difficulty > 10) return;
 		this.aiDifficulty = difficulty;
 		this.playerTitle = `AI Level ${difficulty}`;
 	}

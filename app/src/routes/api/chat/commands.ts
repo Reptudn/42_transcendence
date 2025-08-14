@@ -84,14 +84,10 @@ async function gameInviteCmd(
 	if (friendGame) throw new Error('Cant invite a user which is already in a game');
 
 	const game = runningGames.find((g) => g.admin.id === fromUser);
-	// fastify.log.info(
-	// 	`User ${user.username} is inviting user with ID ${parsedUserId} to their game.`
-	// );
 	if (!game) {
 		throw new Error('No game found for the user');
 	}
 
-	// fastify.log.info(`Game found: ${game.gameId} for user ${user.username}`);
 	if (
 		game.players.find(
 			(p) => p instanceof UserPlayer && p.user.id === inviteUser.id

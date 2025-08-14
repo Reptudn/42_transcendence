@@ -297,7 +297,7 @@ export async function updateUserPassword(
 	oldPassword: string,
 	newPassword: string,
 	fastify: FastifyInstance
-) : Promise<boolean> {
+): Promise<boolean> {
 	if (!oldPassword && !newPassword) {
 		return false;
 	}
@@ -314,7 +314,10 @@ export async function updateUserPassword(
 	}
 
 	const user = await fastify.sqlite.get('SELECT * FROM users WHERE id = ?', id);
-	if (!user) throw new Error('User not found');
+	if (!user) {
+		fastify.log.info('updateUserPassword');
+		throw new Error('User not found');
+	}
 
 	if (!(await verifyUserPassword(user.id, oldPassword, fastify)))
 		throw new Error('Old password is incorrect');

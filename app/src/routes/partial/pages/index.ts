@@ -111,6 +111,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						: await checkAuth(req, true, fastify);
 					if (!profile) {
 						errorCode = 404;
+						fastify.log.info('page profile');
 						throw new Error('User not found');
 					}
 					let self_id: number | null = user ? user.id : null;
@@ -165,6 +166,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {
 						errorCode = 404;
+						fastify.log.info('page edit_profile');
 						throw new Error('User not found');
 					}
 					variables['user'] = profile;

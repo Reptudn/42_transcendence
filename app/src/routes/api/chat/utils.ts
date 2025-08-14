@@ -105,7 +105,8 @@ export async function getMsgForGroup(
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) {
 				htmlMsgs.push(await createHtmlMsg(user, null, 'Msg blocked', true));
-			} else htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
+			} else
+				htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
 		}
 	}
 	return htmlMsgs;

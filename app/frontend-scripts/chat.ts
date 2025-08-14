@@ -71,7 +71,8 @@ searchUser?.addEventListener('input', async () => {
 				await getMessages(chat.id.toString());
 			});
 			butt.textContent = chat.name;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.className =
+				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
 			userList.appendChild(butt);
 		}
 	}
@@ -94,7 +95,6 @@ export function appendToChatBox(rawMessage: string) {
 		}
 	}
 	if (msg.blocked || msg.ownMsg) return;
-	console.log('test hier');
 	showLocalInfo(
 		`You recived a new Msg from ${msg.fromUserName}`,
 		`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
@@ -119,7 +119,8 @@ export async function getChats() {
 			});
 			if (chat.name === null) butt.textContent = chat.id.toString();
 			else butt.textContent = chat.name;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.className =
+				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
 			userList.appendChild(butt);
 		}
 	}
@@ -133,7 +134,7 @@ export async function getMessages(chat_id: string | null) {
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalInfo(data.error);
+		return showLocalError(data.error);
 	}
 	const msgs = data.msgs as htmlMsg[];
 
@@ -145,6 +146,13 @@ export async function getMessages(chat_id: string | null) {
 	chatMessages.innerHTML = '';
 	for (const msg of msgs) {
 		appendToChatBox(JSON.stringify(msg));
+	}
+}
+
+export async function getChatInfo(chat_id: string | null) {
+	if (!chat_id || chat_id === '0') {
+		showLocalError('Invalid chat ID');
+		return;
 	}
 }
 

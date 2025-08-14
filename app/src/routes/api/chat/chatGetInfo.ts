@@ -110,8 +110,9 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				const userId = (req.user as { id: number }).id;
 
 				const user = await getParticipantFromSql(fastify, userId, chat_id);
-				if (!user)
+				if (!user) {
 					return res.status(400).send({ error: 'User is no Participant' });
+				}
 
 				const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 
@@ -138,7 +139,6 @@ export async function getAllMsg(fastify: FastifyInstance) {
 						blockedId
 					);
 				}
-
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
 				const nError = normError(err);
@@ -166,13 +166,9 @@ export async function getAllChats(fastify: FastifyInstance) {
 								chat.id,
 								userId
 							);
-							if (name)
-								chat.name = name.displayname;
-							else
-								chat.name = 'Deleted User';
-							console.log('chat.name = ', chat.name);
-						}
-						catch {
+							if (name) chat.name = name.displayname;
+							else chat.name = 'Deleted User';
+						} catch {
 							chat.name = 'Deleted User';
 						}
 					}
@@ -217,9 +213,8 @@ export async function createNewChat(fastify: FastifyInstance) {
 				userIdsInt.push(user.id);
 
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
-
 				for (const id of userIdsInt) {
-					inviteUserToChat(fastify, user.id, id, chat_id);
+					await inviteUserToChat(fastify, user.id, id, chat_id);
 				}
 
 				return res.send({
@@ -353,3 +348,35 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 		}
 	);
 }
+
+// export async function chatInfo(fastify: FastifyInstance) {
+// 	fastify.get<{ Querystring: MessageQueryChat }>(
+// 		'/getInfo',
+// 		{
+// 			preValidation: [fastify.authenticate],
+// 			schema: { querystring: chatMsgRequestSchema.querystring },
+// 		},
+// 		async (req: FastifyRequest, res: FastifyReply) => {
+// 			try {
+// 				const { chat_id } = req.query as MessageQueryChat;
+
+// 				const userId = (req.user as { id: number }).id;
+
+// 				const part = await getAllParticipantsFromSql(fastify, chat_id);
+// 				const chat = await getChatFromSql(fastify, chat_id);
+// 				if (chat.name === null && chat.is_group === true)
+// 					chat.name = 'Global Chat';
+// 				else if (chat.name === null && chat.is_group === false) {
+// 					if (part.length === 1) chat.name = 'Deleted User';
+// 					else {
+// 					}
+// 				}
+
+// 				return res.status(200).send({ msg: req.t('chat.leave') });
+// 			} catch (err) {
+// 				const nError = normError(err);
+// 				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+// 			}
+// 		}
+// 	);
+// }

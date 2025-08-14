@@ -134,7 +134,6 @@ async function sendMsgGroup(
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
 				if (user.user_id === fromUser.id) msg.ownMsg = true;
-				console.log('msg send = ', user.user_id);
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}

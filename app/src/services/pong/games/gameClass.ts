@@ -14,6 +14,7 @@ import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
 import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
+import i18next from 'i18next';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -374,7 +375,7 @@ export class Game {
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
-			t: (this.players.find((p) => p instanceof UserPlayer && p.user.id === this.admin.id) as UserPlayer)!.lang,
+			t: (this.players.find((p) => p instanceof UserPlayer && p.user.id === this.admin.id) as UserPlayer)?.lang || i18next.getFixedT('en'),
 			tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
 			availableMaps: this.availableMaps,
 		});

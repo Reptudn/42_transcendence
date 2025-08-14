@@ -39,3 +39,8 @@ interface Friend {
 	username: string;
 	displayname: string;
 }
+
+export interface ChatInfo {
+	chatName: string;
+	users: User[];
+}

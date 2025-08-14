@@ -24,20 +24,33 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 		for (const friend of friends) {
 			const butt = document.createElement('button');
 
-			butt.addEventListener('click', async () => {
+			butt.textContent = friend.displayname;
+			butt.classList.add(
+				'px-4',
+				'py-2',
+				'w-full',
+				'border',
+				'border-gray-300',
+				'bg-transparent',
+				'rounded',
+				'hover:bg-green-500',
+				'hover:text-white',
+				'transition'
+			);
+
+			butt.addEventListener('click', () => {
 				const pos = userIds.indexOf(friend.id.toString());
 				if (pos === -1) {
 					userIds.push(friend.id.toString());
-					butt.classList.add('bg-green-200');
+					butt.classList.add('bg-green-500', 'text-white');
+					butt.classList.remove('bg-transparent');
 				} else {
 					userIds.splice(pos, 1);
-					butt.classList.remove('bg-green-200');
+					butt.classList.remove('bg-green-500', 'text-white');
+					butt.classList.add('bg-transparent');
 				}
 			});
 
-			butt.textContent = friend.displayname;
-			butt.className =
-				'hover:bg-gray-100 cursor-pointer p-1 rounded transition-colors';
 			userList.appendChild(butt);
 		}
 	}
@@ -75,15 +88,15 @@ document
 		const res = await fetch(url);
 		const data = await res.json();
 		if (!res.ok) {
-			showLocalError(`Failed to create chat: ${groupName}`);
+			showLocalError(data.error);
 			return;
 		}
 		showLocalInfo(data.msg);
 		const newId = data.chat_id as string;
 		sessionStorage.setItem('chat_id', newId);
-		document.getElementById('closeGroupWindow')?.click();
 		await getMessages(newId);
 		await getChats();
+		document.getElementById('closeGroupWindow')?.click();
 	});
 
 document.getElementById('closeGroupWindow')?.addEventListener('click', async () => {
@@ -106,11 +119,31 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
-			butt.addEventListener('click', async () => {
-				userIdToBlock = friend.id.toString();
-			});
 			butt.textContent = friend.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.classList.add(
+				'px-4',
+				'py-2',
+				'w-full',
+				'border',
+				'border-gray-300',
+				'bg-transparent',
+				'rounded',
+				'hover:bg-green-500',
+				'hover:text-white',
+				'transition'
+			);
+
+			butt.addEventListener('click', () => {
+				if (userIdToBlock === '') {
+					userIdToBlock = friend.id.toString();
+					butt.classList.add('bg-green-500', 'text-white');
+					butt.classList.remove('bg-transparent');
+				} else {
+					userIdToBlock = '';
+					butt.classList.remove('bg-green-500', 'text-white');
+					butt.classList.add('bg-transparent');
+				}
+			});
 			userList.appendChild(butt);
 		}
 	}
@@ -156,11 +189,31 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
-			butt.addEventListener('click', async () => {
-				userIdToBlock = friend.id.toString();
-			});
 			butt.textContent = friend.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.classList.add(
+				'px-4',
+				'py-2',
+				'w-full',
+				'border',
+				'border-gray-300',
+				'bg-transparent',
+				'rounded',
+				'hover:bg-green-500',
+				'hover:text-white',
+				'transition'
+			);
+
+			butt.addEventListener('click', () => {
+				if (userIdToBlock === '') {
+					userIdToBlock = friend.id.toString();
+					butt.classList.add('bg-green-500', 'text-white');
+					butt.classList.remove('bg-transparent');
+				} else {
+					userIdToBlock = '';
+					butt.classList.remove('bg-green-500', 'text-white');
+					butt.classList.add('bg-transparent');
+				}
+			});
 			userList.appendChild(butt);
 		}
 	}
@@ -208,13 +261,32 @@ document.getElementById('inviteUser')?.addEventListener('click', async () => {
 		userList.innerHTML = '';
 		for (const friend of friends) {
 			const butt = document.createElement('button');
-			butt.addEventListener('click', async () => {
-				const pos = userIds.indexOf(friend.id.toString());
-				if (pos === -1) userIds.push(friend.id.toString());
-				else userIds.splice(pos, 1);
-			});
 			butt.textContent = friend.displayname;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.classList.add(
+				'px-4',
+				'py-2',
+				'w-full',
+				'border',
+				'border-gray-300',
+				'bg-transparent',
+				'rounded',
+				'hover:bg-green-500',
+				'hover:text-white',
+				'transition'
+			);
+
+			butt.addEventListener('click', () => {
+				const pos = userIds.indexOf(friend.id.toString());
+				if (pos === -1) {
+					userIds.push(friend.id.toString());
+					butt.classList.add('bg-green-500', 'text-white');
+					butt.classList.remove('bg-transparent');
+				} else {
+					userIds.splice(pos, 1);
+					butt.classList.remove('bg-green-500', 'text-white');
+					butt.classList.add('bg-transparent');
+				}
+			});
 			userList.appendChild(butt);
 		}
 	}
@@ -260,18 +332,20 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	const data = await res.json();
 	if (!res.ok) {
 		showLocalError(data.error);
-		document.getElementById('optionModal')?.classList.add('hidden');
 		return;
 	}
 	showLocalInfo(data.msg);
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages('1');
 	await getChats();
-	document.getElementById('optionModal')?.classList.add('hidden');
 });
 
 // Options Modal
 
 document.getElementById('optionButton')?.addEventListener('click', async () => {
 	document.getElementById('optionModal')?.classList.remove('hidden');
+});
+
+document.getElementById('closeOptions')?.addEventListener('click', async () => {
+	document.getElementById('optionModal')?.classList.add('hidden');
 });

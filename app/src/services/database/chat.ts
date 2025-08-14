@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Chat, Blocked, Part, Msg } from '../../types/chat';
-import { sendPopupToClient } from '../sse/popup';
+import escapeHTML from 'escape-html';
 
 export class HttpError {
 	statusCode: number;
@@ -45,10 +45,6 @@ export async function getFriendsDisplayname(
 		'SELECT u.displayname FROM chat_participants AS cp JOIN users AS u ON cp.user_id = u.id WHERE cp.chat_id = ? AND cp.user_id <> ?',
 		[chatId, userId]
 	)) as { displayname: string } | null;
-	if (!name) {
-		sendPopupToClient(fastify, userId, 'Error', 'User not found', 'red');
-		return null;
-	}
 	return name;
 }
 
@@ -104,7 +100,7 @@ export async function saveNewChatInfo(
 ): Promise<number> {
 	const chat = await fastify.sqlite.run(
 		'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-		[groupName, is_group]
+		[escapeHTML(groupName), is_group]
 	);
 	if (chat.changes !== 0 && typeof chat.lastID === 'number') return chat.lastID;
 	throw new HttpError(400, 'Failed to save the Chat');
@@ -119,7 +115,7 @@ export async function addToParticipants(
 	if (user) {
 		throw new HttpError(400, 'User already in Chat');
 	}
-	fastify.sqlite.run(
+	await fastify.sqlite.run(
 		'INSERT INTO chat_participants (chat_id, user_id) VALUES (?, ?)',
 		[chatId, userId]
 	);
