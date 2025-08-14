@@ -91,11 +91,11 @@
 			"shape": [
 				{
 					"x": 0,
-					"y": 2.5
+					"y": 1
 				},
 				{
 					"x": 100,
-					"y": 2.5
+					"y": 1
 				}
 			],
 			"conditions": [
@@ -177,11 +177,11 @@
 			"shape": [
 				{
 					"x": 0,
-					"y": 100
+					"y": 99
 				},
 				{
 					"x": 100,
-					"y": 100
+					"y": 99
 				}
 			],
 			"conditions": [
@@ -262,11 +262,11 @@
 			"playerNbr": 2,
 			"shape": [
 				{
-					"x": 0,
+					"x": 1,
 					"y": 0
 				},
 				{
-					"x": 0,
+					"x": 1,
 					"y": 100
 				}
 			],
@@ -352,11 +352,11 @@
 			"playerNbr": 3,
 			"shape": [
 				{
-					"x": 100,
+					"x": 99,
 					"y": 0
 				},
 				{
-					"x": 100,
+					"x": 99,
 					"y": 100
 				}
 			],
@@ -394,105 +394,6 @@
 					"condition": "larger_than",
 					"variable": "difficulty",
 					"target": 5
-				}
-			]
-		},
-		{
-			"type": "wall",
-			"name": "rightWall",
-			"shape": [
-				{
-					"x": 100,
-					"y": 0
-				},
-				{
-					"x": 100,
-					"y": 100
-				},
-				{
-					"x": 97.5,
-					"y": 100
-				},
-				{
-					"x": 97.5,
-					"y": 0
-				},
-				{
-					"x": 100,
-					"y": 0
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 4
-				}
-			]
-		},
-		{
-			"type": "wall",
-			"name": "leftWall",
-			"shape": [
-				{
-					"x": 0,
-					"y": 0
-				},
-				{
-					"x": 0,
-					"y": 100
-				},
-				{
-					"x": 2.5,
-					"y": 100
-				},
-				{
-					"x": 2.5,
-					"y": 0
-				},
-				{
-					"x": 0,
-					"y": 0
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 3
-				}
-			]
-		},
-		{
-			"type": "wall",
-			"name": "bottomWall",
-			"shape": [
-				{
-					"x": 0,
-					"y": 100
-				},
-				{
-					"x": 100,
-					"y": 100
-				},
-				{
-					"x": 100,
-					"y": 97.5
-				},
-				{
-					"x": 0,
-					"y": 97.5
-				},
-				{
-					"x": 0,
-					"y": 100
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 2
 				}
 			]
 		},

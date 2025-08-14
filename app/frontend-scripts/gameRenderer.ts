@@ -236,6 +236,23 @@ export function drawPolygon(
 		showLocalError('Canvas context is null');
 	}
 }
+function drawPolyline(
+	points: Point[],
+	stroke: string,
+	width: number,
+	dash: number[]
+): void {
+	if (!ctx || points.length < 2) return;
+	const path = new Path2D();
+	path.moveTo(points[0].x, points[0].y);
+	for (let i = 1; i < points.length; i++) path.lineTo(points[i].x, points[i].y);
+	ctx.save();
+	ctx.setLineDash(dash);
+	ctx.lineWidth = width;
+	ctx.strokeStyle = stroke;
+	ctx.stroke(path);
+	ctx.restore();
+}
 export function drawPowerupIcon(
 	x: number,
 	y: number,
@@ -464,6 +481,20 @@ export function drawGameState(gameState: GameState): void {
 					const points = transformPoints(obj.shape, scale);
 					drawPolygon(points, '', 'black');
 				} else console.log('Wall object does not have a shape:', obj);
+				break;
+
+			case 'player_damage_area':
+				if (obj.shape && obj.shape.length > 1) {
+					const points = transformPoints(obj.shape, scale);
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					const w = Math.max(1);
+					drawPolyline(
+						points,
+						`rgba(${c.r}, ${c.g}, ${c.b}, 0.95)`,
+						w,
+						[12, 8]
+					);
+				}
 				break;
 		}
 	}
