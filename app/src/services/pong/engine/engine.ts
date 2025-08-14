@@ -27,7 +27,56 @@ export function tickEngine(game: Game) {
 			(p) => p.type === PowerupType.WonkyBall && p.started
 		) !== undefined
 	);
+
+	// powerups
 	collectPowerups(game);
+	for (const player of game.players) {
+		if (!(player instanceof UserPlayer)) continue;
+		for (const powerup of game.activePowerups) {
+			if (powerup.type === PowerupType.WonkyBall && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-wonky-ball',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.PhasingPaddle && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-phasing-paddle',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.PhasingBall && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-phasing-ball',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.InverseControls && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-inverse-controls',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.Nausea && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-nausea',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.Redirection && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-redirection',
+					(game as any).fastify
+				);
+			}
+		}
+	}
 
 	// check hits
 	for (const player of game.players) {
