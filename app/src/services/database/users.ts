@@ -80,6 +80,36 @@ export async function registerUser(
 	}
 }
 
+const generateUniqueUsername = async (baseName: string, fastify: FastifyInstance): Promise<string> => {
+	let username = baseName.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '').substring(0, 12);
+	
+	if (!username) {
+		username = 'user';
+	}
+	
+	let counter = 0;
+	let testUsername = username;
+	
+	const isUniqueUsername = async (username: string) => {
+		const user = await fastify.sqlite.get(
+			'SELECT * FROM users WHERE username = ?',
+			username
+		);
+		return !user;
+	};
+
+	while (!(await isUniqueUsername(testUsername))) {
+		counter++;
+		testUsername = `${username}${counter}`;
+		
+		if (testUsername.length > 16) {
+			testUsername = `user${crypto.randomBytes(3).toString('hex')}`;
+			if (await isUniqueUsername(testUsername)) break;
+		}
+	}
+	return testUsername;
+};
+
 export async function registerGoogleUser(
 	googleUser: GoogleUserInfo,
 	fastify: FastifyInstance
@@ -88,19 +118,7 @@ export async function registerGoogleUser(
 	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
-	let username = googleUser.name.replace(' ', '_').trim().toLowerCase();
-	const isUniqueUsername = async (username: string) => {
-		const user = await fastify.sqlite.get(
-			'SELECT * FROM users WHERE username = ?',
-			username
-		);
-		return !user;
-	};
-	const base_username = username;
-	while (!(await isUniqueUsername(username))) {
-		username += Math.floor(Math.random() * 10);
-		if (username.length > 20) username = base_username;
-	}
+	const username = await generateUniqueUsername(googleUser.name.replace(' ', '_').trim().toLowerCase(), fastify);
 
 	await fastify.sqlite.run(
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
