@@ -30,7 +30,7 @@ function distanceToSegment(point: Point, a: Point, b: Point): number {
 }
 
 // Determine if a circle (ball) collides with a polygon.
-function circlePolygonCollision(
+export function circlePolygonCollision(
 	center: Point,
 	radius: number,
 	polygon: Point[]
@@ -180,7 +180,6 @@ export function moveBall(gameState: GameState, ballSpeed: number): GameState {
 	// ball.velocity.x = Math.cos(newAngle) * speed;
 	// ball.velocity.y = Math.sin(newAngle) * speed;
 
-
 	// Game boundary collisions
 	const { size_x, size_y } = gameState.meta;
 	if (center.x - radius < 0 || center.x + radius > size_x) {
@@ -249,7 +248,6 @@ export function resetBall(gameState: GameState, ballSpeed: number): GameState {
 
 	return gameState;
 }
-
 
 export function hasPlayerBeenHit(gameState: GameState, playerId: number): boolean {
 	const ball = gameState.objects.find((o) => o.type === 'ball');
