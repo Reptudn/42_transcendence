@@ -86,7 +86,7 @@ export class Game {
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
 		this.fastify = fastify;
-		this.config = config;
+		this.config = { ...config };
 		this.players = [];
 		this.gameState = {
 			meta: {
