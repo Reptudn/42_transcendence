@@ -90,38 +90,44 @@ export async function setAutoAdvance(enabled: boolean) {
 	await updateSettings({ autoAdvance: enabled });
 }
 
-const powerupsToggle = document.getElementById(
-	'powerups-toggle'
-) as HTMLInputElement | null;
-powerupsToggle?.addEventListener('change', async (event) => {
-	const isChecked = (event.target as HTMLInputElement).checked;
-	await updateSettings({ powerupsEnabled: isChecked });
-});
-
-const maxPlayerSlider = document.getElementById(
-	'difficulty-input'
-) as HTMLInputElement | null;
-maxPlayerSlider?.addEventListener('change', async (event) => {
-	const newValue = (event.target as HTMLInputElement).value;
-	await updateSettings({ gameDifficulty: Number(newValue) });
-});
-
-const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
-mapSelect?.addEventListener('change', async (event) => {
-	const selectedMap = (event.target as HTMLSelectElement).value;
-	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
-});
-
-const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
-gameTypeSelector?.addEventListener('change', async (event) => {
-	const selectedGameType = (event.target as HTMLSelectElement).value;
-	await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
-});
-
-export async function addPowerUp() {
-	console.log('Adding power-up...');
-	alert('Not implemented');
+export async function togglePowerups(enabled: boolean)
+{
+	console.log('Changing powerup enabled status');
+	await updateSettings({ powerupsEnabled: enabled });
 }
+
+export function initLobbyButtons()
+{
+	const powerupsToggle = document.getElementById(
+		'powerups-toggle'
+	) as HTMLInputElement | null;
+	powerupsToggle?.addEventListener('change', async (event) => {
+		const isChecked = (event.target as HTMLInputElement).checked;
+		await updateSettings({ powerupsEnabled: isChecked });
+	});
+	
+	const maxPlayerSlider = document.getElementById(
+		'difficulty-input'
+	) as HTMLInputElement | null;
+	maxPlayerSlider?.addEventListener('change', async (event) => {
+		const newValue = (event.target as HTMLInputElement).value;
+		await updateSettings({ gameDifficulty: Number(newValue) });
+	});
+	
+	const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
+	mapSelect?.addEventListener('change', async (event) => {
+		const selectedMap = (event.target as HTMLSelectElement).value;
+		await updateSettings({ map: selectedMap.toLocaleLowerCase() });
+	});
+	
+	const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
+	gameTypeSelector?.addEventListener('change', async (event) => {
+		const selectedGameType = (event.target as HTMLSelectElement).value;
+		await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
+	});
+}
+
+initLobbyButtons();
 
 export async function addAIPlayer() {
 	console.log('Adding AI player...');
@@ -217,7 +223,10 @@ export async function startGame() {
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
-	if (lobbyContainer) lobbyContainer.innerHTML = html;
+	if (lobbyContainer) {
+		lobbyContainer.innerHTML = html;
+		initLobbyButtons();
+	}
 	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
