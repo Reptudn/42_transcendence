@@ -155,15 +155,12 @@ if (!ctx) {
 let nauseaEffectEnabled = false;
 
 function setNauseaEffectEnabled(enabled: boolean) {
-	const canvasWrapper = document.getElementById(
-		'game-canvas-wrapper'
-	) as HTMLElement;
 	if (enabled && !nauseaEffectEnabled) {
-		canvasWrapper.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas.classList.add('glow-rainbow-border', 'easter-egg');
 		canvas.classList.remove('game-canvas-background');
 		nauseaEffectEnabled = true;
 	} else if (!enabled && nauseaEffectEnabled) {
-		canvasWrapper.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas.classList.remove('glow-rainbow-border', 'easter-egg');
 		canvas.classList.add('game-canvas-background');
 		nauseaEffectEnabled = false;
 	}
