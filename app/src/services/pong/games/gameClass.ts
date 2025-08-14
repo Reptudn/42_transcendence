@@ -100,10 +100,8 @@ export class Game {
 			objects: [],
 		} as GameState;
 		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
+			intendedPercent: 50,
+			nextRecalcAt: Date.now(),
 		} as AIBrainData;
 		this.activePowerups = [];
 		this.nextPowerupCheckAt = Date.now() + powerupCheckDelay;
@@ -184,7 +182,7 @@ export class Game {
 			this.getNextAvailablePlayerId(),
 			this,
 			aiLevel,
-			this.aiBrainData
+			{ intendedPercent: 0.5, nextRecalcAt: 0 } as AIBrainData
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
@@ -344,10 +342,8 @@ export class Game {
 			}
 
 			this.aiBrainData = {
-				aiLastBallDistance: 0,
-				aiDelayCounter: 0,
-				aiLastTargetParam: 0,
-				lastAIMovementDirection: 0,
+				intendedPercent: 50,
+				nextRecalcAt: Date.now(),
 			} as AIBrainData;
 			this.results = [];
 			this.alreadyStarted = true;

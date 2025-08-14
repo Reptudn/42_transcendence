@@ -75,7 +75,7 @@ export function removeGame(gameId: number) {
 	runningGames = runningGames.filter((game) => game.gameId !== gameId);
 }
 
-const ticksPerSecond = 20;
+export const ticksPerSecond = 20;
 setInterval(async () => {
 	for (const game of runningGames) {
 		if (game.status === GameStatus.WAITING) continue;

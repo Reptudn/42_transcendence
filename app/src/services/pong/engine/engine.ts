@@ -1,7 +1,7 @@
 import { movePaddle } from './paddleMovement.js';
 import { moveBall, hasPlayerBeenHit } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
-import { LocalPlayer, UserPlayer } from '../games/playerClass.js';
+import { UserPlayer } from '../games/playerClass.js';
 import { unlockAchievement } from '../../database/achievements.js';
 import type { Game } from '../games/gameClass.js';
 import { collectPowerups } from './powerups.js';
@@ -14,15 +14,10 @@ export function tickEngine(game: Game) {
 		const reversed = game.activePowerups.find(
 			(p) => p.type === PowerupType.InverseControls && p.started
 		);
-		const isHuman =
-			player instanceof UserPlayer || player instanceof LocalPlayer;
-		const dir =
-			reversed && isHuman
-				? -player.movementDirection
-				: player.movementDirection;
+		const dir = reversed ? -player.movementDirection : player.movementDirection;
 		game.gameState = movePaddle(game.gameState, player.playerId, dir, 3);
 	}
-	updateAIMovement(game);
+	void updateAIMovement(game);
 
 	// move ball
 	game.gameState = moveBall(
