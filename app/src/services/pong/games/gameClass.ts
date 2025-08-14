@@ -347,6 +347,7 @@ export class Game {
 				aiLastTargetParam: 0,
 				lastAIMovementDirection: 0,
 			} as AIBrainData;
+			this.results = [];
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
 
@@ -470,6 +471,17 @@ export class Game {
 					);
 				}
 			}
+
+			if (save_game) {
+				(async () => {
+					try {
+						await saveCompletedGame(this, this.fastify);
+					} catch (_e) {
+						// already logged inside saveCompletedGame
+					}
+				})();
+			}
+
 			let match = this.tournament.getCurrentMatch();
 
 			if (
