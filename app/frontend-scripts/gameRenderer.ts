@@ -16,6 +16,17 @@ let lastVector: { x: number; y: number } | null = null;
 const ballTrail: TrailElement[] = [];
 const trailLifetime: number = 750;
 
+const playerColors = [
+	{ r: 255, g: 160, b: 160 },
+	{ r: 255, g: 255, b: 170 },
+	{ r: 180, g: 255, b: 180 },
+	{ r: 180, g: 210, b: 255 },
+];
+export function getPlayerColor(index: number) {
+	const c = playerColors[index % playerColors.length];
+	return { r: c.r, g: c.g, b: c.b };
+}
+
 const powerupSettings = [
 	{
 		type: 'inverse_controls',
@@ -31,6 +42,21 @@ const powerupSettings = [
 		type: 'nausea',
 		icon: '/static/assets/images/powerups/nausea.png',
 		color: { r: 0, g: 0, b: 255 },
+	},
+	{
+		type: 'wonky_ball',
+		icon: '/static/assets/images/powerups/wonky_ball.png',
+		color: { r: 128, g: 128, b: 0 },
+	},
+	{
+		type: 'phasing_paddle',
+		icon: '/static/assets/images/powerups/phasing_paddle.png',
+		color: { r: 0, g: 128, b: 128 },
+	},
+	{
+		type: 'phasing_ball',
+		icon: '/static/assets/images/powerups/phasing_ball.png',
+		color: { r: 128, g: 0, b: 128 },
 	},
 ];
 
@@ -139,15 +165,12 @@ if (!ctx) {
 let nauseaEffectEnabled = false;
 
 function setNauseaEffectEnabled(enabled: boolean) {
-	const canvasWrapper = document.getElementById(
-		'game-canvas-wrapper'
-	) as HTMLElement;
 	if (enabled && !nauseaEffectEnabled) {
-		canvasWrapper.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas.classList.add('glow-rainbow-border', 'easter-egg');
 		canvas.classList.remove('game-canvas-background');
 		nauseaEffectEnabled = true;
 	} else if (!enabled && nauseaEffectEnabled) {
-		canvasWrapper.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas.classList.remove('glow-rainbow-border', 'easter-egg');
 		canvas.classList.add('game-canvas-background');
 		nauseaEffectEnabled = false;
 	}
@@ -160,6 +183,38 @@ function isPowerupActive(state: GameState | null, type: string): boolean {
 	return state.activePowerups.some(
 		(p) => canonical(p.type) === key && p.started && p.expiresAt > now
 	);
+}
+
+const PHASE_PERIOD_MS = 1600;
+const PHASE_MIN_ALPHA = 0.0;
+const PHASE_MAX_ALPHA = 1.0;
+const PHASE_ZERO_HOLD = 0.25;
+const PHASE_ONE_HOLD = 0.15;
+function smoothstep(t: number): number {
+	return t * t * (3 - 2 * t);
+}
+function plateauAlpha(nowMs: number, zeroHold: number, oneHold: number): number {
+	const p = (nowMs % PHASE_PERIOD_MS) / PHASE_PERIOD_MS;
+	const riseStart = zeroHold;
+	const fallStart = 1 - oneHold;
+	if (p < riseStart) return 0;
+	if (p >= fallStart) return 1;
+	const mid = (riseStart + fallStart) / 2;
+	if (p < mid) {
+		const t = (p - riseStart) / (mid - riseStart);
+		return smoothstep(t);
+	}
+	const t = (p - mid) / (fallStart - mid);
+	return 1 - smoothstep(t);
+}
+function getPhasingAlpha(nowMs: number): number {
+	const base = plateauAlpha(nowMs, PHASE_ZERO_HOLD, PHASE_ONE_HOLD);
+	return PHASE_MIN_ALPHA + (PHASE_MAX_ALPHA - PHASE_MIN_ALPHA) * base;
+}
+const BALL_PHASE_ZERO_HOLD = 0.45;
+const BALL_PHASE_ONE_HOLD = 0.1;
+function getBallPhasingAlpha(nowMs: number): number {
+	return plateauAlpha(nowMs, BALL_PHASE_ZERO_HOLD, BALL_PHASE_ONE_HOLD);
 }
 
 export function initCanvas() {
@@ -186,15 +241,19 @@ export function drawCircle(
 	x: number,
 	y: number,
 	radius: number,
-	color: { r: number; g: number; b: number }
+	color: { r: number; g: number; b: number },
+	alpha = 1
 ): void {
 	if (ctx) {
+		ctx.save();
+		ctx.globalAlpha = alpha;
 		ctx.beginPath();
 		if (!isPointInsideCanvas(x, y))
 			console.log('Point is outside canvas:', x, y);
 		ctx.arc(x, y, radius, 0, Math.PI * 2);
 		ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 		ctx.fill();
+		ctx.restore();
 	} else {
 		showLocalError('Canvas context is null');
 	}
@@ -204,7 +263,8 @@ export function drawPolygon(
 	strokeStyle: string,
 	color = 'black',
 	lineWidth = 2,
-	closePath = true
+	closePath = true,
+	alpha = 1
 ): void {
 	if (points.length === 0) return;
 	const path = new Path2D();
@@ -216,14 +276,34 @@ export function drawPolygon(
 	}
 	if (closePath) path.closePath();
 	if (ctx) {
+		ctx.save();
+		ctx.globalAlpha = alpha;
 		ctx.fillStyle = color;
 		ctx.fill(path);
 		ctx.strokeStyle = strokeStyle;
 		ctx.lineWidth = lineWidth;
 		ctx.stroke(path);
+		ctx.restore();
 	} else {
 		showLocalError('Canvas context is null');
 	}
+}
+function drawPolyline(
+	points: Point[],
+	stroke: string,
+	width: number,
+	dash: number[]
+): void {
+	if (!ctx || points.length < 2) return;
+	const path = new Path2D();
+	path.moveTo(points[0].x, points[0].y);
+	for (let i = 1; i < points.length; i++) path.lineTo(points[i].x, points[i].y);
+	ctx.save();
+	ctx.setLineDash(dash);
+	ctx.lineWidth = width;
+	ctx.strokeStyle = stroke;
+	ctx.stroke(path);
+	ctx.restore();
 }
 export function drawPowerupIcon(
 	x: number,
@@ -369,7 +449,11 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 		const age = now - elem.time;
 		const lifeFactor = 1 - Math.min(age / trailLifetime, 1);
 		widths.push(baseRadius * scale * 2 * lifeFactor);
-		alphas.push(lifeFactor);
+		const phase =
+			currentState && isPowerupActive(currentState, 'phasing_ball')
+				? getBallPhasingAlpha(elem.time)
+				: 1;
+		alphas.push(lifeFactor * phase);
 	}
 
 	const { left, right } = computeOffsetPoints(points, widths);
@@ -428,7 +512,10 @@ export function drawGameState(gameState: GameState): void {
 					const posX = obj.center.x * scale;
 					const posY = obj.center.y * scale;
 					const radius = obj.radius * scale;
-					drawCircle(posX, posY, radius, trailColor);
+					const alpha = isPowerupActive(gameState, 'phasing_ball')
+						? getBallPhasingAlpha(performance.now())
+						: 1;
+					drawCircle(posX, posY, radius, trailColor, alpha);
 				} else {
 					showLocalInfo(
 						`Ball object does not have a center or radius: ${obj}`
@@ -439,7 +526,18 @@ export function drawGameState(gameState: GameState): void {
 			case 'paddle':
 				if (obj.shape && obj.shape.length > 0) {
 					const points = transformPoints(obj.shape, scale);
-					drawPolygon(points, '', 'blue');
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					const alpha = isPowerupActive(gameState, 'phasing_paddle')
+						? getPhasingAlpha(performance.now())
+						: 1;
+					drawPolygon(
+						points,
+						'rgba(0,0,0,0)',
+						`rgb(${c.r}, ${c.g}, ${c.b})`,
+						2,
+						true,
+						alpha
+					);
 				} else showLocalInfo(`Paddle object does not have a shape: ${obj}`);
 				break;
 
@@ -448,6 +546,20 @@ export function drawGameState(gameState: GameState): void {
 					const points = transformPoints(obj.shape, scale);
 					drawPolygon(points, '', 'black');
 				} else console.log('Wall object does not have a shape:', obj);
+				break;
+
+			case 'player_damage_area':
+				if (obj.shape && obj.shape.length > 1) {
+					const points = transformPoints(obj.shape, scale);
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					const w = Math.max(1);
+					drawPolyline(
+						points,
+						`rgba(${c.r}, ${c.g}, ${c.b}, 0.95)`,
+						w,
+						[12, 8]
+					);
+				}
 				break;
 		}
 	}
@@ -486,12 +598,20 @@ export function updateGameState(
 	detectBounce(newState);
 }
 
-export function randomColor(): { r: number; g: number; b: number } {
-	return {
-		r: Math.floor(Math.random() * 256),
-		g: Math.floor(Math.random() * 256),
-		b: Math.floor(Math.random() * 256),
-	};
+export function randomLightColor(): { r: number; g: number; b: number } {
+	const min = 160;
+	const max = 255;
+	let r = min + Math.floor(Math.random() * (max - min + 1));
+	let g = min + Math.floor(Math.random() * (max - min + 1));
+	let b = min + Math.floor(Math.random() * (max - min + 1));
+	const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	if (luminance < 190) {
+		const boost = 190 - luminance;
+		r = Math.min(255, Math.round(r + boost * 0.3));
+		g = Math.min(255, Math.round(g + boost * 0.6));
+		b = Math.min(255, Math.round(b + boost * 0.1));
+	}
+	return { r, g, b };
 }
 export function detectBounce(state: GameState): void {
 	function calculateAngleDifference(
@@ -517,7 +637,7 @@ export function detectBounce(state: GameState): void {
 			if (lastVector) {
 				const angleDiff = calculateAngleDifference(lastVector, newVector);
 				if (angleDiff > 10) {
-					trailColor = randomColor();
+					trailColor = randomLightColor();
 				}
 			}
 			lastVector = newVector;

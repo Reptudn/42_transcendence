@@ -6,6 +6,7 @@ import {
 	rotatePoint,
 	angleOf,
 } from './pointUtils.js';
+import { circlePolygonCollision } from './ballMovement.js';
 
 /**
  * Moves the given player's paddle along its path.
@@ -22,15 +23,15 @@ export function movePaddle(
 	direction: number,
 	speed: number
 ): GameState {
-	if (typeof direction !== 'number' || isNaN(direction)) {
+	if (typeof direction !== 'number' || Number.isNaN(direction)) {
 		console.error('Invalid direction value:', direction);
 		direction = 0;
 	}
-	if (typeof speed !== 'number' || isNaN(speed)) {
+	if (typeof speed !== 'number' || Number.isNaN(speed)) {
 		console.error('Invalid speed value:', speed);
 		speed = 1;
 	}
-	if (speed === 0 || direction == 0) {
+	if (speed === 0 || direction === 0) {
 		return gameState;
 	}
 
@@ -97,10 +98,7 @@ export function movePaddle(
 		// Identify the segment that contains the new parameter.
 		let segmentIndex = 0;
 		for (let i = 0; i < cumulativeLengths.length - 1; i++) {
-			if (
-				param >= cumulativeLengths[i] &&
-				param <= cumulativeLengths[i + 1]
-			) {
+			if (param >= cumulativeLengths[i] && param <= cumulativeLengths[i + 1]) {
 				segmentIndex = i;
 				break;
 			}
@@ -181,6 +179,59 @@ export function movePaddle(
 	}
 
 	// Update the paddle with its new anchors and shape.
+	const delta = subtractPoints(newAnchor1, originalAnchor1);
+	const ballObj = gameState.objects.find((o) => o.type === 'ball') as any;
+
+	if (ballObj && ballObj.center && typeof ballObj.radius === 'number') {
+		const overlapsAfterMove = circlePolygonCollision(
+			ballObj.center,
+			ballObj.radius,
+			newShape
+		);
+		if (overlapsAfterMove) {
+			const proposedCenter = {
+				x: ballObj.center.x + delta.x,
+				y: ballObj.center.y + delta.y,
+			};
+			const { size_x, size_y } = gameState.meta;
+
+			const outOfBounds =
+				proposedCenter.x - ballObj.radius < 0 ||
+				proposedCenter.x + ballObj.radius > size_x ||
+				proposedCenter.y - ballObj.radius < 0 ||
+				proposedCenter.y + ballObj.radius > size_y;
+
+			let collide = outOfBounds;
+			if (!collide) {
+				for (const o of gameState.objects) {
+					if (!o.shape) continue;
+					if (o.type !== 'wall' && o.type !== 'paddle') continue;
+					if (o.type === 'paddle' && o.playerNbr === playerId) continue;
+					if (
+						circlePolygonCollision(
+							proposedCenter,
+							ballObj.radius,
+							o.shape
+						)
+					) {
+						collide = true;
+					}
+					if (collide) break;
+				}
+				if (
+					!collide &&
+					circlePolygonCollision(proposedCenter, ballObj.radius, newShape)
+				) {
+					collide = true;
+				}
+			}
+			if (collide) {
+				return gameState;
+			}
+			ballObj.center = proposedCenter;
+		}
+	}
+
 	paddle.anchor1 = newAnchor1;
 	paddle.anchor2 = newAnchor2;
 	paddle.shape = newShape;

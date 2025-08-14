@@ -100,7 +100,7 @@ html {
 	.easter-egg {
 		position: relative;
 		border: 3px solid transparent;
-		background: linear-gradient(#000, #000) padding-box,
+		background: linear-gradient(#0000, #0000) padding-box,
 			conic-gradient(
 					from 0deg,
 					#ff0000,

@@ -40,11 +40,12 @@ export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
 	Redirection = 'REDIRECTION',
 	Nausea = 'NAUSEA',
-	// WonkyBall = 'WONKY_BALL',
-	// RotatingBoard = 'ROTATING_BOARD',
+	WonkyBall = 'WONKY_BALL',
+	PhasingPaddle = 'PHASING_PADDLE',
+	PhasingBall = 'PHASING_BALL',
 }
 
-export const powerupCheckDelay = 5000;
+export const powerupCheckDelay = 2000;
 export const powerupSpawnChance = 0.5;
 export const powerupDuration = 10000;
 export const powerupObjectRadius = 3;
@@ -57,7 +58,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 
-	ballSpeed: number = 3;
+	ballSpeed = 3;
 
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
@@ -86,7 +87,7 @@ export class Game {
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
 		this.fastify = fastify;
-		this.config = config;
+		this.config = { ...config };
 		this.players = [];
 		this.config = defaultGameSettings;
 		this.gameState = {
