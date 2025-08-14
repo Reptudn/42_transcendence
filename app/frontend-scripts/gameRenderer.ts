@@ -43,6 +43,11 @@ const powerupSettings = [
 		icon: '/static/assets/images/powerups/nausea.png',
 		color: { r: 0, g: 0, b: 255 },
 	},
+	{
+		type: 'wonky_ball',
+		icon: '/static/assets/images/powerups/wonky_ball.png',
+		color: { r: 128, g: 128, b: 0 },
+	},
 ];
 
 const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');

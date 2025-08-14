@@ -40,7 +40,7 @@ export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
 	Redirection = 'REDIRECTION',
 	Nausea = 'NAUSEA',
-	// WonkyBall = 'WONKY_BALL',
+	WonkyBall = 'WONKY_BALL',
 	// RotatingBoard = 'ROTATING_BOARD',
 }
 
@@ -57,7 +57,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 
-	ballSpeed: number = 3;
+	ballSpeed = 3;
 
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 

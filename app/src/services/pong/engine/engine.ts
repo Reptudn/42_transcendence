@@ -25,7 +25,13 @@ export function tickEngine(game: Game) {
 	updateAIMovement(game);
 
 	// move ball
-	game.gameState = moveBall(game.gameState, 3);
+	game.gameState = moveBall(
+		game.gameState,
+		3,
+		game.activePowerups.find(
+			(p) => p.type === PowerupType.WonkyBall && p.started
+		) !== undefined
+	);
 	collectPowerups(game);
 
 	// check hits
