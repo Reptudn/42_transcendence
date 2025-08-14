@@ -232,6 +232,16 @@ export class Game {
 			this.gameState.objects = this.gameState.objects.filter(
 				(o) => o.playerNbr !== playerId
 			);
+			for (const player of this.players) {
+				if (
+					player instanceof LocalPlayer &&
+					player.owner.playerId === playerId
+				) {
+					this.gameState.objects = this.gameState.objects.filter(
+						(o) => o.playerNbr !== player.playerId
+					);
+				}
+			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();

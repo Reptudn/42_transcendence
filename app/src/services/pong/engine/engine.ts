@@ -1,7 +1,7 @@
 import { movePaddle } from './paddleMovement.js';
 import { moveBall, hasPlayerBeenHit } from './ballMovement.js';
 import { updateAIMovement } from './aiBrain.js';
-import { UserPlayer } from '../games/playerClass.js';
+import { LocalPlayer, UserPlayer } from '../games/playerClass.js';
 import { unlockAchievement } from '../../database/achievements.js';
 import type { Game } from '../games/gameClass.js';
 import { collectPowerups } from './powerups.js';
@@ -39,6 +39,16 @@ export function tickEngine(game: Game) {
 				game.gameState.objects = game.gameState.objects.filter(
 					(o) => o.playerNbr !== player.playerId
 				);
+				for (const localPlayer of game.players) {
+					if (
+						localPlayer instanceof LocalPlayer &&
+						localPlayer.owner.playerId === player.playerId
+					) {
+						game.gameState.objects = game.gameState.objects.filter(
+							(o) => o.playerNbr !== localPlayer.playerId
+						);
+					}
+				}
 			}
 		}
 	}
