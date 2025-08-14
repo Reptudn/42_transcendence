@@ -49,7 +49,7 @@ export function circlePolygonCollision(
 
 // Compute the collision response for a circle colliding with a polygon.
 // Returns both the collision normal and the penetration depth.
-function computeCollisionResponse(
+export function computeCollisionResponse(
 	center: Point,
 	radius: number,
 	polygon: Point[]
