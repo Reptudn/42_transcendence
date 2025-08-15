@@ -117,7 +117,7 @@ export class AiPlayer extends Player {
 	}
 
 	setDifficulty(difficulty: number) {
-		if (difficulty < 1 && difficulty > 10) return;
+		if (difficulty < 1 || difficulty > 10) return;
 		this.aiDifficulty = difficulty;
 		this.playerTitle = `AI Level ${difficulty}`;
 	}

@@ -38,9 +38,10 @@ export function circlePolygonCollision(
 	// Check if the circle's center is inside the polygon.
 	if (pointInPolygon(center, polygon)) return true;
 	// Otherwise, check distance from circle center to each polygon edge.
-	for (let i = 0; i < polygon.length - 1; i++) {
+	const n = polygon.length;
+	for (let i = 0; i < n; i++) {
 		const a = polygon[i];
-		const b = polygon[i + 1];
+		const b = polygon[(i + 1) % n];
 		if (distanceToSegment(center, a, b) <= radius) return true;
 	}
 	return false;
@@ -48,20 +49,21 @@ export function circlePolygonCollision(
 
 // Compute the collision response for a circle colliding with a polygon.
 // Returns both the collision normal and the penetration depth.
-function computeCollisionResponse(
+export function computeCollisionResponse(
 	center: Point,
 	radius: number,
 	polygon: Point[]
 ): { normal: Point; penetration: number } | null {
-	let bestPenetration = -Infinity;
+	let bestPenetration = Number.NEGATIVE_INFINITY;
 	let bestNormal: Point | null = null;
-	for (let i = 0; i < polygon.length - 1; i++) {
+	let minDist = Number.POSITIVE_INFINITY;
+	let closestPoint: Point = polygon[0];
+
+	for (let i = 0; i < polygon.length; i++) {
 		const a = polygon[i];
-		const b = polygon[i + 1];
+		const b = polygon[(i + 1) % polygon.length];
 		const dist = distanceToSegment(center, a, b);
-		const penetration = radius - dist;
-		if (penetration > bestPenetration && penetration > 0) {
-			bestPenetration = penetration;
+		if (dist < minDist) {
 			const ab = subtractPoints(b, a);
 			const abLenSq = ab.x * ab.x + ab.y * ab.y;
 			let t = 0;
@@ -74,14 +76,34 @@ function computeCollisionResponse(
 					)
 				);
 			}
-			const closest = { x: a.x + t * ab.x, y: a.y + t * ab.y };
+			closestPoint = { x: a.x + t * ab.x, y: a.y + t * ab.y };
+			minDist = dist;
+		}
+
+		const penetration = radius - dist;
+		if (penetration > bestPenetration && penetration > 0) {
+			bestPenetration = penetration;
 			bestNormal = normalize({
-				x: center.x - closest.x,
-				y: center.y - closest.y,
+				x: center.x - closestPoint.x,
+				y: center.y - closestPoint.y,
 			});
 		}
 	}
-	return bestNormal ? { normal: bestNormal, penetration: bestPenetration } : null;
+
+	if (bestNormal) {
+		return { normal: bestNormal, penetration: bestPenetration };
+	}
+
+	if (pointInPolygon(center, polygon)) {
+		const outNormal = normalize({
+			x: closestPoint.x - center.x,
+			y: closestPoint.y - center.y,
+		});
+		const penetration = minDist + radius;
+		return { normal: outNormal, penetration };
+	}
+
+	return null;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -129,12 +151,10 @@ export function moveBall(
 	}
 
 	const potentialCollisions: Point[][] = [];
-	for (let obj of gameState.objects) {
+	for (const obj of gameState.objects) {
 		if (!obj.shape) continue;
 		// Skip objects were inside of to avoid getting stuck within them.
-		if (circlePolygonCollision(center, radius, obj.shape)) {
-			continue;
-		}
+		if (pointInPolygon(center, obj.shape)) continue;
 		if (obj.type === 'paddle' || obj.type === 'wall') {
 			potentialCollisions.push(obj.shape);
 		}
@@ -175,6 +195,34 @@ export function moveBall(
 				ball.velocity.x -= 2 * dot * c.normal.x;
 				ball.velocity.y -= 2 * dot * c.normal.y;
 			}
+		}
+	}
+
+	// end of tick collision resolving safety net if something went wrong before
+	{
+		const allPolys: Point[][] = [];
+		for (const o of gameState.objects) {
+			if (o.shape && (o.type === 'paddle' || o.type === 'wall'))
+				allPolys.push(o.shape);
+		}
+		for (let i = 0; i < 4; i++) {
+			let fixed = false;
+			for (const poly of allPolys) {
+				if (!circlePolygonCollision(center, radius, poly)) continue;
+				const resp = computeCollisionResponse(center, radius, poly);
+				if (!resp) continue;
+				center.x += resp.normal.x * resp.penetration;
+				center.y += resp.normal.y * resp.penetration;
+				const dot =
+					ball.velocity.x * resp.normal.x +
+					ball.velocity.y * resp.normal.y;
+				if (dot < 0) {
+					ball.velocity.x -= 2 * dot * resp.normal.x;
+					ball.velocity.y -= 2 * dot * resp.normal.y;
+				}
+				fixed = true;
+			}
+			if (!fixed) break;
 		}
 	}
 
