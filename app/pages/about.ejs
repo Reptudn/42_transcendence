@@ -18,41 +18,21 @@
 		was certain: Transcendence would stand as a testament to human hope in the face of oblivion.</p>
 	<br>
 	<div class="flex items-center space-x-6 justify-center">
-		<div class="text-center">
-			<img src="https://pg-p.ctme.caltech.edu/wp-content/uploads/sites/4/2023/03/full_stack_web_developer_salary-1.jpg" alt="Luca"
-				class="w-24 h-24 rounded-full mx-auto">
-			<h2 class="text-3xl font-semibold mt-4">Luca</h2>
-			<h4 class="glow-blue text-1xl">(backendböhm)</h4>
-			<a href="https://github.com/Lucabhm" target="_blank" class="glow-red hover:underline">GitHub
-				Profile</a>
-		</div>
-		<div class="text-center">
-			<img src="https://avatars.githubusercontent.com/u/128718390?v=4" alt="Nick"
-				class="w-24 h-24 rounded-full mx-auto">
-			<h2 class="text-3xl font-semibold mt-4">Nick</h2>
-			<a href="https://github.com/nicktalm" target="_blank" class="glow-red hover:underline">GitHub
-				Profile</a>
-		</div>
-		<div class="text-center">
-			<img src="https://avatars.githubusercontent.com/u/142174400?v=4" alt="Leo"
-				class="w-24 h-24 rounded-full mx-auto">
-			<h2 class="text-3xl font-semibold mt-4">Leo</h2>
-			<a href="https://github.com/lglauch" target="_blank" class="glow-red hover:underline">GitHub
-				Profile</a>
-		</div>
-		<div class="text-center">
-			<img src="https://avatars.githubusercontent.com/u/87537789" alt="Jonas"
-				class="w-24 h-24 rounded-full mx-auto">
-			<h2 class="text-3xl font-semibold mt-4">Jonas</h2>
-			<a href="https://github.com/Reptudn" target="_blank" class="glow-red hover:underline">GitHub
-				Profile</a>
-		</div>
-		<div class="text-center">
-			<img src="https://avatars.githubusercontent.com/u/120249199" alt="Freddy"
-				class="w-24 h-24 rounded-full mx-auto">
-			<h2 class="text-3xl font-semibold mt-4">Freddy</h2>
-			<a href="https://github.com/FreddyMSchubert" target="_blank" class="glow-red hover:underline">GitHub
-				Profile</a>
-		</div>
-	</div>
+  <% const team = [
+    { name: 'Luca',   alias: '(backendböhm)', img: 'https://pg-p.ctme.caltech.edu/wp-content/uploads/sites/4/2023/03/full_stack_web_developer_salary-1.jpg', href: 'https://github.com/Lucabhm' },
+    { name: 'Nick',   alias: '(laser)',       img: 'https://avatars.githubusercontent.com/u/128718390?v=4', href: 'https://github.com/nicktalm' },
+    { name: 'Leo',    alias: '(das leben)',   img: 'https://avatars.githubusercontent.com/u/142174400?v=4', href: 'https://github.com/lglauch' },
+    { name: 'Jonas',  alias: '(reptudn)',     img: 'https://avatars.githubusercontent.com/u/87537789',       href: 'https://github.com/Reptudn' },
+    { name: 'Freddy', alias: '(chef)',        img: 'https://avatars.githubusercontent.com/u/120249199',      href: 'https://github.com/FreddyMSchubert' }
+  ].sort(() => Math.random() - 0.5); %>
+  <% team.forEach(m => { %>
+    <div class="text-center">
+      <img src="<%= m.img %>" alt="<%= m.name %>" class="w-24 h-24 rounded-full mx-auto">
+      <h2 class="text-3xl font-semibold mt-4"><%= m.name %></h2>
+      <% if (m.alias) { %><h4 class="glow-blue text-1xl"><%= m.alias %></h4><% } %>
+      <a href="<%= m.href %>" target="_blank" class="glow-red hover:underline">GitHub Profile</a>
+    </div>
+  <% }) %>
+</div>
+
 </div>

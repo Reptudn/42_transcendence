@@ -19,7 +19,8 @@
 		}
 	},
 	"index": {
-		"title": "Bienvenue sur Transcendence, étranger...",
+		"title": "Bienvenue sur Transcendence",
+		"title_stranger": "étranger",
 		"description": "Juste toi et ton nez de saumon !",
 		"what_you_can_do": "Ce que vous pouvez faire ici :",
 		"add_friends": "🤝 Ajoutez des amis et élargissez votre cercle de jeu.",
