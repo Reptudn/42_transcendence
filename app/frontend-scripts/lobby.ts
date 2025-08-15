@@ -4,7 +4,6 @@ import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
 	if (lobbyContainer) lobbyContainer.innerHTML = html;
-	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 export async function addLocalPlayer() {
