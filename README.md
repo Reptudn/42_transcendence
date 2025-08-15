@@ -79,7 +79,7 @@
 -   [x] Users can add others as friends and view their online status.
 -   [x] User profiles display stats, such as wins and losses.
 -   [x] Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users.
--   [ ] Logical and good managemnt for duplicate usernames and emails
+-   [x] Logical and good managemnt for duplicate usernames and emails
 
 #### Remote Auth with Google (Major) (4 / 9)
 

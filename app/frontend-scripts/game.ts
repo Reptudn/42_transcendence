@@ -27,7 +27,7 @@ ws.onerror = (error) => {
 	showLocalError('Failed to connect to game server');
 };
 
-ws.onclose = (event) => {
+ws.onclose = async (event) => {
 	window.stopRendering();
 	clearInterval(input_interval);
 	console.log('WebSocket closed:', event.code, event.reason);
@@ -36,29 +36,30 @@ ws.onclose = (event) => {
 	switch (event.code) {
 		case 1008: // Policy violation (your custom error codes)
 			showLocalError(`Connection rejected: ${event.reason}`);
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 
 		case 1000: // Normal closure
 			showLocalInfo('Connection to game closed!');
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
+
 		case 1001: // Going away
 			showLocalInfo('Server is shutting down!');
+			await loadPartialView('profile');
+			break;
+
+		case 1005: // Invalid message format
+			showLocalError(
+				'Connection closed due to invalid message format or cloudflare issue'
+			);
 			loadPartialView('profile');
 			break;
 
-		// case 1006:
-		// 	showLocalError('Connection lost unexpectedly. Trying to reconnect...');
-		// 	setTimeout(() => {
-		// 		window.location.reload(); // Simple reconnection strategy
-		// 	}, 1000);
-		// 	break;
-
-		// default:
-		//	// showLocalError('Connection closed unexpectedly');
-		// 	loadPartialView('profile');
-		// 	break;
+		default:
+			// showLocalError('Connection closed unexpectedly');
+			loadPartialView('profile');
+			break;
 	}
 };
 
@@ -183,21 +184,14 @@ const input_interval = setInterval(() => {
 	}
 }, 1000 / 30); // 30 FPS
 
+const pingInterval = setInterval(() => {
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.send(JSON.stringify({ type: 'ping' }));
+	}
+}, 30000);
+
 export async function leaveWsGame(manual: boolean = false) {
-	// const response = await fetch('/api/games/leave', {
-	// 	method: 'POST',
-	// });
-
-	// if (!response.ok) {
-	// 	showLocalError(`Failed to leave game: ${response.statusText}`);
-	// 	return;
-	// }
-
-	// showLocalInfo('You have left the game successfully.');
-
-	// if (game_over) return;
-
-	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
+	if (ws && ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
 	if (manual) loadPartialView('profile');
 }
 
@@ -205,6 +199,7 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
+	clearInterval(pingInterval);
 	stopRendering();
 	await leaveWsGame();
 });

@@ -35,7 +35,7 @@
 			<% } %>
 		</select>
 		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> ><%= t('lobby_admin.power_enabled_check') %></input>
-		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
+		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.gameDifficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
 		<p><%= t('lobby_admin.player_count') %>: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl"><%= t('lobby_admin.lobby_settings') %></h2>
@@ -63,7 +63,11 @@
 					<p>No players joined.</p>
 				<% } else { %>
 					<% for (const player of players) { %>
+						<% if (initial && player.playerId === 0) { %>
+						<div class="border-2 border-green-500">
+						<% } else { %>
 						<div class="border-2 <%= player.joined ? 'border-green-500' : 'border-red-500' %>">
+						<% } %>
 							<% if (player.playerId === 0) { %> <!-- 0 is the admin -->
 								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %> (You)</h3>
 							<% } else if (localPlayerId && player.playerId === localPlayerId) {%>
@@ -72,7 +76,11 @@
 								<h3 class="glow-green"><%= player.displayName || 'Unknown Player' %></h3>
 							<% } %>
 							<h3 class="glow-red"><%= player.playerTitle || 'Unknown Title' %></h3>
-							<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
+							<% if (initial && player.playerId === 0) { %>
+								<h3 class="glow-blue">Joined</h3>
+							<% } else { %>
+								<h3 class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></h3>
+							<% } %>
 							<h3 class="glow-purple">Type: <%= player.type || 'Unknown' %></h3>
 							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
 								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>

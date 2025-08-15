@@ -46,8 +46,8 @@ export function setupEventSource() {
 		console.log('EventSource connection established');
 	};
 	notifyEventSource.onmessage = async (event) => {
-		// console.log('EventSource message received:', event);
-		// console.log('EventSource data:', event.data);
+		console.log('EventSource message received:', event);
+		console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 			switch (data.type) {
@@ -71,21 +71,10 @@ export function setupEventSource() {
 					break;
 				case 'game_invite':
 					console.log('👫 Game invite received:', data);
-					// await sendPopup(
-					// 	'Game Invite',
-					// 	'You have been invited to play a game!',
-					// 	'blue',
-					// 	`acceptGameInvite(${data.gameId})`,
-					// 	'Accept'
-					// );
-					// TODO: make this a sendPopupCall with actual buttons
 					showLocalInfo(
-						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><button onclick="declineInvite(${data.gameId})">Decline</button>`
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><br><br><button onclick="declineInvite(${data.gameId})">Decline</button>`
 					);
 					break;
-				// case 'game_admin_request':
-				// 	await acceptGameInvite(data.gameId);
-				// 	break;
 				case 'lobby_admin_settings_update':
 					import('./lobby_admin.js')
 						.then(({ updatePage }) => {
@@ -121,19 +110,25 @@ export function setupEventSource() {
 						false,
 						false
 					);
-					import('./gameRenderer.js').then(({ startRendering }) => startRendering());
+					import('./gameRenderer.js').then(({ startRendering }) =>
+						startRendering()
+					);
 					break;
 				}
 				case 'game_tournament_admin_lobby_warp': {
 					console.log('Game tournament admin lobby warp:', data);
-					await loadPartialView(
-						'lobby_admin', false, null, true, false
-					);
+					await loadPartialView('lobby_admin', false, null, true, false);
 					break;
 				}
 				case 'game_tournament_lobby_warp': {
 					console.log('Game tournament lobby warp:', data);
-					await loadPartialView('api', true, `games/join/${data.gameId}/true`, false, false);
+					await loadPartialView(
+						'api',
+						true,
+						`games/join/${data.gameId}/true`,
+						false,
+						false
+					);
 					break;
 				}
 				case 'game_closed':

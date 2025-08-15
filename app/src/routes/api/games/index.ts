@@ -9,7 +9,7 @@ import {
 	GameType,
 	// GameType,
 } from '../../../services/pong/games/gameClass';
-import { sendSseRawByUserId } from '../../../services/sse/handler';
+import { connectedClients, sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
@@ -33,19 +33,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
+			if (!connectedClients.get(user.id)) {
+				fastify.log.warn(`User ${user.username} is not connected`);
+				return reply.code(400).send({ error: 'User is not connected to SSE' });
+			}
+
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
 				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin
-				if (existingGame && existingGame.status === GameStatus.WAITING) {
-					return reply.code(200).send({
-						message:
-							'You already have a game in lobby phase.. putting you back in there!',
-						gameId: existingGame.gameId,
-					});
-				} else if (
-					existingGame &&
-					existingGame.status === GameStatus.RUNNING
-				) {
+				if (existingGame && existingGame.status === GameStatus.RUNNING) {
 					return reply.code(401).send({
 						error: 'Seems like you have a running game already.. wait for it to end before creating a new one (yes you shouldnt have ended up here!)',
 					});
@@ -476,11 +472,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 			const { userId } = request.params as { userId: string };
+			if (!userId)
+				return reply.code(400).send({
+					error: 'Please specifiy a user id you want to invite.',
+				});
+
 			const parsedUserId = Number.parseInt(userId, 10);
 
 			const inviteUser = await getUserById(parsedUserId, fastify);
 			if (!inviteUser)
-				return reply.code(404).send({ error: `No such user found!` });
+				return reply.code(401).send({ error: `No such user found!` });
 
 			const friends = await getFriends(user.id, fastify);
 			if (friends) {
@@ -529,16 +530,36 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
+				// TODO: invite issue here
 				if (
 					game.config.gameType === GameType.TOURNAMENT &&
 					!game.alreadyStarted
 				) {
+					console.log('checking for ai');
 					const ai = game.players.find((p) => p instanceof AiPlayer);
-					if (ai) game.removePlayer(request.t, ai.playerId, true);
+					if (ai) {
+						console.log(
+							`Removing AI player ${ai.playerId} for user invitation`
+						);
+						await game.removePlayer(
+							request.t,
+							ai.playerId,
+							false,
+							false,
+							true
+						);
+					} else {
+						console.log('no ai players found');
+					}
 				}
 				await game.addUserPlayer(inviteUser, false, request.t);
 			} catch (err) {
-				return reply.code(404).send({ error: err });
+				if (err instanceof Error) {
+					return reply.code(404).send({ error: err.message });
+				}
+				return reply
+					.code(404)
+					.send({ error: 'Failed to invite user to game' });
 			}
 
 			sendSseRawByUserId(
@@ -575,7 +596,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					)
 			);
 			if (!game) {
-				return reply.code(404).send({ error: 'No game found for the user' });
+				// TODO: get from the db if its a past game
+				return reply.code(200).send({ message: 'No game found for the user or game is over' });
 			}
 
 			const player = game.players.find(
@@ -584,7 +606,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			try {
 				if (!player) throw new Error('You are not a player in this game!');
-				game.removePlayer(request.t, player.playerId);
+				await game.removePlayer(request.t, player.playerId);
 			} catch (err) {
 				if (err instanceof Error)
 					return reply
@@ -715,7 +737,14 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							const ai = game.players.find(
 								(p) => p instanceof AiPlayer
 							);
-							if (ai) game.removePlayer(request.t, ai.playerId, false);
+							if (ai)
+								await game.removePlayer(
+									request.t,
+									ai.playerId,
+									false,
+									true,
+									true
+								);
 						}
 						await game.addLocalPlayer(
 							owner as UserPlayer,
@@ -896,7 +925,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-			game.updateLobbyState(request.t);
+			await game.updateLobbyState(request.t);
 			return reply.code(200).view('lobby', {
 				ownerName: game.admin.displayname,
 				gameSettings: game.config,
@@ -976,6 +1005,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					state: game.formatStateForClients(),
 				})
 			);
+
+			socket.on('ping', () => {
+				socket.pong();
+			});
 
 			socket.on('error', (error) => {
 				fastify.log.error(

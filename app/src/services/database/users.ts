@@ -59,14 +59,56 @@ export async function registerUser(
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
 	const hashedPassword: string = await bcrypt.hash(password, 10);
-	const user = await fastify.sqlite.run(
-		'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
-		[username, hashedPassword, displayname, titleFirst, titleSecond, titleThird]
-	);
-	if (user.changes !== 0 && typeof user.lastID === 'number') {
+	let user: any;
+	try {
+		user = await fastify.sqlite.run(
+			'INSERT INTO users (username, password, displayname, title_first, title_second, title_third) VALUES (?, ?, ?, ?, ?, ?)',
+			[
+				username,
+				hashedPassword,
+				displayname,
+				titleFirst,
+				titleSecond,
+				titleThird,
+			]
+		);
+	} catch (e) {
+		throw new Error('Username already exists.. choose a different one!');
+	}
+	if (user && user.changes !== 0 && typeof user.lastID === 'number') {
 		inviteUserToChat(fastify, user.lastID, user.lastID, 1);
 	}
 }
+
+const generateUniqueUsername = async (baseName: string, fastify: FastifyInstance): Promise<string> => {
+	let username = baseName.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '').substring(0, 12);
+	
+	if (!username) {
+		username = 'user';
+	}
+	
+	let counter = 0;
+	let testUsername = username;
+	
+	const isUniqueUsername = async (username: string) => {
+		const user = await fastify.sqlite.get(
+			'SELECT * FROM users WHERE username = ?',
+			username
+		);
+		return !user;
+	};
+
+	while (!(await isUniqueUsername(testUsername))) {
+		counter++;
+		testUsername = `${username}${counter}`;
+		
+		if (testUsername.length > 16) {
+			testUsername = `user${crypto.randomBytes(3).toString('hex')}`;
+			if (await isUniqueUsername(testUsername)) break;
+		}
+	}
+	return testUsername;
+};
 
 export async function registerGoogleUser(
 	googleUser: GoogleUserInfo,
@@ -76,19 +118,7 @@ export async function registerGoogleUser(
 	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
-	let username = googleUser.name.replace(' ', '_').trim().toLowerCase();
-	const isUniqueUsername = async (username: string) => {
-		const user = await fastify.sqlite.get(
-			'SELECT * FROM users WHERE username = ?',
-			username
-		);
-		return !user;
-	};
-	const base_username = username;
-	while (!(await isUniqueUsername(username))) {
-		username += Math.floor(Math.random() * 10);
-		if (username.length > 20) username = base_username;
-	}
+	const username = await generateUniqueUsername(googleUser.name.replace(' ', '_').trim().toLowerCase(), fastify);
 
 	await fastify.sqlite.run(
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -126,20 +156,18 @@ export async function loginUser(
 	/*totp: string,*/
 	fastify: FastifyInstance
 ): Promise<User> {
-	const user = await fastify.sqlite.get(
-		'SELECT * FROM users WHERE username = ?',
-		username
-	);
+	let user: User | undefined;
+	try {
+		user = await fastify.sqlite.get(
+			'SELECT * FROM users WHERE username = ?',
+			username
+		);
+	} catch (e) {
+		throw new Error('Incorrect username or password');
+	}
 	if (!user || !(await verifyUserPassword(user.id, password, fastify)))
 		throw new Error('Incorrect username or password');
 
-	/*const two_fa = await getUser2faSecret(user, fastify);
-	if (two_fa !== '') {
-		if ((await verify2fa(user, totp, fastify)) === false) {
-			fastify.log.info('False 2fa code when login');
-			throw new Error('Invalid 2fa code');
-		}
-	}*/
 	return user;
 }
 
@@ -297,7 +325,7 @@ export async function updateUserPassword(
 	oldPassword: string,
 	newPassword: string,
 	fastify: FastifyInstance
-) : Promise<boolean> {
+): Promise<boolean> {
 	if (!oldPassword && !newPassword) {
 		return false;
 	}
