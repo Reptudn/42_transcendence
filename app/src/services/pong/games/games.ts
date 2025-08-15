@@ -48,6 +48,12 @@ function managePowerups(game: Game) {
 		);
 	}
 
+	// end speedup
+	const hasSpeedUp = game.activePowerups.some(
+		(p) => p.type === PowerupType.SpeedUp && p.started && p.expiresAt > now
+	);
+	game.ballSpeed = hasSpeedUp ? 6 : 3;
+
 	// clean ended powerups
 	if (game.activePowerups.length) {
 		game.activePowerups = game.activePowerups.filter((p) =>

@@ -45,6 +45,7 @@ export enum PowerupType {
 	PhasingPaddle = 'PHASING_PADDLE',
 	PhasingBall = 'PHASING_BALL',
 	BallSplosion = 'BALLSPLOSION',
+	SpeedUp = 'SPEED_UP',
 }
 
 export const powerupCheckDelay = 2000;

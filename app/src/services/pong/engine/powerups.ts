@@ -55,6 +55,8 @@ export function collectPowerups(game: Game) {
 						};
 						game.gameState.objects.push(miniBall);
 					}
+				} else if (powerup.type === PowerupType.SpeedUp) {
+					game.ballSpeed = 6;
 				}
 			}
 		}

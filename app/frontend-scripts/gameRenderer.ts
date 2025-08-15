@@ -63,6 +63,11 @@ const powerupSettings = [
 		icon: '/static/assets/images/powerups/ballsplosion.png',
 		color: { r: 255, g: 128, b: 0 },
 	},
+	{
+		type: 'speedup',
+		icon: '/static/assets/images/powerups/speedup.png',
+		color: { r: 0, g: 255, b: 128 },
+	},
 ];
 
 const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');

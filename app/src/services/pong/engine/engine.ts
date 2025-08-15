@@ -8,6 +8,8 @@ import { collectPowerups } from './powerups.js';
 import { PowerupType } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
+	if (game.ballSpeed > 3) game.ballSpeed -= 0.05;
+
 	// move players
 	for (const player of game.players) {
 		if (player.lives <= 0) continue;
@@ -22,7 +24,7 @@ export function tickEngine(game: Game) {
 	// move ball
 	game.gameState = moveBall(
 		game.gameState,
-		3,
+		game.ballSpeed,
 		game.activePowerups.find(
 			(p) => p.type === PowerupType.WonkyBall && p.started
 		) !== undefined
