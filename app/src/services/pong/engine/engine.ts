@@ -28,6 +28,20 @@ export function tickEngine(game: Game) {
 		) !== undefined
 	);
 
+	// move mini balls
+	for (const o of game.gameState.objects) {
+		if (o.type !== 'miniBall') continue;
+		const m = o as any;
+		if (!m.center || !m.velocity) continue;
+		m.center.x += m.velocity.x * 2;
+		m.center.y += m.velocity.y * 2;
+		const { size_x, size_y } = game.gameState.meta;
+		while (m.center.x < 0) m.center.x += size_x;
+		while (m.center.x > size_x) m.center.x -= size_x;
+		while (m.center.y < 0) m.center.y += size_y;
+		while (m.center.y > size_y) m.center.y -= size_y;
+	}
+
 	// powerups
 	collectPowerups(game);
 	for (const player of game.players) {

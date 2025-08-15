@@ -275,7 +275,7 @@ export function moveBall(
 		ball.velocity.y = Math.sin(newAngle) * speed;
 	}
 
-	normalize(ball.velocity, ballSpeed);
+	ball.velocity = normalize(ball.velocity, ballSpeed);
 
 	return gameState;
 }
