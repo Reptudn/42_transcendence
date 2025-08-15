@@ -20,10 +20,10 @@ import {
 	checkUserBlocked,
 	getParticipantFromSql,
 	getAllParticipantsFromSql,
-	// getAllBlockedUser,
 } from '../../../services/database/chat';
 import ejs from 'ejs';
 import escapeHTML from 'escape-html';
+import { sendSseHtmlByUserId } from '../../../services/sse/handler';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -217,6 +217,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 				for (const id of userIdsInt) {
 					await inviteUserToChat(fastify, user.id, id, chat_id);
+					sendSseHtmlByUserId(id, 'chat_update', '');
 				}
 
 				return res.send({

@@ -166,12 +166,12 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					await acceptFriendRequest(pendingRequest.id, fastify);
 					try {
 						const chat_id = await saveNewChatInfo(fastify, false, null);
-						addToParticipants(
+						await addToParticipants(
 							fastify,
 							pendingRequest.requester_id,
 							chat_id
 						);
-						addToParticipants(
+						await addToParticipants(
 							fastify,
 							pendingRequest.requested_id,
 							chat_id
@@ -257,8 +257,8 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					);
 					const chat_id = await saveNewChatInfo(fastify, false, null);
 
-					addToParticipants(fastify, request.requester_id, chat_id);
-					addToParticipants(fastify, request.requested_id, chat_id);
+					await addToParticipants(fastify, request.requester_id, chat_id);
+					await addToParticipants(fastify, request.requested_id, chat_id);
 				}
 				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {

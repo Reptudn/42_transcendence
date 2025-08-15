@@ -164,12 +164,9 @@ export async function getMessages(chat_id: string | null) {
 	}
 }
 
-// export async function getChatInfo(chat_id: string | null) {
-// 	if (!chat_id || chat_id === '0') {
-// 		showLocalError('Invalid chat ID');
-// 		return;
-// 	}
-// }
+export async function updateChat() {
+	await getChats();
+}
 
 declare global {
 	interface Window {

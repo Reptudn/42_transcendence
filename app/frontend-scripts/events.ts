@@ -141,6 +141,12 @@ export function setupEventSource() {
 					});
 					break;
 				}
+				case 'chat_update': {
+					import('./chat.js').then(({ updateChat }) => {
+						updateChat();
+					});
+					break;
+				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
 					console.log(data);
