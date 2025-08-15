@@ -29,104 +29,39 @@ export async function createGame() {
 	await loadPartialView('lobby_admin', true, null, true);
 }
 
-let serverValue = 0;
-let lastServerValue = 0;
-let displayValue = 0;
-let localDelta = 0;
-let pollId: number | null = null;
-let pollingPaused = false;
-let animId: number | null = null;
-
-function setDisplay(v: number) {
-	const el = document.getElementById('numberDisplay');
-	if (el) el.textContent = Math.trunc(v).toString();
-}
-
-function animateTo(target: number, duration = 1000) {
-	if (animId !== null) cancelAnimationFrame(animId);
-	const start = performance.now();
-	const from = displayValue;
-	const delta = target - from;
-	function step(t: number) {
-		const p = Math.min(1, (t - start) / duration);
-		displayValue = from + delta * p;
-		setDisplay(displayValue);
-		if (p < 1) animId = requestAnimationFrame(step);
-	}
-	animId = requestAnimationFrame(step);
-}
-
-function startPolling() {
-	if (pollId !== null) clearInterval(pollId);
-	pollId = window.setInterval(fetchNumber, 3000);
-}
-
-function pausePolling() {
-	if (pollId !== null) {
-		clearInterval(pollId);
-		pollId = null;
-	}
-	pollingPaused = true;
-}
-
-async function fetchNumber(): Promise<void> {
-	if (pollingPaused) return;
-	try {
-		const response = await fetch('/number');
-		if (!response.ok) throw new Error('bad status');
-		const data = await response.json();
-		serverValue = Number(data.number) || 0;
-		const appliedByServer = serverValue - lastServerValue;
-		if (appliedByServer !== 0) {
-			localDelta = Math.max(0, localDelta - appliedByServer);
-			lastServerValue = serverValue;
-		}
-		animateTo(serverValue + localDelta, 1000);
-	} catch {
-		pausePolling();
-	}
-}
-
-async function updateNumber(increment: number): Promise<void> {
-	try {
-		localDelta += increment;
-		displayValue += increment;
-		setDisplay(displayValue);
-		const response = await fetch('/number', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ number: increment }),
-		});
-		if (!response.ok) {
-			localDelta -= increment;
-			pausePolling();
-			return;
-		}
-	} catch {
-		localDelta -= increment;
-		pausePolling();
-	}
-}
-
-const numberDisplay = document.getElementById('numberDisplay');
-if (numberDisplay && !numberDisplay.hasAttribute('data-listener-added')) {
-	numberDisplay.addEventListener('click', () => {
-		if (pollingPaused) {
-			pollingPaused = false;
-			fetchNumber();
-			startPolling();
-		}
-		updateNumber(1);
-	});
-	numberDisplay.setAttribute('data-listener-added', 'true');
-}
+// the Number
+let clientNumber = 42;
+let serverNumber = 42;
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
-	displayValue = el ? Number(el.textContent) || 0 : 0;
-	setDisplay(displayValue);
-	startPolling();
-	fetchNumber();
+	el?.addEventListener('click', () => {
+		clientNumber++;
+		if (el) el.textContent = clientNumber.toString();
+	});
+	const syncNumber = async () => {
+		try {
+			const response = await fetch('/number', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ number: clientNumber - serverNumber }),
+			});
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Number updated successfully:', data);
+				serverNumber = data.number;
+				clientNumber = data.number;
+				if (el) el.textContent = clientNumber.toString();
+			} else {
+				console.error('Error updating number:', response.statusText);
+			}
+		} catch (error) {
+			console.error('Error fetching number:', error);
+		}
+	};
+
+	void syncNumber();
+	setInterval(syncNumber, 3000);
 });
 
 // Logout
@@ -202,6 +137,4 @@ document.addEventListener('keydown', (event) => {
 // 	window.localStorage.setItem("loggedIn", "false");
 
 window.logout = logout;
-window.fetchNumber = fetchNumber;
-window.updateNumber = updateNumber;
 window.createGame = createGame;
