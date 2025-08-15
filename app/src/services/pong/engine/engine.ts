@@ -8,6 +8,8 @@ import { collectPowerups } from './powerups.js';
 import { PowerupType } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
+	if (game.ballSpeed > 3) game.ballSpeed -= 0.05;
+
 	// move players
 	for (const player of game.players) {
 		if (player.lives <= 0) continue;
@@ -22,11 +24,25 @@ export function tickEngine(game: Game) {
 	// move ball
 	game.gameState = moveBall(
 		game.gameState,
-		3,
+		game.ballSpeed,
 		game.activePowerups.find(
 			(p) => p.type === PowerupType.WonkyBall && p.started
 		) !== undefined
 	);
+
+	// move mini balls
+	for (const o of game.gameState.objects) {
+		if (o.type !== 'miniBall') continue;
+		const m = o as any;
+		if (!m.center || !m.velocity) continue;
+		m.center.x += m.velocity.x * 2;
+		m.center.y += m.velocity.y * 2;
+		const { size_x, size_y } = game.gameState.meta;
+		while (m.center.x < 0) m.center.x += size_x;
+		while (m.center.x > size_x) m.center.x -= size_x;
+		while (m.center.y < 0) m.center.y += size_y;
+		while (m.center.y > size_y) m.center.y -= size_y;
+	}
 
 	// powerups
 	collectPowerups(game);

@@ -58,6 +58,16 @@ const powerupSettings = [
 		icon: '/static/assets/images/powerups/phasing_ball.png',
 		color: { r: 128, g: 0, b: 128 },
 	},
+	{
+		type: 'ballsplosion',
+		icon: '/static/assets/images/powerups/ballsplosion.png',
+		color: { r: 255, g: 128, b: 0 },
+	},
+	{
+		type: 'speedup',
+		icon: '/static/assets/images/powerups/speedup.png',
+		color: { r: 0, g: 255, b: 128 },
+	},
 ];
 
 const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');
@@ -523,6 +533,26 @@ export function drawGameState(gameState: GameState): void {
 				}
 				break;
 
+			case 'miniBall':
+				if (obj.center && obj.radius) {
+					const posX = obj.center.x * scale;
+					const posY = obj.center.y * scale;
+					const radius = obj.radius * scale;
+					const alpha = 1;
+					drawCircle(
+						posX,
+						posY,
+						radius,
+						{ r: 150, g: 150, b: 150 },
+						alpha
+					);
+				} else {
+					showLocalInfo(
+						`Ball object does not have a center or radius: ${obj}`
+					);
+				}
+				break;
+
 			case 'paddle':
 				if (obj.shape && obj.shape.length > 0) {
 					const points = transformPoints(obj.shape, scale);
@@ -707,14 +737,16 @@ export function render(): void {
 		drawGameState(currentState);
 	}
 
-	const ballObj = currentState?.objects.find(
-		(obj) => obj.type === 'ball' && obj.radius
-	);
-	if (ballObj?.radius) {
-		const scaleX = canvas.width / (currentState?.mapWidth ?? mapSizeX);
-		const scaleY = canvas.height / (currentState?.mapHeight ?? mapSizeY);
-		const scale = Math.min(scaleX, scaleY);
-		drawBallTrail(scale, ballObj.radius);
+	if (!isPowerupActive(currentState, 'ballsplosion')) {
+		const ballObj = currentState?.objects.find(
+			(obj) => obj.type === 'ball' && obj.radius
+		);
+		if (ballObj?.radius) {
+			const scaleX = canvas.width / (currentState?.mapWidth ?? mapSizeX);
+			const scaleY = canvas.height / (currentState?.mapHeight ?? mapSizeY);
+			const scale = Math.min(scaleX, scaleY);
+			drawBallTrail(scale, ballObj.radius);
+		}
 	}
 
 	animationId = requestAnimationFrame(render);
