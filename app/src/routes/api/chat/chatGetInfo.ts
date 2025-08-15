@@ -20,10 +20,10 @@ import {
 	checkUserBlocked,
 	getParticipantFromSql,
 	getAllParticipantsFromSql,
-	// getAllBlockedUser,
 } from '../../../services/database/chat';
 import ejs from 'ejs';
 import escapeHTML from 'escape-html';
+import { sendSseHtmlByUserId } from '../../../services/sse/handler';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -217,6 +217,7 @@ export async function createNewChat(fastify: FastifyInstance) {
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 				for (const id of userIdsInt) {
 					await inviteUserToChat(fastify, user.id, id, chat_id);
+					sendSseHtmlByUserId(id, 'chat_update', '');
 				}
 
 				return res.send({
@@ -318,6 +319,10 @@ export async function inviteUser(fastify: FastifyInstance) {
 
 				await invite(fastify, chat_id, myId, userIdsInt);
 
+				for (const id of userIdsInt) {
+					sendSseHtmlByUserId(id, 'chat_update', '');
+				}
+
 				return res.status(200).send({ msg: req.t('chat.invite') });
 			} catch (err) {
 				const nError = normError(err);
@@ -369,9 +374,14 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const chat = await getChatFromSql(fastify, chat_id);
 				const allChats = await getChatName(fastify, userId);
 
-				if (Boolean(chat.is_group) === true && chat.name === null)
+				console.log('chat group = ', chat.is_group);
+				console.log('chat name = ', chat.name);
+				console.log('chat group type =', typeof chat.is_group);
+				console.log('chat name type = ', typeof chat.name);
+
+				if (Boolean(chat.is_group) === true && chat.name === 'null') {
 					chat.name = 'Global Chat';
-				else {
+				} else {
 					const found = allChats.find((c) => c.id === chat.id);
 					if (!found)
 						return res.status(400).send({ error: 'Chat not Found' });
