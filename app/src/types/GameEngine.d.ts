@@ -8,6 +8,8 @@ interface GameObject {
 	name: string;
 	playerNbr?: number;
 	shape: Point[];
+	overlapping_ball: boolean;
+	exitGraceUntil: number | undefined; // little invincibility period after hit
 
 	// ball specific properties
 	velocity?: { x: number; y: number };

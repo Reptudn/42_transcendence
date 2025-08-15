@@ -29,31 +29,39 @@ export async function createGame() {
 	await loadPartialView('lobby_admin', true, null, true);
 }
 
-let serverValue = 0;
-let lastServerValue = 0;
-let displayValue = 0;
-let localDelta = 0;
+let serverActual = 0;
+let serverShown = 0;
+let pendingDelta = 0;
+
 let pollId: number | null = null;
 let pollingPaused = false;
-let animId: number | null = null;
+
+let rafId: number | null = null;
+let tweenFrom = 0;
+let tweenTo = 0;
+let tweenStart = 0;
+let tweenDur = 1000;
 
 function setDisplay(v: number) {
 	const el = document.getElementById('numberDisplay');
 	if (el) el.textContent = Math.trunc(v).toString();
 }
 
-function animateTo(target: number, duration = 1000) {
-	if (animId !== null) cancelAnimationFrame(animId);
-	const start = performance.now();
-	const from = displayValue;
-	const delta = target - from;
-	function step(t: number) {
-		const p = Math.min(1, (t - start) / duration);
-		displayValue = from + delta * p;
-		setDisplay(displayValue);
-		if (p < 1) animId = requestAnimationFrame(step);
-	}
-	animId = requestAnimationFrame(step);
+function setServerTarget(newVal: number) {
+	tweenFrom = serverShown;
+	tweenTo = newVal;
+	tweenStart = performance.now();
+}
+
+function tick(now: number) {
+	const p = Math.min(1, (now - tweenStart) / tweenDur);
+	serverShown = tweenFrom + (tweenTo - tweenFrom) * p;
+	setDisplay(serverShown + pendingDelta);
+	rafId = requestAnimationFrame(tick);
+}
+
+function ensureTick() {
+	if (rafId === null) rafId = requestAnimationFrame(tick);
 }
 
 function startPolling() {
@@ -75,13 +83,11 @@ async function fetchNumber(): Promise<void> {
 		const response = await fetch('/number');
 		if (!response.ok) throw new Error('bad status');
 		const data = await response.json();
-		serverValue = Number(data.number) || 0;
-		const appliedByServer = serverValue - lastServerValue;
-		if (appliedByServer !== 0) {
-			localDelta = Math.max(0, localDelta - appliedByServer);
-			lastServerValue = serverValue;
-		}
-		animateTo(serverValue + localDelta, 1000);
+		const prev = serverActual;
+		serverActual = Number(data.number) || 0;
+		const caught = serverActual - prev;
+		if (caught > 0) pendingDelta = Math.max(0, pendingDelta - caught);
+		setServerTarget(serverActual);
 	} catch {
 		pausePolling();
 	}
@@ -89,21 +95,20 @@ async function fetchNumber(): Promise<void> {
 
 async function updateNumber(increment: number): Promise<void> {
 	try {
-		localDelta += increment;
-		displayValue += increment;
-		setDisplay(displayValue);
+		pendingDelta += increment;
+		setDisplay(serverShown + pendingDelta);
 		const response = await fetch('/number', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ number: increment }),
 		});
 		if (!response.ok) {
-			localDelta -= increment;
+			pendingDelta -= increment;
 			pausePolling();
 			return;
 		}
 	} catch {
-		localDelta -= increment;
+		pendingDelta -= increment;
 		pausePolling();
 	}
 }
@@ -123,13 +128,16 @@ if (numberDisplay && !numberDisplay.hasAttribute('data-listener-added')) {
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
-	displayValue = el ? Number(el.textContent) || 0 : 0;
-	setDisplay(displayValue);
+	const initial = el ? Number(el.textContent) || 0 : 0;
+	serverActual = initial;
+	serverShown = initial;
+	tweenFrom = initial;
+	tweenTo = initial;
+	tweenStart = performance.now();
+	ensureTick();
 	startPolling();
 	fetchNumber();
 });
-
-// Logout
 
 async function logout(): Promise<void> {
 	try {
@@ -150,8 +158,6 @@ async function logout(): Promise<void> {
 		await loadPartialView('index', true, null, true, true, true);
 	}
 }
-
-// Background
 
 const recentIndices: number[] = [];
 const MAX_RECENT = 40;

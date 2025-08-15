@@ -369,35 +369,6 @@
 			]
 		},
 		{
-			"type": "wall",
-			"name": "obstacle",
-			"shape": [
-				{
-					"x": 45,
-					"y": 45
-				},
-				{
-					"x": 55,
-					"y": 45
-				},
-				{
-					"x": 45,
-					"y": 55
-				},
-				{
-					"x": 45,
-					"y": 45
-				}
-			],
-			"conditions": [
-				{
-					"condition": "larger_than",
-					"variable": "difficulty",
-					"target": 5
-				}
-			]
-		},
-		{
 			"type": "powerup_spawn",
 			"center": {
 				"x": 55,

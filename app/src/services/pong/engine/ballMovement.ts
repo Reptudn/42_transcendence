@@ -160,92 +160,78 @@ export function moveBall(
 		}
 	}
 
-	center.x += ball.velocity.x;
-	center.y += ball.velocity.y;
+	const speedPerTick = Math.hypot(ball.velocity.x, ball.velocity.y) || ballSpeed;
+	const maxStep = Math.max(0.5, radius * 0.5);
+	const steps = Math.min(16, Math.max(1, Math.ceil(speedPerTick / maxStep)));
+	let stepVel = { x: ball.velocity.x / steps, y: ball.velocity.y / steps };
 
-	// collect all collision normals to compute all collisions in a tick at once
-	const maxIterations = 5;
-	for (let iter = 0; iter < maxIterations; iter++) {
-		const collisions: { normal: Point; penetration: number }[] = [];
-		for (const polygon of potentialCollisions) {
-			if (circlePolygonCollision(center, radius, polygon)) {
-				const response = computeCollisionResponse(center, radius, polygon);
-				if (response) collisions.push(response);
-			}
-		}
-		if (collisions.length === 0) break;
+	for (let s = 0; s < steps; s++) {
+		// tiny steps -> pick up on thin objects also
+		center.x += stepVel.x;
+		center.y += stepVel.y;
 
-		const sep = { x: 0, y: 0 };
-		let maxPen = 0;
-		for (const c of collisions) {
-			sep.x += c.normal.x * c.penetration;
-			sep.y += c.normal.y * c.penetration;
-			if (c.penetration > maxPen) maxPen = c.penetration;
-		}
-		const sepLen = Math.hypot(sep.x, sep.y);
-		if (sepLen > 0) {
-			const scale = Math.min(1, maxPen / sepLen);
-			center.x += sep.x * scale;
-			center.y += sep.y * scale;
-		}
-
-		for (const c of collisions) {
-			const dot = ball.velocity.x * c.normal.x + ball.velocity.y * c.normal.y;
-			if (dot < 0) {
-				ball.velocity.x -= 2 * dot * c.normal.x;
-				ball.velocity.y -= 2 * dot * c.normal.y;
-			}
-		}
-	}
-
-	// end of tick collision resolving safety net if something went wrong before
-	{
-		const allPolys: Point[][] = [];
-		for (const o of gameState.objects) {
-			if (o.shape && (o.type === 'paddle' || o.type === 'wall'))
-				allPolys.push(o.shape);
-		}
-		for (let i = 0; i < 4; i++) {
-			let fixed = false;
-			for (const poly of allPolys) {
-				if (!circlePolygonCollision(center, radius, poly)) continue;
-				const resp = computeCollisionResponse(center, radius, poly);
-				if (!resp) continue;
-				center.x += resp.normal.x * resp.penetration;
-				center.y += resp.normal.y * resp.penetration;
-				const dot =
-					ball.velocity.x * resp.normal.x +
-					ball.velocity.y * resp.normal.y;
-				if (dot < 0) {
-					ball.velocity.x -= 2 * dot * resp.normal.x;
-					ball.velocity.y -= 2 * dot * resp.normal.y;
+		for (let iter = 0; iter < 5; iter++) {
+			const collisions: { normal: Point; penetration: number }[] = [];
+			for (const polygon of potentialCollisions) {
+				if (circlePolygonCollision(center, radius, polygon)) {
+					const response = computeCollisionResponse(
+						center,
+						radius,
+						polygon
+					);
+					if (response) collisions.push(response);
 				}
-				fixed = true;
 			}
-			if (!fixed) break;
+			if (collisions.length === 0) break;
+
+			const sep = { x: 0, y: 0 };
+			let maxPen = 0;
+			for (const c of collisions) {
+				sep.x += c.normal.x * c.penetration;
+				sep.y += c.normal.y * c.penetration;
+				if (c.penetration > maxPen) maxPen = c.penetration;
+			}
+			const sepLen = Math.hypot(sep.x, sep.y);
+			if (sepLen > 0) {
+				const scale = Math.min(1, maxPen / sepLen);
+				center.x += sep.x * scale;
+				center.y += sep.y * scale;
+			}
+
+			for (const c of collisions) {
+				const dot =
+					ball.velocity.x * c.normal.x + ball.velocity.y * c.normal.y;
+				if (dot < 0) {
+					ball.velocity.x -= 2 * dot * c.normal.x;
+					ball.velocity.y -= 2 * dot * c.normal.y;
+				}
+			}
+			stepVel = { x: ball.velocity.x / steps, y: ball.velocity.y / steps };
+		}
+
+		// game boundary collisions
+		const { size_x, size_y } = gameState.meta;
+		if (center.x - radius < 0 || center.x + radius > size_x) {
+			ball.velocity.x = -ball.velocity.x;
+			center.x = Math.max(radius, Math.min(center.x, size_x - radius));
+			stepVel = { x: ball.velocity.x / steps, y: stepVel.y };
+		}
+		if (center.y - radius < 0 || center.y + radius > size_y) {
+			ball.velocity.y = -ball.velocity.y;
+			center.y = Math.max(radius, Math.min(center.y, size_y - radius));
+			stepVel = { x: stepVel.x, y: ball.velocity.y / steps };
 		}
 	}
 
 	if (wonky) {
-		const degreeRange = 20; // Range in degrees, e.g. 20 for ±10°
-		const radRange = (degreeRange * Math.PI) / 180; // Convert to radians
+		const degreeRange = 20;
+		const radRange = (degreeRange * Math.PI) / 180;
 		const angleAdjust = (Math.random() - 0.5) * radRange;
 		const speed = Math.sqrt(ball.velocity.x ** 2 + ball.velocity.y ** 2);
 		const currentAngle = Math.atan2(ball.velocity.y, ball.velocity.x);
 		const newAngle = currentAngle + angleAdjust;
 		ball.velocity.x = Math.cos(newAngle) * speed;
 		ball.velocity.y = Math.sin(newAngle) * speed;
-	}
-
-	// Game boundary collisions
-	const { size_x, size_y } = gameState.meta;
-	if (center.x - radius < 0 || center.x + radius > size_x) {
-		ball.velocity.x = -ball.velocity.x;
-		center.x = Math.max(radius, Math.min(center.x, size_x - radius));
-	}
-	if (center.y - radius < 0 || center.y + radius > size_y) {
-		ball.velocity.y = -ball.velocity.y;
-		center.y = Math.max(radius, Math.min(center.y, size_y - radius));
 	}
 
 	// 45-degree magnetism to prevent single-path stuck balls
@@ -292,16 +278,29 @@ export function hasPlayerBeenHit(gameState: GameState, playerId: number): boolea
 	);
 	if (!dmg || !dmg.shape) return false;
 
-	const isOverlapping = circlePolygonCollision(center, radius, dmg.shape);
+	const now = Date.now();
+	const overlapping = circlePolygonCollision(center, radius, dmg.shape);
 
-	if (isOverlapping) {
+	if (overlapping) {
+		dmg.exitGraceUntil = undefined;
 		if (!dmg.overlapping_ball) {
 			dmg.overlapping_ball = true;
 			return true;
 		}
 		return false;
-	} else {
-		dmg.overlapping_ball = false;
+	}
+
+	if (dmg.overlapping_ball) {
+		if (dmg.exitGraceUntil === undefined) {
+			dmg.exitGraceUntil = now + 200;
+			return false;
+		}
+		if (now >= dmg.exitGraceUntil) {
+			dmg.overlapping_ball = false;
+			dmg.exitGraceUntil = undefined;
+		}
 		return false;
 	}
+
+	return false;
 }
