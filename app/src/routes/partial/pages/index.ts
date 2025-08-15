@@ -87,7 +87,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			let variables: { [key: string]: any } = {};
 			variables['isAuthenticated'] = user != null;
 			if (user != null) variables['name'] = user.displayname || user.username;
-			else variables['name'] = 'Guest';
+			else variables['name'] = null;
 
 			let errorCode: number = 418;
 			let defaultError: string =
