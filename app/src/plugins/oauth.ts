@@ -3,16 +3,23 @@ import oauthPlugin from '@fastify/oauth2';
 
 export default fp(
 	async (fastify) => {
-		fastify.decorate(
-			'authenticate',
-			async function (request: any, reply: any) {
-				try {
-					await request.jwtVerify();
-				} catch (err) {
-					reply.send(err);
-				}
+		fastify.decorate('authenticate', async function (request: any, reply: any) {
+			try {
+				await request.jwtVerify();
+			} catch (err) {
+				reply.clearCookie('token', {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+				});
+
+				return reply.code(401).send({
+					error: 'Unauthorized',
+					message: 'Invalid or expired token',
+				});
 			}
-		);
+		});
 
 		fastify.register(oauthPlugin, {
 			name: 'googleOAuth2',

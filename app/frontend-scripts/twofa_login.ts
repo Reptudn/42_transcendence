@@ -4,7 +4,9 @@ import { updateMenu, loadPartialView } from './navigator.js';
 async function twofa_login() {
 	try {
 		const totpInput = document.getElementById('totp') as HTMLInputElement;
-		const backup_totpinput = document.getElementById('backup-totp') as HTMLInputElement;
+		const backup_totpinput = document.getElementById(
+			'backup-totp'
+		) as HTMLInputElement;
 		const fa_token = totpInput.value;
 		const backup_totp = backup_totpinput.value;
 		const response = await fetch('/api/auth/2fa', {
@@ -15,7 +17,7 @@ async function twofa_login() {
 			body: JSON.stringify({
 				userid: window.user_id,
 				fa_token: fa_token,
-				rescue_token: backup_totp
+				rescue_token: backup_totp,
 			}),
 		});
 
@@ -38,7 +40,9 @@ async function twofa_login() {
 async function twofa_login_google() {
 	try {
 		const totpInput = document.getElementById('totp_google') as HTMLInputElement;
-		const backup_totpinput = document.getElementById('backup-totp_google') as HTMLInputElement;
+		const backup_totpinput = document.getElementById(
+			'backup-totp_google'
+		) as HTMLInputElement;
 		const urlParams = new URLSearchParams(window.location.search);
 		const userId = urlParams.get('userid');
 		const fa_token = totpInput.value;
@@ -51,7 +55,7 @@ async function twofa_login_google() {
 			body: JSON.stringify({
 				userid: userId,
 				fa_token: fa_token,
-				rescue_token: backup_totp
+				rescue_token: backup_totp,
 			}),
 		});
 
@@ -69,18 +73,6 @@ async function twofa_login_google() {
 		showLocalError('An error occurred. Please try again.');
 	}
 }
-
-// export function initTwofaLogin() {
-//     const login2faButton = document.getElementById('login2faButton');
-//     if (login2faButton) {
-//         console.log('login2faButton found');
-//         login2faButton.addEventListener('click', twofa_login, {
-//             signal: window.abortController?.signal,
-//         });
-//     } else {
-//         console.error('login2faButton not found');
-//     }
-// }
 
 declare global {
 	interface Window {
