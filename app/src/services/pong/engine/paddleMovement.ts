@@ -6,7 +6,7 @@ import {
 	rotatePoint,
 	angleOf,
 } from './pointUtils.js';
-import { circlePolygonCollision } from './ballMovement.js';
+import { circlePolygonCollision, computeCollisionResponse } from './ballMovement.js';
 
 /**
  * Moves the given player's paddle along its path.
@@ -189,46 +189,30 @@ export function movePaddle(
 			newShape
 		);
 		if (overlapsAfterMove) {
-			const proposedCenter = {
-				x: ballObj.center.x + delta.x,
-				y: ballObj.center.y + delta.y,
-			};
-			const { size_x, size_y } = gameState.meta;
-
-			const outOfBounds =
-				proposedCenter.x - ballObj.radius < 0 ||
-				proposedCenter.x + ballObj.radius > size_x ||
-				proposedCenter.y - ballObj.radius < 0 ||
-				proposedCenter.y + ballObj.radius > size_y;
-
-			let collide = outOfBounds;
-			if (!collide) {
-				for (const o of gameState.objects) {
-					if (!o.shape) continue;
-					if (o.type !== 'wall' && o.type !== 'paddle') continue;
-					if (o.type === 'paddle' && o.playerNbr === playerId) continue;
-					if (
-						circlePolygonCollision(
-							proposedCenter,
-							ballObj.radius,
-							o.shape
-						)
-					) {
-						collide = true;
-					}
-					if (collide) break;
-				}
-				if (
-					!collide &&
-					circlePolygonCollision(proposedCenter, ballObj.radius, newShape)
-				) {
-					collide = true;
+			const resp = computeCollisionResponse(
+				ballObj.center,
+				ballObj.radius,
+				newShape
+			);
+			if (resp) {
+				ballObj.center = {
+					x: ballObj.center.x + resp.normal.x * (resp.penetration + 0.5),
+					y: ballObj.center.y + resp.normal.y * (resp.penetration + 0.5),
+				};
+				const paddleDelta = delta;
+				const relV = {
+					x: (ballObj.velocity?.x ?? 0) - paddleDelta.x,
+					y: (ballObj.velocity?.y ?? 0) - paddleDelta.y,
+				};
+				const relDot = relV.x * resp.normal.x + relV.y * resp.normal.y;
+				if (relDot < 0) {
+					const v = ballObj.velocity ?? { x: 0, y: 0 };
+					ballObj.velocity = {
+						x: v.x - 2 * relDot * resp.normal.x,
+						y: v.y - 2 * relDot * resp.normal.y,
+					};
 				}
 			}
-			if (collide) {
-				return gameState;
-			}
-			ballObj.center = proposedCenter;
 		}
 	}
 
