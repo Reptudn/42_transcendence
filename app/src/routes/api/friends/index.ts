@@ -11,7 +11,7 @@ import {
 import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
-import { connectedClients } from '../../../services/sse/handler';
+import { connectedClients, sendSseHtmlByUserId } from '../../../services/sse/handler';
 import {
 	removeChat,
 	searchForChatId,
@@ -176,6 +176,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							pendingRequest.requested_id,
 							chat_id
 						);
+						sendSseHtmlByUserId(pendingRequest.requested_id, 'chat_update', '');
 					} catch (err) {
 						const nError = normError(err);
 						reply
@@ -259,6 +260,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 					await addToParticipants(fastify, request.requester_id, chat_id);
 					await addToParticipants(fastify, request.requested_id, chat_id);
+					sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
 				}
 				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
@@ -320,6 +322,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (chat_id) {
 					removeChat(fastify, chat_id);
 				}
+				sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
 				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				// reply.code(400).send({ message: err.message });
