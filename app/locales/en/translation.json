@@ -19,7 +19,8 @@
 		}
 	},
 	"index": {
-		"title": "Welcome to Transcendence Stranger...",
+		"title": "Welcome to Transcendence",
+		"title_stranger": "Stranger",
 		"what_you_can_do": "What You Can Do Here:",
 		"add_friends": "🤝 Add friends and grow your gaming circle.",
 		"adjust_profile": "🖼️ Adjust your profile - update your avatar, nickname, and more.",
