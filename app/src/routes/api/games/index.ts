@@ -1025,12 +1025,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				player.disconnect();
 				try {
 					game.removePlayer(player.playerId, false, false, true);
-				} catch (err) {
-					fastify.log.error(
-						`Error removing player ${player.playerId} after WebSocket error:`,
-						err
-					);
-				}
+				} catch (err) {}
 			});
 
 			socket.on('message', (message: Buffer) => {

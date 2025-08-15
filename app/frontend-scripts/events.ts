@@ -14,6 +14,8 @@ export function closeEventSource() {
 	notifyEventSource = null;
 }
 
+document.getElementById('connectedStatusSSE')!.textContent = 'Connected: FALSE';
+
 let isConnecting = false;
 export function setupEventSource() {
 	if (window.localStorage.getItem('loggedIn') !== 'true') return;
@@ -44,6 +46,8 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		showLocalInfo('Server connection closed');
+		document.getElementById('connectedStatusSSE')!.textContent =
+			'Connected: FALSE';
 		setTimeout(() => {
 			if (window.localStorage.getItem('loggedIn') === 'true') {
 				setupEventSource();
@@ -55,6 +59,8 @@ export function setupEventSource() {
 		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		document.getElementById('connectedStatusSSE')!.textContent =
+			'Connected: FALSE';
 		setTimeout(() => {
 			if (
 				!notifyEventSource &&
@@ -67,6 +73,8 @@ export function setupEventSource() {
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
 		isConnecting = false;
+		document.getElementById('connectedStatusSSE')!.textContent =
+			'Connected: TRUE';
 	};
 	notifyEventSource.onmessage = async (event) => {
 		console.log('EventSource message received:', event);
@@ -123,7 +131,7 @@ export function setupEventSource() {
 						});
 					break;
 				case 'game_started': {
-					console.log('Game started:', data);
+					// console.log('Game started:', data);
 					const gameId = data.message;
 					showLocalInfo(`Game started! (ID: ${gameId})`);
 					await loadPartialView(
@@ -144,7 +152,7 @@ export function setupEventSource() {
 					break;
 				}
 				case 'game_tournament_lobby_warp': {
-					console.log('Game tournament lobby warp:', data);
+					// console.log('Game tournament lobby warp:', data);
 					await loadPartialView(
 						'api',
 						true,
@@ -172,7 +180,7 @@ export function setupEventSource() {
 				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
-					console.log(data);
+					// console.log(data);
 					break;
 			}
 		} catch (err) {
@@ -180,6 +188,11 @@ export function setupEventSource() {
 		}
 	};
 }
+
+if (localStorage.getItem('loggedIn') === 'true') {
+	setupEventSource();
+}
+
 // Improved reconnection loop
 setInterval(() => {
 	if (window.localStorage.getItem('loggedIn') !== 'true') {
