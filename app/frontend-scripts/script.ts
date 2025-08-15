@@ -14,7 +14,6 @@ declare global {
 }
 
 export async function createGame() {
-
 	if (!notifyEventSource || notifyEventSource.readyState !== EventSource.OPEN) {
 		showLocalError('Cant create game when the Event source is not available');
 		return;
@@ -151,8 +150,36 @@ document.addEventListener('keydown', (event) => {
 	}
 });
 
-// if (window.localStorage.getItem("loggedIn") === "true")
-// 	window.localStorage.setItem("loggedIn", "false");
+export async function checkTokenAndSetLoginStatus(redirect = false): Promise<void> {
+	const token = document.cookie
+		.split('; ')
+		.find((row) => row.startsWith('token='))
+		?.split('=')[1];
+
+	if (!token) {
+		window.localStorage.setItem('loggedIn', 'false');
+		window.localStorage.removeItem('token');
+	}
+
+	if (redirect) await loadPartialView('index', true, null, true, true, true);
+}
+
+async function checkLogged() {
+	const res = await fetch('/api/auth/check');
+	if (res.ok) return;
+
+	if (res.status === 401) {
+		document.cookie =
+			'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict; Secure';
+		window.localStorage.setItem('loggedIn', 'false');
+		window.localStorage.removeItem('token');
+		await loadPartialView('index', true, null, true, true, true);
+	}
+}
+
+await checkLogged();
+await checkTokenAndSetLoginStatus();
+
 
 window.logout = logout;
 window.fetchNumber = fetchNumber;

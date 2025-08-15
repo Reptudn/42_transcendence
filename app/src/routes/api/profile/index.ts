@@ -11,7 +11,7 @@ import {
 } from '../../../services/database/users';
 
 function containsLetter(str: string): boolean {
-    return /[a-zA-Z]/.test(str);
+	return /[a-zA-Z]/.test(str);
 }
 
 const editProfileSchema = {
@@ -25,11 +25,12 @@ const editProfileSchema = {
 			errorMessage: {
 				type: 'Username must be a text value',
 				minLength:
-				process.env.NODE_ENV === 'production'
-				? 'Username must be at least 3 characters long'
-				: 'Username must be at least 1 character long',
+					process.env.NODE_ENV === 'production'
+						? 'Username must be at least 3 characters long'
+						: 'Username must be at least 1 character long',
 				maxLength: 'Username cannot be longer than 16 characters',
-				pattern: 'Username can only contain letters, numbers, and underscores',
+				pattern:
+					'Username can only contain letters, numbers, and underscores',
 			},
 		},
 		displayName: {
@@ -40,11 +41,12 @@ const editProfileSchema = {
 			errorMessage: {
 				type: 'Display name must be a text value',
 				minLength:
-				process.env.NODE_ENV === 'production'
-				? 'Display name must be at least 3 characters long'
-				: 'Display name must be at least 1 character long',
+					process.env.NODE_ENV === 'production'
+						? 'Display name must be at least 3 characters long'
+						: 'Display name must be at least 1 character long',
 				maxLength: 'Display name cannot be longer than 32 characters',
-				pattern: 'Username can only contain letters, numbers, and underscores',
+				pattern:
+					'Username can only contain letters, numbers, and underscores',
 			},
 		},
 		bio: {
@@ -219,9 +221,8 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							.send({ message: 'Invalid profile picture' });
 					}
 				}
-				
 
-				if (displayName && containsLetter(displayName)){
+				if (displayName && containsLetter(displayName)) {
 					const lowercaseDisplayName = displayName.toLowerCase();
 					if (
 						lowercaseDisplayName == 'reptudn' ||
@@ -230,7 +231,11 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						lowercaseDisplayName == 'nick' ||
 						lowercaseDisplayName == 'luca'
 					) {
-						await unlockAchievement(userId, 'name-change-creator', fastify);
+						await unlockAchievement(
+							userId,
+							'name-change-creator',
+							fastify
+						);
 					}
 				}
 				if (typeof bio == 'string')
@@ -248,7 +253,14 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile_picture,
 					fastify
 				);
-				if (await updateUserPassword(userId, oldPassword, newPassword, fastify)){
+				if (
+					await updateUserPassword(
+						userId,
+						oldPassword,
+						newPassword,
+						fastify
+					)
+				) {
 					reply.clearCookie('token', { path: '/' });
 				}
 
@@ -331,7 +343,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					return reply.code(400).send({ message: 'Password is required' });
 				}
 				if (!(await verifyUserPassword(currentUser.id, password, fastify))) {
-					return reply.code(401).send({ message: 'Incorrect password' });
+					return reply.code(400).send({ message: 'Incorrect password' });
 				}
 				await deleteUser(currentUser.id, fastify);
 				return reply.code(200).send({ message: 'Profile deleted' });
@@ -347,6 +359,5 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 };
-
 
 export default profile;

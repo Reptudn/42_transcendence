@@ -7,6 +7,13 @@ export default fp(
 			try {
 				await request.jwtVerify();
 			} catch (err) {
+				reply.clearCookie('token', {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+				});
+
 				return reply.code(401).send({
 					error: 'Unauthorized',
 					message: 'Invalid or expired token',

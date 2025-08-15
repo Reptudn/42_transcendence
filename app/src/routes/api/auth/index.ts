@@ -13,6 +13,7 @@ import {
 	removeUser2fa,
 	verify2fa,
 } from '../../../services/database/totp';
+import { checkAuth } from '../../../services/auth/auth';
 
 const authSchema = {
 	type: 'object',
@@ -107,21 +108,34 @@ let users_2fa: number[] = [];
 export let users_2fa_google: number[] = [];
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+	fastify.get(
+		'/check',
+		{ preValidation: fastify.authenticate },
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const user = checkAuth(req, false, fastify);
+			if (!user) {
+				reply.clearCookie('token', {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+				});
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+			return reply.code(200).send({ message: 'Ok' });
+		}
+	);
+
 	fastify.post(
 		'/login',
 		{ schema: { body: authSchema } },
 		async (req: FastifyRequest, reply: FastifyReply) => {
-			const { username, password /*totp*/ } = req.body as {
+			const { username, password } = req.body as {
 				username: string;
 				password: string;
 			};
 			try {
-				const user: User = await loginUser(
-					username,
-					password,
-					/*totp*/
-					fastify
-				);
+				const user: User = await loginUser(username, password, fastify);
 				if ((await getUser2faSecret(user, fastify)) !== '') {
 					users_2fa.push(user.id);
 					return reply.send({
@@ -151,12 +165,14 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
+
 	fastify.post('/logout', async (req: any, reply: any) => {
 		return reply
 			.code(200)
 			.clearCookie('token', { path: '/' })
 			.send({ message: 'Logged out successfully' });
 	});
+
 	fastify.post(
 		'/register',
 		{ schema: { body: registerSchema } },
