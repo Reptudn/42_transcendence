@@ -37,11 +37,25 @@ function choosePowerupType(_game: Game): PowerupType {
 function managePowerups(game: Game) {
 	if (game.status !== GameStatus.RUNNING) return;
 	const now = Date.now();
+
+	// end ballsplosion
+	const hasActiveBallSplosion = game.activePowerups.some(
+		(p) => p.started && p.type === PowerupType.BallSplosion && p.expiresAt > now
+	);
+	if (!hasActiveBallSplosion) {
+		game.gameState.objects = game.gameState.objects.filter(
+			(o) => o.type !== 'miniBall'
+		);
+	}
+
+	// clean ended powerups
 	if (game.activePowerups.length) {
 		game.activePowerups = game.activePowerups.filter((p) =>
 			p.started ? p.expiresAt > now : true
 		);
 	}
+
+	// spawn new powerups
 	if (!game.config.powerupsEnabled) return;
 	if (now >= game.nextPowerupCheckAt) {
 		game.nextPowerupCheckAt = now + powerupCheckDelay;

@@ -14,9 +14,31 @@ export function closeEventSource() {
 	notifyEventSource = null;
 }
 
+function updateConnectionStatus(
+	status: 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED'
+) {
+	const statusElem = document.getElementById('connectedStatusSSE');
+	if (statusElem) {
+		switch (status) {
+			case 'CONNECTING':
+				statusElem.textContent = 'Connected: CONNECTING...';
+				statusElem.style.color = 'orange';
+				break;
+			case 'CONNECTED':
+				statusElem.textContent = 'Connected: TRUE';
+				statusElem.style.color = 'green';
+				break;
+			case 'DISCONNECTED':
+				statusElem.textContent = 'Connected: FALSE';
+				statusElem.style.color = 'red';
+				break;
+		}
+	}
+}
+
 const connectedStatusElem = document.getElementById('connectedStatusSSE');
 if (connectedStatusElem) {
-	connectedStatusElem.textContent = 'Connected: FALSE';
+	updateConnectionStatus('DISCONNECTED');
 }
 
 let isConnecting = false;
@@ -42,17 +64,15 @@ export function setupEventSource() {
 	}
 
 	isConnecting = true;
+	updateConnectionStatus('CONNECTING');
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
 		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
+		updateConnectionStatus('DISCONNECTED');
 		showLocalInfo('Server connection closed');
-		const statusElem = document.getElementById('connectedStatusSSE');
-		if (statusElem) {
-			statusElem.textContent = 'Connected: FALSE';
-		}
 		setTimeout(() => {
 			if (window.localStorage.getItem('loggedIn') === 'true') {
 				setupEventSource();
@@ -64,10 +84,7 @@ export function setupEventSource() {
 		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		const statusElem = document.getElementById('connectedStatusSSE');
-		if (statusElem) {
-			statusElem.textContent = 'Connected: FALSE';
-		}
+		updateConnectionStatus('DISCONNECTED'); // Fixed: was 'CONNECTED'
 		setTimeout(() => {
 			if (
 				!notifyEventSource &&
@@ -80,14 +97,11 @@ export function setupEventSource() {
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
 		isConnecting = false;
-		const statusElem = document.getElementById('connectedStatusSSE');
-		if (statusElem) {
-			statusElem.textContent = 'Connected: TRUE';
-		}
+		updateConnectionStatus('CONNECTED');
 	};
 	notifyEventSource.onmessage = async (event) => {
-		console.log('EventSource message received:', event);
-		console.log('EventSource data:', event.data);
+		// console.log('EventSource message received:', event);
+		// console.log('EventSource data:', event.data);
 		try {
 			const data = JSON.parse(event.data);
 			switch (data.type) {
@@ -140,7 +154,6 @@ export function setupEventSource() {
 						});
 					break;
 				case 'game_started': {
-					// console.log('Game started:', data);
 					const gameId = data.message;
 					showLocalInfo(`Game started! (ID: ${gameId})`);
 					await loadPartialView(
@@ -161,7 +174,6 @@ export function setupEventSource() {
 					break;
 				}
 				case 'game_tournament_lobby_warp': {
-					// console.log('Game tournament lobby warp:', data);
 					await loadPartialView(
 						'api',
 						true,
@@ -202,28 +214,6 @@ if (localStorage.getItem('loggedIn') === 'true') {
 	setupEventSource();
 }
 
-// Improved reconnection loop
-setInterval(() => {
-	if (window.localStorage.getItem('loggedIn') !== 'true') {
-		// Close connection if user is not logged in
-		if (notifyEventSource) {
-			notifyEventSource.close();
-			notifyEventSource = null;
-		}
-		return;
-	}
-
-	// Check if we need to reconnect
-	if (
-		!notifyEventSource ||
-		notifyEventSource.readyState === EventSource.CLOSED ||
-		(notifyEventSource.readyState === EventSource.CONNECTING && !isConnecting)
-	) {
-		console.log('Attempting to connect to EventSource...');
-		setupEventSource();
-	}
-}, 5000); // Use consistent 5-second interval
-
 export async function sendPopup(
 	title: string,
 	description = '',
@@ -256,10 +246,6 @@ export async function sendPopup(
 	}
 
 	showLocalInfo('Popup sent successfully!');
-}
-
-export function testCallback() {
-	console.log('TEST! TEST! beep boop beep!');
 }
 
 export async function acceptGameInvite(gameId: number) {
