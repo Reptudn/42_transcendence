@@ -86,6 +86,7 @@ setInterval(async () => {
 			(p) => p.lives > 0 && !p.spectator
 		);
 
+		// Remove players who disconnect from SSE (connectedClients)
 		for (const player of game.players) {
 			if (
 				player instanceof UserPlayer &&
@@ -130,20 +131,22 @@ setInterval(async () => {
 		}
 
 		if (playersAliveAfter.length <= 1) {
-			let winnerName: string = 'NULL';
-			if (playersAliveAfter.length === 1) {
-				const winner = playersAliveAfter[0];
-				game.results.push({
-					playerId: winner.playerId,
-					place: 1,
-				});
-				winnerName = winner.displayName;
-			}
-			game.endGame(
-				`Game ended.<br>Winner: ${winnerName}`,
-				playersAliveAfter[0],
-				true
-			);
+			setTimeout(() => {
+				let winnerName: string = 'NULL';
+				if (playersAliveAfter.length === 1) {
+					const winner = playersAliveAfter[0];
+					game.results.push({
+						playerId: winner.playerId,
+						place: 1,
+					});
+					winnerName = winner.displayName;
+				}
+				game.endGame(
+					`Game ended.<br>Winner: ${winnerName}`,
+					playersAliveAfter[0],
+					true
+				);
+			}, 200);
 		}
 	}
 }, 1000 / ticksPerSecond);

@@ -535,12 +535,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						console.log(
 							`Removing AI player ${ai.playerId} for user invitation`
 						);
-						await game.removePlayer(
-							ai.playerId,
-							false,
-							false,
-							true
-						);
+						await game.removePlayer(ai.playerId, false, false, true);
 					} else {
 						console.log('no ai players found');
 					}
@@ -615,7 +610,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	// this can simply remove any player
 	fastify.post(
 		'/players/kick/:playerId',
 		{
@@ -630,10 +624,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const { playerId } = request.params as { playerId: string };
 			const parsedPlayerId = Number.parseInt(playerId, 10);
 
-			const game = runningGames.find((g) => g.admin.id === user.id);
+			const game = runningGames.find((g) =>
+				g.players.find(
+					(p) => p instanceof UserPlayer && p.user.id === user.id
+				)
+			);
 			if (!game) {
 				return reply.code(404).send({ error: 'No game found for the user' });
 			}
+
+			const isAdmin = game.admin.id === user.id;
 
 			if (game.status !== GameStatus.WAITING)
 				return reply.code(400).send({
@@ -648,6 +648,19 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					.code(404)
 					.send({ error: 'No such player found in the game to kick' });
 			}
+
+			if (
+				!isAdmin &&
+				!(
+					playerToKick instanceof LocalPlayer &&
+					playerToKick.owner.user.id === user.id
+				)
+			) {
+				return reply
+					.code(400)
+					.send({ error: 'You can only kick your own local players' });
+			}
+
 			const self = game.players.find(
 				(p) => p instanceof UserPlayer && p.user.id === user.id
 			);
@@ -740,10 +753,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 									true
 								);
 						}
-						await game.addLocalPlayer(
-							owner as UserPlayer,
-							false,
-						);
+						await game.addLocalPlayer(owner as UserPlayer, false);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
 						});
@@ -865,7 +875,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	// TODO: make it redirect and load the full page when nothing to join exists
 	fastify.get(
 		'/join/:gameId/:accepted',
 		{ preValidation: [fastify.authenticate] },
@@ -932,7 +941,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				tournamentTree: game.tournament
 					? game.tournament.getBracketJSON()
 					: null,
-				t: (player as UserPlayer).lang
+				t: (player as UserPlayer).lang,
 			});
 		}
 	);
@@ -1013,16 +1022,19 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error
 				);
 
-				// TODO: add some client socket error management here like ragequit and so on
-
 				player.disconnect();
+				try {
+					game.removePlayer(player.playerId, false, false, true);
+				} catch (err) {
+					fastify.log.error(
+						`Error removing player ${player.playerId} after WebSocket error:`,
+						err
+					);
+				}
 			});
 
 			socket.on('message', (message: Buffer) => {
 				const msgStr = message.toString();
-				// fastify.log.info(
-				// 	`Received message from player ${player.playerId}: ${msgStr}`
-				// );
 
 				try {
 					const data = JSON.parse(msgStr);
@@ -1031,7 +1043,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							player.movementDirection = data.dir;
 						else if (data.user === 'local' && localPlayer)
 							localPlayer.movementDirection = data.dir;
-						// fastify.log.info('Server received movement data:', data);
 					}
 				} catch (err) {
 					fastify.log.error(
@@ -1047,7 +1058,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				);
 				player.disconnect();
 
-				// TODO: do some leave action (depends on the game.. what do we want to do?)
+				// Immediately remove player when WebSocket closes
+				try {
+					game.removePlayer(player.playerId, false, false, true);
+				} catch (err) {
+					fastify.log.error(
+						`Error removing player ${player.playerId} after WebSocket close:`,
+						err
+					);
+				}
 			});
 		}
 	);

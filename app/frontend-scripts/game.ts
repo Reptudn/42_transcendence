@@ -22,9 +22,10 @@ ws.onopen = () => {
 	showLocalInfo('Connected to game server');
 };
 
-ws.onerror = (error) => {
+ws.onerror = async (error) => {
 	console.error('WebSocket error:', error);
 	showLocalError('Failed to connect to game server');
+	await loadPartialView('index');
 };
 
 ws.onclose = async (event) => {
@@ -53,12 +54,12 @@ ws.onclose = async (event) => {
 			showLocalError(
 				'Connection closed due to invalid message format or cloudflare issue'
 			);
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 
 		default:
-			// showLocalError('Connection closed unexpectedly');
-			loadPartialView('profile');
+			// Redirect to index for any unexpected disconnection
+			await loadPartialView('profile');
 			break;
 	}
 };
@@ -190,9 +191,22 @@ const pingInterval = setInterval(() => {
 	}
 }, 30000);
 
+let isClosing = false;
 export async function leaveWsGame(manual: boolean = false) {
-	if (ws && ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
-	if (manual) loadPartialView('profile');
+	if (isClosing) return;
+	isClosing = true;
+
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		try {
+			ws.close(1000, 'Leaving game!');
+		} catch (error) {
+			console.error('Error closing WebSocket:', error);
+		}
+	}
+
+	if (manual) {
+		await loadPartialView('profile');
+	}
 }
 
 window.leaveWsGame = leaveWsGame;

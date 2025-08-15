@@ -194,7 +194,6 @@ export async function startGame() {
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
 	if (lobbyContainer) lobbyContainer.innerHTML = html;
-	else showLocalError('Failed to update lobby due to missing lobby div.');
 }
 
 await refreshOnlineFriends();
