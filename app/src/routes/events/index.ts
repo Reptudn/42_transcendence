@@ -129,6 +129,12 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply;
 			}
 
+			const existingConnection = connectedClients.get(user.id);
+			if (existingConnection) {
+				existingConnection.raw.end();
+				connectedClients.delete(user.id);
+			}
+
 			sendSseHeaders(reply);
 
 			sendSseMessage(reply, 'log', 'Connection with Server established');
@@ -182,11 +188,22 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			request.raw.on('close', () => {
 				connectedClients.delete(user.id);
 
-				const userGames = runningGames.find((game) => game.players.some((p) => p instanceof UserPlayer && p.user.id === user.id));
-				if (userGames)
-				{
-					const gamePlayer = userGames.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
-					if (gamePlayer) userGames.removePlayer(request.t, gamePlayer.playerId, false, true);
+				const userGames = runningGames.find((game) =>
+					game.players.some(
+						(p) => p instanceof UserPlayer && p.user.id === user.id
+					)
+				);
+				if (userGames) {
+					const gamePlayer = userGames.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === user.id
+					);
+					if (gamePlayer)
+						userGames.removePlayer(
+							request.t,
+							gamePlayer.playerId,
+							false,
+							true
+						);
 				}
 				console.log('Client disconnected', user.id);
 				reply.raw.end();
