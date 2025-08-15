@@ -14,6 +14,7 @@ import {
 	verify2fa,
 } from '../../../services/database/totp';
 import { checkAuth } from '../../../services/auth/auth';
+import { forceCloseSseByUserId } from '../../../services/sse/handler';
 
 const authSchema = {
 	type: 'object',
@@ -67,6 +68,8 @@ const authSchema = {
 						? 'Display name must be at least 3 characters long'
 						: 'Display name must be at least 1 character long',
 				maxLength: 'Display name cannot be longer than 32 characters',
+				pattern:
+					'Username can only contain letters, numbers, and underscores',
 			},
 		},
 		// totp: {
@@ -166,11 +169,22 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	fastify.post('/logout', async (req: any, reply: any) => {
-		return reply
+	fastify.post('/logout', async (req: FastifyRequest, reply: FastifyReply) => {
+		try {
+			const user = await checkAuth(req, true, fastify);
+			if (user) forceCloseSseByUserId(user.id);
+
+			return reply
 			.code(200)
-			.clearCookie('token', { path: '/' })
-			.send({ message: 'Logged out successfully' });
+			
+				.clearCookie('token', { path: '/' })
+			
+				.send({ message: 'Logged out successfully' });
+		} catch (e) {
+			if (e instanceof Error)
+				return reply.code(401).send({ error: e.message });
+			else return reply.code(401).send({ error: 'Failed to logout!' });
+		}
 	});
 
 	fastify.post(

@@ -93,7 +93,7 @@ setInterval(async () => {
 				connectedClients.get(player.user.id) === undefined
 			) {
 				player.lives = 0;
-				game.removePlayer(null, player.playerId, false, false);
+				game.removePlayer(player.playerId, false, false);
 			}
 		}
 

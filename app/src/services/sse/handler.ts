@@ -83,3 +83,12 @@ export function sendSseRawByUserId(
 	if (!data.endsWith('\n\n')) data += '\n\n';
 	reply.raw.write(data);
 }
+
+export function forceCloseSseByUserId(userId: number) {
+	const reply = connectedClients.get(userId);
+	if (!reply) throw new Error(`User ${userId} not found in connected users.`);
+
+	reply.raw.end();
+
+	connectedClients.delete(userId);
+}

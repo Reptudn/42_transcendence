@@ -1,22 +1,29 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { Blocked, htmlMsg, Msg } from '../../../types/chat';
-import { invite, leave } from './utils';
+import type { htmlMsg } from '../../../types/chat';
+import {
+	invite,
+	leave,
+	getMsgForDm,
+	getMsgForGroup,
+	normError,
+	inviteUserToChat,
+	getChatName,
+} from './utils';
 import { getUserById } from '../../../services/database/users';
-import { createHtmlMsg } from './sendMsg';
-import { getFriends } from '../../../services/database/friends';
-import { sendPopupToClient } from '../../../services/sse/popup';
 import {
 	saveNewChatInfo,
-	addToParticipants,
-	getAllChatsFromSqlByUserId,
-	getFriendsDisplayname,
 	getAllBlockerUser,
 	addToBlockedUsers,
 	deleteFromBlockedUsers,
 	getMessagesFromSqlByChatId,
 	getChatFromSql,
-	type HttpError,
+	checkUserBlocked,
+	getParticipantFromSql,
+	getAllParticipantsFromSql,
+	// getAllBlockedUser,
 } from '../../../services/database/chat';
+import ejs from 'ejs';
+import escapeHTML from 'escape-html';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -100,102 +107,60 @@ export async function getAllMsg(fastify: FastifyInstance) {
 			schema: { querystring: chatMsgRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQueryChat;
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
 
-			const userId = (req.user as { id: number }).id;
+				const userId = (req.user as { id: number }).id;
 
-			const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
-			if (!chatMsgs)
-				return res.status(400).send({ error: 'Chat Messages not found' });
+				const user = await getParticipantFromSql(fastify, userId, chat_id);
+				if (!user) {
+					return res.status(400).send({ error: 'User is no Participant' });
+				}
 
-			const chat = await getChatFromSql(fastify, chat_id);
-			if (!chat) return res.status(400).send({ error: 'Chat not found' });
+				const chatMsgs = await getMessagesFromSqlByChatId(fastify, chat_id);
 
-			// sind alle user die ich geblockt habe
-			const blocked = await getAllBlockerUser(fastify, userId);
-			if (!blocked)
-				return res.status(400).send({ error: 'Blocked Users not found' });
-			const blockedId = blocked.map((b) => b.blocked_id);
+				const chat = await getChatFromSql(fastify, chat_id);
 
-			let htmlMsgs: htmlMsg[] = [];
+				const blocked = await getAllBlockerUser(fastify, userId);
 
-			if (Boolean(chat.is_group) === false && chat.name === null) {
-				htmlMsgs = await getMsgForDm(fastify, chatMsgs, blocked, blockedId);
-			} else {
-				htmlMsgs = await getMsgForGroup(
-					fastify,
-					chatMsgs,
-					blocked,
-					blockedId
-				);
+				const blockedId = blocked.map((b) => b.blocked_id);
+
+				const chats = await getChatName(fastify, userId);
+
+				const found = chats.find((c) => c.id === chat.id);
+
+				let htmlMsgs: htmlMsg[] = [];
+
+				if (Boolean(chat.is_group) === false && chat.name === null) {
+					htmlMsgs = await getMsgForDm(
+						fastify,
+						chatMsgs,
+						blocked,
+						blockedId
+					);
+				} else {
+					htmlMsgs = await getMsgForGroup(
+						fastify,
+						chatMsgs,
+						blocked,
+						blockedId
+					);
+				}
+
+				htmlMsgs.push({
+					fromUserName: '',
+					chatName: found ? (found.name ? found.name : '') : '',
+					chatId: 0,
+					htmlMsg: '',
+					blocked: false,
+					ownMsg: true,
+				});
+
+				return res.status(200).send({ msgs: htmlMsgs });
+			} catch (err) {
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
-
-			res.send(htmlMsgs);
-		}
-	);
-}
-
-async function getMsgForGroup(
-	fastify: FastifyInstance,
-	chatMsgs: Msg[],
-	blocked: Blocked[],
-	blockedId: number[]
-) {
-	// wenn ich geblocket wurde bekomme ich alle nachrichten normal
-	// wenn ich ihn geblockt habe bekomme ich die nachrichten mit Msg blocked aber erst zum zeitpunkt des blocks
-
-	const htmlMsgs: htmlMsg[] = [];
-
-	for (const msg of chatMsgs) {
-		const user = await getUserById(msg.user_id, fastify);
-		if (!user) continue;
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		else {
-			const pos = blockedId.indexOf(user.id);
-			if (blocked[pos].created_at <= msg.created_at) {
-				htmlMsgs.push(createHtmlMsg(user, null, 'Msg blocked'));
-			} else htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		}
-	}
-	return htmlMsgs;
-}
-
-async function getMsgForDm(
-	fastify: FastifyInstance,
-	chatMsgs: Msg[],
-	blocked: Blocked[],
-	blockedId: number[]
-) {
-	// wenn ich geblocket wurde bekomme ich alle nachrichten
-	// wenn ich ihn geblockt habe bekomme ich nur die nachrichten bis zum block
-
-	const htmlMsgs: htmlMsg[] = [];
-
-	for (const msg of chatMsgs) {
-		const user = await getUserById(msg.user_id, fastify);
-		if (!user) continue;
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		else {
-			const pos = blockedId.indexOf(user.id);
-			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
-			htmlMsgs.push(createHtmlMsg(user, null, msg.content));
-		}
-	}
-	return htmlMsgs;
-}
-
-export async function getAllFriends(fastify: FastifyInstance) {
-	fastify.get(
-		'/friends',
-		{ preValidation: [fastify.authenticate] },
-		async (req: FastifyRequest, res: FastifyReply) => {
-			const userId = (req.user as { id: number }).id;
-
-			const friends = await getFriends(userId, fastify);
-
-			res.send(friends);
 		}
 	);
 }
@@ -205,24 +170,16 @@ export async function getAllChats(fastify: FastifyInstance) {
 		'/chats',
 		{ preValidation: [fastify.authenticate] },
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const userId = (req.user as { id: number }).id;
+			try {
+				const userId = (req.user as { id: number }).id;
 
-			const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
-			if (!userChats)
-				return res.status(400).send({ error: 'No Participants found' }); // TODO Error msg
+				const userChats = await getChatName(fastify, userId);
 
-			for (const chat of userChats) {
-				if (Boolean(chat.is_group) === false) {
-					const name = await getFriendsDisplayname(
-						fastify,
-						chat.id,
-						userId
-					);
-					if (name) chat.name = name.displayname;
-				}
+				return res.status(200).send({ chats: userChats });
+			} catch (err) {
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
-			res.send(userChats);
-			return;
 		}
 	);
 }
@@ -235,51 +192,44 @@ export async function createNewChat(fastify: FastifyInstance) {
 			schema: { querystring: chatCreateRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { group_name, user_id } = req.query as MessageQueryUser;
-
-			const user = await getUserById((req.user as { id: number }).id, fastify);
-			if (!user) {
-				return res.status(400).send({ error: 'Unknown User' });
-			}
-
-			let userIdsInt: number[] = [];
-			if (typeof user_id === 'object') {
-				userIdsInt = user_id
-					.map((id) => Number.parseInt(id, 10))
-					.filter((id) => !Number.isNaN(id));
-			} else {
-				userIdsInt.push(Number.parseInt(user_id));
-			}
-
-			userIdsInt.push(user.id);
-
 			try {
+				const { group_name, user_id } = req.query as MessageQueryUser;
+
+				const user = await getUserById(
+					(req.user as { id: number }).id,
+					fastify
+				);
+				if (!user) {
+					return res.status(400).send({ error: 'Unknown User' });
+				}
+
+				let userIdsInt: number[] = [];
+				if (typeof user_id === 'object') {
+					userIdsInt = user_id
+						.map((id) => Number.parseInt(id, 10))
+						.filter((id) => !Number.isNaN(id));
+				} else {
+					userIdsInt.push(Number.parseInt(user_id));
+				}
+
+				userIdsInt.push(user.id);
+
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
-
 				for (const id of userIdsInt) {
-					addToParticipants(fastify, user.id, id, chat_id);
+					await inviteUserToChat(fastify, user.id, id, chat_id);
 				}
 
-				res.send({ chat_id: chat_id.toString() });
+				return res.send({
+					chat_id: chat_id.toString(),
+					msg: req.t('chat.group'),
+				});
 			} catch (err) {
-				const errorClass = err as HttpError;
-
-				if (errorClass.statusCode < 500) {
-					sendPopupToClient(
-						fastify,
-						(req.user as { id: number }).id,
-						'Error',
-						errorClass.msg,
-						'red'
-					);
-				}
-				res.status(errorClass.statusCode).send({ error: errorClass.msg });
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
 		}
 	);
 }
-
-// TODO function after this need to get checkt
 
 export async function blockUsers(fastify: FastifyInstance) {
 	fastify.get<{ Querystring: MessageQueryBlock }>(
@@ -289,11 +239,26 @@ export async function blockUsers(fastify: FastifyInstance) {
 			schema: { querystring: chatBlockRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryBlock;
+			try {
+				const { user_id } = req.query as MessageQueryBlock;
 
-			const blockerId = (req.user as { id: number }).id;
+				const blockerId = (req.user as { id: number }).id;
 
-			addToBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+				if (
+					await checkUserBlocked(
+						fastify,
+						blockerId,
+						Number.parseInt(user_id)
+					)
+				)
+					return res.status(400).send({ error: 'User already blocked' });
+
+				addToBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+				return res.status(200).send({ msg: req.t('chat.block') });
+			} catch (err) {
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+			}
 		}
 	);
 }
@@ -306,11 +271,25 @@ export async function unblockUsers(fastify: FastifyInstance) {
 			schema: { querystring: chatBlockRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { user_id } = req.query as MessageQueryBlock;
+			try {
+				const { user_id } = req.query as MessageQueryBlock;
 
-			const blockerId = (req.user as { id: number }).id;
+				const blockerId = (req.user as { id: number }).id;
 
-			deleteFromBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+				if (
+					!(await checkUserBlocked(
+						fastify,
+						blockerId,
+						Number.parseInt(user_id)
+					))
+				)
+					return res.status(400).send({ error: 'User is not blocked' });
+				deleteFromBlockedUsers(fastify, blockerId, Number.parseInt(user_id));
+				return res.status(200).send({ msg: req.t('chat.unblock') });
+			} catch (err) {
+				const nError = normError(err);
+				res.status(nError.errorCode).send({ error: nError.errorMsg });
+			}
 		}
 	);
 }
@@ -323,20 +302,27 @@ export async function inviteUser(fastify: FastifyInstance) {
 			schema: { querystring: chatInviteRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id, user_id } = req.query as MessageQueryInvite;
+			try {
+				const { chat_id, user_id } = req.query as MessageQueryInvite;
 
-			const myId = (req.user as { id: number }).id;
+				const myId = (req.user as { id: number }).id;
 
-			let userIdsInt: number[] = [];
-			if (typeof user_id === 'object') {
-				userIdsInt = user_id
-					.map((id) => Number.parseInt(id, 10))
-					.filter((id) => !Number.isNaN(id));
-			} else {
-				userIdsInt.push(Number.parseInt(user_id));
+				let userIdsInt: number[] = [];
+				if (typeof user_id === 'object') {
+					userIdsInt = user_id
+						.map((id) => Number.parseInt(id, 10))
+						.filter((id) => !Number.isNaN(id));
+				} else {
+					userIdsInt.push(Number.parseInt(user_id));
+				}
+
+				await invite(fastify, chat_id, myId, userIdsInt);
+
+				return res.status(200).send({ msg: req.t('chat.invite') });
+			} catch (err) {
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
 			}
-
-			await invite(fastify, chat_id, myId, userIdsInt);
 		}
 	);
 }
@@ -349,11 +335,98 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 			schema: { querystring: chatMsgRequestSchema.querystring },
 		},
 		async (req: FastifyRequest, res: FastifyReply) => {
-			const { chat_id } = req.query as MessageQueryChat;
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
 
-			const userId = (req.user as { id: number }).id;
+				const userId = (req.user as { id: number }).id;
 
-			await leave(fastify, chat_id, userId);
+				await leave(fastify, chat_id, userId);
+
+				return res.status(200).send({ msg: req.t('chat.leave') });
+			} catch (err) {
+				const nError = normError(err);
+				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+			}
 		}
 	);
 }
+
+export async function chatInfo(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/getInfo',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
+
+				const userId = (req.user as { id: number }).id;
+
+				const parts = await getAllParticipantsFromSql(fastify, chat_id);
+				const blocked = await getAllBlockerUser(fastify, userId);
+				const chat = await getChatFromSql(fastify, chat_id);
+				const allChats = await getChatName(fastify, userId);
+
+				if (Boolean(chat.is_group) === true && chat.name === null)
+					chat.name = 'Global Chat';
+				else {
+					const found = allChats.find((c) => c.id === chat.id);
+					if (!found)
+						return res.status(400).send({ error: 'Chat not Found' });
+					chat.name = found.name;
+				}
+				const blockedUser: User[] = [];
+				const users: User[] = [];
+				for (const user of blocked) {
+					const check = await getUserById(user.blocked_id, fastify);
+					if (!check) continue;
+					blockedUser.push(check);
+				}
+				for (const user of parts) {
+					const check = await getUserById(user.user_id, fastify);
+					if (!check) continue;
+					users.push(check);
+				}
+				const code = ejs.render(template, {
+					chatName: chat.name || '',
+					participants: users,
+					blocked: blockedUser,
+					t: req.t,
+				});
+				return res.status(200).send({ msg: code });
+			} catch (err) {
+				const nError = normError(err);
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
+			}
+		}
+	);
+}
+
+const template: string = `<div class="chat-info-container">
+	<div class="chat-header">
+		<h2 class="chat-name"><%= t('chat.chat_name') %> <%= chatName %></h2>
+	</div>
+
+	<div class="chat-participants">
+		<h3><%= t('chat.part') %></h3>
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+			<% participants.forEach(function(user) { %>
+				<li><%= user.displayname %></li>
+			<% }) %>
+		</ul>
+	</div>
+
+	<div class="blocked-users">
+		<h3><%= t('chat.blocked') %></h3>
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+			<% blocked.forEach(function(user) { %>
+				<li><%= user.displayname %></li>
+			<% }) %>
+		</ul>
+	</div>
+</div>
+`;

@@ -136,8 +136,9 @@ async function logout(): Promise<void> {
 		const response = await fetch('/api/auth/logout', { method: 'POST' });
 		if (response.ok) {
 			updateMenu();
-			await loadPartialView('index', true, null, true, true, true);
+			sessionStorage.setItem('chat_id', '1');
 			window.localStorage.setItem('loggedIn', 'false');
+			await loadPartialView('index', true, null, true, true, true);
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			closeAllPopups();
