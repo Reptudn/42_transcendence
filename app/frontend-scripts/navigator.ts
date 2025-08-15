@@ -116,12 +116,6 @@ export async function loadPartialView(
 			throw new Error(data.error);
 		}
 
-		// const skipReset =
-		// 	(last_page?.startsWith('/partial/pages/lobby') ||
-		// 		last_page?.startsWith('/partial/pages/lobby_admin') ||
-		// 		last_page?.startsWith('/api/games/join')) &&
-		// 	url.startsWith('/api/games/run');
-
 		if (abort) {
 			console.log('[Navigator] Resetting abort controller');
 			window.abortController = resetController();
@@ -134,8 +128,6 @@ export async function loadPartialView(
 		const html: string = await response.text();
 
 		if (whole_page) {
-			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
-			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
 			replaceEntireDocument(html);
 			initPopups();
 		} else {
@@ -173,26 +165,20 @@ export async function loadPartialView(
 }
 
 function replaceEntireDocument(htmlContent: string): void {
-	// Parse the HTML to extract head and body content
 	const parser = new DOMParser();
 	const newDoc = parser.parseFromString(htmlContent, 'text/html');
 
-	// Replace the entire document head
 	const newHead = newDoc.head;
 	const currentHead = document.head;
 
-	// Clear current head (but preserve essential meta tags)
 	const essentialTags = currentHead.querySelectorAll(
 		'meta[charset], meta[name="viewport"]'
 	);
 	currentHead.innerHTML = '';
 
-	// Re-add essential tags first
 	essentialTags.forEach((tag) => currentHead.appendChild(tag.cloneNode(true)));
 
-	// Add all new head content
 	Array.from(newHead.children).forEach((child) => {
-		// Skip duplicating essential tags
 		if (
 			child.tagName === 'META' &&
 			(child.getAttribute('charset') ||
@@ -203,16 +189,13 @@ function replaceEntireDocument(htmlContent: string): void {
 		currentHead.appendChild(child.cloneNode(true));
 	});
 
-	// Replace the entire body
 	const newBody = newDoc.body;
 	document.body.innerHTML = newBody.innerHTML;
 
-	// Copy body attributes
 	Array.from(newBody.attributes).forEach((attr) => {
 		document.body.setAttribute(attr.name, attr.value);
 	});
 
-	// Load scripts in the new body
 	loadScripts(document.body);
 }
 
