@@ -116,6 +116,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						: await checkAuth(req, true, fastify);
 					if (!profile) {
 						errorCode = 404;
+						fastify.log.info('page profile');
 						throw new Error('User not found');
 					}
 					let self_id: number | null = user ? user.id : null;
@@ -184,6 +185,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {
 						errorCode = 404;
+						fastify.log.info('page edit_profile');
 						throw new Error('User not found');
 					}
 					variables['user'] = profile;
@@ -238,6 +240,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						players.push(player.formatStateForClients());
 					}
 					if (!admin) throw new Error('No Admin found!');
+					(admin as UserPlayer).lang = req.t;
 					admin.joined = true;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;
@@ -251,7 +254,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['availableMaps'] =
 						existingGame.availableMaps ||
 						(await getAvailableMaps(fastify));
-					await existingGame.updateLobbyState(req.t);
+					await existingGame.updateLobbyState();
 				} else if (page === 'error') {
 					variables['err_code'] = 404;
 					variables['err_message'] = defaultError;

@@ -1,4 +1,4 @@
-import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { sendPopupToClient } from '../../services/sse/popup';
 import { checkAuth } from '../../services/auth/auth';
 import {
@@ -186,7 +186,7 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (userGames)
 				{
 					const gamePlayer = userGames.players.find((p) => p instanceof UserPlayer && p.user.id === user.id);
-					if (gamePlayer) userGames.removePlayer(request.t, gamePlayer.playerId, false, true);
+					if (gamePlayer) userGames.removePlayer(gamePlayer.playerId, false, true);
 				}
 				console.log('Client disconnected', user.id);
 				reply.raw.end();

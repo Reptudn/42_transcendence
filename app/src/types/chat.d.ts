@@ -30,4 +30,18 @@ export interface htmlMsg {
 	chatName: string;
 	chatId: number;
 	htmlMsg: string;
+	blocked: boolean;
+	ownMsg: boolean;
+}
+
+interface Friend {
+	id: number;
+	username: string;
+	displayname: string;
+}
+
+export interface ChatInfo {
+	chat: Chat;
+	users: User[];
+	blockedUser: User[];
 }

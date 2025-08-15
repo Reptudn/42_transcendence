@@ -168,6 +168,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const { id } = req.params;
 			const user = await getUserById(parseInt(id), fastify);
 			if (!user) {
+				fastify.log.info('profile');
 				return reply.code(404).send({ message: 'User not found' });
 			}
 			if (!user.profile_picture) {
@@ -199,6 +200,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				const currentUser = await getUserById(userId, fastify);
 				if (!currentUser) {
+					fastify.log.info('edit');
 					return reply.code(404).send({ message: 'User not found' });
 				}
 
@@ -287,6 +289,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				const currentUser = await getUserById(userId, fastify);
 				if (!currentUser) {
+					fastify.log.info('edit-title');
 					return reply.code(404).send({ message: 'User not found' });
 				}
 
@@ -336,6 +339,7 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			try {
 				const currentUser = await checkAuth(req, false, fastify);
 				if (!currentUser) {
+					fastify.log.info('delete');
 					return reply.code(404).send({ message: 'User not found' });
 				}
 				const password = req.body.password;

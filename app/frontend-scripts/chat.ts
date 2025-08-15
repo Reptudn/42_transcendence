@@ -1,26 +1,5 @@
-import { showLocalError, showLocalPopup } from './alert.js';
-import type { htmlMsg } from '../src/types/chat.js';
-
-export interface Chat {
-	id: string;
-	name: string | null;
-	is_group: boolean;
-	created_at: string;
-}
-
-export interface User {
-	id: number;
-	google_id: string;
-	username: string;
-	password: string;
-	displayname: string;
-	bio: string;
-	profile_picture: string;
-	click_count: number;
-	title_first: number;
-	title_second: number;
-	title_third: number;
-}
+import { showLocalError, showLocalInfo } from './alert.js';
+import type { htmlMsg, Chat } from '../src/types/chat.js';
 
 if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
@@ -30,6 +9,7 @@ await getMessages(sessionStorage.getItem('chat_id'));
 document.getElementById('globalChat')?.addEventListener('click', async () => {
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages(sessionStorage.getItem('chat_id'));
+	document.getElementById('optionModal')?.classList.add('hidden');
 });
 
 document.getElementById('sendChatButton')?.addEventListener('click', async () => {
@@ -40,10 +20,9 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		const chat_id = sessionStorage.getItem('chat_id');
 		if (!chat_id) {
 			showLocalError('Chat ID not found');
-			console.error('Chat ID not found in sessionStorage');
 			return;
 		}
-		await fetch('/api/chat', {
+		const res = await fetch('/api/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -51,6 +30,11 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 				message: msg,
 			}),
 		});
+		const data = await res.json();
+		if (!res.ok) {
+			return showLocalInfo(data.error);
+		}
+		if (data.msg !== 'ok') showLocalInfo(data.msg);
 	}
 });
 
@@ -64,51 +48,43 @@ const searchUser = document.getElementById('searchForFriend') as HTMLInputElemen
 
 searchUser?.addEventListener('input', async () => {
 	const res = await fetch('/api/chat/chats');
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to fetch chats');
-		console.error('Failed to fetch chats:', res.status, res.statusText);
-		return;
+		return showLocalInfo(data.error);
 	}
-	const chats = (await res.json()) as Chat[];
 	const input = searchUser.value.trim().toLowerCase();
-	console.log('input = ', input);
 	if (input === '') {
-		await getChats();
-		return;
+		return await getChats();
 	}
 	const userList = document.getElementById('userList');
 	if (!userList) {
 		showLocalError('User list element not found');
-		console.error('User list element not found');
 		return;
 	}
 	userList.innerHTML = '';
+	const chats = data.chats as Chat[];
 	for (const chat of chats) {
 		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				sessionStorage.setItem('chat_id', chat.id);
-				await getMessages(chat.id);
+				sessionStorage.setItem('chat_id', chat.id.toString());
+				await getMessages(chat.id.toString());
 			});
 			butt.textContent = chat.name;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.className =
+				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
 			userList.appendChild(butt);
 		}
 	}
 });
 
 export function appendToChatBox(rawMessage: string) {
-	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) {
-		showLocalError('Chat messages element not found');
-		console.error('Chat messages element not found');
-		return;
-	}
-
 	const msg = JSON.parse(rawMessage) as htmlMsg;
 
+	const chatMessages = document.getElementById('chatMessages');
+	if (!chatMessages) return;
+
 	const nowChatId = sessionStorage.getItem('chat_id');
-	console.log('nowChatId = ', nowChatId);
 	if (nowChatId) {
 		if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
 			const messageElement = document.createElement('div');
@@ -118,33 +94,33 @@ export function appendToChatBox(rawMessage: string) {
 			return;
 		}
 	}
-	showLocalPopup({
-		title: 'New Msg',
-		description: `You recived a new Msg from ${msg.fromUserName} in Group ${msg.chatName}`,
-		color: 'blue',
-	});
+	if (msg.blocked || msg.ownMsg) return;
+	showLocalInfo(
+		`You recived a new Msg from ${msg.fromUserName}`,
+		`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+	);
 }
 
 export async function getChats() {
 	const res = await fetch('/api/chat/chats');
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to fetch chats');
-		console.error('Failed to fetch chats:', res.status, res.statusText);
-		return;
+		return showLocalInfo(data.error);
 	}
-	const chats = (await res.json()) as Chat[];
 	const userList = document.getElementById('userList');
 	if (userList) {
 		userList.innerHTML = '';
+		const chats = data.chats as Chat[];
 		for (const chat of chats) {
 			const butt = document.createElement('button');
 			butt.addEventListener('click', async () => {
-				sessionStorage.setItem('chat_id', chat.id);
-				await getMessages(chat.id);
+				sessionStorage.setItem('chat_id', chat.id.toString());
+				await getMessages(chat.id.toString());
 			});
-			if (chat.name === null) butt.textContent = chat.id;
+			if (chat.name === null) butt.textContent = chat.id.toString();
 			else butt.textContent = chat.name;
-			butt.className = 'hover:bg-gray-100 cursor-pointer p-1 rounded';
+			butt.className =
+				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
 			userList.appendChild(butt);
 		}
 	}
@@ -153,23 +129,32 @@ export async function getChats() {
 export async function getMessages(chat_id: string | null) {
 	if (!chat_id || chat_id === '0') {
 		showLocalError('Invalid chat ID');
-		console.error('Invalid chat ID:', chat_id);
 		return;
 	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalPopup({
-			title: 'Error',
-			description: 'Failed to fetch users',
-			color: 'red',
-		});
-		return;
+		return showLocalError(data.error);
 	}
-	const msgs = (await res.json()) as htmlMsg[];
+	const msgs = data.msgs as htmlMsg[];
+
+	const currChat = document.getElementById('currentChat');
+
+	if (currChat) {
+		let span = currChat.querySelector('span.extra');
+		if (!span) {
+			span = document.createElement('span');
+			span.classList.add('extra');
+			currChat.appendChild(span);
+		}
+
+		const chatName = msgs.at(-1)?.chatName;
+		if (chat_id === '1') span.textContent = ' Global Chat';
+		else span.textContent = ` ${chatName}`;
+	}
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
-		showLocalError('Failed to get the chat messages element');
 		return;
 	}
 
@@ -178,3 +163,18 @@ export async function getMessages(chat_id: string | null) {
 		appendToChatBox(JSON.stringify(msg));
 	}
 }
+
+// export async function getChatInfo(chat_id: string | null) {
+// 	if (!chat_id || chat_id === '0') {
+// 		showLocalError('Invalid chat ID');
+// 		return;
+// 	}
+// }
+
+declare global {
+	interface Window {
+		getMessages: (chat_id: string | null) => void;
+	}
+}
+
+window.getMessages = getMessages;
