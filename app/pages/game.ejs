@@ -1,20 +1,10 @@
 <div class="max-w-2xl mx-auto p-6 rounded-lg">
 	<h2 class="text-2xl font-bold mb-4"><%= ownerName %>'s game</h2>
 	<button onclick="leaveWsGame(true)" class="bg-red-500 px-2 py-2 rounded">Leave Game</button>
-	<!-- class="glow-rainbow-border" -->
-	<div id="game-canvas-wrapper">
+	<div id="playerInfoBar" class="mb-4 flex flex-wrap gap-2"></div>
+	<div id="game-canvas-wrapper" class="flex justify-center">
 		<canvas id="gameCanvas" width="500" height="500" class="game-canvas-background"></canvas>
 	</div>
-	<p>Players:</p>
-	<ul id="playersList">
-		<% players.forEach(player => { %>
-			<li class="glow-green"><%= player.displayName %> the <span class="glow-red"><%= player.playerTitle %></span>(<span class="glow-blue"><%= player.lives %></span>)</li>
-		<% }); %>
-	</ul>
-	<p>Active Powerups:</p>
-	<ul id="powerupsList"></ul>
-
-	<div id="state"></div>
 </div>
 
 <script type="module" src="/static/js/gameRenderer.js"></script>

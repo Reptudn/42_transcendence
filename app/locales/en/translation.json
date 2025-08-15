@@ -20,7 +20,18 @@
 	},
 	"index": {
 		"title": "Welcome to Transcendence Stranger...",
-		"description": "Just you and your salmon nose!"
+		"what_you_can_do": "What You Can Do Here:",
+		"add_friends": "🤝 Add friends and grow your gaming circle.",
+		"adjust_profile": "🖼️ Adjust your profile - update your avatar, nickname, and more.",
+		"enable_2fa": "🔒 Enable 2FA for extra account security.",
+		"pong_heart": "🏓 Play Pong - the heart of the experience:",
+		"tournament_mode_title": "Tournament Mode",
+		"tournament_mode_desc": "Compete with others and prove your skill.",
+		"classic_mode_title": "Classic Mode",
+		"classic_mode_desc": "Enjoy casual matches against friends or AI.",
+		"powerups_title": "Fun Powerups",
+		"powerups_desc": "Add chaos and excitement to every match.",
+		"ready": "Ready to play? Log in and get started!"
 	},
 	"login": {
 		"title": "Login",

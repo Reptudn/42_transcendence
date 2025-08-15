@@ -16,8 +16,8 @@
 			},
 			"radius": 2,
 			"velocity": {
-				"x": 1,
-				"y": 1
+				"x": 0,
+				"y": 0
 			}
 		},
 		{
@@ -91,11 +91,11 @@
 			"shape": [
 				{
 					"x": 0,
-					"y": 2.5
+					"y": 1
 				},
 				{
 					"x": 100,
-					"y": 2.5
+					"y": 1
 				}
 			],
 			"conditions": [
@@ -177,11 +177,11 @@
 			"shape": [
 				{
 					"x": 0,
-					"y": 100
+					"y": 99
 				},
 				{
 					"x": 100,
-					"y": 100
+					"y": 99
 				}
 			],
 			"conditions": [
@@ -262,11 +262,11 @@
 			"playerNbr": 2,
 			"shape": [
 				{
-					"x": 0,
+					"x": 1,
 					"y": 0
 				},
 				{
-					"x": 0,
+					"x": 1,
 					"y": 100
 				}
 			],
@@ -352,11 +352,11 @@
 			"playerNbr": 3,
 			"shape": [
 				{
-					"x": 100,
+					"x": 99,
 					"y": 0
 				},
 				{
-					"x": 100,
+					"x": 99,
 					"y": 100
 				}
 			],
@@ -398,105 +398,6 @@
 			]
 		},
 		{
-			"type": "wall",
-			"name": "rightWall",
-			"shape": [
-				{
-					"x": 100,
-					"y": 0
-				},
-				{
-					"x": 100,
-					"y": 100
-				},
-				{
-					"x": 97.5,
-					"y": 100
-				},
-				{
-					"x": 97.5,
-					"y": 0
-				},
-				{
-					"x": 100,
-					"y": 0
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 4
-				}
-			]
-		},
-		{
-			"type": "wall",
-			"name": "leftWall",
-			"shape": [
-				{
-					"x": 0,
-					"y": 0
-				},
-				{
-					"x": 0,
-					"y": 100
-				},
-				{
-					"x": 2.5,
-					"y": 100
-				},
-				{
-					"x": 2.5,
-					"y": 0
-				},
-				{
-					"x": 0,
-					"y": 0
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 3
-				}
-			]
-		},
-		{
-			"type": "wall",
-			"name": "bottomWall",
-			"shape": [
-				{
-					"x": 0,
-					"y": 100
-				},
-				{
-					"x": 100,
-					"y": 100
-				},
-				{
-					"x": 100,
-					"y": 97.5
-				},
-				{
-					"x": 0,
-					"y": 97.5
-				},
-				{
-					"x": 0,
-					"y": 100
-				}
-			],
-			"conditions": [
-				{
-					"condition": "smaller_than",
-					"variable": "player_count",
-					"target": 2
-				}
-			]
-		},
-		{
 			"type": "powerup_spawn",
 			"center": {
 				"x": 55,
@@ -522,6 +423,230 @@
 			"center": {
 				"x": 55,
 				"y": 45
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 40,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 60,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 40
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 60
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 40,
+				"y": 40
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 60,
+				"y": 40
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 40,
+				"y": 60
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 60,
+				"y": 60
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 30,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 70,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 30
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 70
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 30,
+				"y": 30
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 70,
+				"y": 30
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 30,
+				"y": 70
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 70,
+				"y": 70
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 20,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 80,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 20
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 80
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 20,
+				"y": 20
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 80,
+				"y": 20
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 20,
+				"y": 80
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 80,
+				"y": 80
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 10,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 90,
+				"y": 50
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 10
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 50,
+				"y": 90
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 10,
+				"y": 10
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 90,
+				"y": 10
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 10,
+				"y": 90
+			}
+		},
+		{
+			"type": "powerup_spawn",
+			"center": {
+				"x": 90,
+				"y": 90
 			}
 		}
 	]

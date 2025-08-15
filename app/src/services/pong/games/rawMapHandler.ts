@@ -39,15 +39,17 @@ export async function getMapAsInitialGameState(game: Game): Promise<GameState> {
 	gameState.meta = map.meta;
 
 	if (game.config.gameType == GameType.TOURNAMENT)
-		map.objects = map.objects.filter(obj => {
-			return obj.type !== "paddle" || obj.playerNbr === 0 || obj.playerNbr === 1;
+		map.objects = map.objects.filter((obj) => {
+			return (
+				obj.type !== 'paddle' || obj.playerNbr === 0 || obj.playerNbr === 1
+			);
 		});
 
-
 	for (const object of map.objects) {
-
-		if (game.config.gameType == GameType.TOURNAMENT && object.playerNbr !== undefined)
-		{
+		if (
+			game.config.gameType == GameType.TOURNAMENT &&
+			object.playerNbr !== undefined
+		) {
 			if (object.playerNbr === 0)
 				object.playerNbr = reducedPlayers[0].playerId;
 			else if (object.playerNbr === 1)
@@ -110,9 +112,7 @@ export async function getAvailableMaps(fastify: FastifyInstance): Promise<string
 		fastify.log.info(`maps in folder: ${files}`);
 
 		const mapFiles = files.filter((file) => file.endsWith('.json'));
-		const mapNames = mapFiles.map((file) =>
-			path.parse(file).name.toLocaleUpperCase()
-		);
+		const mapNames = mapFiles.map((file) => path.parse(file).name.toLowerCase());
 
 		fastify.log.info(`mapsNames: ${mapNames}`);
 		return mapNames;

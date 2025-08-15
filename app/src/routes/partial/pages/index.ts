@@ -25,12 +25,16 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		const query = request.query as { google?: string; userid?: string };
 		const isGoogleLogin = query.google === '1';
 		const userid = query.userid;
-		return reply.view('2fa_code.ejs', {
-			isGoogleLogin,
-			userid,
-			t: request.t,
-			isAuthenticated: false
-		}, isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {});
+		return reply.view(
+			'2fa_code.ejs',
+			{
+				isGoogleLogin,
+				userid,
+				t: request.t,
+				isAuthenticated: false,
+			},
+			isGoogleLogin ? { layout: 'layouts/basic.ejs' } : {}
+		);
 	});
 
 	const pageExists = (pageName: string): boolean => {
@@ -86,19 +90,20 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			else variables['name'] = 'Guest';
 
 			let errorCode: number = 418;
-			let defaultError: string = 'Woopsie.. seems like you teleported to the wrong location!';
+			let defaultError: string =
+				'Woopsie.. seems like you teleported to the wrong location!';
 
 			fastify.log.info(`page is ${page}`);
 
 			if (!pageExists(page)) {
 				return reply.code(404).view(
 					'error.ejs',
-					{ 
+					{
 						err_code: 404,
 						err_message: `Page '${page}' not found`,
 						isAuthenticated: user !== null,
 						name: user && user.displayname,
-						t: req.t 
+						t: req.t,
 					},
 					{ layout: layoutOption }
 				);
@@ -127,14 +132,29 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					profile.profile_picture = '/profile/' + profileId + '/picture';
 					variables['user'] = profile;
 					variables['isSelf'] = isSelf;
-					if (user && user.id !== profile.id)
-					{
-						const currentUserFriends = await getFriends(user.id, fastify);
-						variables['isFriended'] = currentUserFriends.find((f) => f.id === user.id) !== undefined;
-					}
-					else variables['isFriended'] = false;
-					
-					variables['online'] = isSelf || connectedClients.has(profile.id) && connectedClients.get(profile.id) !== null;
+					if (user && user.id !== profile.id) {
+						const currentUserFriends = await getFriends(
+							user.id,
+							fastify
+						);
+						variables['isFriended'] =
+							currentUserFriends.find((f) => f.id === user.id) !==
+							undefined;
+					} else variables['isFriended'] = false;
+
+					variables['online'] =
+						isSelf ||
+						(connectedClients.has(profile.id) &&
+							connectedClients.get(profile.id) !== null);
+					variables['ingame'] =
+						runningGames.find((g) =>
+							g.players.find(
+								(p) =>
+									p instanceof UserPlayer &&
+									p.joined &&
+									p.user.id === profile.id
+							)
+						) !== undefined;
 					variables['title'] = await getUserTitleString(
 						profile.id,
 						fastify
@@ -160,7 +180,6 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						5,
 						fastify
 					);
-
 				} else if (page === 'edit_profile') {
 					let profile = await checkAuth(req, true, fastify);
 					if (!profile) {
@@ -226,12 +245,14 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					variables['gameSettings'] = existingGame.config;
 					variables['selfId'] = admin.playerId;
 					variables['localPlayerId'] = -1;
-					variables['tournamentTree'] = existingGame.tournament ? existingGame.tournament.getBracketJSON() : null;
-					variables['availableMaps'] = existingGame.availableMaps || await getAvailableMaps(fastify);
-					fastify.log.info(`Maps ${variables['availableMaps']}`);
-				}
-				else if (page === 'error')
-				{
+					variables['tournamentTree'] = existingGame.tournament
+						? existingGame.tournament.getBracketJSON()
+						: null;
+					variables['availableMaps'] =
+						existingGame.availableMaps ||
+						(await getAvailableMaps(fastify));
+					await existingGame.updateLobbyState(req.t);
+				} else if (page === 'error') {
 					variables['err_code'] = 404;
 					variables['err_message'] = defaultError;
 				}

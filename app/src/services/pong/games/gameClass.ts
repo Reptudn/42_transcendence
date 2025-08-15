@@ -12,8 +12,8 @@ import { getAvailableMaps, getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
-import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
+import { Tournament } from './tournamentClass';
 
 export enum GameStatus {
 	WAITING = 'waiting', // awaiting all players to join
@@ -40,11 +40,12 @@ export enum PowerupType {
 	InverseControls = 'INVERSE_CONTROLS',
 	Redirection = 'REDIRECTION',
 	Nausea = 'NAUSEA',
-	// WonkyBall = 'WONKY_BALL',
-	// RotatingBoard = 'ROTATING_BOARD',
+	WonkyBall = 'WONKY_BALL',
+	PhasingPaddle = 'PHASING_PADDLE',
+	PhasingBall = 'PHASING_BALL',
 }
 
-export const powerupCheckDelay = 5000;
+export const powerupCheckDelay = 2000;
 export const powerupSpawnChance = 0.5;
 export const powerupDuration = 10000;
 export const powerupObjectRadius = 3;
@@ -57,7 +58,7 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 
-	ballSpeed: number = 3;
+	ballSpeed = 3;
 
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
 
@@ -86,8 +87,9 @@ export class Game {
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
 		this.fastify = fastify;
-		this.config = config;
+		this.config = { ...config };
 		this.players = [];
+		this.config = defaultGameSettings;
 		this.gameState = {
 			meta: {
 				name: 'test',
@@ -98,10 +100,8 @@ export class Game {
 			objects: [],
 		} as GameState;
 		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
+			intendedPercent: 50,
+			nextRecalcAt: Date.now(),
 		} as AIBrainData;
 		this.activePowerups = [];
 		this.nextPowerupCheckAt = Date.now() + powerupCheckDelay;
@@ -136,6 +136,11 @@ export class Game {
 	async addUserPlayer(user: User, silent = false, t: any): Promise<UserPlayer> {
 		if (!this.availableMaps)
 			this.availableMaps = await getAvailableMaps(this.fastify);
+
+		if (this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
@@ -182,7 +187,7 @@ export class Game {
 			this.getNextAvailablePlayerId(),
 			this,
 			aiLevel,
-			this.aiBrainData
+			{ intendedPercent: 0.5, nextRecalcAt: 0 } as AIBrainData
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
@@ -197,6 +202,11 @@ export class Game {
 	): Promise<LocalPlayer> {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
+
+		if (this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
@@ -220,18 +230,34 @@ export class Game {
 		t: any | null,
 		playerId: number,
 		forced: boolean = false,
-		silent: boolean = false
+		silent: boolean = false,
+		skipAutoRefill: boolean = false
 	) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
 		if (!playerToRemove) throw new Error('Player not found!');
 
+		if (forced && this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
+
 		this.players = this.players.filter((player) => player.playerId !== playerId);
 		if (this.status === GameStatus.RUNNING) {
 			this.gameState.objects = this.gameState.objects.filter(
 				(o) => o.playerNbr !== playerId
 			);
+			for (const player of this.players) {
+				if (
+					player instanceof LocalPlayer &&
+					player.owner.playerId === playerId
+				) {
+					this.gameState.objects = this.gameState.objects.filter(
+						(o) => o.playerNbr !== player.playerId
+					);
+				}
+			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
@@ -261,7 +287,8 @@ export class Game {
 		if (
 			this.config.gameType === GameType.TOURNAMENT &&
 			this.tournament &&
-			!this.alreadyStarted
+			!this.alreadyStarted &&
+			!skipAutoRefill
 		) {
 			for (let i = this.players.length; i < this.config.maxPlayers; i++)
 				this.addAiPlayer(this.config.gameDifficulty, true, t);
@@ -342,10 +369,8 @@ export class Game {
 			}
 
 			this.aiBrainData = {
-				aiLastBallDistance: 0,
-				aiDelayCounter: 0,
-				aiLastTargetParam: 0,
-				lastAIMovementDirection: 0,
+				intendedPercent: 50,
+				nextRecalcAt: Date.now(),
 			} as AIBrainData;
 			this.results = [];
 			this.alreadyStarted = true;
@@ -391,7 +416,6 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
-			tournament: this.tournament,
 			localPlayerId:
 				this.players.find(
 					(p) =>

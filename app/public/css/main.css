@@ -100,7 +100,7 @@ html {
 	.easter-egg {
 		position: relative;
 		border: 3px solid transparent;
-		background: linear-gradient(#000, #000) padding-box,
+		background: linear-gradient(#0000, #0000) padding-box,
 			conic-gradient(
 					from 0deg,
 					#ff0000,
@@ -113,7 +113,7 @@ html {
 					#ff0000
 				)
 				border-box;
-		animation: rotate-easteregg 5s linear 1;
+		animation: rotate-easteregg 10s linear 1;
 	}
 
 	.easter-egg::before {

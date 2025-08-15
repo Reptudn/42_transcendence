@@ -79,7 +79,7 @@
 -   [x] Users can add others as friends and view their online status.
 -   [x] User profiles display stats, such as wins and losses.
 -   [x] Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users.
--   [ ] Logical and good managemnt for duplicate usernames and emails
+-   [x] Logical and good managemnt for duplicate usernames and emails
 
 #### Remote Auth with Google (Major) (4 / 9)
 
@@ -122,12 +122,12 @@
 > evaluation. Creating an AI that does nothing is strictly prohibited;
 > it must have the capability to win occasionally
 
--   [ ] Develop an AI opponent that provides a challenging and engaging gameplay experience for users.
--   [ ] The AI must replicate human behavior, which means that in your AI implementation, you must simulate keyboard input. The constraint here is that the AI can only refresh its view of the game once per second, requiring it to anticipate bounces and other actions.
--   [ ] The AI must utilize power-ups if you have chosen to implement the Game customization options module.
--   [ ] Implement AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves.
--   [ ] Explore alternative algorithms and techniques to create an effective AI player without relying on A\*.
--   [ ] Ensure that the AI adapts to different gameplay scenarios and user interactions.
+-   [x] Develop an AI opponent that provides a challenging and engaging gameplay experience for users.
+-   [x] The AI must replicate human behavior, which means that in your AI implementation, you must simulate keyboard input. The constraint here is that the AI can only refresh its view of the game once per second, requiring it to anticipate bounces and other actions.
+-   [x] The AI must utilize power-ups if you have chosen to implement the Game customization options module.
+-   [x] Implement AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves.
+-   [x] Explore alternative algorithms and techniques to create an effective AI player without relying on A\*.
+-   [x] Ensure that the AI adapts to different gameplay scenarios and user interactions.
 
 #### User and Game Stats Dashboard (Minor) (9 / 9 🥳)
 
