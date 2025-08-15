@@ -151,12 +151,8 @@ function worsifyIntendedPercentBasedOnAiLevel(
 	aiLevel: number
 ): number {
 	const L = Math.max(1, Math.min(10, aiLevel));
-	const MAX_AMP = 0.5;
-	const r = (10 - 3) / 9;
-	const P = Math.log(0.07 / MAX_AMP) / Math.log(r);
-	const t = (10 - L) / 9;
-	const amp = MAX_AMP * Math.pow(t, P);
-	const noisy = intendedPercent + (Math.random() * 2 - 1) * amp;
+	const variation = (11 - L) * 0.03;
+	const noisy = intendedPercent + (Math.random() * 2 - 1) * variation;
 	return Math.max(0, Math.min(1, noisy));
 }
 

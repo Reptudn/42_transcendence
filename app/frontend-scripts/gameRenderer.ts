@@ -188,8 +188,8 @@ function isPowerupActive(state: GameState | null, type: string): boolean {
 const PHASE_PERIOD_MS = 1600;
 const PHASE_MIN_ALPHA = 0.0;
 const PHASE_MAX_ALPHA = 1.0;
-const PHASE_ZERO_HOLD = 0.25;
-const PHASE_ONE_HOLD = 0.15;
+const PHASE_ZERO_HOLD = 0.15;
+const PHASE_ONE_HOLD = 0.05;
 function smoothstep(t: number): number {
 	return t * t * (3 - 2 * t);
 }

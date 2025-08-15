@@ -113,7 +113,7 @@ html {
 					#ff0000
 				)
 				border-box;
-		animation: rotate-easteregg 5s linear 1;
+		animation: rotate-easteregg 10s linear 1;
 	}
 
 	.easter-egg::before {
