@@ -1,4 +1,3 @@
-// import { updateGameSettings } from "./lobby.js";
 import { showLocalError, showLocalInfo } from './alert.js';
 import { loadPartialView } from './navigator.js';
 import {
@@ -15,35 +14,59 @@ export function closeEventSource() {
 	notifyEventSource = null;
 }
 
-const loggedIntervalBase = 100;
-
+let isConnecting = false;
 export function setupEventSource() {
 	if (window.localStorage.getItem('loggedIn') !== 'true') return;
 
-	if (notifyEventSource && notifyEventSource.readyState === EventSource.OPEN)
+	if (
+		notifyEventSource &&
+		(notifyEventSource.readyState === EventSource.OPEN ||
+			notifyEventSource.readyState === EventSource.CONNECTING)
+	) {
 		return;
+	}
+
+	if (isConnecting) {
+		console.log('Already attempting to connect...');
+		return;
+	}
 
 	if (notifyEventSource) {
 		notifyEventSource.close();
 		notifyEventSource = null;
 	}
 
+	isConnecting = true;
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
+		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		showLocalInfo('Server connection closed');
-		setupEventSource();
+		setTimeout(() => {
+			if (window.localStorage.getItem('loggedIn') === 'true') {
+				setupEventSource();
+			}
+		}, 1000);
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
+		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		setupEventSource();
+		setTimeout(() => {
+			if (
+				!notifyEventSource &&
+				window.localStorage.getItem('loggedIn') === 'true'
+			) {
+				setupEventSource();
+			}
+		}, 2000);
 	};
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
+		isConnecting = false;
 	};
 	notifyEventSource.onmessage = async (event) => {
 		console.log('EventSource message received:', event);
@@ -157,17 +180,27 @@ export function setupEventSource() {
 		}
 	};
 }
-// setupEventSource();
-// loop every 100 ms if notifyEventSource is null
-setInterval(
-	() => {
-		if (!notifyEventSource) {
-			console.log('Attempting to connect to EventSource...');
-			setupEventSource();
+// Improved reconnection loop
+setInterval(() => {
+	if (window.localStorage.getItem('loggedIn') !== 'true') {
+		// Close connection if user is not logged in
+		if (notifyEventSource) {
+			notifyEventSource.close();
+			notifyEventSource = null;
 		}
-	},
-	window.localStorage.getItem('loggedIn') === 'true' ? loggedIntervalBase : 5000
-);
+		return;
+	}
+
+	// Check if we need to reconnect
+	if (
+		!notifyEventSource ||
+		notifyEventSource.readyState === EventSource.CLOSED ||
+		(notifyEventSource.readyState === EventSource.CONNECTING && !isConnecting)
+	) {
+		console.log('Attempting to connect to EventSource...');
+		setupEventSource();
+	}
+}, 5000); // Use consistent 5-second interval
 
 export async function sendPopup(
 	title: string,
