@@ -3,6 +3,7 @@ import type { Game } from './gameClass.js';
 import { UserPlayer } from './playerClass.js';
 import {
 	GameStatus,
+	GameType,
 	powerupCheckDelay,
 	powerupDuration,
 	powerupSpawnChance,
@@ -131,7 +132,24 @@ setInterval(async () => {
 		}
 
 		if (playersAliveAfter.length <= 1) {
-			setTimeout(() => {
+			if (game.config.gameType === GameType.CLASSIC) {
+				setTimeout(() => {
+					let winnerName: string = 'NULL';
+					if (playersAliveAfter.length === 1) {
+						const winner = playersAliveAfter[0];
+						game.results.push({
+							playerId: winner.playerId,
+							place: 1,
+						});
+						winnerName = winner.displayName;
+					}
+					game.endGame(
+						`Game ended.<br>Winner: ${winnerName}`,
+						playersAliveAfter[0],
+						true
+					);
+				}, 200);
+			} else {
 				let winnerName: string = 'NULL';
 				if (playersAliveAfter.length === 1) {
 					const winner = playersAliveAfter[0];
@@ -146,7 +164,7 @@ setInterval(async () => {
 					playersAliveAfter[0],
 					true
 				);
-			}, 200);
+			}
 		}
 	}
 }, 1000 / ticksPerSecond);
