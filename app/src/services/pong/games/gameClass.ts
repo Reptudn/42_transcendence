@@ -223,7 +223,6 @@ export class Game {
 		return localPlayer;
 	}
 
-	// TODO: implment logic when a player is leaving while the game is running...
 	async removePlayer(
 		playerId: number,
 		forced: boolean = false,
@@ -233,7 +232,7 @@ export class Game {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
-		if (!playerToRemove) throw new Error('Player not found!');
+		if (!playerToRemove) return;
 
 		if (forced && this.alreadyStarted)
 			throw new Error(

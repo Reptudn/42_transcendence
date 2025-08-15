@@ -1,13 +1,10 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
-// import { WebSocket as WSWebSocket } from 'ws';
-// import { startGame, runningGames } from '../../../services/pong/games/games';
 import { checkAuth } from '../../../services/auth/auth';
 import {
 	defaultGameSettings,
 	Game,
 	GameStatus,
 	GameType,
-	// GameType,
 } from '../../../services/pong/games/gameClass';
 import { connectedClients, sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
@@ -42,18 +39,18 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
-				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin
+				let existingGame = runningGames.find((g) => g.admin.id === user.id);
 				if (existingGame && existingGame.status === GameStatus.RUNNING) {
 					return reply.code(400).send({
 						error: 'Seems like you have a running game already.. wait for it to end before creating a new one (yes you shouldnt have ended up here!)',
 					});
 				}
 
-				const id: number = runningGames.length + 1; // Temporary ID generation
+				const id: number = runningGames.length + 1;
 				const game = new Game(id, user, fastify, { ...defaultGameSettings });
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
-				await game.addUserPlayer(user, false); // Adding the admin player
+				await game.addUserPlayer(user, false);
 
 				fastify.log.info(`Game created with ID: ${id}`);
 
@@ -1025,7 +1022,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				player.disconnect();
 				try {
 					game.removePlayer(player.playerId, false, false, true);
-				} catch (err) {}
+				} catch (err) {
+					console.log('player not there anymore');
+				}
 			});
 
 			socket.on('message', (message: Buffer) => {
