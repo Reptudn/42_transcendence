@@ -72,7 +72,7 @@ export function setupEventSource() {
 				case 'game_invite':
 					console.log('👫 Game invite received:', data);
 					showLocalInfo(
-						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})">Accept</button><br><br><button onclick="declineInvite(${data.gameId})">Decline</button>`
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Accept</button><button onclick="declineInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Decline</button>`
 					);
 					break;
 				case 'lobby_admin_settings_update':

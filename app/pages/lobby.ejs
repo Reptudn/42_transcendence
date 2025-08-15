@@ -1,11 +1,11 @@
 <% if (initial)  {%>
 	<div class="flex-row">
-		<button onclick="leaveGame()">Leave Game</button>
-		<button onclick="addLocalPlayer()">Add Local Player</button>
-	<script src="/static/js/lobby.js" type="module"></script>
-	<div id="lobby">
-<% } %>
-		<h1 class="text-4xl"><%= ownerName %>'s Game</h1>
+		<script src="/static/js/lobby.js" type="module"></script>
+		<div id="lobby">
+			<% } %>
+			<h1 class="text-4xl mt-5 mb-5"><%= ownerName %>'s Game</h1>
+			<button onclick="addLocalPlayer()" class="bg-blue-500 px-2 py-2 rounded">Add Local Player</button>
+			<button onclick="leaveGame()" class="bg-red-500 px-2 py-2 rounded">Leave Game</button>
 		<p>Players: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl">Lobby Settings</h2>
@@ -48,6 +48,7 @@
 							<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
 							<% if (localPlayerId && player.playerId === localPlayerId) { %>
 								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
 						</div>
 						<br>
