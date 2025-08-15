@@ -54,6 +54,7 @@
 		"otplib": "^12.0.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
+		"@types/escape-html": "^1.0.4",
 		"ts-node": "^10.9.2"
 	},
 	"devDependencies": {
