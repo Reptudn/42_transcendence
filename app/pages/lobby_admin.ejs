@@ -35,7 +35,7 @@
 			<% } %>
 		</select>
 		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> ><%= t('lobby_admin.power_enabled_check') %></input>
-		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.difficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
+		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.gameDifficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
 		<p><%= t('lobby_admin.player_count') %>: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl"><%= t('lobby_admin.lobby_settings') %></h2>
