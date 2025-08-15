@@ -119,7 +119,7 @@
 		"block_user": "Block user",
 		"unblock_user": "Unblock user",
 		"invite_to_chat": "Invite user to chat",
-		"user_leave_chat": "Remove user from chat",
+		"user_leave_chat": "Leave Chat",
 		"create_new_group": "Create new group",
 		"invite_user": "Invite User",
 		"cancel": "Cancel",
@@ -131,6 +131,16 @@
 		"unblock": "User successfully unblocked",
 		"invite": "User successfully invited",
 		"game-invite": "User successfully added to game",
-		"leave": "You have successfully left the group"
+		"leave": "You have successfully left the group",
+		"allChats": "All Chats",
+		"options": "Options",
+		"placeholder_search": "Search",
+		"placeholder_input": "Type a message...",
+		"close_options": "Close",
+		"currChat": "Current Chat:",
+		"chat_info": "Chat Info",
+		"chat_name": "Chat Name:",
+		"part": "Group members",
+		"blocked": "Blocked participants"
 	}
 }

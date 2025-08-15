@@ -8,6 +8,7 @@ import {
 	unblockUsers,
 	inviteUser,
 	leaveUserFromChat,
+	chatInfo,
 } from './chatGetInfo';
 
 // routes
@@ -30,14 +31,7 @@ const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	unblockUsers(fastify);
 	inviteUser(fastify);
 	leaveUserFromChat(fastify);
+	chatInfo(fastify);
 };
 
 export default chat;
-
-// TODO what if a user gets deleted
-
-// nicht so wichtige
-// TODO If Client not connected send msgs when reconnected implement online offline status
-// TODO check that there are not too many messages because of memory
-// TODO limit the chars per messages e.g. 500
-// TODO translation for error Msgs

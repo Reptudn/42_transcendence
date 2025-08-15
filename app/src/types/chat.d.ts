@@ -41,6 +41,7 @@ interface Friend {
 }
 
 export interface ChatInfo {
-	chatName: string;
+	chat: Chat;
 	users: User[];
+	blockedUser: User[];
 }

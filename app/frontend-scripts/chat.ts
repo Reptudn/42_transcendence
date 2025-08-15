@@ -139,13 +139,19 @@ export async function getMessages(chat_id: string | null) {
 	const msgs = data.msgs as htmlMsg[];
 
 	const currChat = document.getElementById('currentChat');
-	if (!currChat) return;
 
-	const chatName = msgs.at(-1)?.chatName;
-	currChat.innerHTML = '';
-	if (chat_id === '1')
-		currChat.innerHTML = '<div>Current Chat: Global Chat </div>';
-	else currChat.innerHTML = `<div>Current Chat: ${chatName} </div>`;
+	if (currChat) {
+		let span = currChat.querySelector('span.extra');
+		if (!span) {
+			span = document.createElement('span');
+			span.classList.add('extra');
+			currChat.appendChild(span);
+		}
+
+		const chatName = msgs.at(-1)?.chatName;
+		if (chat_id === '1') span.textContent = ' Global Chat';
+		else span.textContent = ` ${chatName}`;
+	}
 
 	const chatMessages = document.getElementById('chatMessages');
 	if (!chatMessages) {
@@ -158,12 +164,12 @@ export async function getMessages(chat_id: string | null) {
 	}
 }
 
-export async function getChatInfo(chat_id: string | null) {
-	if (!chat_id || chat_id === '0') {
-		showLocalError('Invalid chat ID');
-		return;
-	}
-}
+// export async function getChatInfo(chat_id: string | null) {
+// 	if (!chat_id || chat_id === '0') {
+// 		showLocalError('Invalid chat ID');
+// 		return;
+// 	}
+// }
 
 declare global {
 	interface Window {

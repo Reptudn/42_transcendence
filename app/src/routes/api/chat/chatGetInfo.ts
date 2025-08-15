@@ -19,7 +19,11 @@ import {
 	getChatFromSql,
 	checkUserBlocked,
 	getParticipantFromSql,
+	getAllParticipantsFromSql,
+	// getAllBlockedUser,
 } from '../../../services/database/chat';
+import ejs from 'ejs';
+import escapeHTML from 'escape-html';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -347,34 +351,78 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 	);
 }
 
-// export async function chatInfo(fastify: FastifyInstance) {
-// 	fastify.get<{ Querystring: MessageQueryChat }>(
-// 		'/getInfo',
-// 		{
-// 			preValidation: [fastify.authenticate],
-// 			schema: { querystring: chatMsgRequestSchema.querystring },
-// 		},
-// 		async (req: FastifyRequest, res: FastifyReply) => {
-// 			try {
-// 				const { chat_id } = req.query as MessageQueryChat;
+export async function chatInfo(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/getInfo',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
 
-// 				const userId = (req.user as { id: number }).id;
+				const userId = (req.user as { id: number }).id;
 
-// 				const part = await getAllParticipantsFromSql(fastify, chat_id);
-// 				const chat = await getChatFromSql(fastify, chat_id);
-// 				if (chat.name === null && chat.is_group === true)
-// 					chat.name = 'Global Chat';
-// 				else if (chat.name === null && chat.is_group === false) {
-// 					if (part.length === 1) chat.name = 'Deleted User';
-// 					else {
-// 					}
-// 				}
+				const parts = await getAllParticipantsFromSql(fastify, chat_id);
+				const blocked = await getAllBlockerUser(fastify, userId);
+				const chat = await getChatFromSql(fastify, chat_id);
+				const allChats = await getChatName(fastify, userId);
 
-// 				return res.status(200).send({ msg: req.t('chat.leave') });
-// 			} catch (err) {
-// 				const nError = normError(err);
-// 				return res.status(nError.errorCode).send({ error: nError.errorMsg });
-// 			}
-// 		}
-// 	);
-// }
+				const found = allChats.find((c) => c.id === chat.id);
+				if (!found) return res.status(400).send({ error: 'Chat not Found' });
+				if (Boolean(found.is_group) === true && found.name === null)
+					found.name = 'Global Chat';
+				const blockedUser: User[] = [];
+				const users: User[] = [];
+				for (const user of blocked) {
+					const check = await getUserById(user.blocked_id, fastify);
+					if (!check) continue;
+					blockedUser.push(check);
+				}
+				for (const user of parts) {
+					const check = await getUserById(user.user_id, fastify);
+					if (!check) continue;
+					users.push(check);
+				}
+				const code = ejs.render(template, {
+					chatName: found.name || '',
+					participants: users,
+					blocked: blockedUser,
+					t: req.t,
+				});
+				return res.status(200).send({ msg: code });
+			} catch (err) {
+				const nError = normError(err);
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
+			}
+		}
+	);
+}
+
+const template: string = `<div class="chat-info-container">
+	<div class="chat-header">
+		<h2 class="chat-name"><%= t('chat.chat_name') %> <%= chatName %></h2>
+	</div>
+
+	<div class="chat-participants">
+		<h3><%= t('chat.part') %></h3>
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+			<% participants.forEach(function(user) { %>
+				<li><%= user.displayname %></li>
+			<% }) %>
+		</ul>
+	</div>
+
+	<div class="blocked-users">
+		<h3><%= t('chat.blocked') %></h3>
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+			<% blocked.forEach(function(user) { %>
+				<li><%= user.displayname %></li>
+			<% }) %>
+		</ul>
+	</div>
+</div>
+`;

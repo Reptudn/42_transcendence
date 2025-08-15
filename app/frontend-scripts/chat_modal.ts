@@ -364,6 +364,29 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	await getChats();
 });
 
+// ChatInfo Modal
+
+document.getElementById('chatInfo')?.addEventListener('click', async () => {
+	document.getElementById('chatInfoWindow')?.classList.remove('hidden');
+	const res = await fetch(
+		`/api/chat/getInfo?chat_id=${sessionStorage.getItem('chat_id')}`
+	);
+	const data = await res.json();
+	if (!res.ok) {
+		showLocalError(data.error);
+		return;
+	}
+	const win = document.getElementById('chatInfoInput');
+	if (win) {
+		win.innerHTML = '';
+		win.innerHTML = data.msg;
+	}
+});
+
+document.getElementById('closeChatInfo')?.addEventListener('click', async () => {
+	document.getElementById('chatInfoWindow')?.classList.add('hidden');
+});
+
 // Options Modal
 
 document.getElementById('optionButton')?.addEventListener('click', async () => {
