@@ -32,12 +32,16 @@ export async function createGame() {
 // the Number
 let clientNumber = 42;
 let serverNumber = 42;
+let clientServerDiff = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
+	const updateNumberDisplay = () => {
+		if (el) el.textContent = clientNumber.toString();
+	};
 	el?.addEventListener('click', () => {
 		clientNumber++;
-		if (el) el.textContent = clientNumber.toString();
+		updateNumberDisplay();
 	});
 	const syncNumber = async () => {
 		try {
@@ -50,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				const data = await response.json();
 				console.log('Number updated successfully:', data);
 				serverNumber = data.number;
-				clientNumber = data.number;
-				if (el) el.textContent = clientNumber.toString();
+				clientServerDiff = serverNumber - clientNumber;
+				updateNumberDisplay();
 			} else {
 				console.error('Error updating number:', response.statusText);
 			}
@@ -62,6 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	void syncNumber();
 	setInterval(syncNumber, 3000);
+
+	setInterval(() => {
+		if (clientServerDiff > 0) {
+			clientServerDiff--;
+			clientNumber++;
+		}
+	}, 100);
 });
 
 // Logout
