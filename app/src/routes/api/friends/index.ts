@@ -18,7 +18,7 @@ import {
 	saveNewChatInfo,
 	addToParticipants,
 } from '../../../services/database/chat';
-import { normError } from '../chat/utils';
+import { checkIfDmChatAlreadyExist, normError } from '../chat/utils';
 
 const friendRequestSchema = {
 	type: 'object',
@@ -165,19 +165,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (pendingRequest.requested_id === requesterId) {
 					await acceptFriendRequest(pendingRequest.id, fastify);
 					try {
-						const chat_id = await saveNewChatInfo(fastify, false, null);
-						await addToParticipants(
-							fastify,
-							pendingRequest.requester_id,
-							chat_id
-						);
-						await addToParticipants(
-							fastify,
-							pendingRequest.requested_id,
-							chat_id
-						);
-						sendSseHtmlByUserId(pendingRequest.requested_id, 'chat_update', '');
-						sendSseHtmlByUserId(pendingRequest.requester_id, 'chat_update', '');
+						if (!await checkIfDmChatAlreadyExist(fastify, pendingRequest.requester_id, pendingRequest.requested_id)) {
+							const chat_id = await saveNewChatInfo(fastify, false, null);
+
+							await addToParticipants(fastify, pendingRequest.requester_id, chat_id);
+							await addToParticipants(fastify, pendingRequest.requested_id, chat_id);
+							sendSseHtmlByUserId(pendingRequest.requested_id, 'chat_update', '');
+							sendSseHtmlByUserId(pendingRequest.requester_id, 'chat_update', '');
+						}
 					} catch (err) {
 						const nError = normError(err);
 						reply
@@ -257,12 +252,14 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						}</a>!`,
 						'blue'
 					);
-					const chat_id = await saveNewChatInfo(fastify, false, null);
+					if (!await checkIfDmChatAlreadyExist(fastify, request.requester_id, request.requested_id)) {
+						const chat_id = await saveNewChatInfo(fastify, false, null);
 
-					await addToParticipants(fastify, request.requester_id, chat_id);
-					await addToParticipants(fastify, request.requested_id, chat_id);
-					sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
-					sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+						await addToParticipants(fastify, request.requester_id, chat_id);
+						await addToParticipants(fastify, request.requested_id, chat_id);
+						sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
+						sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+					}
 				}
 				return reply.send({ message: 'Friend request accepted' });
 			} catch (err: any) {
