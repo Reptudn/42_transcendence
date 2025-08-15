@@ -30,7 +30,7 @@ export enum GameType {
 export const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
-	powerupsEnabled: false,
+	powerupsEnabled: true,
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
 	gameType: GameType.CLASSIC,
@@ -91,6 +91,7 @@ export class Game {
 		this.config = { ...config };
 		this.players = [];
 		this.config = defaultGameSettings;
+		this.config.gameType = GameType.CLASSIC; // default game type is classic
 		this.gameState = {
 			meta: {
 				name: 'test',
@@ -544,8 +545,7 @@ export class Game {
 				if (save_game) {
 					(async () => {
 						try {
-							// TODO: save completed tournament game in db
-							// await saveCompletedTournamentGame(this, this.fastify);
+							await saveCompletedGame(this, this.fastify);
 						} catch (_e) {
 							// already logged inside saveCompletedGame
 						}
