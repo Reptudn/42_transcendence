@@ -2,23 +2,24 @@
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
 	<div class="flex-row">
 		<h1 class="text-4xl"><%= ownerName %>'s <%= t('lobby_admin.game') %></h1>
-		<button onclick="addAIPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_ai') %></button>
-		<button onclick="addLocalPlayer()" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_local_player') %></button>
-		<button onclick="startGame()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.start_game') %></button>
-		<button onclick="resetGameSettings()" class="glow-blue py-2 px-4 rounded text-2xl"><%= t('lobby_admin.reset_game_settings') %></button>
-		<label for="game-type-select"><%= t('lobby_admin.game_type') %></label>
+		<button onclick="addAIPlayer()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_ai') %></button>
+		<button onclick="addLocalPlayer()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_local_player') %></button>
+		<button onclick="startGame()" class="mt-3 mb-3 invite-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.start_game') %></button>
+		<button onclick="resetGameSettings()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.reset_game_settings') %></button>
+		<label for="game-type-select" ><%= t('lobby_admin.game_type') %></label>
 		<select name="Game Type" id="game-type-select">
 			<option value="classic"><%= t('lobby_admin.modes.classic') %></option>
 			<option value="tournament"><%= t('lobby_admin.modes.tournament') %></option>
 		</select>
+		<button onclick="leaveGame()" class="bg-red-500 px-2 py-2 rounded"><%= t('lobby_admin.leave_game') %></button>
 		<br>
 		<div>
 			<h2><%= t('lobby_admin.online_friends') %></h2>
+			<button onclick="refreshOnlineFriends()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.refresh') %></button>
 			<p><%= t('lobby_admin.invite_description') %></p>
-			<div id="onlineFriendsList" class="flex">
+			<div id="onlineFriendsList" class="flex mt-3">
 				<!--Online friends will be inserted here-->
 			</div>
-			<button onclick="refreshOnlineFriends()"><%= t('lobby_admin.refresh') %></button>
 		</div>
 		<br>
 		<div id="lobby">
@@ -117,6 +118,5 @@
 		</div> <!-- End of lobby div -->
 	</div> <!-- End of page div -->
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
-	<button onclick="leaveGame()"><%= t('lobby_admin.leave_game') %></button> 
 	<script type="module" src="/static/js/lobby_admin.js" defer></script>
 <% } %>

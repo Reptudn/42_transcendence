@@ -57,13 +57,13 @@
 		</header>
 
 		<main>
-			<div id="content" class="flex justify-center backdrop-blur-sm rounded border-[#00ff00] border mr-[25%] ml-[25%] mt-10">
+			<div id="content" class="flex justify-center backdrop-blur-sm rounded border-[#00ff00] border mr-[25%] ml-[25%] mt-10 pb-10">
 				<%- body %>
 			</div>
-			<% if (isAuthenticated) { %> <%-
-				include('misc/chat') %>
-			<% }%>
 		</main>
+		<% if (isAuthenticated) { %> <%-
+			include('misc/chat') %>
+		<% }%>
 		<div id="popup-wrapper" class="fixed bottom-8 pl-10 z-10000">
 			<div id="popup-container" class="flex flex-col-reverse gap-3 z-10000"></div>
 			<button id="close-all-popups-btn" class="mt-2 self-start pointer-events-auto hover:glow-blue glow-green font-bold py-2 px-4 rounded z-10000">

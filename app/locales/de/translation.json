@@ -19,7 +19,8 @@
 		}
 	},
 	"index": {
-		"title": "Willkommen bei Transcendence Fremder...",
+		"title": "Willkommen bei Transcendence",
+		"title_stranger": "Fremder",
 		"what_you_can_do": "Was du hier tun kannst:",
 		"add_friends": "🤝 Füge Freunde hinzu und erweitere deinen Gaming-Kreis.",
 		"adjust_profile": "🖼️ Passe dein Profil an – aktualisiere deinen Avatar, Spitznamen und mehr.",
@@ -75,6 +76,9 @@
 		"change_title": "Titel ändern",
 		"complete_achievements_to_unlock": "Erfolge abschließen, um weitere Titel freizuschalten",
 		"save_title": "Titel speichern",
+		"2_factor_authentication": "2 Faktor Authentifizierung",
+		"2_fa_button_a": "2FA aktivieren",
+		"2_fa_button_d": "2FA deaktivieren",
 		"change_password": "Passwort ändern",
 		"old_password": "Altes Passwort",
 		"new_password": "Neues Passwort",

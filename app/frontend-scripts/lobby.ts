@@ -43,6 +43,23 @@ export async function renameLocalPlayer(id: number) {
 	}
 }
 
+export async function kickPlayer(playerId: number) {
+	console.log(`Kicking player with ID: ${playerId}`);
+
+	const res = await fetch(`/api/games/players/kick/${playerId}`, {
+		method: 'POST',
+	});
+
+	if (!res.ok) {
+		const data = await res.json();
+		showLocalError(`${data.error || 'Failed to kick player: Unknown error'}`);
+		return;
+	}
+	const data = await res.json();
+	console.log('Player kicked:', data);
+	showLocalInfo(`${data.message || 'Player kicked successfully!'}`);
+}
+
 export async function leaveGame() {
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -69,6 +86,7 @@ declare global {
 		addLocalPlayer: () => Promise<void>;
 		leaveGame: () => Promise<void>;
 		renameLocalPlayer: (id: number) => Promise<void>;
+		kickPlayer: (playerId: number) => Promise<void>;
 	}
 }
 
@@ -76,3 +94,4 @@ window.updatePage = updatePage;
 window.addLocalPlayer = addLocalPlayer;
 window.leaveGame = leaveGame;
 window.renameLocalPlayer = renameLocalPlayer;
+window.kickPlayer = kickPlayer;

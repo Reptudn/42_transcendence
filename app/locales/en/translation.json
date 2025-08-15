@@ -19,7 +19,8 @@
 		}
 	},
 	"index": {
-		"title": "Welcome to Transcendence Stranger...",
+		"title": "Welcome to Transcendence",
+		"title_stranger": "Stranger",
 		"what_you_can_do": "What You Can Do Here:",
 		"add_friends": "🤝 Add friends and grow your gaming circle.",
 		"adjust_profile": "🖼️ Adjust your profile - update your avatar, nickname, and more.",
@@ -75,6 +76,9 @@
 		"change_title": "Change Title",
 		"complete_achievements_to_unlock": "Complete achievements to unlock more titles",
 		"save_title": "Save Title",
+		"2_factor_authentication": "2 factor authentication",
+		"2_fa_button_a": "2FA enable",
+		"2_fa_button_d": "2FA disable",
 		"change_password": "Change Password",
 		"old_password": "Old Password",
 		"new_password": "New Password",

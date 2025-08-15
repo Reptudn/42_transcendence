@@ -8,8 +8,6 @@ import { getImageFromLink } from '../google/user.js';
 import type { FastifyInstance } from 'fastify';
 import { inviteUserToChat } from '../../routes/api/chat/utils.js';
 import { achievementsData } from '../../plugins/sqlite.js';
-// import { verify2fa } from './totp.js';
-// import { getUser2faSecret } from './totp.js';
 const default_titles = JSON.parse(
 	fs.readFileSync(
 		path.resolve(__dirname, '../../../data/defaultTitles.json'),
@@ -45,8 +43,8 @@ export async function registerUser(
 	if (username.length > 16) {
 		throw new Error('Username must be 16 or fewer characters');
 	}
-	if (displayname.length > 16) {
-		throw new Error('Display name must be 16 or fewer characters');
+	if (displayname.length > 32) {
+		throw new Error('Display name must be 32 or fewer characters');
 	}
 	if (password.length < 8 || password.length > 32) {
 		throw new Error('Password must be between 8 and 32 characters long');
@@ -80,16 +78,22 @@ export async function registerUser(
 	}
 }
 
-const generateUniqueUsername = async (baseName: string, fastify: FastifyInstance): Promise<string> => {
-	let username = baseName.toLowerCase().replace(/[^a-zA-Z0-9_]/g, '').substring(0, 12);
-	
+const generateUniqueUsername = async (
+	baseName: string,
+	fastify: FastifyInstance
+): Promise<string> => {
+	let username = baseName
+		.toLowerCase()
+		.replace(/[^a-zA-Z0-9_]/g, '')
+		.substring(0, 12);
+
 	if (!username) {
 		username = 'user';
 	}
-	
+
 	let counter = 0;
 	let testUsername = username;
-	
+
 	const isUniqueUsername = async (username: string) => {
 		const user = await fastify.sqlite.get(
 			'SELECT * FROM users WHERE username = ?',
@@ -101,7 +105,7 @@ const generateUniqueUsername = async (baseName: string, fastify: FastifyInstance
 	while (!(await isUniqueUsername(testUsername))) {
 		counter++;
 		testUsername = `${username}${counter}`;
-		
+
 		if (testUsername.length > 16) {
 			testUsername = `user${crypto.randomBytes(3).toString('hex')}`;
 			if (await isUniqueUsername(testUsername)) break;
@@ -118,22 +122,36 @@ export async function registerGoogleUser(
 	const titleSecond = Math.floor(Math.random() * default_titles_second.length);
 	const titleThird = Math.floor(Math.random() * default_titles_third.length);
 
-	const username = await generateUniqueUsername(googleUser.name.replace(' ', '_').trim().toLowerCase(), fastify);
+	const username = await generateUniqueUsername(
+		googleUser.name.replace(' ', '_').trim().toLowerCase(),
+		fastify
+	);
+
+	let profilePicture: string;
+	try {
+		profilePicture = await getImageFromLink(googleUser.picture);
+		fastify.log.info(
+			`Successfully downloaded profile picture for Google user: ${googleUser.name}`
+		);
+	} catch (error) {
+		fastify.log.error(
+			`Failed to download profile picture for Google user ${googleUser.name}:`,
+			error
+		);
+		profilePicture = '';
+	}
 
 	await fastify.sqlite.run(
 		'INSERT INTO users (google_id, username, password, displayname, title_first, title_second, title_third, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
 		[
 			googleUser.id,
-			username
-				.split('')
-				.filter((c) => c.match(/[a-zA-Z0-9_]/))
-				.join(''),
+			username, // Use the already cleaned username from generateUniqueUsername
 			crypto.randomBytes(42).toString('hex'),
 			googleUser.name.substring(0, 16),
 			titleFirst,
 			titleSecond,
 			titleThird,
-			await getImageFromLink(googleUser.picture),
+			profilePicture,
 		]
 	);
 }
@@ -245,8 +263,8 @@ export async function updateUserProfile(
 	if (username && username.length > 16) {
 		throw new Error('Username must be 16 or fewer characters');
 	}
-	if (displayname && displayname.length > 16) {
-		throw new Error('Display name must be 16 or fewer characters');
+	if (displayname && displayname.length > 32) {
+		throw new Error('Display name must be 32 or fewer characters');
 	}
 	if (bio && bio.length >= 1024) {
 		throw new Error('Bio must be under 1024 characters');
