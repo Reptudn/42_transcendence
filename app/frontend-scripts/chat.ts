@@ -79,26 +79,30 @@ searchUser?.addEventListener('input', async () => {
 });
 
 export function appendToChatBox(rawMessage: string) {
-	const msg = JSON.parse(rawMessage) as htmlMsg;
+	try {
+		const msg = JSON.parse(rawMessage) as htmlMsg;
 
-	const chatMessages = document.getElementById('chatMessages');
-	if (!chatMessages) return;
+		const chatMessages = document.getElementById('chatMessages');
+		if (!chatMessages) return;
 
-	const nowChatId = sessionStorage.getItem('chat_id');
-	if (nowChatId) {
-		if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
-			const messageElement = document.createElement('div');
-			messageElement.innerHTML = msg.htmlMsg;
-			chatMessages.appendChild(messageElement);
-			chatMessages.scrollTop = chatMessages.scrollHeight;
-			return;
+		const nowChatId = sessionStorage.getItem('chat_id');
+		if (nowChatId) {
+			if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
+				const messageElement = document.createElement('div');
+				messageElement.innerHTML = msg.htmlMsg;
+				chatMessages.appendChild(messageElement);
+				chatMessages.scrollTop = chatMessages.scrollHeight;
+				return;
+			}
 		}
+		if (msg.blocked || msg.ownMsg) return;
+		showLocalInfo(
+			`You recived a new Msg from ${msg.fromUserName}`,
+			`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+		);
+	} catch (err) {
+		console.error('Error parsing event data:', err);
 	}
-	if (msg.blocked || msg.ownMsg) return;
-	showLocalInfo(
-		`You recived a new Msg from ${msg.fromUserName}`,
-		`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
-	);
 }
 
 export async function getChats() {
