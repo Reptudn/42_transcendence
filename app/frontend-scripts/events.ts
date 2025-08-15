@@ -14,7 +14,10 @@ export function closeEventSource() {
 	notifyEventSource = null;
 }
 
-document.getElementById('connectedStatusSSE')!.textContent = 'Connected: FALSE';
+const connectedStatusElem = document.getElementById('connectedStatusSSE');
+if (connectedStatusElem) {
+	connectedStatusElem.textContent = 'Connected: FALSE';
+}
 
 let isConnecting = false;
 export function setupEventSource() {
@@ -46,8 +49,10 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		showLocalInfo('Server connection closed');
-		document.getElementById('connectedStatusSSE')!.textContent =
-			'Connected: FALSE';
+		const statusElem = document.getElementById('connectedStatusSSE');
+		if (statusElem) {
+			statusElem.textContent = 'Connected: FALSE';
+		}
 		setTimeout(() => {
 			if (window.localStorage.getItem('loggedIn') === 'true') {
 				setupEventSource();
@@ -59,8 +64,10 @@ export function setupEventSource() {
 		isConnecting = false; // Reset connecting flag
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		document.getElementById('connectedStatusSSE')!.textContent =
-			'Connected: FALSE';
+		const statusElem = document.getElementById('connectedStatusSSE');
+		if (statusElem) {
+			statusElem.textContent = 'Connected: FALSE';
+		}
 		setTimeout(() => {
 			if (
 				!notifyEventSource &&
@@ -73,8 +80,10 @@ export function setupEventSource() {
 	notifyEventSource.onopen = () => {
 		console.log('EventSource connection established');
 		isConnecting = false;
-		document.getElementById('connectedStatusSSE')!.textContent =
-			'Connected: TRUE';
+		const statusElem = document.getElementById('connectedStatusSSE');
+		if (statusElem) {
+			statusElem.textContent = 'Connected: TRUE';
+		}
 	};
 	notifyEventSource.onmessage = async (event) => {
 		console.log('EventSource message received:', event);

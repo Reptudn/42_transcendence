@@ -7,9 +7,11 @@ declare global {
 		updateActiveMenu: (selectedPage: string) => void;
 		loadPartialView: (
 			page: string,
-			pushState?: boolean,
-			subroute?: string | null,
-			isPartial?: boolean
+			pushState: boolean,
+			subroute: string | null,
+			isPartial: boolean,
+			abort: boolean,
+			whole_page: boolean
 		) => Promise<void>;
 		updateMenu: () => Promise<void>;
 		abortController: AbortController | null;
@@ -47,13 +49,16 @@ export function onUnloadPageAsync(
 	options?: AddEventListenerOptions
 ) {
 	const signal = getSignal();
-	if (!signal || signal.aborted) return; 
+	if (!signal || signal.aborted) return;
 
 	signal.addEventListener(
 		'abort',
 		() => {
 			callback().catch((err) =>
-				console.error('[onUnloadPageAsync] Error in async abort handler:', err)
+				console.error(
+					'[onUnloadPageAsync] Error in async abort handler:',
+					err
+				)
 			);
 		},
 		{
@@ -62,7 +67,6 @@ export function onUnloadPageAsync(
 		}
 	);
 }
-
 
 window.abortController = resetController();
 
@@ -91,8 +95,7 @@ export async function loadPartialView(
 ): Promise<void> {
 	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
-	if (whole_page)
-		headers.loadpartial = 'false';
+	if (whole_page) headers.loadpartial = 'false';
 	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
@@ -123,19 +126,21 @@ export async function loadPartialView(
 			console.log('[Navigator] Resetting abort controller');
 			window.abortController = resetController();
 		} else {
-			console.log('[Navigator] Skipping controller reset between lobby and game view');
+			console.log(
+				'[Navigator] Skipping controller reset between lobby and game view'
+			);
 		}
 
 		const html: string = await response.text();
 
-		
 		if (whole_page) {
 			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
 			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
 			replaceEntireDocument(html);
 			initPopups();
 		} else {
-			const contentElement: HTMLElement | null = document.getElementById('content');
+			const contentElement: HTMLElement | null =
+				document.getElementById('content');
 			if (contentElement) {
 				contentElement.innerHTML = html;
 				await loadScripts(contentElement);
@@ -161,7 +166,6 @@ export async function loadPartialView(
 		}
 
 		last_page = url;
-
 	} catch (error) {
 		if (error instanceof Error) showLocalError(error.message);
 		else showLocalError(`Error fetching partial view: ${error}`);
@@ -172,37 +176,42 @@ function replaceEntireDocument(htmlContent: string): void {
 	// Parse the HTML to extract head and body content
 	const parser = new DOMParser();
 	const newDoc = parser.parseFromString(htmlContent, 'text/html');
-	
+
 	// Replace the entire document head
 	const newHead = newDoc.head;
 	const currentHead = document.head;
-	
+
 	// Clear current head (but preserve essential meta tags)
-	const essentialTags = currentHead.querySelectorAll('meta[charset], meta[name="viewport"]');
+	const essentialTags = currentHead.querySelectorAll(
+		'meta[charset], meta[name="viewport"]'
+	);
 	currentHead.innerHTML = '';
-	
+
 	// Re-add essential tags first
-	essentialTags.forEach(tag => currentHead.appendChild(tag.cloneNode(true)));
-	
+	essentialTags.forEach((tag) => currentHead.appendChild(tag.cloneNode(true)));
+
 	// Add all new head content
-	Array.from(newHead.children).forEach(child => {
+	Array.from(newHead.children).forEach((child) => {
 		// Skip duplicating essential tags
-		if (child.tagName === 'META' && 
-			(child.getAttribute('charset') || child.getAttribute('name') === 'viewport')) {
+		if (
+			child.tagName === 'META' &&
+			(child.getAttribute('charset') ||
+				child.getAttribute('name') === 'viewport')
+		) {
 			return;
 		}
 		currentHead.appendChild(child.cloneNode(true));
 	});
-	
+
 	// Replace the entire body
 	const newBody = newDoc.body;
 	document.body.innerHTML = newBody.innerHTML;
-	
+
 	// Copy body attributes
-	Array.from(newBody.attributes).forEach(attr => {
+	Array.from(newBody.attributes).forEach((attr) => {
 		document.body.setAttribute(attr.name, attr.value);
 	});
-	
+
 	// Load scripts in the new body
 	loadScripts(document.body);
 }
@@ -217,7 +226,7 @@ async function loadScripts(container: HTMLElement): Promise<void> {
 			newScript.defer = true;
 			newScript.type = oldScript.type || 'text/javascript';
 			console.log('Loading script:', oldScript);
-			
+
 			if (oldScript.src) {
 				newScript.src = `${oldScript.src}?cb=${Date.now()}`;
 			} else {
@@ -236,7 +245,7 @@ async function loadScripts(container: HTMLElement): Promise<void> {
 					signal: window.abortController?.signal,
 				}
 			);
-			
+
 			newScript.addEventListener(
 				'error',
 				(event) => {
