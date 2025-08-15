@@ -48,6 +48,7 @@
 							<span class="glow-blue"><%= player.joined ? "Joined" : "Not Joined" %></span>
 							<% if (localPlayerId && player.playerId === localPlayerId) { %>
 								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
 						</div>
 						<br>
