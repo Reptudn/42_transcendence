@@ -265,6 +265,7 @@ export function testCallback() {
 export async function acceptGameInvite(gameId: number) {
 	console.log('Accepting game invite for gameId', gameId);
 	await loadPartialView('api', true, `games/join/${gameId}/true`, false, true);
+	closeAllPopups();
 }
 
 export async function declineGameInvite(gameId: number) {
@@ -279,6 +280,7 @@ export async function declineGameInvite(gameId: number) {
 	}
 	const data = await res.json();
 	showLocalInfo(`${data.message}`);
+	closeAllPopups();
 }
 
 declare global {
