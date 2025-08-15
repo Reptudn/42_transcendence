@@ -33,8 +33,13 @@ interface GameState {
 }
 
 interface AIBrainData {
-	aiLastBallDistance: number;
-	aiDelayCounter: number;
-	aiLastTargetParam: number;
-	lastAIMovementDirection: number;
+	intendedPercent?: number;
+	nextRecalcAt?: number;
+}
+
+interface PowerupInstance {
+	type: PowerupType;
+	position: Point;
+	started: boolean;
+	expiresAt: number;
 }

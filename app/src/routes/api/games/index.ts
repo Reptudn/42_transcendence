@@ -9,7 +9,7 @@ import {
 	GameType,
 	// GameType,
 } from '../../../services/pong/games/gameClass';
-import { sendSseRawByUserId } from '../../../services/sse/handler';
+import { connectedClients, sendSseRawByUserId } from '../../../services/sse/handler';
 import { runningGames } from '../../../services/pong/games/games';
 import { getUserById } from '../../../services/database/users';
 import { getFriends } from '../../../services/database/friends';
@@ -18,7 +18,6 @@ import {
 	LocalPlayer,
 	UserPlayer,
 } from '../../../services/pong/games/playerClass';
-import { Powerups } from '../../../types/Games';
 import { Tournament } from '../../../services/pong/games/tournamentClass';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -34,26 +33,24 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 
+			if (!connectedClients.get(user.id)) {
+				fastify.log.warn(`User ${user.username} is not connected`);
+				return reply
+					.code(400)
+					.send({ error: 'User is not connected to SSE' });
+			}
+
 			fastify.log.info(`Creating a new game for user: ${user.username}`);
 			try {
 				let existingGame = runningGames.find((g) => g.admin.id === user.id); // find game where user is in either as admin
-				if (existingGame && existingGame.status === GameStatus.WAITING) {
-					return reply.code(200).send({
-						message:
-							'You already have a game in lobby phase.. putting you back in there!',
-						gameId: existingGame.gameId,
-					});
-				} else if (
-					existingGame &&
-					existingGame.status === GameStatus.RUNNING
-				) {
-					return reply.code(401).send({
+				if (existingGame && existingGame.status === GameStatus.RUNNING) {
+					return reply.code(400).send({
 						error: 'Seems like you have a running game already.. wait for it to end before creating a new one (yes you shouldnt have ended up here!)',
 					});
 				}
 
 				const id: number = runningGames.length + 1; // Temporary ID generation
-				const game = new Game(id, user, fastify, defaultGameSettings);
+				const game = new Game(id, user, fastify, { ...defaultGameSettings });
 				runningGames.push(game);
 				game.players.splice(0, game.players.length);
 				await game.addUserPlayer(user, false); // Adding the admin player
@@ -78,31 +75,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				type: 'boolean',
 				errorMessage: {
 					type: 'Powerups enabled setting must be true or false',
-				},
-			},
-			powerups: {
-				type: 'array',
-				items: {
-					type: 'string',
-					enum: [
-						'speed',
-						'multiball',
-						'bigpaddle',
-						'smallpaddle',
-						'freeze',
-						'reverse',
-					],
-					errorMessage: {
-						type: 'Each powerup must be a text value',
-						enum: 'Each powerup must be one of: speed, multiball, bigpaddle, smallpaddle, freeze, reverse',
-					},
-				},
-				uniqueItems: true,
-				maxItems: 10,
-				errorMessage: {
-					type: 'Powerups must be an array of powerup names',
-					uniqueItems: 'Duplicate powerups are not allowed',
-					maxItems: 'Cannot have more than 10 powerups enabled',
 				},
 			},
 			playerLives: {
@@ -236,35 +208,39 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		errorMessage: {
 			minProperties: 'At least one setting must be provided to update',
 			additionalProperties:
-				'Unknown field provided. Only powerupsEnabled, powerups, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed',
+				'Unknown field provided. Only powerupsEnabled, playerLives, gameDifficulty, map, aiUpdate, and localPlayerUpdate are allowed',
 		},
 	};
 
-	fastify.post('/settings/reset', async (request: FastifyRequest, reply: FastifyReply) => {
-		const user = await checkAuth(request, false, fastify);
-		if (!user) {
-			return reply.code(401).send({ error: 'Unauthorized' });
-		}
+	fastify.post(
+		'/settings/reset',
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			const user = await checkAuth(request, false, fastify);
+			if (!user) {
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
 
-		const game = runningGames.find(
-			(g) =>
-				g.status === GameStatus.WAITING &&
-				g.players.find(
-					(p) => p instanceof UserPlayer && g.admin.id === user.id
-				)
-		);
-		if (!game) {
-			return reply.code(404).send({
-				error: 'No game found for the user in lobby phase to reset settings',
-			});
-		}
+			const game = runningGames.find(
+				(g) =>
+					g.status === GameStatus.WAITING &&
+					g.players.find(
+						(p) => p instanceof UserPlayer && g.admin.id === user.id
+					)
+			);
+			if (!game) {
+				return reply.code(404).send({
+					error: 'No game found for the user in lobby phase to reset settings',
+				});
+			}
 
-		const oldGameType = game.config.gameType;
-		game.config = defaultGameSettings;
-		game.config.gameType = oldGameType; // Preserve the game type
-		await game.updateLobbyState();
-		return reply.code(200).send({ message: 'Game settings reset successfully!' });
-	});
+			const oldGameType = game.config.gameType;
+			game.config = { ...defaultGameSettings, gameType: oldGameType };
+			await game.updateLobbyState();
+			return reply
+				.code(200)
+				.send({ message: 'Game settings reset successfully!' });
+		}
+	);
 
 	fastify.post(
 		'/settings',
@@ -278,17 +254,15 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			const {
 				gameType,
 				powerupsEnabled,
-				powerups,
 				playerLives,
 				gameDifficulty,
 				map,
 				aiUpdate,
 				localPlayerUpdate,
-				autoAdvance
+				autoAdvance,
 			} = request.body as {
 				gameType?: GameType;
 				powerupsEnabled?: boolean;
-				powerups?: Powerups[];
 				playerLives?: number;
 				gameDifficulty?: number;
 				map?: string;
@@ -323,9 +297,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (game.alreadyStarted)
-				return reply.code(401).send({ error: 'You cant change settings after the first tournament game has been played' });
-			
-			let isAdmin = game.admin.id === user.id;
+				return reply.code(400).send({
+					error: 'You cant change settings after the first tournament game has been played',
+				});
+
+			const isAdmin = game.admin.id === user.id;
 			let changed = false;
 
 			if (isAdmin && map !== undefined) {
@@ -344,20 +320,6 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				changed = true;
 			}
 
-			if (isAdmin && powerups !== undefined) {
-				if (!game.config.powerupsEnabled) {
-					return reply.code(400).send({
-						error: 'Powerups are not enabled for this game. Turn on powerups first.',
-					});
-				} else {
-					fastify.log.info(
-						`Updating powerups for game ${game.gameId} by user ${user.username}`
-					);
-					game.config.powerups = powerups;
-					changed = true;
-				}
-			}
-
 			if (isAdmin && playerLives !== undefined) {
 				fastify.log.info(
 					`Updating player lives for game ${game.gameId} by user ${user.username}`
@@ -367,7 +329,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (isAdmin && autoAdvance !== undefined) {
-				fastify.log.info(`Updating auto advance for game ${game.gameId} by user ${user.username}`);
+				fastify.log.info(
+					`Updating auto advance for game ${game.gameId} by user ${user.username}`
+				);
 				game.config.autoAdvance = autoAdvance;
 				changed = true;
 			}
@@ -502,17 +466,22 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply.code(401).send({ error: 'Unauthorized' });
 			}
 			const { userId } = request.params as { userId: string };
+			if (!userId)
+				return reply.code(400).send({
+					error: 'Please specifiy a user id you want to invite.',
+				});
+
 			const parsedUserId = Number.parseInt(userId, 10);
 
 			const inviteUser = await getUserById(parsedUserId, fastify);
 			if (!inviteUser)
-				return reply.code(404).send({ error: `No such user found!` });
+				return reply.code(400).send({ error: `No such user found!` });
 
 			const friends = await getFriends(user.id, fastify);
 			if (friends) {
 				const isFriend = friends.find((f) => f.id === inviteUser.id);
 				if (!isFriend)
-					return reply.code(401).send({
+					return reply.code(400).send({
 						error: 'Cant invite user because they are not friends with you!',
 					});
 			}
@@ -523,11 +492,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				)
 			);
 			if (friendGame)
-				return reply
-					.code(401)
-					.send({
-						error: 'Cant invite a user which is already in a game',
-					});
+				return reply.code(400).send({
+					error: 'Cant invite a user which is already in a game',
+				});
 
 			const game = runningGames.find((g) => g.admin.id === user.id);
 			fastify.log.info(
@@ -557,14 +524,35 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 			try {
-				if (game.config.gameType === GameType.TOURNAMENT && !game.alreadyStarted)
-				{
+				// TODO: invite issue here
+				if (
+					game.config.gameType === GameType.TOURNAMENT &&
+					!game.alreadyStarted
+				) {
+					console.log('checking for ai');
 					const ai = game.players.find((p) => p instanceof AiPlayer);
-					if (ai) game.removePlayer(ai.playerId, true);
+					if (ai) {
+						console.log(
+							`Removing AI player ${ai.playerId} for user invitation`
+						);
+						await game.removePlayer(
+							ai.playerId,
+							false,
+							false,
+							true
+						);
+					} else {
+						console.log('no ai players found');
+					}
 				}
 				await game.addUserPlayer(inviteUser, false);
 			} catch (err) {
-				return reply.code(404).send({ error: err });
+				if (err instanceof Error) {
+					return reply.code(404).send({ error: err.message });
+				}
+				return reply
+					.code(404)
+					.send({ error: 'Failed to invite user to game' });
 			}
 
 			sendSseRawByUserId(
@@ -601,7 +589,10 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					)
 			);
 			if (!game) {
-				return reply.code(404).send({ error: 'No game found for the user' });
+				// TODO: get from the db if its a past game
+				return reply
+					.code(200)
+					.send({ message: 'No game found for the user or game is over' });
 			}
 
 			const player = game.players.find(
@@ -610,7 +601,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			try {
 				if (!player) throw new Error('You are not a player in this game!');
-				game.removePlayer(player.playerId);
+				await game.removePlayer(player.playerId);
 			} catch (err) {
 				if (err instanceof Error)
 					return reply
@@ -645,7 +636,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (game.status !== GameStatus.WAITING)
-				return reply.code(401).send({
+				return reply.code(400).send({
 					error: 'You can only kick players while in the lobby not ingame!',
 				});
 
@@ -718,7 +709,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							.code(200)
 							.send({ message: 'AI Player added successfully!' });
 					} else
-						return reply.code(401).send({
+						return reply.code(400).send({
 							error: 'Only the admin is allowed to add an AI Player!',
 						});
 				} else if (type === 'local') {
@@ -733,16 +724,26 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						).length;
 
 						if (userLocalPlayerAmount >= 1) {
-							return reply.code(401).send({
+							return reply.code(400).send({
 								error: 'You can only add one Local Player per User!',
 							});
 						}
-						if (game.config.gameType === GameType.TOURNAMENT)
-						{
-							const ai = game.players.find((p) => p instanceof AiPlayer);
-							if (ai) game.removePlayer(ai.playerId, false, true);
+						if (game.config.gameType === GameType.TOURNAMENT) {
+							const ai = game.players.find(
+								(p) => p instanceof AiPlayer
+							);
+							if (ai)
+								await game.removePlayer(
+									ai.playerId,
+									false,
+									true,
+									true
+								);
 						}
-						await game.addLocalPlayer(owner as UserPlayer);
+						await game.addLocalPlayer(
+							owner as UserPlayer,
+							false,
+						);
 						return reply.code(200).send({
 							message: 'Local Player added successfully!',
 						});
@@ -787,7 +788,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 
 			if (game.status !== GameStatus.WAITING)
-				return reply.code(401).send({
+				return reply.code(400).send({
 					error: 'You cant start the game while it is already running!',
 				});
 
@@ -917,7 +918,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				return reply
 					.code(404)
 					.send({ error: 'You are not invited to this game!' });
-			game.updateLobbyState();
+			await game.updateLobbyState();
 
 			(player as UserPlayer).lang = request.t;
 
@@ -928,7 +929,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				initial: true, // to load the lobby script
 				localPlayerId: -1,
 				selfId: player?.playerId || -1,
-				tournamentTree: game.tournament ? game.tournament.getBracketJSON() : null,
+				tournamentTree: game.tournament
+					? game.tournament.getBracketJSON()
+					: null,
 				t: (player as UserPlayer).lang
 			});
 		}
@@ -993,7 +996,16 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				(l) => l instanceof LocalPlayer && l.owner === player
 			) as LocalPlayer | undefined;
 
-			socket.send(JSON.stringify({ type: 'state', state: game.gameState }));
+			socket.send(
+				JSON.stringify({
+					type: 'state',
+					state: game.formatStateForClients(),
+				})
+			);
+
+			socket.on('ping', () => {
+				socket.pong();
+			});
 
 			socket.on('error', (error) => {
 				fastify.log.error(

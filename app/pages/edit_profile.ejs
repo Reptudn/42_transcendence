@@ -1,4 +1,4 @@
-<div class="max-w-7xl p-6 rounded-lg glow-green text-2xl">
+<div class="p-6 rounded-lg glow-green text-2xl">
 	<h2 class="text-2xl font-bold mb-6 text-center"><%= t('edit_profile.edit_profile') %></h2>
 	<div id="editProfileForm">
 		<div class="mb-4">
@@ -31,10 +31,6 @@
 				class="bg-[#00ff00] text-white font-bold py-2 px-4 rounded"><%= t('edit_profile.save_changes') %>
 			</button>
 		</div>
-		<!-- <div class="text-center"> -->
-			<%- include('misc/totp_toggle') %>
-		<!-- </div> -->
-
 		<div class="h-10"></div>
 		<hr class="my-4">
 
@@ -68,10 +64,12 @@
 				</button>
 			</div>
 		</div>
-
 		<div class="h-10"></div>
 		<hr class="my-4">
-
+		<h3 class="text-lg font-bold mb-2"><%= t('edit_profile.2_factor_authentication') %></h3>
+		<%- include('misc/totp_toggle') %>
+		<div class="h-10"></div>
+		<hr class="my-4">
 		<h3 class="text-lg font-bold mb-2"><%= t('edit_profile.change_password') %></h3>
 		<div class="mb-4">
 			<label class="block font-bold mb-2"><%= t('edit_profile.old_password') %>:</label>

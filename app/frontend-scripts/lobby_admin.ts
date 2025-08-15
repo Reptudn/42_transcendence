@@ -50,7 +50,10 @@ export async function refreshOnlineFriends() {
 		.join('');
 }
 
-export async function updateSettings(newSettings: any, error: boolean = false) {
+export async function updateSettings(
+	newSettings: any,
+	success_info: boolean = false
+) {
 	const res = await fetch('/api/games/settings', {
 		method: 'POST',
 		headers: {
@@ -63,7 +66,7 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 		const data = await res.json();
 		showLocalError(data.error);
 	} else {
-		if (!error) return;
+		if (!success_info) return;
 		const data = await res.json();
 		showLocalInfo(data.message);
 	}
@@ -72,56 +75,66 @@ export async function updateSettings(newSettings: any, error: boolean = false) {
 export async function resetGameSettings() {
 	console.log('Resetting game settings to default...');
 	const res = await fetch('/api/games/settings/reset', {
-		method: 'POST'
+		method: 'POST',
 	});
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`${error.error || 'Failed to reset settings: Unknown error'}`);
+		showLocalError(
+			`${error.error || 'Failed to reset settings: Unknown error'}`
+		);
 		return;
 	}
 	const data = await res.json();
 	console.log('Game settings reset:', data);
 	showLocalInfo(`${data.message || 'Game settings reset successfully!'}`);
-};
+}
 
 export async function setAutoAdvance(enabled: boolean) {
 	console.log('Setting auto advance for AI:', enabled);
 	await updateSettings({ autoAdvance: enabled });
 }
 
-const powerupsToggle = document.getElementById(
-	'powerups-toggle'
-) as HTMLInputElement | null;
-powerupsToggle?.addEventListener('change', async (event) => {
-	const isChecked = (event.target as HTMLInputElement).checked;
-	await updateSettings({ powerupsEnabled: isChecked });
-});
-
-const maxPlayerSlider = document.getElementById(
-	'difficulty-input'
-) as HTMLInputElement | null;
-maxPlayerSlider?.addEventListener('change', async (event) => {
-	const newValue = (event.target as HTMLInputElement).value;
-	await updateSettings({ gameDifficulty: Number(newValue) });
-});
-
-const mapSelect = document.getElementById('map-select') as HTMLSelectElement | null;
-mapSelect?.addEventListener('change', async (event) => {
-	const selectedMap = (event.target as HTMLSelectElement).value;
-	await updateSettings({ map: selectedMap.toLocaleLowerCase() });
-});
-
-const gameTypeSelector = document.getElementById('game-type-select') as HTMLSelectElement | null;
-gameTypeSelector?.addEventListener('change', async (event) => {
-	const selectedGameType = (event.target as HTMLSelectElement).value;
-	await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
-});
-
-export async function addPowerUp() {
-	console.log('Adding power-up...');
-	alert('Not implemented');
+export async function togglePowerups(enabled: boolean) {
+	console.log('Changing powerup enabled status');
+	await updateSettings({ powerupsEnabled: enabled });
 }
+
+export function initLobbyButtons() {
+	const powerupsToggle = document.getElementById(
+		'powerups-toggle'
+	) as HTMLInputElement | null;
+	powerupsToggle?.addEventListener('change', async (event) => {
+		const isChecked = (event.target as HTMLInputElement).checked;
+		await updateSettings({ powerupsEnabled: isChecked });
+	});
+
+	const maxPlayerSlider = document.getElementById(
+		'difficulty-input'
+	) as HTMLInputElement | null;
+	maxPlayerSlider?.addEventListener('change', async (event) => {
+		const newValue = (event.target as HTMLInputElement).value;
+		await updateSettings({ gameDifficulty: Number(newValue) });
+	});
+
+	const mapSelect = document.getElementById(
+		'map-select'
+	) as HTMLSelectElement | null;
+	mapSelect?.addEventListener('change', async (event) => {
+		const selectedMap = (event.target as HTMLSelectElement).value;
+		await updateSettings({ map: selectedMap.toLocaleLowerCase() });
+	});
+
+	const gameTypeSelector = document.getElementById(
+		'game-type-select'
+	) as HTMLSelectElement | null;
+	gameTypeSelector?.addEventListener('change', async (event) => {
+		const selectedGameType = (event.target as HTMLSelectElement).value;
+		await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
+	});
+}
+
+initLobbyButtons();
 
 export async function addAIPlayer() {
 	console.log('Adding AI player...');
@@ -146,8 +159,9 @@ export async function addUserPlayer(friendId: number) {
 	if (!response.ok) {
 		const error = await response.json();
 		showLocalError(error.error);
+		return;
 	}
-	const data = (await response.json()) as { message: string };
+	const data = await response.json();
 	showLocalInfo(data.message);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
@@ -187,7 +201,6 @@ export async function kickPlayer(playerId: number) {
 }
 
 export async function leaveGame() {
-
 	console.log('Leaving game...');
 	const res = await fetch('/api/games/leave', { method: 'POST' });
 	if (res.ok) {
@@ -197,7 +210,8 @@ export async function leaveGame() {
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+		if (error.error !== 'No game found for the user')
+			showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
 	}
 	await loadPartialView('profile');
 }
@@ -217,8 +231,10 @@ export async function startGame() {
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
-	if (lobbyContainer) lobbyContainer.innerHTML = html;
-	else showLocalError('Failed to update lobby due to missing lobby div.');
+	if (lobbyContainer) {
+		lobbyContainer.innerHTML = html;
+		initLobbyButtons();
+	}
 }
 
 export async function renameLocalPlayer(id: number) {
@@ -227,15 +243,12 @@ export async function renameLocalPlayer(id: number) {
 	const newName = prompt('Enter new name for local player:');
 	if (!newName) return;
 
-	await updateSettings(
-		{
-			localPlayerUpdate: {
-				playerId: id,
-				name: newName,
-			},
+	await updateSettings({
+		localPlayerUpdate: {
+			playerId: id,
+			name: newName,
 		},
-		true
-	);
+	});
 }
 
 export async function renameAiPlayer(id: number) {
@@ -244,50 +257,52 @@ export async function renameAiPlayer(id: number) {
 	const newName = prompt('Enter new name for AI player:');
 	if (!newName) return;
 
-	await updateSettings(
-		{
-			aiUpdate: {
-				playerId: id,
-				name: newName,
-			},
+	await updateSettings({
+		aiUpdate: {
+			playerId: id,
+			name: newName,
 		},
-		true
-	);
+	});
 }
 
 export async function setAiDifficulty(id: number, difficulty: string | number) {
-	const difficultyNum = typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
-	
+	const difficultyNum =
+		typeof difficulty === 'string' ? parseInt(difficulty) : difficulty;
+
 	if (isNaN(difficultyNum) || difficultyNum > 10) {
 		const correctedDifficulty = Math.min(10, Math.max(1, difficultyNum || 1));
-		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		console.log(
+			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
+		);
 		await updateSettings({
 			aiUpdate: {
 				playerId: id,
-				difficulty: correctedDifficulty
-			}
-		}, true);
+				difficulty: correctedDifficulty,
+			},
+		});
 		return;
 	}
-	
+
 	if (difficultyNum < 1) {
 		const correctedDifficulty = 1;
-		console.log(`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`);
+		console.log(
+			`Difficulty corrected from ${difficultyNum} to ${correctedDifficulty}`
+		);
 		await updateSettings({
 			aiUpdate: {
 				playerId: id,
-				difficulty: correctedDifficulty
-			}
-		}, true);
+				difficulty: correctedDifficulty,
+			},
+		});
 		return;
 	}
 
 	await updateSettings({
 		aiUpdate: {
 			playerId: id,
-			difficulty: difficultyNum
-		}
-	}, true);
+			difficulty: difficultyNum,
+		},
+	});
 }
 
 await refreshOnlineFriends();

@@ -6,6 +6,7 @@ import {
 	rotatePoint,
 	angleOf,
 } from './pointUtils.js';
+import { circlePolygonCollision, computeCollisionResponse } from './ballMovement.js';
 
 /**
  * Moves the given player's paddle along its path.
@@ -22,15 +23,15 @@ export function movePaddle(
 	direction: number,
 	speed: number
 ): GameState {
-	if (typeof direction !== 'number' || isNaN(direction)) {
+	if (typeof direction !== 'number' || Number.isNaN(direction)) {
 		console.error('Invalid direction value:', direction);
 		direction = 0;
 	}
-	if (typeof speed !== 'number' || isNaN(speed)) {
+	if (typeof speed !== 'number' || Number.isNaN(speed)) {
 		console.error('Invalid speed value:', speed);
 		speed = 1;
 	}
-	if (speed === 0 || direction == 0) {
+	if (speed === 0 || direction === 0) {
 		return gameState;
 	}
 
@@ -97,10 +98,7 @@ export function movePaddle(
 		// Identify the segment that contains the new parameter.
 		let segmentIndex = 0;
 		for (let i = 0; i < cumulativeLengths.length - 1; i++) {
-			if (
-				param >= cumulativeLengths[i] &&
-				param <= cumulativeLengths[i + 1]
-			) {
+			if (param >= cumulativeLengths[i] && param <= cumulativeLengths[i + 1]) {
 				segmentIndex = i;
 				break;
 			}
@@ -181,6 +179,43 @@ export function movePaddle(
 	}
 
 	// Update the paddle with its new anchors and shape.
+	const delta = subtractPoints(newAnchor1, originalAnchor1);
+	const ballObj = gameState.objects.find((o) => o.type === 'ball') as any;
+
+	if (ballObj && ballObj.center && typeof ballObj.radius === 'number') {
+		const overlapsAfterMove = circlePolygonCollision(
+			ballObj.center,
+			ballObj.radius,
+			newShape
+		);
+		if (overlapsAfterMove) {
+			const resp = computeCollisionResponse(
+				ballObj.center,
+				ballObj.radius,
+				newShape
+			);
+			if (resp) {
+				ballObj.center = {
+					x: ballObj.center.x + resp.normal.x * (resp.penetration + 0.5),
+					y: ballObj.center.y + resp.normal.y * (resp.penetration + 0.5),
+				};
+				const paddleDelta = delta;
+				const relV = {
+					x: (ballObj.velocity?.x ?? 0) - paddleDelta.x,
+					y: (ballObj.velocity?.y ?? 0) - paddleDelta.y,
+				};
+				const relDot = relV.x * resp.normal.x + relV.y * resp.normal.y;
+				if (relDot < 0) {
+					const v = ballObj.velocity ?? { x: 0, y: 0 };
+					ballObj.velocity = {
+						x: v.x - 2 * relDot * resp.normal.x,
+						y: v.y - 2 * relDot * resp.normal.y,
+					};
+				}
+			}
+		}
+	}
+
 	paddle.anchor1 = newAnchor1;
 	paddle.anchor2 = newAnchor2;
 	paddle.shape = newShape;

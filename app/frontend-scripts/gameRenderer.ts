@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
 import { onUnloadPageAsync } from './navigator.js';
 
 let previousState: GameState | null = null;
@@ -15,6 +15,80 @@ let lastVector: { x: number; y: number } | null = null;
 
 const ballTrail: TrailElement[] = [];
 const trailLifetime: number = 750;
+
+const playerColors = [
+	{ r: 255, g: 160, b: 160 },
+	{ r: 255, g: 255, b: 170 },
+	{ r: 180, g: 255, b: 180 },
+	{ r: 180, g: 210, b: 255 },
+];
+export function getPlayerColor(index: number) {
+	const c = playerColors[index % playerColors.length];
+	return { r: c.r, g: c.g, b: c.b };
+}
+
+const powerupSettings = [
+	{
+		type: 'inverse_controls',
+		icon: '/static/assets/images/powerups/inverse_controls.png',
+		color: { r: 255, g: 0, b: 0 },
+	},
+	{
+		type: 'redirection',
+		icon: '/static/assets/images/powerups/redirection.png',
+		color: { r: 0, g: 255, b: 0 },
+	},
+	{
+		type: 'nausea',
+		icon: '/static/assets/images/powerups/nausea.png',
+		color: { r: 0, g: 0, b: 255 },
+	},
+	{
+		type: 'wonky_ball',
+		icon: '/static/assets/images/powerups/wonky_ball.png',
+		color: { r: 128, g: 128, b: 0 },
+	},
+	{
+		type: 'phasing_paddle',
+		icon: '/static/assets/images/powerups/phasing_paddle.png',
+		color: { r: 0, g: 128, b: 128 },
+	},
+	{
+		type: 'phasing_ball',
+		icon: '/static/assets/images/powerups/phasing_ball.png',
+		color: { r: 128, g: 0, b: 128 },
+	},
+];
+
+const canonical = (s: string) => s.toLowerCase().replace(/[\s\-_]+/g, '');
+const powerupSettingsMap = new Map(
+	powerupSettings.map((s) => [canonical(s.type), s])
+);
+
+const iconReady = new Map<string, HTMLImageElement>();
+const iconFailed = new Set<string>();
+const iconLoading = new Set<string>();
+function ensureIcon(path: string) {
+	if (iconReady.has(path) || iconFailed.has(path) || iconLoading.has(path)) return;
+	iconLoading.add(path);
+	const img = new Image();
+	img.onload = () => {
+		if (img.naturalWidth > 0) {
+			iconReady.set(path, img);
+		} else {
+			iconFailed.add(path);
+			console.warn('Powerup icon has zero size:', path);
+		}
+		iconLoading.delete(path);
+	};
+	img.onerror = () => {
+		iconFailed.add(path);
+		iconLoading.delete(path);
+		console.warn('Powerup icon failed to load:', path);
+	};
+	img.src = path;
+	img.decode?.().catch(() => {});
+}
 
 interface Point {
 	x: number;
@@ -38,6 +112,12 @@ interface GameState {
 	objects: GameObject[];
 	mapWidth?: number;
 	mapHeight?: number;
+	activePowerups?: {
+		type: string;
+		position: Point;
+		started: boolean;
+		expiresAt: number;
+	}[];
 }
 
 interface TrailElement {
@@ -82,13 +162,68 @@ if (!ctx) {
 	throw new Error('Failed to get 2D context from canvas');
 }
 
-export function initCanvas()
-{
+let nauseaEffectEnabled = false;
+
+function setNauseaEffectEnabled(enabled: boolean) {
+	if (enabled && !nauseaEffectEnabled) {
+		canvas.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas.classList.remove('game-canvas-background');
+		nauseaEffectEnabled = true;
+	} else if (!enabled && nauseaEffectEnabled) {
+		canvas.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas.classList.add('game-canvas-background');
+		nauseaEffectEnabled = false;
+	}
+}
+
+function isPowerupActive(state: GameState | null, type: string): boolean {
+	if (!state?.activePowerups) return false;
+	const now = Date.now();
+	const key = canonical(type);
+	return state.activePowerups.some(
+		(p) => canonical(p.type) === key && p.started && p.expiresAt > now
+	);
+}
+
+const PHASE_PERIOD_MS = 1600;
+const PHASE_MIN_ALPHA = 0.0;
+const PHASE_MAX_ALPHA = 1.0;
+const PHASE_ZERO_HOLD = 0.15;
+const PHASE_ONE_HOLD = 0.05;
+function smoothstep(t: number): number {
+	return t * t * (3 - 2 * t);
+}
+function plateauAlpha(nowMs: number, zeroHold: number, oneHold: number): number {
+	const p = (nowMs % PHASE_PERIOD_MS) / PHASE_PERIOD_MS;
+	const riseStart = zeroHold;
+	const fallStart = 1 - oneHold;
+	if (p < riseStart) return 0;
+	if (p >= fallStart) return 1;
+	const mid = (riseStart + fallStart) / 2;
+	if (p < mid) {
+		const t = (p - riseStart) / (mid - riseStart);
+		return smoothstep(t);
+	}
+	const t = (p - mid) / (fallStart - mid);
+	return 1 - smoothstep(t);
+}
+function getPhasingAlpha(nowMs: number): number {
+	const base = plateauAlpha(nowMs, PHASE_ZERO_HOLD, PHASE_ONE_HOLD);
+	return PHASE_MIN_ALPHA + (PHASE_MAX_ALPHA - PHASE_MIN_ALPHA) * base;
+}
+const BALL_PHASE_ZERO_HOLD = 0.45;
+const BALL_PHASE_ONE_HOLD = 0.1;
+function getBallPhasingAlpha(nowMs: number): number {
+	return plateauAlpha(nowMs, BALL_PHASE_ZERO_HOLD, BALL_PHASE_ONE_HOLD);
+}
+
+export function initCanvas() {
 	canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 	ctx = canvas.getContext('2d');
 	if (!ctx) {
 		throw new Error('Failed to get 2D context from canvas');
 	}
+	for (const s of powerupSettings) ensureIcon(s.icon);
 	startRendering();
 }
 
@@ -106,26 +241,30 @@ export function drawCircle(
 	x: number,
 	y: number,
 	radius: number,
-	color: { r: number; g: number; b: number }
+	color: { r: number; g: number; b: number },
+	alpha = 1
 ): void {
 	if (ctx) {
+		ctx.save();
+		ctx.globalAlpha = alpha;
 		ctx.beginPath();
 		if (!isPointInsideCanvas(x, y))
 			console.log('Point is outside canvas:', x, y);
 		ctx.arc(x, y, radius, 0, Math.PI * 2);
 		ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 		ctx.fill();
+		ctx.restore();
 	} else {
 		showLocalError('Canvas context is null');
 	}
 }
-
 export function drawPolygon(
 	points: Point[],
 	strokeStyle: string,
 	color = 'black',
 	lineWidth = 2,
-	closePath = true
+	closePath = true,
+	alpha = 1
 ): void {
 	if (points.length === 0) return;
 	const path = new Path2D();
@@ -137,14 +276,95 @@ export function drawPolygon(
 	}
 	if (closePath) path.closePath();
 	if (ctx) {
+		ctx.save();
+		ctx.globalAlpha = alpha;
 		ctx.fillStyle = color;
 		ctx.fill(path);
 		ctx.strokeStyle = strokeStyle;
 		ctx.lineWidth = lineWidth;
 		ctx.stroke(path);
+		ctx.restore();
 	} else {
 		showLocalError('Canvas context is null');
 	}
+}
+function drawPolyline(
+	points: Point[],
+	stroke: string,
+	width: number,
+	dash: number[]
+): void {
+	if (!ctx || points.length < 2) return;
+	const path = new Path2D();
+	path.moveTo(points[0].x, points[0].y);
+	for (let i = 1; i < points.length; i++) path.lineTo(points[i].x, points[i].y);
+	ctx.save();
+	ctx.setLineDash(dash);
+	ctx.lineWidth = width;
+	ctx.strokeStyle = stroke;
+	ctx.stroke(path);
+	ctx.restore();
+}
+export function drawPowerupIcon(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	fill = true
+) {
+	if (!ctx) return;
+	const settings = powerupSettingsMap.get(canonical(type));
+	const radius = 3 * scale;
+	const color = settings
+		? `rgb(${settings.color.r}, ${settings.color.g}, ${settings.color.b})`
+		: '#888';
+
+	ctx.beginPath();
+	ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+	if (fill) {
+		ctx.fillStyle = color;
+		ctx.fill();
+
+		if (!settings) return;
+		const path = settings.icon;
+		const ready = iconReady.get(path);
+		if (ready) {
+			const size = radius * 1.6;
+			ctx.drawImage(ready, x - size / 2, y - size / 2, size, size);
+			return;
+		}
+		if (!iconFailed.has(path)) ensureIcon(path);
+	} else {
+		ctx.lineWidth = 3;
+		ctx.strokeStyle = color;
+		ctx.stroke();
+	}
+}
+function drawActivePowerupBadge(
+	x: number,
+	y: number,
+	scale: number,
+	type: string,
+	remainingSeconds: number
+) {
+	if (!ctx) return;
+	ctx.save();
+	ctx.globalAlpha = 0.5;
+	drawPowerupIcon(x, y, scale, type, false);
+	ctx.restore();
+
+	ctx.save();
+	const radius = 3 * scale;
+	const fontSize = Math.max(10, Math.floor(radius * 0.9));
+	ctx.font = `${fontSize}px "Courier New", monospace`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.lineWidth = 3;
+	ctx.strokeText(String(remainingSeconds), x, y);
+	ctx.fillStyle = '#fff';
+	ctx.fillText(String(remainingSeconds), x, y);
+	ctx.restore();
 }
 
 export function transformPoints(points: Point[], scale: number): Point[] {
@@ -229,7 +449,11 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 		const age = now - elem.time;
 		const lifeFactor = 1 - Math.min(age / trailLifetime, 1);
 		widths.push(baseRadius * scale * 2 * lifeFactor);
-		alphas.push(lifeFactor);
+		const phase =
+			currentState && isPowerupActive(currentState, 'phasing_ball')
+				? getBallPhasingAlpha(elem.time)
+				: 1;
+		alphas.push(lifeFactor * phase);
 	}
 
 	const { left, right } = computeOffsetPoints(points, widths);
@@ -275,8 +499,6 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	// console.log('Drawing game state:', gameState);
-
 	const scaleX = canvas.width / mapSizeX;
 	const scaleY = canvas.height / mapSizeY;
 	const scale = Math.min(scaleX, scaleY);
@@ -290,7 +512,10 @@ export function drawGameState(gameState: GameState): void {
 					const posX = obj.center.x * scale;
 					const posY = obj.center.y * scale;
 					const radius = obj.radius * scale;
-					drawCircle(posX, posY, radius, trailColor);
+					const alpha = isPowerupActive(gameState, 'phasing_ball')
+						? getBallPhasingAlpha(performance.now())
+						: 1;
+					drawCircle(posX, posY, radius, trailColor, alpha);
 				} else {
 					showLocalInfo(
 						`Ball object does not have a center or radius: ${obj}`
@@ -301,7 +526,18 @@ export function drawGameState(gameState: GameState): void {
 			case 'paddle':
 				if (obj.shape && obj.shape.length > 0) {
 					const points = transformPoints(obj.shape, scale);
-					drawPolygon(points, '', 'blue');
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					const alpha = isPowerupActive(gameState, 'phasing_paddle')
+						? getPhasingAlpha(performance.now())
+						: 1;
+					drawPolygon(
+						points,
+						'rgba(0,0,0,0)',
+						`rgb(${c.r}, ${c.g}, ${c.b})`,
+						2,
+						true,
+						alpha
+					);
 				} else showLocalInfo(`Paddle object does not have a shape: ${obj}`);
 				break;
 
@@ -311,9 +547,42 @@ export function drawGameState(gameState: GameState): void {
 					drawPolygon(points, '', 'black');
 				} else console.log('Wall object does not have a shape:', obj);
 				break;
+
+			case 'player_damage_area':
+				if (obj.shape && obj.shape.length > 1) {
+					const points = transformPoints(obj.shape, scale);
+					const c = getPlayerColor(obj.playerNbr ?? 0);
+					const w = Math.max(1);
+					drawPolyline(
+						points,
+						`rgba(${c.r}, ${c.g}, ${c.b}, 0.95)`,
+						w,
+						[12, 8]
+					);
+				}
+				break;
 		}
 	}
-	console.log("gamestate drawn");
+	if (gameState.activePowerups) {
+		const nowMs = Date.now();
+		for (const p of gameState.activePowerups) {
+			const x = p.position.x * scale;
+			const y = p.position.y * scale;
+			if (p.started) {
+				const remainingMs = p.expiresAt - nowMs;
+				if (remainingMs > 0) {
+					const remainingSeconds = Math.max(
+						0,
+						Math.ceil(remainingMs / 1000)
+					);
+					drawActivePowerupBadge(x, y, scale, p.type, remainingSeconds);
+				}
+			} else {
+				drawPowerupIcon(x, y, scale, p.type);
+			}
+		}
+	}
+	setNauseaEffectEnabled(isPowerupActive(gameState, 'nausea'));
 }
 
 export function updateGameState(
@@ -329,12 +598,20 @@ export function updateGameState(
 	detectBounce(newState);
 }
 
-export function randomColor(): { r: number; g: number; b: number } {
-	return {
-		r: Math.floor(Math.random() * 256),
-		g: Math.floor(Math.random() * 256),
-		b: Math.floor(Math.random() * 256),
-	};
+export function randomLightColor(): { r: number; g: number; b: number } {
+	const min = 160;
+	const max = 255;
+	let r = min + Math.floor(Math.random() * (max - min + 1));
+	let g = min + Math.floor(Math.random() * (max - min + 1));
+	let b = min + Math.floor(Math.random() * (max - min + 1));
+	const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	if (luminance < 190) {
+		const boost = 190 - luminance;
+		r = Math.min(255, Math.round(r + boost * 0.3));
+		g = Math.min(255, Math.round(g + boost * 0.6));
+		b = Math.min(255, Math.round(b + boost * 0.1));
+	}
+	return { r, g, b };
 }
 export function detectBounce(state: GameState): void {
 	function calculateAngleDifference(
@@ -358,12 +635,9 @@ export function detectBounce(state: GameState): void {
 		if (obj.type === 'ball' && obj.velocity) {
 			const newVector = { x: obj.velocity.x, y: obj.velocity.y };
 			if (lastVector) {
-				const angleDiff = calculateAngleDifference(
-					lastVector,
-					newVector
-				);
+				const angleDiff = calculateAngleDifference(lastVector, newVector);
 				if (angleDiff > 10) {
-					trailColor = randomColor();
+					trailColor = randomLightColor();
 				}
 			}
 			lastVector = newVector;
@@ -417,6 +691,7 @@ export function render(): void {
 		const interpolatedState: GameState = {
 			mapWidth: currentState.mapWidth,
 			mapHeight: currentState.mapHeight,
+			activePowerups: currentState.activePowerups,
 			objects: currentState.objects.map((currObj, index) => {
 				const prevObj = previousState
 					? previousState.objects[index]
@@ -462,8 +737,9 @@ export function stopRendering(): void {
 	}
 }
 
-declare global
-{
+startRendering();
+
+declare global {
 	interface Window {
 		initCanvas: () => void;
 		startRendering: () => void;

@@ -1,5 +1,26 @@
-<div class="max-w-4xl p-6 rounded-lg">
-	<h3 class="text-4xl font-bold mb-4 glow-green "><%= t('index.title') %></h3>
-	<p class="text-2xl leading-relaxed glow-green"><%= t('index.description') %></p>
-	<p class="text-2xl leading-relaxed glow-green">my dear <%= name %>!</p>
+<div class="max-w-4xl p-6 rounded-lg mx-auto mt-10 mb-10">
+    <h3 class="text-4xl font-bold mb-4 glow-green text-center"><%= t('index.title') %> <%= name ? name : t('index.title_stranger')%>...</h3>
+
+    <h2 class="text-3xl font-semibold mb-4 glow-green"><%= t('index.what_you_can_do') %></h2>
+    <ul class="list-disc list-inside text-xl glow-green space-y-2 mb-8">
+        <li>
+            <span class="glow-green"><%= t('index.add_friends') %></span>
+        </li>
+        <li>
+            <span class="glow-green"><%= t('index.adjust_profile') %></span>
+        </li>
+        <li>
+            <span class="glow-green"><%= t('index.enable_2fa') %></span>
+        </li>
+        <li class="important">
+            <span class="glow-green"><%= t('index.pong_heart') %></span>
+            <ul class="list-disc list-inside ml-8 mt-2 space-y-1">
+                <li>🏆 <strong class="glow-green"><%= t('index.tournament_mode_title') %></strong> - <%= t('index.tournament_mode_desc') %></li>
+                <li>🎮 <strong class="glow-green"><%= t('index.classic_mode_title') %></strong> - <%= t('index.classic_mode_desc') %></li>
+                <li>⚡ <strong class="glow-green"><%= t('index.powerups_title') %></strong> - <%= t('index.powerups_desc') %></li>
+            </ul>
+        </li>
+    </ul>
+
+    <p class="text-2xl glow-green text-center font-bold"><%= t('index.ready') %></p>
 </div>

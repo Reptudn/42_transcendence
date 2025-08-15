@@ -7,6 +7,7 @@ declare global {
 	}
 }
 
+// TODO: figure out why the f*ck when calling the load partial view from here we end up on the same page even though we specify a different one
 export async function setLanguageCookie(lang: string) {
 	const is_in_game =
 		last_page?.startsWith('/partial/pages/lobby') ||
@@ -23,7 +24,7 @@ export async function setLanguageCookie(lang: string) {
 				60 * 60 * 24 * 30
 			}`;
 			console.log(`Language set to ${lang}`);
-			await loadPartialView(`profile?lng=${lang}`, false, null, true, true);
+			await loadPartialView(`profile?lng=${lang}`, false, null, true, true, true);
 		} else {
 			console.log('Language change cancelled');
 		}
@@ -31,12 +32,12 @@ export async function setLanguageCookie(lang: string) {
 		document.cookie = `i18next=${lang}; path=/; max-age=${
 			60 * 60 * 24 * 30
 		}; samesite=lax`;
-		await loadPartialView(`profile?lng=${lang}`, false);
+		await loadPartialView(`profile?lng=${lang}`, false, null, true, true, true);
 	} else {
 		document.cookie = `i18next=${lang}; path=/; max-age=${
 			60 * 60 * 24 * 30
 		}; samesite=lax`;
-		loadPartialView(`index?lng=${lang}`, false);
+		loadPartialView(`index?lng=${lang}`, false, null, true, true, true);
 	}
 
 	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`);

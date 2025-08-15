@@ -42,7 +42,7 @@
 
 -   [x] Any password stored in the database, if applicable, must be hashed.
 -   [x] Must be protected against SQL Injections and XSS Attacks
--   [ ] The Backend must run secure with HTTPS
+-   [x] The Backend must run secure with HTTPS
 -   [x] The Sockets must use WSS instead of just WS
 -   [x] Ensure routes are protected
 -   [x] Strong password hashing algo
@@ -71,15 +71,15 @@
 
 #### Standard user management, authentication and users across tournaments (Major) (3 / 9)
 
--   [ ] Users can securely subscribe to the website.
--   [ ] Registered users can securely log in.
+-   [x] Users can securely subscribe to the website.
+-   [x] Registered users can securely log in.
 -   [x] Users can select a unique display name to participate in tournaments.
 -   [x] Users can update their information.
 -   [x] Users can upload an avatar, with a default option if none is provided.
 -   [x] Users can add others as friends and view their online status.
 -   [x] User profiles display stats, such as wins and losses.
 -   [x] Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users.
--   [ ] Logical and good managemnt for duplicate usernames and emails
+-   [x] Logical and good managemnt for duplicate usernames and emails
 
 #### Remote Auth with Google (Major) (4 / 9)
 
@@ -100,8 +100,8 @@
 
 #### Game Customization (Minor) (6.5 / 9)
 
--   [ ] Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.
--   [ ] Allow users to choose a default version of the game with basic features if they prefer a simpler experience.
+-   [x] Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.
+-   [x] Allow users to choose a default version of the game with basic features if they prefer a simpler experience.
 -   [x] Ensure that customization options are available and applicable to all games offered on the platform.
 -   [x] Implement user-friendly settings menus or interfaces for adjusting game parameters.
 -   [x] Maintain consistency in customization features across all games to provide a unified user experience.
@@ -122,12 +122,12 @@
 > evaluation. Creating an AI that does nothing is strictly prohibited;
 > it must have the capability to win occasionally
 
--   [ ] Develop an AI opponent that provides a challenging and engaging gameplay experience for users.
--   [ ] The AI must replicate human behavior, which means that in your AI implementation, you must simulate keyboard input. The constraint here is that the AI can only refresh its view of the game once per second, requiring it to anticipate bounces and other actions.
--   [ ] The AI must utilize power-ups if you have chosen to implement the Game customization options module.
--   [ ] Implement AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves.
--   [ ] Explore alternative algorithms and techniques to create an effective AI player without relying on A\*.
--   [ ] Ensure that the AI adapts to different gameplay scenarios and user interactions.
+-   [x] Develop an AI opponent that provides a challenging and engaging gameplay experience for users.
+-   [x] The AI must replicate human behavior, which means that in your AI implementation, you must simulate keyboard input. The constraint here is that the AI can only refresh its view of the game once per second, requiring it to anticipate bounces and other actions.
+-   [x] The AI must utilize power-ups if you have chosen to implement the Game customization options module.
+-   [x] Implement AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves.
+-   [x] Explore alternative algorithms and techniques to create an effective AI player without relying on A\*.
+-   [x] Ensure that the AI adapts to different gameplay scenarios and user interactions.
 
 #### User and Game Stats Dashboard (Minor) (9 / 9 🥳)
 

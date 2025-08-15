@@ -1,5 +1,10 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { initCanvas, stopRendering, updateGameState } from './gameRenderer.js';
+import {
+	initCanvas,
+	stopRendering,
+	updateGameState,
+	getPlayerColor,
+} from './gameRenderer.js';
 import { loadPartialView, onUnloadPageAsync } from './navigator.js';
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -22,7 +27,7 @@ ws.onerror = (error) => {
 	showLocalError('Failed to connect to game server');
 };
 
-ws.onclose = (event) => {
+ws.onclose = async (event) => {
 	window.stopRendering();
 	clearInterval(input_interval);
 	console.log('WebSocket closed:', event.code, event.reason);
@@ -31,62 +36,66 @@ ws.onclose = (event) => {
 	switch (event.code) {
 		case 1008: // Policy violation (your custom error codes)
 			showLocalError(`Connection rejected: ${event.reason}`);
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
 
 		case 1000: // Normal closure
 			showLocalInfo('Connection to game closed!');
-			loadPartialView('profile');
+			await loadPartialView('profile');
 			break;
+
 		case 1001: // Going away
 			showLocalInfo('Server is shutting down!');
+			await loadPartialView('profile');
+			break;
+
+		case 1005: // Invalid message format
+			showLocalError(
+				'Connection closed due to invalid message format or cloudflare issue'
+			);
 			loadPartialView('profile');
 			break;
 
-		// case 1006:
-		// 	showLocalError('Connection lost unexpectedly. Trying to reconnect...');
-		// 	setTimeout(() => {
-		// 		window.location.reload(); // Simple reconnection strategy
-		// 	}, 1000);
-		// 	break;
-
-		// default:
-		//	// showLocalError('Connection closed unexpectedly');
-		// 	loadPartialView('profile');
-		// 	break;
+		default:
+			// showLocalError('Connection closed unexpectedly');
+			loadPartialView('profile');
+			break;
 	}
 };
 
 ws.onmessage = (event) => {
 	try {
-		console.log(event.data);
 		const data = JSON.parse(event.data);
 		if (data.type === 'state') {
-			const state = document.getElementById('state');
-			if (state) {
-				state.innerHTML = JSON.stringify(data.state);
-				updateGameState(
-					data.state,
-					data.state.meta.size_x,
-					data.state.meta.size_y
-				);
-				const playersList = document.getElementById('playersList');
-				if (!playersList) {
-					return;
-				}
-				playersList.innerHTML = '';
-				for (const player of data.state.players) {
-					const playerItem = document.createElement('li');
-					playerItem.className = 'glow-green';
-					playerItem.innerHTML = `${
-						player.displayName
-					} the <span class="glow-red">${
-						player.playerTitle
-					}</span>(<span class="glow-blue">${player.lives} Lives${
-						player.lives <= 0 ? ' - dead' : ''
-					}) (${player.type})</span>`;
-					playersList.appendChild(playerItem);
-				}
+			updateGameState(
+				data.state,
+				data.state.meta.size_x,
+				data.state.meta.size_y
+			);
+
+			const infoBar = document.getElementById('playerInfoBar');
+			if (infoBar) {
+				infoBar.innerHTML = '';
+				data.state.players.forEach((player: any, index: number) => {
+					const idx = Number.isFinite(player?.playerNbr)
+						? player.playerNbr
+						: index;
+					const c = getPlayerColor(idx);
+					const item = document.createElement('div');
+					item.className =
+						'flex items-center gap-3 px-3 py-1 rounded border';
+					item.style.borderColor = `rgb(${c.r}, ${c.g}, ${c.b})`;
+					const dot = document.createElement('span');
+					dot.className = 'inline-block w-3 h-3 rounded-full';
+					dot.style.backgroundColor = `rgb(${c.r}, ${c.g}, ${c.b})`;
+					const hearts = '❤️'.repeat(Math.max(0, player.lives || 0));
+					const dead = (player.lives || 0) <= 0 ? ' — dead' : '';
+					const text = document.createElement('span');
+					text.textContent = `${player.displayName} — ${player.playerTitle} — ${player.type} — ${hearts}${dead}`;
+					item.appendChild(dot);
+					item.appendChild(text);
+					infoBar.appendChild(item);
+				});
 			}
 		} else if (data.type === 'change_lobby_settings') {
 			const settings = document.getElementById('lobbySettings');
@@ -103,24 +112,24 @@ ws.onmessage = (event) => {
 
 // INPUT
 
-let userInputData = {
+const userInputData = {
 	leftPressed: false,
 	rightPressed: false,
-	lastSentDirection: 0
-}
+	lastSentDirection: 0,
+};
 
-let localUserInputData = {
+const localUserInputData = {
 	leftPressed: false,
 	rightPressed: false,
-	lastSentDirection: 0
-}
+	lastSentDirection: 0,
+};
 
 window.addEventListener(
 	'keydown',
 	(e) => {
 		if (e.key === 'ArrowLeft') userInputData.leftPressed = true;
 		if (e.key === 'ArrowRight') userInputData.rightPressed = true;
-		if (e.key === 'a') localUserInputData.leftPressed = true
+		if (e.key === 'a') localUserInputData.leftPressed = true;
 		if (e.key === 'd') localUserInputData.rightPressed = true;
 	},
 	{ signal: window.abortController?.signal }
@@ -131,7 +140,7 @@ window.addEventListener(
 	(e) => {
 		if (e.key === 'ArrowLeft') userInputData.leftPressed = false;
 		if (e.key === 'ArrowRight') userInputData.rightPressed = false;
-		if (e.key === 'a') localUserInputData.leftPressed = false
+		if (e.key === 'a') localUserInputData.leftPressed = false;
 		if (e.key === 'd') localUserInputData.rightPressed = false;
 	},
 	{ signal: window.abortController?.signal }
@@ -175,21 +184,14 @@ const input_interval = setInterval(() => {
 	}
 }, 1000 / 30); // 30 FPS
 
+const pingInterval = setInterval(() => {
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.send(JSON.stringify({ type: 'ping' }));
+	}
+}, 30000);
+
 export async function leaveWsGame(manual: boolean = false) {
-	// const response = await fetch('/api/games/leave', {
-	// 	method: 'POST',
-	// });
-
-	// if (!response.ok) {
-	// 	showLocalError(`Failed to leave game: ${response.statusText}`);
-	// 	return;
-	// }
-
-	// showLocalInfo('You have left the game successfully.');
-
-	// if (game_over) return;
-
-	if (ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
+	if (ws && ws.readyState === WebSocket.OPEN) ws.close(1000, 'Leaving game!');
 	if (manual) loadPartialView('profile');
 }
 
@@ -197,6 +199,7 @@ window.leaveWsGame = leaveWsGame;
 
 onUnloadPageAsync(async () => {
 	clearInterval(input_interval);
+	clearInterval(pingInterval);
 	stopRendering();
 	await leaveWsGame();
 });

@@ -72,14 +72,14 @@ const authSchema = {
 					'Username can only contain letters, numbers, and underscores',
 			},
 		},
-		totp: {
-			type: 'string',
-			pattern: '^[0-9]{6}$',
-			errorMessage: {
-				type: 'TOTP code must be a text value',
-				pattern: 'TOTP code must be exactly 6 digits',
-			},
-		},
+		// totp: {
+		// 	type: 'string',
+		// 	pattern: '^[0-9]{6}$',
+		// 	errorMessage: {
+		// 		type: 'TOTP code must be a text value',
+		// 		pattern: 'TOTP code must be exactly 6 digits'
+		// 	}
+		// },
 	},
 	required: ['username', 'password'],
 	additionalProperties: false,
@@ -111,21 +111,34 @@ let users_2fa: number[] = [];
 export let users_2fa_google: number[] = [];
 
 const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+	fastify.get(
+		'/check',
+		{ preValidation: fastify.authenticate },
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const user = checkAuth(req, false, fastify);
+			if (!user) {
+				reply.clearCookie('token', {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+				});
+				return reply.code(401).send({ error: 'Unauthorized' });
+			}
+			return reply.code(200).send({ message: 'Ok' });
+		}
+	);
+
 	fastify.post(
 		'/login',
 		{ schema: { body: authSchema } },
 		async (req: FastifyRequest, reply: FastifyReply) => {
-			const { username, password /*totp*/ } = req.body as {
+			const { username, password } = req.body as {
 				username: string;
 				password: string;
 			};
 			try {
-				const user: User = await loginUser(
-					username,
-					password,
-					/*totp*/
-					fastify
-				);
+				const user: User = await loginUser(username, password, fastify);
 				if ((await getUser2faSecret(user, fastify)) !== '') {
 					users_2fa.push(user.id);
 					return reply.send({
@@ -155,13 +168,17 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			}
 		}
 	);
+
 	fastify.post('/logout', async (req: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const user = await checkAuth(req, true, fastify);
 			if (user) forceCloseSseByUserId(user.id);
 
 			return reply
+			.code(200)
+			
 				.clearCookie('token', { path: '/' })
+			
 				.send({ message: 'Logged out successfully' });
 		} catch (e) {
 			if (e instanceof Error)
@@ -169,6 +186,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			else return reply.code(401).send({ error: 'Failed to logout!' });
 		}
 	});
+
 	fastify.post(
 		'/register',
 		{ schema: { body: registerSchema } },

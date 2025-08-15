@@ -369,10 +369,14 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const chat = await getChatFromSql(fastify, chat_id);
 				const allChats = await getChatName(fastify, userId);
 
-				const found = allChats.find((c) => c.id === chat.id);
-				if (!found) return res.status(400).send({ error: 'Chat not Found' });
-				if (Boolean(found.is_group) === true && found.name === null)
-					found.name = 'Global Chat';
+				if (Boolean(chat.is_group) === true && chat.name === null)
+					chat.name = 'Global Chat';
+				else {
+					const found = allChats.find((c) => c.id === chat.id);
+					if (!found)
+						return res.status(400).send({ error: 'Chat not Found' });
+					chat.name = found.name;
+				}
 				const blockedUser: User[] = [];
 				const users: User[] = [];
 				for (const user of blocked) {
@@ -386,7 +390,7 @@ export async function chatInfo(fastify: FastifyInstance) {
 					users.push(check);
 				}
 				const code = ejs.render(template, {
-					chatName: found.name || '',
+					chatName: chat.name || '',
 					participants: users,
 					blocked: blockedUser,
 					t: req.t,

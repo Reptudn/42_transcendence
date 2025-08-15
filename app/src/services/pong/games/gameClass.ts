@@ -12,8 +12,8 @@ import { getAvailableMaps, getMapAsInitialGameState } from './rawMapHandler';
 import { Player, UserPlayer, AiPlayer, LocalPlayer } from './playerClass';
 import { saveCompletedGame } from '../../database/games';
 import { GameSettings } from '../../../types/Games';
-import { Tournament } from './tournamentClass';
 import { sendPopupToClient } from '../../sse/popup';
+import { Tournament } from './tournamentClass';
 import i18next from 'i18next';
 
 export enum GameStatus {
@@ -30,13 +30,26 @@ export enum GameType {
 export const defaultGameSettings: GameSettings = {
 	gameDifficulty: 5,
 	map: 'classic', // if this isnt being changed with the settings this is the default map
-	powerupsEnabled: true,
-	powerups: [],
+	powerupsEnabled: false,
 	playerLives: 3, // number of lives each player has
 	maxPlayers: 4, // max players in a game
 	gameType: GameType.CLASSIC,
-	autoAdvance: true
+	autoAdvance: true,
 };
+
+export enum PowerupType {
+	InverseControls = 'INVERSE_CONTROLS',
+	Redirection = 'REDIRECTION',
+	Nausea = 'NAUSEA',
+	WonkyBall = 'WONKY_BALL',
+	PhasingPaddle = 'PHASING_PADDLE',
+	PhasingBall = 'PHASING_BALL',
+}
+
+export const powerupCheckDelay = 2000;
+export const powerupSpawnChance = 0.5;
+export const powerupDuration = 10000;
+export const powerupObjectRadius = 3;
 
 export class Game {
 	gameId: number;
@@ -46,9 +59,12 @@ export class Game {
 	gameState: GameState;
 	config: GameSettings;
 
-	ballSpeed: number = 3;
+	ballSpeed = 3;
 
 	results: { playerId: number; place: number }[] = []; // place 1 = died last / won; 1 indexed
+
+	activePowerups: PowerupInstance[] = [];
+	nextPowerupCheckAt: number = Date.now() + powerupCheckDelay;
 
 	availableMaps: string[] | null = null;
 
@@ -58,7 +74,7 @@ export class Game {
 	fastify: FastifyInstance;
 
 	// private nextPlayerId: number = 0;
-	public alreadyStarted: boolean = false;
+	public alreadyStarted = false;
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
 
@@ -72,8 +88,9 @@ export class Game {
 		this.admin = admin;
 		this.status = GameStatus.WAITING;
 		this.fastify = fastify;
-		this.config = config;
+		this.config = { ...config };
 		this.players = [];
+		this.config = defaultGameSettings;
 		this.gameState = {
 			meta: {
 				name: 'test',
@@ -84,18 +101,16 @@ export class Game {
 			objects: [],
 		} as GameState;
 		this.aiBrainData = {
-			aiLastBallDistance: 0,
-			aiDelayCounter: 0,
-			aiLastTargetParam: 0,
-			lastAIMovementDirection: 0,
+			intendedPercent: 50,
+			nextRecalcAt: Date.now(),
 		} as AIBrainData;
+		this.activePowerups = [];
+		this.nextPowerupCheckAt = Date.now() + powerupCheckDelay;
 	}
 
 	private getNextAvailablePlayerId(): number {
-		const usedIds = new Set<number>(this.players.map(p => p.playerId));
-		for (let i = 0; i <= this.players.length; i++)
-			if (!usedIds.has(i))
-				return i;
+		const usedIds = new Set<number>(this.players.map((p) => p.playerId));
+		for (let i = 0; i <= this.players.length; i++) if (!usedIds.has(i)) return i;
 
 		const maxId = this.players.reduce((max, p) => Math.max(max, p.playerId), -1);
 		return maxId + 1;
@@ -120,9 +135,13 @@ export class Game {
 	}
 
 	async addUserPlayer(user: User, silent = false): Promise<UserPlayer> {
-
 		if (!this.availableMaps)
 			this.availableMaps = await getAvailableMaps(this.fastify);
+
+		if (this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		if (!connectedClients.get(user.id))
 			throw new Error("Can't invite a user which is offline!");
@@ -150,13 +169,11 @@ export class Game {
 		);
 		this.players.push(userPlayer);
 
-
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament) {
 			this.tournament.rebuild(this.players);
 		}
 
-		if (!silent)
-			await this.updateLobbyState();
+		if (!silent) await this.updateLobbyState();
 		return userPlayer;
 	}
 
@@ -171,12 +188,11 @@ export class Game {
 			this.getNextAvailablePlayerId(),
 			this,
 			aiLevel,
-			this.aiBrainData
+			{ intendedPercent: 0.5, nextRecalcAt: 0 } as AIBrainData
 		);
 		aiPlayer.joined = true; // AI players are always considered joined
 		this.players.push(aiPlayer);
-		if (!silent)
-			await this.updateLobbyState();
+		if (!silent) await this.updateLobbyState();
 		return aiPlayer;
 	}
 
@@ -184,44 +200,71 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
+		if (this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
+
 		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
-		const localPlayer = new LocalPlayer(this.getNextAvailablePlayerId(), owner, this);
+		const localPlayer = new LocalPlayer(
+			this.getNextAvailablePlayerId(),
+			owner,
+			this
+		);
 		localPlayer.joined = true; // Local players are always considered joined
 		this.players.push(localPlayer);
 		if (this.config.gameType === GameType.TOURNAMENT && this.tournament) {
 			this.tournament.rebuild(this.players);
 		}
-		if (!silent)
-			await this.updateLobbyState();
+		if (!silent) await this.updateLobbyState();
 		return localPlayer;
 	}
 
 	// TODO: implment logic when a player is leaving while the game is running...
-	async removePlayer(playerId: number, forced: boolean = false, silent: boolean = false) {
+	async removePlayer(
+		playerId: number,
+		forced: boolean = false,
+		silent: boolean = false,
+		skipAutoRefill = false
+	) {
 		const playerToRemove: Player | undefined = this.players.find(
 			(player) => player.playerId === playerId
 		);
 		if (!playerToRemove) throw new Error('Player not found!');
+
+		if (forced && this.alreadyStarted)
+			throw new Error(
+				'Cant add a user when the first tournament round has been played already'
+			);
 
 		this.players = this.players.filter((player) => player.playerId !== playerId);
 		if (this.status === GameStatus.RUNNING) {
 			this.gameState.objects = this.gameState.objects.filter(
 				(o) => o.playerNbr !== playerId
 			);
+			for (const player of this.players) {
+				if (
+					player instanceof LocalPlayer &&
+					player.owner.playerId === playerId
+				) {
+					this.gameState.objects = this.gameState.objects.filter(
+						(o) => o.playerNbr !== player.playerId
+					);
+				}
+			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
 
-			
 			this.players = this.players.filter(
 				(player) =>
 					!(
 						player instanceof LocalPlayer &&
 						player.owner.playerId === playerToRemove.playerId
 					)
-				);
+			);
 			this.fastify.log.info(
 				`Removed Player ${playerToRemove.user.username}! (And all their LocalPlayers)`
 			);
@@ -237,15 +280,18 @@ export class Game {
 				);
 		}
 
-		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && !this.alreadyStarted)
-		{
+		if (
+			this.config.gameType === GameType.TOURNAMENT &&
+			this.tournament &&
+			!this.alreadyStarted &&
+			!skipAutoRefill
+		) {
 			for (let i = this.players.length; i < this.config.maxPlayers; i++)
 				this.addAiPlayer(this.config.gameDifficulty, true);
 			this.tournament.rebuild(this.players);
 		}
 
-		if (!silent)
-			await this.updateLobbyState();
+		if (!silent) await this.updateLobbyState();
 
 		// TODO: in the future dont end the game when just the owner leaves
 		try {
@@ -253,7 +299,11 @@ export class Game {
 				playerToRemove instanceof UserPlayer &&
 				playerToRemove.user.id == this.admin.id
 			)
-				this.endGame('Game admin left, game closed. (Game doesnt count)', playerToRemove, false);
+				this.endGame(
+					'Game admin left, game closed. (Game doesnt count)',
+					playerToRemove,
+					false
+				);
 
 			if (this.players.length === 0)
 				this.endGame('No players left, game closed.', playerToRemove, false);
@@ -263,15 +313,12 @@ export class Game {
 	}
 
 	async startGame() {
-
-		for (const player of this.players)
-		{
+		for (const player of this.players) {
 			if (!(player instanceof UserPlayer)) continue;
 
 			if (connectedClients.get(player.user.id) === undefined)
 				throw new Error('Not all users are connected to SSE');
 		}
-
 
 		this.shufflePlayerIds();
 
@@ -286,17 +333,16 @@ export class Game {
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
 
-
 			this.gameState = await getMapAsInitialGameState(this);
-			
+
 			for (const player of this.players)
 				if (player instanceof UserPlayer)
 					sendSeeMessageByUserId(
-				player.user.id,
-				'game_started',
-				this.gameId
-			);
-			
+						player.user.id,
+						'game_started',
+						this.gameId
+					);
+
 			this.status = GameStatus.RUNNING;
 			this.fastify.log.info(
 				`Game ${this.gameId} started with ${this.players.length} players.`
@@ -314,27 +360,25 @@ export class Game {
 
 			const { id, id2 } = this.tournament!.getCurrentPlayerId();
 			for (let player of this.players) {
-				player.spectator = (player.playerId !== id && player.playerId !== id2);
+				player.spectator = player.playerId !== id && player.playerId !== id2;
 				player.lives = player.spectator ? 0 : this.config.playerLives;
 			}
 
 			this.aiBrainData = {
-				aiLastBallDistance: 0,
-				aiDelayCounter: 0,
-				aiLastTargetParam: 0,
-				lastAIMovementDirection: 0,
+				intendedPercent: 50,
+				nextRecalcAt: Date.now(),
 			} as AIBrainData;
+			this.results = [];
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
-			
-			for (const player of this.players)
-				{
-					if (player instanceof UserPlayer)
-						sendSeeMessageByUserId(
-					player.user.id,
-					'game_started',
-					this.gameId
-				);
+
+			for (const player of this.players) {
+				if (player instanceof UserPlayer)
+					sendSeeMessageByUserId(
+						player.user.id,
+						'game_started',
+						this.gameId
+					);
 			}
 			this.status = GameStatus.RUNNING;
 
@@ -346,7 +390,6 @@ export class Game {
 
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
-
 		if (this.status !== GameStatus.WAITING) return;
 
 		const players = this.players.map((player) => player.formatStateForClients());
@@ -369,14 +412,20 @@ export class Game {
 			gameSettings: this.config,
 			initial: false,
 			ownerName: this.admin.displayname,
-			tournament: this.tournament,
 			localPlayerId:
 				this.players.find(
 					(p) =>
 						p instanceof LocalPlayer && p.owner.user.id === this.admin.id
 				)?.playerId || -1,
-			t: (this.players.find((p) => p instanceof UserPlayer && p.user.id === this.admin.id) as UserPlayer)?.lang || i18next.getFixedT('en'),
-			tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
+			t:
+				(
+					this.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === this.admin.id
+					) as UserPlayer
+				)?.lang || i18next.getFixedT('en'),
+			tournamentTree: this.tournament
+				? this.tournament.getBracketJSON()
+				: null,
 			availableMaps: this.availableMaps,
 		});
 
@@ -403,7 +452,9 @@ export class Game {
 								p.owner.user.id === player.user.id
 						)?.playerId || -1,
 					t: player.lang,
-					tournamentTree: this.tournament ? this.tournament.getBracketJSON() : null,
+					tournamentTree: this.tournament
+						? this.tournament.getBracketJSON()
+						: null,
 				});
 				sendSseHtmlByUserId(
 					player.user.id,
@@ -415,15 +466,22 @@ export class Game {
 	}
 
 	// when null if given it means the game end because no players were left
-	async endGame(end_message: string, winner: Player | null = null, save_game = true) {
+	async endGame(
+		end_message: string,
+		winner: Player | null = null,
+		save_game = true
+	) {
 		this.fastify.log.info(
 			`Ending game ${this.gameId} with message: ${end_message}`
 		);
 
 		this.status = GameStatus.WAITING;
-		
-		if (this.config.gameType === GameType.TOURNAMENT && this.tournament && winner)
-		{
+
+		if (
+			this.config.gameType === GameType.TOURNAMENT &&
+			this.tournament &&
+			winner
+		) {
 			try {
 				this.tournament.advance(winner);
 			} catch (e) {
@@ -431,29 +489,59 @@ export class Game {
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
 					player.disconnect();
-					sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
+					sendSeeMessageByUserId(
+						player.user.id,
+						'game_closed',
+						end_message
+					);
 				}
 			}
+
+			if (save_game) {
+				(async () => {
+					try {
+						await saveCompletedGame(this, this.fastify);
+					} catch (_e) {
+						// already logged inside saveCompletedGame
+					}
+				})();
+			}
+
 			let match = this.tournament.getCurrentMatch();
 
-			if (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
-			{
-				for (const player of this.players)
-				{
+			if (
+				this.config.autoAdvance &&
+				!this.tournament.isFinished() &&
+				match &&
+				match.player1 instanceof AiPlayer &&
+				match.player2 instanceof AiPlayer
+			) {
+				for (const player of this.players) {
 					if (player instanceof UserPlayer)
-						sendSeeMessageByUserId(player.user.id, 'message', 'AI players are advancing... (higher AI diff wins)');
+						sendSeeMessageByUserId(
+							player.user.id,
+							'message',
+							'AI players are advancing... (higher AI diff wins)'
+						);
 				}
 			}
-			while (this.config.autoAdvance && !this.tournament.isFinished() && match && match.player1 instanceof AiPlayer && match.player2 instanceof AiPlayer)
-			{
-				this.tournament.advance(match.player1.aiDifficulty > match.player2.aiDifficulty ? match.player1 : match.player2);
+			while (
+				this.config.autoAdvance &&
+				!this.tournament.isFinished() &&
+				match &&
+				match.player1 instanceof AiPlayer &&
+				match.player2 instanceof AiPlayer
+			) {
+				this.tournament.advance(
+					match.player1.aiDifficulty > match.player2.aiDifficulty
+						? match.player1
+						: match.player2
+				);
 				match = this.tournament.getCurrentMatch();
 			}
-			if (this.tournament.isFinished())
-			{
+			if (this.tournament.isFinished()) {
 				console.log('tournament finished');
-				if (save_game)
-				{
+				if (save_game) {
 					(async () => {
 						try {
 							// TODO: save completed tournament game in db
@@ -463,40 +551,55 @@ export class Game {
 						}
 					})();
 				}
-		
+
 				// this occurs when the game ends because its actually over because someone won or the admin left as of now
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
 					player.disconnect();
-					sendSeeMessageByUserId(player.user.id, 'game_closed', `Tournament ended,<br>Winner: ${this.tournament.getWinner()?.displayName || 'Unknown'}`);
+					sendSeeMessageByUserId(
+						player.user.id,
+						'game_closed',
+						`Tournament ended,<br>Winner: ${
+							this.tournament.getWinner()?.displayName || 'Unknown'
+						}`
+					);
 				}
-		
+
 				removeGame(this.gameId);
 				return;
 			}
 
 			this.fastify.log.info('tournament advancing');
 			match = this.tournament.getCurrentMatch();
-			const p1 = this.players.find((p) => p.playerId === match!.player1!.playerId);
-			const p2 = this.players.find((p) => p.playerId === match!.player2!.playerId);
+			const p1 = this.players.find(
+				(p) => p.playerId === match!.player1!.playerId
+			);
+			const p2 = this.players.find(
+				(p) => p.playerId === match!.player2!.playerId
+			);
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
-				sendPopupToClient(this.fastify, player.user.id, 'Tournament advancing', `Next match: ${p1?.displayName} vs ${p2?.displayName}`);
+				sendPopupToClient(
+					this.fastify,
+					player.user.id,
+					'Tournament advancing',
+					`Next match: ${p1?.displayName} vs ${p2?.displayName}`
+				);
 				sendSseRawByUserId(
 					player.user.id,
 					`data: ${JSON.stringify({
-						type: this.admin.id === player.user.id ? 'game_tournament_admin_lobby_warp' : 'game_tournament_lobby_warp',
+						type:
+							this.admin.id === player.user.id
+								? 'game_tournament_admin_lobby_warp'
+								: 'game_tournament_lobby_warp',
 						gameId: this.gameId,
 					})}\n\n`
 				);
 			}
-		}
-		else
-		{
+		} else {
 			console.log('end game classic non tournament');
-			if (save_game)
-			{
+			if (save_game) {
 				(async () => {
 					try {
 						await saveCompletedGame(this, this.fastify);
@@ -505,14 +608,14 @@ export class Game {
 					}
 				})();
 			}
-	
+
 			// this occurs when the game ends because its actually over because someone won or the admin left as of now
 			for (const player of this.players) {
 				if (!(player instanceof UserPlayer)) continue;
 				player.disconnect();
 				sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
 			}
-	
+
 			removeGame(this.gameId);
 		}
 	}
@@ -529,7 +632,10 @@ export class Game {
 	formatStateForClients() {
 		return {
 			...this.gameState,
-			players: this.players.filter((player) => !player.spectator).map((player) => player.formatStateForClients()),
+			players: this.players
+				.filter((player) => !player.spectator)
+				.map((player) => player.formatStateForClients()),
+			activePowerups: this.activePowerups,
 		};
 	}
 }

@@ -1,26 +1,60 @@
+networks:
+    transcendence_net:
+
 volumes:
-  transcendence_vol:
+    transcendence_vol:
+    nginx-ssl:
 
 services:
-  transcendence:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      # - GOOGLE_OAUTH_CLIENT_ID=
-      # - GOOGLE_OAUTH_CLIENT_SECRET=
-      # - JWT_SECRET=
-      # - HOST_URI=
-    env_file:
-      - .env
-    volumes:
-      - transcendence_vol:/app/db
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    transcendence:
+        container_name: transcendence
+        build: .
+        environment:
+            - NODE_ENV=production
+            # - GOOGLE_OAUTH_CLIENT_ID=
+            # - GOOGLE_OAUTH_CLIENT_SECRET=
+            # - JWT_SECRET=
+            # - HOST_URI=
+        env_file:
+            - .env
+        networks:
+            - transcendence_net
+        volumes:
+            - transcendence_vol:/app/db
+        restart: on-failure
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+    nginx:
+        image: nginx:1.28
+        container_name: nginx
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+            - nginx-ssl:/etc/ssl
+        depends_on:
+            transcendence:
+                condition: service_healthy
+        networks:
+            - transcendence_net
+        ports:
+            - '443:443'
+        command: |
+            bash -c "if [ ! -f /etc/ssl/nginx.key ] || [ ! -f /etc/ssl/nginx.crt ]; then \
+                openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx.key -out /etc/ssl/nginx.crt -subj '/CN=localhost'; \
+            fi && nginx -g 'daemon off;'"
 
+    # uncomment this if you want to use cloudflare tunnels
+    # cloudflare:
+    #     image: cloudflare/cloudflared:latest
+    #     container_name: cloudflare
+    #     restart: unless-stopped
+    #     networks:
+    #         - transcendence_net
+    #     volumes:
+    #         - cloudflare:/etc/cloudflared
+    #     command: tunnel run
+    #     environment:
+    #         - TUNNEL_TOKEN=${TUNNEL_TOKEN}
