@@ -12,11 +12,8 @@ import {
 	getAllBlockerUser,
 	getFriendsDisplayname,
 	getAllChatsFromSqlByUserId,
-	getParticipantFromSql,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
-import { getAllChats } from './chatGetInfo';
-import fastifySensible from '@fastify/sensible';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -185,14 +182,21 @@ export async function getChatName(
 	return userChats;
 }
 
-export async function checkIfDmChatAlreadyExist(fastify: FastifyInstance, userId: number, userId2: number): Promise<boolean> {
+export async function checkIfDmChatAlreadyExist(
+	fastify: FastifyInstance,
+	userId: number,
+	userId2: number
+): Promise<boolean> {
 	try {
 		const chatsUser1 = await getAllChatsFromSqlByUserId(fastify, userId);
 
 		for (let i = 0; i < chatsUser1.length; i++) {
 			if (chatsUser1[i].is_group === false) {
-				const parts = await getAllParticipantsFromSql(fastify, chatsUser1[i].id);
-				const check = parts.find(u => u.user_id === userId2);
+				const parts = await getAllParticipantsFromSql(
+					fastify,
+					chatsUser1[i].id
+				);
+				const check = parts.find((u) => u.user_id === userId2);
 				if (!check) continue;
 				return true;
 			}
