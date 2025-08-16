@@ -91,6 +91,20 @@ export function tickEngine(game: Game) {
 					(game as any).fastify
 				);
 			}
+			if (powerup.type === PowerupType.BallSplosion && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-ballsplosion',
+					(game as any).fastify
+				);
+			}
+			if (powerup.type === PowerupType.SpeedUp && powerup.started) {
+				unlockAchievement(
+					player.user.id,
+					'powerup-speedup',
+					(game as any).fastify
+				);
+			}
 		}
 	}
 
