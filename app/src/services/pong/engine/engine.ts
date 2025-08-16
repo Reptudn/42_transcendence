@@ -4,11 +4,11 @@ import { updateAIMovement } from './aiBrain.js';
 import { LocalPlayer, UserPlayer } from '../games/playerClass.js';
 import { unlockAchievement } from '../../database/achievements.js';
 import type { Game } from '../games/gameClass.js';
-import { collectPowerups } from './powerups.js';
+import { collectPowerups, handoutPowerupAchievements } from './powerups.js';
 import { PowerupType } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
-	if (game.ballSpeed > 3) game.ballSpeed -= 0.05;
+	if (game.ballSpeed > 3) game.ballSpeed -= 0.01125;
 
 	// move players
 	for (const player of game.players) {
@@ -46,67 +46,7 @@ export function tickEngine(game: Game) {
 
 	// powerups
 	collectPowerups(game);
-	for (const player of game.players) {
-		if (!(player instanceof UserPlayer)) continue;
-		for (const powerup of game.activePowerups) {
-			if (powerup.type === PowerupType.WonkyBall && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-wonky-ball',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.PhasingPaddle && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-phasing-paddle',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.PhasingBall && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-phasing-ball',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.InverseControls && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-inverse-controls',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.Nausea && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-nausea',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.Redirection && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-redirection',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.BallSplosion && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-ballsplosion',
-					(game as any).fastify
-				);
-			}
-			if (powerup.type === PowerupType.SpeedUp && powerup.started) {
-				unlockAchievement(
-					player.user.id,
-					'powerup-speedup',
-					(game as any).fastify
-				);
-			}
-		}
-	}
+	handoutPowerupAchievements(game);
 
 	// check hits
 	for (const player of game.players) {
