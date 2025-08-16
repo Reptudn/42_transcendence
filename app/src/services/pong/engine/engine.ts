@@ -8,7 +8,7 @@ import { collectPowerups, handoutPowerupAchievements } from './powerups.js';
 import { PowerupType } from '../games/gameClass.js';
 
 export function tickEngine(game: Game) {
-	if (game.ballSpeed > 3) game.ballSpeed -= 0.01125;
+	if (game.ballSpeed > 3) game.ballSpeed -= 0.03;
 
 	// move players
 	for (const player of game.players) {

@@ -48,7 +48,7 @@ export function managePowerups(game: Game) {
 	const hasSpeedUp = game.activePowerups.some(
 		(p) => p.type === PowerupType.SpeedUp && p.started && p.expiresAt > now
 	);
-	game.ballSpeed = hasSpeedUp ? 6 : 3;
+	if (!hasSpeedUp) game.ballSpeed = 3;
 
 	// clean ended powerups
 	if (game.activePowerups.length) {
@@ -202,7 +202,7 @@ export function collectPowerups(game: Game) {
 						game.gameState.objects.push(miniBall);
 					}
 				} else if (powerup.type === PowerupType.SpeedUp) {
-					game.ballSpeed *= 1.75;
+					game.ballSpeed *= 2;
 				}
 			}
 		}
