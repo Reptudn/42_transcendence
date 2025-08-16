@@ -1,14 +1,7 @@
 import { tickEngine } from '../engine/engine.js';
 import type { Game } from './gameClass.js';
 import { UserPlayer } from './playerClass.js';
-import {
-	GameStatus,
-	GameType,
-	powerupCheckDelay,
-	powerupDuration,
-	powerupSpawnChance,
-} from './gameClass.js';
-import { PowerupType } from './gameClass.js';
+import { GameStatus, GameType } from './gameClass.js';
 import { connectedClients } from '../../sse/handler.js';
 import { managePowerups } from '../engine/powerups.js';
 
