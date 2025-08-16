@@ -141,13 +141,13 @@ const notify: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 			connectedClients.set(user.id, reply);
 
-			sendPopupToClient(
-				fastify,
-				user.id,
-				'BEEP BOOP BEEEEEP ~011001~ Server Connection established',
-				"-> it's pongin' time!",
-				'green'
-			);
+			// sendPopupToClient(
+			// 	fastify,
+			// 	user.id,
+			// 	'BEEP BOOP BEEEEEP ~011001~ Server Connection established',
+			// 	"-> it's pongin' time!",
+			// 	'green'
+			// );
 
 			const openFriendRequests = await getPendingFriendRequestsForUser(
 				user.id,
