@@ -1,94 +1,11 @@
 import { tickEngine } from '../engine/engine.js';
 import type { Game } from './gameClass.js';
 import { UserPlayer } from './playerClass.js';
-import {
-	GameStatus,
-	GameType,
-	powerupCheckDelay,
-	powerupDuration,
-	powerupSpawnChance,
-} from './gameClass.js';
-import { PowerupType } from './gameClass.js';
+import { GameStatus, GameType } from './gameClass.js';
 import { connectedClients } from '../../sse/handler.js';
+import { managePowerups } from '../engine/powerups.js';
 
 export let runningGames: Game[] = [];
-
-// powerups
-
-function getPowerupSpawns(game: Game): Point[] {
-	const spawns: Point[] = [];
-	for (const o of game.gameState.objects) {
-		if (o.type === 'powerup_spawn') {
-			if ((o as any).center) spawns.push((o as any).center as Point);
-			else if (o.shape && o.shape.length > 0) spawns.push(o.shape[0]);
-		}
-	}
-	return spawns;
-}
-function choosePowerupType(_game: Game): PowerupType {
-	const vals = Object.values(PowerupType);
-	const isNumericEnum = vals.some((v) => typeof v === 'number');
-	const values = (isNumericEnum
-		? vals.filter((v) => typeof v === 'number')
-		: vals.filter((v) => typeof v === 'string')) as unknown as PowerupType[];
-	const idx = Math.floor(Math.random() * values.length);
-	return values[idx];
-}
-function managePowerups(game: Game) {
-	if (game.status !== GameStatus.RUNNING) return;
-	const now = Date.now();
-
-	// end ballsplosion
-	const hasActiveBallSplosion = game.activePowerups.some(
-		(p) => p.started && p.type === PowerupType.BallSplosion && p.expiresAt > now
-	);
-	if (!hasActiveBallSplosion) {
-		game.gameState.objects = game.gameState.objects.filter(
-			(o) => o.type !== 'miniBall'
-		);
-	}
-
-	// end speedup
-	const hasSpeedUp = game.activePowerups.some(
-		(p) => p.type === PowerupType.SpeedUp && p.started && p.expiresAt > now
-	);
-	game.ballSpeed = hasSpeedUp ? 6 : 3;
-
-	// clean ended powerups
-	if (game.activePowerups.length) {
-		game.activePowerups = game.activePowerups.filter((p) =>
-			p.started ? p.expiresAt > now : true
-		);
-	}
-
-	// spawn new powerups
-	if (!game.config.powerupsEnabled) return;
-	if (now >= game.nextPowerupCheckAt) {
-		game.nextPowerupCheckAt = now + powerupCheckDelay;
-		if (Math.random() < powerupSpawnChance) {
-			const spawns = getPowerupSpawns(game);
-			if (spawns.length) {
-				const pos = spawns[Math.floor(Math.random() * spawns.length)];
-				const type = choosePowerupType(game);
-				if (game.activePowerups.filter((p) => p.type === type).length > 0) {
-					return;
-				}
-				if (
-					game.activePowerups.some(
-						(p) => p.position.x === pos.x && p.position.y === pos.y
-					)
-				)
-					return;
-				game.activePowerups.push({
-					type,
-					position: { x: pos.x, y: pos.y },
-					expiresAt: now + powerupDuration,
-					started: false,
-				});
-			}
-		}
-	}
-}
 
 export function removeGame(gameId: number) {
 	// log all content stringified of the ame to be deleted

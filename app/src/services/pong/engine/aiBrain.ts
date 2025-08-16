@@ -148,9 +148,10 @@ export function projectPointOnPolyline(
 
 function worsifyIntendedPercentBasedOnAiLevel(
 	intendedPercent: number,
-	aiLevel: number
+	aiLevel: number,
+	confusingPowerupActive: boolean
 ): number {
-	const L = Math.max(1, Math.min(10, aiLevel));
+	const L = Math.max(1, Math.min(10, aiLevel - (confusingPowerupActive ? 5 : 0)));
 	const variation = (11 - L) * 0.03;
 	const noisy = intendedPercent + (Math.random() * 2 - 1) * variation;
 	return Math.max(0, Math.min(1, noisy));
@@ -178,6 +179,16 @@ export async function updateAIMovement(game: Game): Promise<void> {
 			typeof (player.aiBrainData as any).nextRecalcAt !== 'number' ||
 			now >= (player.aiBrainData as any).nextRecalcAt;
 
+		const confusingPowerups: PowerupType[] = [
+			PowerupType.Nausea,
+			PowerupType.PhasingBall,
+			PowerupType.PhasingPaddle,
+			PowerupType.BallSplosion,
+		];
+		const confusingPowerupActive = game.activePowerups.some((p) =>
+			confusingPowerups.includes(p.type)
+		);
+
 		if (needRecalc) {
 			const targetPercent =
 				simulateAheadFindTargetPercent(game.gameState, player.playerId, 5) ??
@@ -186,7 +197,8 @@ export async function updateAIMovement(game: Game): Promise<void> {
 				(player.aiBrainData as any).intendedPercent =
 					worsifyIntendedPercentBasedOnAiLevel(
 						targetPercent,
-						player.aiDifficulty
+						player.aiDifficulty,
+						confusingPowerupActive
 					);
 			} else if (
 				typeof (player.aiBrainData as any).intendedPercent !== 'number'
@@ -198,7 +210,8 @@ export async function updateAIMovement(game: Game): Promise<void> {
 				(player.aiBrainData as any).intendedPercent =
 					worsifyIntendedPercentBasedOnAiLevel(
 						currentPercent,
-						player.aiDifficulty
+						player.aiDifficulty,
+						confusingPowerupActive
 					);
 			}
 			(player.aiBrainData as any).nextRecalcAt = now + 1000;
