@@ -98,9 +98,10 @@ export async function saveNewChatInfo(
 	is_group: boolean,
 	groupName: string | null
 ): Promise<number> {
+	const escName = groupName === null ? null : escapeHTML(groupName);
 	const chat = await fastify.sqlite.run(
 		'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-		[escapeHTML(groupName), is_group]
+		[escName, is_group]
 	);
 	if (chat.changes !== 0 && typeof chat.lastID === 'number') return chat.lastID;
 	throw new HttpError(400, 'Failed to save the Chat');

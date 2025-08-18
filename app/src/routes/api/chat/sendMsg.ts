@@ -14,7 +14,7 @@ import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
 import { normError } from './utils';
 import ejs from 'ejs';
-import escapeHtml from 'escape-html';
+import escapeHTML from 'escape-html';
 
 const chatMsgRequestSchema = {
 	body: {
@@ -110,7 +110,9 @@ export async function sendMsg(fastify: FastifyInstance) {
 				res.status(200).send({ msg: 'ok' });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -197,10 +199,10 @@ export async function createHtmlMsg(
 	msg.htmlMsg = ejs.render(`
 		<div>
 			<p><a href='/partial/pages/profile/${
-				fromUser ? escapeHtml(fromUser.username) : 'Deleted User'
+				fromUser ? escapeHTML(fromUser.username) : 'Deleted User'
 			}'>${
-		fromUser ? escapeHtml(fromUser.displayname) : 'Deleted User'
-	}:</a>${escapeHtml(msgContent)}</p>
+		fromUser ? escapeHTML(fromUser.displayname) : 'Deleted User'
+	}:</a>${escapeHTML(msgContent)}</p>
 		</div>
 		`);
 	return msg;

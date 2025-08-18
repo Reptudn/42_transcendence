@@ -1,5 +1,5 @@
 import { getMessages, getChats } from './chat.js';
-import { showLocalError, showLocalInfo, showLocalPopup } from './alert.js';
+import { showLocalError, showLocalInfo } from './alert.js';
 
 let userIds: string[] = [];
 let userIdToBlock = '';
@@ -62,21 +62,13 @@ document
 	.getElementById('confirmCreateGroup')
 	?.addEventListener('click', async () => {
 		if (userIds.length === 0) {
-			showLocalPopup({
-				title: 'No members in Group',
-				description: 'You need to add some users to the Group',
-				color: 'red',
-			});
+			showLocalInfo('You need to add some users to the Group');
 			return;
 		}
 		groupName = (document.getElementById('groupNameInput') as HTMLInputElement)
 			.value;
 		if (groupName === '') {
-			showLocalPopup({
-				title: 'No Groupname',
-				description: 'You need not add a Groupname',
-				color: 'red',
-			});
+			showLocalInfo('You need not add a Groupname');
 			return;
 		}
 		const params = new URLSearchParams();
@@ -163,11 +155,7 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 
 document.getElementById('confirmBlockUser')?.addEventListener('click', async () => {
 	if (userIdToBlock === '') {
-		showLocalPopup({
-			title: 'No user added',
-			description: 'You need to add some users to block',
-			color: 'red',
-		});
+		showLocalInfo('You need to add a user to block');
 		return;
 	}
 	const url = `/api/chat/block_user?user_id=${userIdToBlock}`;
@@ -247,11 +235,7 @@ document
 	.getElementById('confirmUnblockUser')
 	?.addEventListener('click', async () => {
 		if (userIdToBlock === '') {
-			showLocalPopup({
-				title: 'No user added',
-				description: 'You need to add some users to  unblock',
-				color: 'red',
-			});
+			showLocalInfo('You need to add a user to unblock');
 			return;
 		}
 		const url = `/api/chat/unblock_user?user_id=${userIdToBlock}`;
@@ -318,11 +302,7 @@ document.getElementById('inviteUser')?.addEventListener('click', async () => {
 
 document.getElementById('confirmInviteUser')?.addEventListener('click', async () => {
 	if (userIds.length === 0) {
-		showLocalPopup({
-			title: 'No user added',
-			description: 'You need to add some users to  Invite',
-			color: 'red',
-		});
+		showLocalInfo('You need to add some users to Invite');
 		return;
 	}
 	const params = new URLSearchParams();

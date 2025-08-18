@@ -159,7 +159,9 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -178,7 +180,9 @@ export async function getAllChats(fastify: FastifyInstance) {
 				return res.status(200).send({ chats: userChats });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -226,7 +230,9 @@ export async function createNewChat(fastify: FastifyInstance) {
 				});
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -258,7 +264,9 @@ export async function blockUsers(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.block') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -289,7 +297,9 @@ export async function unblockUsers(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.unblock') });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -326,7 +336,9 @@ export async function inviteUser(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.invite') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -350,7 +362,9 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.leave') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -374,12 +388,7 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const chat = await getChatFromSql(fastify, chat_id);
 				const allChats = await getChatName(fastify, userId);
 
-				console.log('chat group = ', chat.is_group);
-				console.log('chat name = ', chat.name);
-				console.log('chat group type =', typeof chat.is_group);
-				console.log('chat name type = ', typeof chat.name);
-
-				if (Boolean(chat.is_group) === true && chat.name === 'null') {
+				if (Boolean(chat.is_group) === true && chat.name === null) {
 					chat.name = 'Global Chat';
 				} else {
 					const found = allChats.find((c) => c.id === chat.id);
