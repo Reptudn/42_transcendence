@@ -86,6 +86,7 @@ export async function leave(
 
 export async function getMsgForGroup(
 	fastify: FastifyInstance,
+	fromUser: number,
 	chatMsgs: Msg[],
 	blocked: Blocked[],
 	blockedId: number[]
@@ -98,17 +99,26 @@ export async function getMsgForGroup(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(null, null, msg.content, false, false)
+			);
 			continue;
 		}
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
-		else {
+		if (!blockedId.includes(user.id)) {
+			const check = fromUser === user.id;
+			htmlMsgs.push(
+				await createHtmlMsg(user, null, msg.content, false, check)
+			);
+		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) {
-				htmlMsgs.push(await createHtmlMsg(user, null, 'Msg blocked', true));
+				htmlMsgs.push(
+					await createHtmlMsg(user, null, 'Msg blocked', true, false)
+				);
 			} else
-				htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
+				htmlMsgs.push(
+					await createHtmlMsg(user, null, msg.content, false, false)
+				);
 		}
 	}
 	return htmlMsgs;
@@ -116,6 +126,7 @@ export async function getMsgForGroup(
 
 export async function getMsgForDm(
 	fastify: FastifyInstance,
+	fromUser: number,
 	chatMsgs: Msg[],
 	blocked: Blocked[],
 	blockedId: number[]
@@ -128,15 +139,22 @@ export async function getMsgForDm(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(null, null, msg.content, false, false)
+			);
 			continue;
 		}
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
-		else {
+		if (!blockedId.includes(user.id)) {
+			const check = fromUser === user.id;
+			htmlMsgs.push(
+				await createHtmlMsg(user, null, msg.content, false, check)
+			);
+		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(user, null, msg.content, false, false)
+			);
 		}
 	}
 	return htmlMsgs;

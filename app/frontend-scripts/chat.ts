@@ -88,9 +88,7 @@ export function appendToChatBox(rawMessage: string) {
 		const nowChatId = sessionStorage.getItem('chat_id');
 		if (nowChatId) {
 			if (Number.parseInt(nowChatId) === msg.chatId || msg.chatId === 0) {
-				const messageElement = document.createElement('div');
-				messageElement.innerHTML = msg.htmlMsg;
-				chatMessages.appendChild(messageElement);
+				chatMessages.insertAdjacentHTML('beforeend', msg.htmlMsg);
 				chatMessages.scrollTop = chatMessages.scrollHeight;
 				return;
 			}

@@ -129,13 +129,27 @@ async function sendMsgGroup(
 	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
 		if (connectedClients.has(user.user_id)) {
-			let msg: htmlMsg;
-			if (blockerId.includes(user.user_id)) {
-				msg = await createHtmlMsg(fromUser, chatInfo, 'Msg blocked', true);
-			} else msg = await createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
-				if (user.user_id === fromUser.id) msg.ownMsg = true;
+				let msg: htmlMsg;
+				if (blockerId.includes(user.user_id)) {
+					msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						'Msg blocked',
+						true,
+						false
+					);
+				} else {
+					const check = user.user_id === fromUser.id;
+					msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						content,
+						false,
+						check
+					);
+				}
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -157,11 +171,17 @@ export async function sendMsgDm(
 	if (user.length === 0) throw new HttpError(400, 'User is deleted');
 
 	if (!blockedId.includes(user[0].user_id)) {
-		const msg = await createHtmlMsg(fromUser, chatInfo, content, false);
 		if (!blockerId.includes(user[0].user_id)) {
 			if (connectedClients.has(user[0].user_id)) {
 				const toUser = connectedClients.get(user[0].user_id);
 				if (toUser) {
+					const msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						content,
+						false,
+						false
+					);
 					sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 				}
 			}
@@ -169,7 +189,13 @@ export async function sendMsgDm(
 		if (connectedClients.has(fromUser.id)) {
 			const toUser = connectedClients.get(fromUser.id);
 			if (toUser) {
-				msg.ownMsg = true;
+				const msg = await createHtmlMsg(
+					fromUser,
+					chatInfo,
+					content,
+					false,
+					true
+				);
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -183,7 +209,8 @@ export async function createHtmlMsg(
 	fromUser: User | null,
 	chatInfo: Chat | null,
 	msgContent: string,
-	msgBlocked: boolean
+	msgBlocked: boolean,
+	ownMsg: boolean
 ) {
 	const msg: htmlMsg = {
 		fromUserName: '',
@@ -191,19 +218,40 @@ export async function createHtmlMsg(
 		chatId: 0,
 		htmlMsg: '',
 		blocked: msgBlocked,
-		ownMsg: false,
+		ownMsg: ownMsg,
 	};
 	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';
 	msg.chatId = chatInfo ? chatInfo.id : 0;
-	msg.htmlMsg = ejs.render(`
-		<div>
-			<p><a href='/partial/pages/profile/${
-				fromUser ? escapeHTML(fromUser.username) : 'Deleted User'
-			}'>${
-		fromUser ? escapeHTML(fromUser.displayname) : 'Deleted User'
-	}:</a>${escapeHTML(msgContent)}</p>
-		</div>
-		`);
+
+	console.log('onwUser = ', ownMsg);
+
+	const useTem = ownMsg ? ownTempalte : template;
+
+	msg.htmlMsg = ejs.render(useTem, {
+		userId: fromUser.id || 0,
+		fromUser: fromUser ? escapeHTML(fromUser.username) : 'Deleted User',
+		displayName: fromUser ? escapeHTML(fromUser.displayname) : 'Deleted User',
+		msg: escapeHTML(msgContent),
+	});
 	return msg;
 }
+
+const template: string = `<div class="flex flex-row items-start inline-block self-start">
+	<img
+		src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+		alt="Profile Picture"
+		class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500"
+	/>
+	<p class="px-4 py-2 border border-green-600 bg-green-500 text-white rounded-xl">
+		<a href='/partial/pages/profile/<%= fromUser %>'><%= displayName %>:</a><%= msg %>
+	</p>
+</div>
+`;
+
+const ownTempalte: string = `<div class="inline-block self-end">
+	<p class="px-4 py-2 border border-blue-600 bg-blue-500 text-white rounded-xl">
+		<a href='/partial/pages/profile/<%= fromUser %>'><%= displayName %>:</a><%= msg %>
+	</p>
+</div>
+`;

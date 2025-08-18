@@ -134,6 +134,7 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				if (Boolean(chat.is_group) === false && chat.name === null) {
 					htmlMsgs = await getMsgForDm(
 						fastify,
+						userId,
 						chatMsgs,
 						blocked,
 						blockedId
@@ -141,6 +142,7 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				} else {
 					htmlMsgs = await getMsgForGroup(
 						fastify,
+						userId,
 						chatMsgs,
 						blocked,
 						blockedId
