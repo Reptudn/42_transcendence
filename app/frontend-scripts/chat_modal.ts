@@ -72,11 +72,14 @@ document
 		groupName = (document.getElementById('groupNameInput') as HTMLInputElement)
 			.value;
 		if (groupName === '') {
-			showLocalPopup({
-				title: 'No Groupname',
-				description: 'You need not add a Groupname',
-				color: 'red',
-			});
+			showLocalPopup(
+				{
+					title: 'No Groupname',
+					description: 'You need not add a Groupname',
+					color: 'red',
+				},
+				5000
+			);
 			return;
 		}
 		const params = new URLSearchParams();
