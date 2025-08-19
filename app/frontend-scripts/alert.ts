@@ -9,7 +9,7 @@ interface LocalAlertData {
 	onclick?: string;
 }
 
-export function showLocalPopup(data: LocalAlertData, timeout?: number) {
+export function showLocalPopup(data: LocalAlertData, timer?: number) {
 	const template = `
     <div class="popup pointer-events-auto animate-slideIn alert alert-<%= color %>" onclick="<%= onclick %>" role="alert">
         <div class="flex-1">
@@ -31,28 +31,37 @@ export function showLocalPopup(data: LocalAlertData, timeout?: number) {
 	popupContainer?.insertAdjacentHTML('afterbegin', popupElement);
 	updateCloseAllVisibility();
 
-	if (timeout) {
+	if (timer) {
 		const popup = popupContainer?.firstElementChild;
 		if (popup) {
 			setTimeout(() => {
 				popup.remove();
 				updateCloseAllVisibility();
-			}, timeout);
+			}, timer);
 		}
 	}
 }
 
-export function showLocalError(description: string, onclick?: string) {
-	showLocalPopup({ title: 'Error', description, color: 'red', onclick });
+export function showLocalError(
+	description: string,
+	onclick?: string,
+	timer?: number
+) {
+	showLocalPopup({ title: 'Error', description, color: 'red', onclick }, timer);
 }
 
-export function showLocalInfo(description: string, onclick?: string) {
-	showLocalPopup({ title: 'Info', description, color: 'yellow', onclick });
+export function showLocalInfo(
+	description: string,
+	onclick?: string,
+	timer?: number
+) {
+	showLocalPopup({ title: 'Info', description, color: 'yellow', onclick }, timer);
 }
 
-export function showLocalLog(description: string, onclick?: string) {
-	showLocalPopup({ title: 'Log', description, color: 'green', onclick });
+export function showLocalLog(description: string, onclick?: string, timer?: number) {
+	showLocalPopup({ title: 'Log', description, color: 'green', onclick }, timer);
 }
+
 declare global {
 	interface Window {
 		showLocalPopup: (data: LocalAlertData) => void;

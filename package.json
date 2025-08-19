@@ -37,6 +37,7 @@
 		"@tailwindcss/cli": "^4.1.6",
 		"@types/bcrypt": "^5.0.2",
 		"@types/ejs": "^3.1.5",
+		"@types/escape-html": "^1.0.4",
 		"@types/ws": "^8.18.1",
 		"ajv-errors": "^3.0.0",
 		"bcrypt": "^5.1.1",
@@ -54,7 +55,6 @@
 		"otplib": "^12.0.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
-		"@types/escape-html": "^1.0.4",
 		"ts-node": "^10.9.2"
 	},
 	"devDependencies": {
