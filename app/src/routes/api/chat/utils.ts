@@ -194,7 +194,8 @@ export async function getChatName(
 			} catch {
 				chat.name = 'Deleted User';
 			}
-		}
+		} else if (Boolean(chat.is_group) === true && chat.name === null)
+			chat.name = 'Global Chat';
 	}
 	return userChats;
 }

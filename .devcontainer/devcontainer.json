@@ -1,6 +1,7 @@
 {
 	"name": "transcendence",
 	"image": "mcr.microsoft.com/devcontainers/javascript-node:latest",
+	"remoteUser": "root",
 	"customizations": {
 		"vscode": {
 			"settings": {

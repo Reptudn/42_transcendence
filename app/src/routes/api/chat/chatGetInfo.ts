@@ -472,6 +472,6 @@ const currChatTemplate: string = `<h2 class="text-xl bold text-center">
 `;
 
 const chatsTemplate: string = `<div class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
-	<%= chatName %>
+	<span><%= chatName %></span>
 </div>
 `;

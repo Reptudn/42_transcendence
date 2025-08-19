@@ -236,13 +236,6 @@ export async function createHtmlMsg(
 }
 
 const template: string = `<div class="flex flex-row items-end self-start space-x-2 w-full">
-	<a href='/partial/pages/profile/<%= fromUser %>'>
-		<img
-			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
-			alt="Profile Picture"
-			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
-		/>
-	</a>
 	<div class="px-4 py-2 border border-green-600 bg-green-500 text-white rounded-xl flex flex-col max-w-[70%] break-words">
 		<span class="font-semibold border-b border-white/30 mb-1"><%= displayName %></span>
 		<span><%= msg %></span>
@@ -255,3 +248,11 @@ const ownTempalte: string = `
 		<span><%= msg %></span>
 	</div>
 `;
+
+// <a href="/partial/pages/profile/<%= fromUser %>">
+// 	<img
+// 		src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+// 		alt="Profile Picture"
+// 		class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+// 	/>
+// </a>;

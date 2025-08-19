@@ -21,11 +21,15 @@ document.getElementById('chats')?.addEventListener('click', async () => {
 		return showLocalInfo(data.error);
 	}
 
-	const chatList = document.getElementById('chatInput');
+	const chatList = document.getElementById('chatList');
 	if (chatList) {
 		chatList.innerHTML = '';
-		chatList.innerHTML = data.chats.join('');
+		chatList.innerHTML = data.chats.join(' ');
 	}
+});
+
+document.getElementById('closeChats')?.addEventListener('click', async () => {
+	document.getElementById('chatsModal')?.classList.add('hidden');
 });
 
 document.getElementById('createGroup')?.addEventListener('click', async () => {

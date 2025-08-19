@@ -33,12 +33,13 @@
 </div>
 
 <!-- Modal for Chats -->
-<div id="chatsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border hidden flex flex-col justify-between">
+<div id="chatsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
 	<h2 class="text-xl bold text-center">
 		<span>Chats</span>
 	</h2>
-	<div id="chatInput" class="flex flex-col space-y-2">
+	<div id="chatList" class="flex flex-col space-y-2">
 	</div>
+	<button id="closeChats" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.close_options') %></button>
 </div>
 
 <!--Modal group creation -->
