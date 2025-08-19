@@ -105,10 +105,8 @@ export async function loadPartialView(
 	abort: boolean = true,
 	whole_page: boolean = false
 ): Promise<void> {
-	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (whole_page) headers.loadpartial = 'false';
-	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
 	if (isPartial)
@@ -232,7 +230,6 @@ async function loadScripts(container: HTMLElement, abort: boolean): Promise<void
 		if (scripts.length) await scriptManager.load(scripts as string[]);
 		else await scriptManager.unloadAll();
 	} else {
-		alert('no abort');
 		for (const script of scripts) await scriptManager.loadScript(script);
 	}
 }
@@ -251,17 +248,7 @@ window.addEventListener('popstate', async (event: PopStateEvent) => {
 
 export async function updateMenu(): Promise<void> {
 	try {
-		let response: Response;
-		const token = localStorage.getItem('token');
-		if (token) {
-			response = await fetch('/partial/menu', {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-				},
-			});
-		} else {
-			response = await fetch('/partial/menu');
-		}
+		let response: Response = await fetch('/partial/menu');
 
 		const html = await response.text();
 		const menuElement = document.getElementById('menu');

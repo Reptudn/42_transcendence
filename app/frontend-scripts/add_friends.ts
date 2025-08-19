@@ -6,11 +6,7 @@ export function fetchFriendSearchResults() {
 		'friendSearchInput'
 	) as HTMLInputElement | null;
 	const query = searchInput ? searchInput.value.trim() : '';
-	fetch(`/partial/friends/search?q=${encodeURIComponent(query)}`, {
-		headers: {
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-		},
-	})
+	fetch(`/partial/friends/search?q=${encodeURIComponent(query)}`, {})
 		.then((res) => res.text())
 		.then((html) => {
 			const resultsContainer = document.getElementById('friendSearchResults');

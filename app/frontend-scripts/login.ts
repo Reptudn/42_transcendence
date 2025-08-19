@@ -26,8 +26,8 @@ const loginAction = async () => {
 			}
 			updateMenu();
 			await loadPartialView('profile', true, null, true, true, true);
-			showLocalInfo('You have logged in successfully');
 			window.localStorage.setItem('loggedIn', 'true');
+			showLocalInfo('You have logged in successfully');
 			setupEventSource();
 		} else {
 			const data = await response.json();

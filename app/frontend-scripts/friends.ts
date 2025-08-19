@@ -30,7 +30,6 @@ export function sendFriendRequest(
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -53,7 +52,6 @@ export function acceptFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -70,7 +68,6 @@ export function declineFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -87,7 +84,6 @@ export function removeFriendRequest(friendId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ friendId }),
 	})

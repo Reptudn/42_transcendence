@@ -6,7 +6,7 @@ import { Script } from './script_manager.js';
 export function getFileAsDataURL(input: HTMLInputElement): Promise<string> {
 	return new Promise((resolve, reject) => {
 		if (!input.files || input.files.length === 0) {
-			resolve(''); // No file selected, treat as removal
+			resolve('');
 		} else {
 			const file = input.files[0];
 			if (file.type !== 'image/png') {
@@ -20,19 +20,16 @@ export function getFileAsDataURL(input: HTMLInputElement): Promise<string> {
 	});
 }
 
-// Fixed: Initialize these properly - they will be set in the load function
 let initialValues: any = {};
 let initialTitleValues: any = {};
 let profilePictureResetClicked = false;
 
-// Store element references
 let profilePictureReset: HTMLElement | null = null;
 let editprofilesubmit: HTMLElement | null = null;
 let edittitlesubmit: HTMLElement | null = null;
 let changepasswordsubmit: HTMLElement | null = null;
 let deleteprofilesubmit: HTMLElement | null = null;
 
-// Store function references for cleanup
 let profilePictureResetHandler: ((event: Event) => void) | null = null;
 let editProfileSubmitHandler: ((event: Event) => Promise<void>) | null = null;
 let editTitleSubmitHandler: ((event: Event) => Promise<void>) | null = null;
@@ -49,7 +46,7 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 			}/${max}`;
 		};
 		input.addEventListener('input', handler);
-		handler(); // Set initial value
+		handler();
 	}
 }
 
@@ -57,7 +54,6 @@ const edit_profile = new Script(
 	async () => {
 		console.log('[EditProfile] Loading edit profile script...');
 
-		// Initialize values after DOM is ready
 		const usernameEl = document.getElementById('username') as HTMLInputElement;
 		const displayNameEl = document.getElementById(
 			'displayName'
@@ -90,14 +86,12 @@ const edit_profile = new Script(
 			thirdTitle: thirdTitleEl?.value || '',
 		};
 
-		// Get DOM elements
 		profilePictureReset = document.getElementById('profilePictureReset');
 		editprofilesubmit = document.getElementById('editprofilesubmit');
 		edittitlesubmit = document.getElementById('edittitlesubmit');
 		changepasswordsubmit = document.getElementById('changepasswordsubmit');
 		deleteprofilesubmit = document.getElementById('deleteprofilesubmit');
 
-		// Create handler functions
 		profilePictureResetHandler = (event) => {
 			event.preventDefault();
 			profilePictureResetClicked = true;
@@ -161,14 +155,11 @@ const edit_profile = new Script(
 				return;
 			}
 
-			const token = localStorage.getItem('token');
-
 			try {
 				const response = await fetch('/api/profile/edit', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						...(token ? { Authorization: `Bearer ${token}` } : {}),
 					},
 					body: JSON.stringify(formData),
 				});
@@ -229,14 +220,11 @@ const edit_profile = new Script(
 				formData.thirdTitle = thirdTitleField.value;
 			}
 
-			const token = localStorage.getItem('token');
-
 			try {
 				const response = await fetch('/api/profile/edit-title', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						...(token ? { Authorization: `Bearer ${token}` } : {}),
 					},
 					body: JSON.stringify(formData),
 				});
@@ -276,14 +264,11 @@ const edit_profile = new Script(
 				return;
 			}
 
-			const token = localStorage.getItem('token');
-
 			try {
 				const response = await fetch('/api/profile/edit', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						...(token ? { Authorization: `Bearer ${token}` } : {}),
 					},
 					body: JSON.stringify(formData),
 				});
@@ -291,7 +276,6 @@ const edit_profile = new Script(
 				const data = await response.json();
 				if (response.ok) {
 					showLocalInfo('Password updated successfully! 🎉');
-					localStorage.removeItem('token');
 					localStorage.setItem('loggedIn', 'false');
 					await loadPartialView('login', true, null, true, true, true);
 					updateMenu();
@@ -319,14 +303,11 @@ const edit_profile = new Script(
 				formData.password = passwordField.value;
 			}
 
-			const token = localStorage.getItem('token');
-
 			try {
 				const response = await fetch('/api/profile/delete', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						...(token ? { Authorization: `Bearer ${token}` } : {}),
 					},
 					body: JSON.stringify(formData),
 				});
@@ -348,14 +329,12 @@ const edit_profile = new Script(
 			}
 		};
 
-		// Attach event listeners
 		profilePictureReset?.addEventListener('click', profilePictureResetHandler);
 		editprofilesubmit?.addEventListener('click', editProfileSubmitHandler);
 		edittitlesubmit?.addEventListener('click', editTitleSubmitHandler);
 		changepasswordsubmit?.addEventListener('click', changePasswordSubmitHandler);
 		deleteprofilesubmit?.addEventListener('click', deleteProfileSubmitHandler);
 
-		// Setup counters
 		updateCounter('username', 'usernameCounter', 20);
 		updateCounter('displayName', 'displayNameCounter', 20);
 		updateCounter('bio', 'bioCounter', 200);
@@ -368,7 +347,6 @@ const edit_profile = new Script(
 	async () => {
 		console.log('[EditProfile] Unloading edit profile script...');
 
-		// Remove event listeners
 		if (profilePictureReset && profilePictureResetHandler) {
 			profilePictureReset.removeEventListener(
 				'click',
@@ -394,21 +372,18 @@ const edit_profile = new Script(
 			);
 		}
 
-		// Clear references
 		profilePictureReset = null;
 		editprofilesubmit = null;
 		edittitlesubmit = null;
 		changepasswordsubmit = null;
 		deleteprofilesubmit = null;
 
-		// Clear handler references
 		profilePictureResetHandler = null;
 		editProfileSubmitHandler = null;
 		editTitleSubmitHandler = null;
 		changePasswordSubmitHandler = null;
 		deleteProfileSubmitHandler = null;
 
-		// Reset state
 		profilePictureResetClicked = false;
 		initialValues = {};
 		initialTitleValues = {};

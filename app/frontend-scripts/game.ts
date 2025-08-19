@@ -71,8 +71,6 @@ const game = new Script(
 		const wsHost = window.location.host;
 		const wsUrl = `${wsProtocol}//${wsHost}/api/games/connect?gameId=${gameId}`;
 
-		alert(`connecting socket to: ${wsUrl}`);
-
 		ws = new WebSocket(wsUrl);
 
 		ws.onopen = () => {
