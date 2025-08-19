@@ -156,6 +156,7 @@ export function setupEventSource() {
 				case 'game_started': {
 					const gameId = data.message;
 					showLocalInfo(`Game started! (ID: ${gameId})`);
+					alert(`games/run?gameId=${gameId}`);
 					await loadPartialView(
 						'api',
 						true,

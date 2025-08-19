@@ -1,6 +1,18 @@
 import { showLocalError } from './alert.js';
 import { setupEventSource } from './events.js';
+import { login } from './login.js';
 import { initPopups } from './popup.js';
+import { ScriptManager } from './script_manager.js';
+import { totp } from './totp.js';
+import { register } from './register.js';
+import add_friends from './add_friends.js';
+import friends from './friends.js';
+import gameRenderer from './gameRenderer.js';
+import { lobby } from './lobby.js';
+import { lobby_admin } from './lobby_admin.js';
+import game from './game.js';
+import twofa_login_script from './twofa_login.js';
+import edit_profile from './edit_profile.js';
 
 declare global {
 	interface Window {
@@ -116,34 +128,6 @@ export async function loadPartialView(
 			throw new Error(data.error);
 		}
 
-		if (abort) {
-			console.log('[Navigator] Resetting abort controller');
-			window.abortController = resetController();
-		} else {
-			console.log(
-				'[Navigator] Skipping controller reset between lobby and game view'
-			);
-		}
-
-		const html: string = await response.text();
-
-		if (whole_page) {
-			replaceEntireDocument(html);
-			initPopups();
-		} else {
-			const contentElement: HTMLElement | null =
-				document.getElementById('content');
-			if (contentElement) {
-				contentElement.innerHTML = html;
-				await loadScripts(contentElement);
-			} else {
-				console.warn('Content element not found');
-			}
-		}
-		setupEventSource();
-
-		updateActiveMenu(page);
-
 		if (pushState) {
 			console.info('pushing state: ', url);
 			history.pushState(
@@ -157,6 +141,34 @@ export async function loadPartialView(
 			);
 		}
 
+		if (abort) {
+			console.log('[Navigator] Resetting abort controller');
+			window.abortController = resetController();
+		} else {
+			console.log(
+				'[Navigator] Skipping controller reset between lobby and game view'
+			);
+		}
+
+		const html: string = await response.text();
+
+		if (whole_page) {
+			await replaceEntireDocument(html, abort);
+			initPopups();
+		} else {
+			const contentElement: HTMLElement | null =
+				document.getElementById('content');
+			if (contentElement) {
+				contentElement.innerHTML = html;
+				await loadScripts(contentElement, abort);
+			} else {
+				console.warn('Content element not found');
+			}
+		}
+		setupEventSource();
+
+		updateActiveMenu(page);
+
 		last_page = url;
 	} catch (error) {
 		if (error instanceof Error) showLocalError(error.message);
@@ -164,7 +176,10 @@ export async function loadPartialView(
 	}
 }
 
-function replaceEntireDocument(htmlContent: string): void {
+async function replaceEntireDocument(
+	htmlContent: string,
+	abort: boolean
+): Promise<void> {
 	const parser = new DOMParser();
 	const newDoc = parser.parseFromString(htmlContent, 'text/html');
 
@@ -196,49 +211,29 @@ function replaceEntireDocument(htmlContent: string): void {
 		document.body.setAttribute(attr.name, attr.value);
 	});
 
-	loadScripts(document.body);
+	await loadScripts(document.body, abort);
 }
 
-async function loadScripts(container: HTMLElement): Promise<void> {
-	const scripts = container.querySelectorAll('script');
-	if (scripts && scripts.length > 0) {
-		for (const oldScript of scripts) {
-			const newScript = document.createElement('script');
-			newScript.noModule = false;
-			newScript.async = true;
-			newScript.defer = true;
-			newScript.type = oldScript.type || 'text/javascript';
-			console.log('Loading script:', oldScript);
+async function loadScripts(container: HTMLElement, abort: boolean): Promise<void> {
+	const scriptConfig = container.querySelector('script-config');
+	if (!scriptConfig) {
+		console.info(`[ScriptManager] No script config found... skipping!`);
+		return;
+	}
 
-			if (oldScript.src) {
-				newScript.src = `${oldScript.src}?cb=${Date.now()}`;
-			} else {
-				newScript.text = oldScript.text;
-			}
+	const scriptsToLoad = scriptConfig.getAttribute('data-scripts');
+	if (!scriptsToLoad) {
+		console.info(`[ScriptManager] No scripts to load...`);
+		return;
+	}
 
-			container.appendChild(newScript);
-			oldScript.remove();
-
-			newScript.addEventListener(
-				'load',
-				() => {
-					console.log('Script loaded:', newScript.src);
-				},
-				{
-					signal: window.abortController?.signal,
-				}
-			);
-
-			newScript.addEventListener(
-				'error',
-				(event) => {
-					console.error('Script error:', newScript.src, event);
-				},
-				{
-					signal: window.abortController?.signal,
-				}
-			);
-		}
+	const scripts = scriptsToLoad.split(',').map((s) => s.trim());
+	if (abort) {
+		if (scripts.length) await scriptManager.load(scripts as string[]);
+		else await scriptManager.unloadAll();
+	} else {
+		alert('no abort');
+		for (const script of scripts) await scriptManager.loadScript(script);
 	}
 }
 
@@ -281,3 +276,16 @@ export async function updateMenu(): Promise<void> {
 window.updateActiveMenu = updateActiveMenu;
 window.loadPartialView = loadPartialView;
 window.updateMenu = updateMenu;
+
+const scriptManager = new ScriptManager();
+scriptManager.registerScript('twofa_login', twofa_login_script);
+scriptManager.registerScript('login', login);
+scriptManager.registerScript('register', register);
+scriptManager.registerScript('totp', totp);
+scriptManager.registerScript('lobby', lobby);
+scriptManager.registerScript('lobby_admin', lobby_admin);
+scriptManager.registerScript('game', game);
+scriptManager.registerScript('gameRenderer', gameRenderer);
+scriptManager.registerScript('friends', friends);
+scriptManager.registerScript('add_friends', add_friends);
+scriptManager.registerScript('edit_profile', edit_profile);

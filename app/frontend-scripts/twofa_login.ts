@@ -1,5 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { updateMenu, loadPartialView } from './navigator.js';
+import { Script } from './script_manager.js';
 
 async function twofa_login() {
 	try {
@@ -84,3 +85,16 @@ declare global {
 
 window.twofa_login = twofa_login;
 window.twofa_login_google = twofa_login_google;
+
+async function load() {
+	window.twofa_login = twofa_login;
+	window.twofa_login_google = twofa_login_google;
+}
+
+async function unload() {
+	delete (window as any).twofa_login;
+	delete (window as any).twofa_login_google;
+}
+
+const twofa_login_script = new Script(load, unload);
+export default twofa_login_script;
