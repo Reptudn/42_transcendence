@@ -1,4 +1,4 @@
-import { getMessages, getChats } from './chat.js';
+import { getMessages } from './chat.js';
 import { showLocalError, showLocalInfo } from './alert.js';
 
 let userIds: string[] = [];
@@ -9,6 +9,24 @@ interface Friend {
 	username: string;
 	displayname: string;
 }
+
+// Chats Modal
+
+document.getElementById('chats')?.addEventListener('click', async () => {
+	document.getElementById('chatsModal')?.classList.remove('hidden');
+
+	const res = await fetch('/api/chat/chats');
+	const data = await res.json();
+	if (!res.ok) {
+		return showLocalInfo(data.error);
+	}
+
+	const chatList = document.getElementById('chatInput');
+	if (chatList) {
+		chatList.innerHTML = '';
+		chatList.innerHTML = data.chats.join('');
+	}
+});
 
 document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
@@ -87,7 +105,7 @@ document
 		const newId = data.chat_id as string;
 		sessionStorage.setItem('chat_id', newId);
 		await getMessages(newId);
-		await getChats();
+		// await getChats();
 		document.getElementById('closeGroupWindow')?.click();
 	});
 
@@ -341,7 +359,7 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	showLocalInfo(data.msg);
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages('1');
-	await getChats();
+	// await getChats();
 });
 
 // ChatInfo Modal

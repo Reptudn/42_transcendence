@@ -149,14 +149,21 @@ export async function getAllMsg(fastify: FastifyInstance) {
 					);
 				}
 
-				htmlMsgs.push({
-					fromUserName: '',
-					chatName: found ? (found.name ? found.name : '') : '',
-					chatId: 0,
-					htmlMsg: '',
-					blocked: false,
-					ownMsg: true,
-				});
+				if (found) {
+					if (found.id === 1) {
+						found.name = 'Global Chat';
+					}
+					htmlMsgs.push({
+						fromUserName: '',
+						chatName: ejs.render(currChatTemplate, {
+							chatName: found.name,
+						}),
+						chatId: 0,
+						htmlMsg: '',
+						blocked: false,
+						ownMsg: true,
+					});
+				}
 
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
@@ -179,7 +186,14 @@ export async function getAllChats(fastify: FastifyInstance) {
 
 				const userChats = await getChatName(fastify, userId);
 
-				return res.status(200).send({ chats: userChats });
+				const htmlChats: string[] = [];
+
+				for (const chat of userChats) {
+					htmlChats.push(
+						ejs.render(chatsTemplate, { chatName: chat.name })
+					);
+				}
+				return res.status(200).send({ chats: htmlChats });
 			} catch (err) {
 				const nError = normError(err);
 				res.status(nError.errorCode).send({
@@ -449,5 +463,15 @@ const template: string = `<div class="chat-info-container">
 			<% }) %>
 		</ul>
 	</div>
+</div>
+`;
+
+const currChatTemplate: string = `<h2 class="text-xl bold text-center">
+	<span><%= chatName %></span>
+</h2>
+`;
+
+const chatsTemplate: string = `<div class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+	<%= chatName %>
 </div>
 `;

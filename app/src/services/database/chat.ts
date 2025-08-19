@@ -29,7 +29,7 @@ export async function getAllChatsFromSqlByUserId(
 	userId: number
 ): Promise<Chat[]> {
 	const chats = (await fastify.sqlite.all(
-		'SELECT c.id, c.name, c.is_group, c.created_at FROM chats AS c JOIN chat_participants AS cp ON c.id = cp.chat_id WHERE cp.user_id = ? AND c.id <> 1',
+		'SELECT c.id, c.name, c.is_group, c.created_at FROM chats AS c JOIN chat_participants AS cp ON c.id = cp.chat_id WHERE cp.user_id = ?',
 		[userId]
 	)) as Chat[] | null;
 	if (!chats) throw new HttpError(400, 'No Chatparticipants found');

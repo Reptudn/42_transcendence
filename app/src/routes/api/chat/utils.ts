@@ -185,7 +185,6 @@ export async function getChatName(
 	userId: number
 ): Promise<Chat[]> {
 	const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
-
 	for (const chat of userChats) {
 		if (Boolean(chat.is_group) === false) {
 			try {
