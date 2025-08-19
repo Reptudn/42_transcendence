@@ -4,10 +4,8 @@ import { updateMenu, loadPartialView } from './navigator.js';
 import './script.js';
 
 const loginAction = async () => {
-	const username = (document.querySelector('#username') as HTMLInputElement)
-		.value;
-	const password = (document.querySelector('#password') as HTMLInputElement)
-		.value;
+	const username = (document.querySelector('#username') as HTMLInputElement).value;
+	const password = (document.querySelector('#password') as HTMLInputElement).value;
 
 	try {
 		const response = await fetch('/api/auth/login', {
@@ -28,15 +26,15 @@ const loginAction = async () => {
 			updateMenu();
 			await loadPartialView('profile', true, null, true, true, true);
 			showLocalInfo('You have logged in successfully');
-			window.localStorage.setItem("loggedIn", "true");
+			window.localStorage.setItem('loggedIn', 'true');
 			setupEventSource();
 		} else {
 			const data = await response.json();
-			showLocalError(`${data.message}`);
+			showLocalError(`${data.message}`, undefined, 5000);
 		}
 	} catch (error) {
 		console.error(error);
-		showLocalError('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.', undefined, 5000);
 	}
 };
 

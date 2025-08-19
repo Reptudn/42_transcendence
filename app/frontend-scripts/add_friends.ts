@@ -1,4 +1,4 @@
-import { showLocalError } from "./alert.js";
+import { showLocalError } from './alert.js';
 
 export function fetchFriendSearchResults() {
 	const searchInput = document.getElementById(
@@ -12,15 +12,17 @@ export function fetchFriendSearchResults() {
 	})
 		.then((res) => res.text())
 		.then((html) => {
-			const resultsContainer = document.getElementById(
-				'friendSearchResults'
-			);
+			const resultsContainer = document.getElementById('friendSearchResults');
 			if (resultsContainer) {
 				resultsContainer.innerHTML = html;
 			}
 		})
 		.catch((err) => {
-			showLocalError(`Failed to fetch friend search results: ${err}`);
+			showLocalError(
+				`Failed to fetch friend search results: ${err}`,
+				undefined,
+				5000
+			);
 		});
 }
 

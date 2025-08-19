@@ -10,7 +10,7 @@ interface Friend {
 export async function refreshOnlineFriends() {
 	const onlineFriendsContainer = document.getElementById('onlineFriendsList');
 	if (!onlineFriendsContainer) {
-		showLocalError('No online friends container!');
+		showLocalError('No online friends container!', undefined, 5000);
 		return;
 	}
 
@@ -19,7 +19,9 @@ export async function refreshOnlineFriends() {
 		showLocalError(
 			await response
 				.json()
-				.then((err) => err.error || 'Failed to fetch friends')
+				.then((err) => err.error || 'Failed to fetch friends'),
+			undefined,
+			5000
 		);
 		throw new Error('Failed to fetch friends list');
 	}
@@ -64,7 +66,7 @@ export async function updateSettings(
 
 	if (!res.ok) {
 		const data = await res.json();
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 	} else {
 		if (!success_info) return;
 		const data = await res.json();
@@ -81,7 +83,9 @@ export async function resetGameSettings() {
 	if (!res.ok) {
 		const error = await res.json();
 		showLocalError(
-			`${error.error || 'Failed to reset settings: Unknown error'}`
+			`${error.error || 'Failed to reset settings: Unknown error'}`,
+			undefined,
+			5000
 		);
 		return;
 	}
@@ -142,7 +146,11 @@ export async function addAIPlayer() {
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`${error.error || 'Failed to add AI player: Unknown error'}`);
+		showLocalError(
+			`${error.error || 'Failed to add AI player: Unknown error'}`,
+			undefined,
+			5000
+		);
 		return;
 	}
 	const data = await res.json();
@@ -158,7 +166,7 @@ export async function addUserPlayer(friendId: number) {
 	});
 	if (!response.ok) {
 		const error = await response.json();
-		showLocalError(error.error);
+		showLocalError(error.error, undefined, 5000);
 		return;
 	}
 	const data = await response.json();
@@ -174,7 +182,9 @@ export async function addLocalPlayer() {
 	if (!res.ok) {
 		const data = await res.json();
 		showLocalError(
-			`${data.error || 'Failed to add Local player: Unknown error'}`
+			`${data.error || 'Failed to add Local player: Unknown error'}`,
+			undefined,
+			5000
 		);
 		return;
 	}
@@ -192,7 +202,11 @@ export async function kickPlayer(playerId: number) {
 
 	if (!res.ok) {
 		const data = await res.json();
-		showLocalError(`${data.error || 'Failed to kick player: Unknown error'}`);
+		showLocalError(
+			`${data.error || 'Failed to kick player: Unknown error'}`,
+			undefined,
+			5000
+		);
 		return;
 	}
 	const data = await res.json();
@@ -221,7 +235,11 @@ export async function startGame() {
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`${error.error || 'Failed to start game: Unknown error'}`);
+		showLocalError(
+			`${error.error || 'Failed to start game: Unknown error'}`,
+			undefined,
+			5000
+		);
 		return;
 	}
 	const data = await res.json();

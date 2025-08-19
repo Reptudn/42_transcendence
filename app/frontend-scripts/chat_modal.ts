@@ -14,7 +14,7 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/friends');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError('Failed to fetch friends', undefined, 5000);
 		return;
 	}
 	const friends = (await res.json()) as Friend[];
@@ -88,7 +88,7 @@ document
 		const res = await fetch(url);
 		const data = await res.json();
 		if (!res.ok) {
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 50000);
 			return;
 		}
 		showLocalInfo(data.msg);
@@ -111,7 +111,7 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/friends');
 	if (!res.ok) {
-		showLocalError('Failed to load friends in block user modal');
+		showLocalError('Failed to load friends in block user modal', undefined, 5000);
 	}
 	const friends = (await res.json()) as Friend[];
 	const userList = document.getElementById('searchResultsToBlock');
@@ -174,7 +174,7 @@ document.getElementById('confirmBlockUser')?.addEventListener('click', async () 
 	const res = await fetch(url);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
 	showLocalInfo(data.msg);
@@ -192,7 +192,7 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/friends');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError('Failed to fetch friends', undefined, 5000);
 		return;
 	}
 	const friends = (await res.json()) as Friend[];
@@ -258,7 +258,7 @@ document
 		const res = await fetch(url);
 		const data = await res.json();
 		if (!res.ok) {
-			return showLocalError(data.error);
+			return showLocalError(data.error, undefined, 5000);
 		}
 		showLocalInfo(data.msg);
 		document.getElementById('closeUnblockUser')?.click();
@@ -275,7 +275,7 @@ document.getElementById('inviteUser')?.addEventListener('click', async () => {
 	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/friends');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError('Failed to fetch friends', undefined, 5000);
 		console.error('Failed to fetch friends:', res.status, res.statusText);
 		return;
 	}
@@ -335,7 +335,7 @@ document.getElementById('confirmInviteUser')?.addEventListener('click', async ()
 	const res = await fetch(url);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
 	showLocalInfo(data.msg);
@@ -355,7 +355,7 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
 	showLocalInfo(data.msg);
@@ -373,7 +373,7 @@ document.getElementById('chatInfo')?.addEventListener('click', async () => {
 	);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
 	const win = document.getElementById('chatInfoInput');

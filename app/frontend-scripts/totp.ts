@@ -20,11 +20,11 @@ export async function enable2fa() {
 			// };
 		} else {
 			const data = await res.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 		loadPartialView('edit_profile');
 	} catch (error) {
-		showLocalError('Failed to enable 2fa!');
+		showLocalError('Failed to enable 2fa!', undefined, 5000);
 	}
 }
 
@@ -37,11 +37,11 @@ export async function disable2fa() {
 			showLocalInfo('You have disabled 2fa successfully');
 		} else {
 			const data = await res.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 		loadPartialView('edit_profile');
 	} catch (error) {
-		window.showLocalError('Failed to disable 2fa!');
+		window.showLocalError('Failed to disable 2fa!', undefined, 5000);
 	}
 }
 

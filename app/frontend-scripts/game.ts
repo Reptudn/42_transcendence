@@ -24,7 +24,7 @@ ws.onopen = () => {
 
 ws.onerror = async (error) => {
 	console.error('WebSocket error:', error);
-	showLocalError('Failed to connect to game server');
+	showLocalError('Failed to connect to game server', undefined, 5000);
 	await loadPartialView('index');
 };
 
@@ -36,7 +36,7 @@ ws.onclose = async (event) => {
 	// Handle different close codes from your backend
 	switch (event.code) {
 		case 1008: // Policy violation (your custom error codes)
-			showLocalError(`Connection rejected: ${event.reason}`);
+			showLocalError(`Connection rejected: ${event.reason}`, undefined, 5000);
 			await loadPartialView('profile');
 			break;
 
@@ -52,7 +52,9 @@ ws.onclose = async (event) => {
 
 		case 1005: // Invalid message format
 			showLocalError(
-				'Connection closed due to invalid message format or cloudflare issue'
+				'Connection closed due to invalid message format or cloudflare issue',
+				undefined,
+				5000
 			);
 			await loadPartialView('profile');
 			break;
@@ -107,7 +109,7 @@ ws.onmessage = (event) => {
 			showLocalInfo(`Unknown data received from websocket: ${data}`);
 		}
 	} catch (e) {
-		showLocalError(`Error parsing chat message: ${e}`);
+		showLocalError(`Error parsing chat message: ${e}`, undefined, 5000);
 	}
 };
 

@@ -19,7 +19,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		input.value = '';
 		const chat_id = sessionStorage.getItem('chat_id');
 		if (!chat_id) {
-			showLocalError('Chat ID not found');
+			showLocalError('Chat ID not found', undefined, 5000);
 			return;
 		}
 		const res = await fetch('/api/chat', {
@@ -58,7 +58,7 @@ searchUser?.addEventListener('input', async () => {
 	}
 	const userList = document.getElementById('userList');
 	if (!userList) {
-		showLocalError('User list element not found');
+		showLocalError('User list element not found', undefined, 5000);
 		return;
 	}
 	userList.innerHTML = '';
@@ -132,13 +132,13 @@ export async function getChats() {
 
 export async function getMessages(chat_id: string | null) {
 	if (!chat_id || chat_id === '0') {
-		showLocalError('Invalid chat ID');
+		showLocalError('Invalid chat ID', undefined, 5000);
 		return;
 	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalError(data.error);
+		return showLocalError(data.error, undefined, 5000);
 	}
 	const msgs = data.msgs as htmlMsg[];
 

@@ -241,7 +241,7 @@ export async function sendPopup(
 
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`Failed to send popup: ${error.error}`);
+		showLocalError(`Failed to send popup: ${error.error}`, undefined, 5000);
 		throw new Error(`Failed to send popup: ${error.error}`);
 	}
 
@@ -261,7 +261,11 @@ export async function declineGameInvite(gameId: number) {
 	});
 	if (!res.ok) {
 		const error = await res.json();
-		showLocalError(`Failed to decline game invite: ${error.error}`);
+		showLocalError(
+			`Failed to decline game invite: ${error.error}`,
+			undefined,
+			5000
+		);
 		throw new Error(`Failed to decline game invite: ${error.error}`);
 	}
 	const data = await res.json();

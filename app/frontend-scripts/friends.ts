@@ -1,4 +1,4 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
 
 export interface FriendUser {
 	id: number;
@@ -15,9 +15,11 @@ declare global {
 	}
 }
 
-export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | null = null) {
-	if (btn)
-	{
+export function sendFriendRequest(
+	requestId: number,
+	btn: HTMLButtonElement | null = null
+) {
+	if (btn) {
 		btn.textContent = 'Request sent';
 		btn.style.backgroundColor = 'green';
 		btn.disabled = true;
@@ -36,9 +38,12 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | nu
 			showLocalInfo(`Friend request sent: ${data.message}`);
 		})
 		.catch((error) => {
-			showLocalError(`Error sending friend request: ${error}`);
-			if (btn !== null)
-			{
+			showLocalError(
+				`Error sending friend request: ${error}`,
+				undefined,
+				5000
+			);
+			if (btn !== null) {
 				btn.textContent = 'Send request';
 				btn.style.backgroundColor = '';
 				btn.disabled = false;
@@ -60,7 +65,11 @@ export function acceptFriendRequest(requestId: number) {
 			showLocalInfo(`Friend request accepted: ${data.message}`);
 		})
 		.catch((error) => {
-			showLocalError(`Error accepting friend request: ${error}`);
+			showLocalError(
+				`Error accepting friend request: ${error}`,
+				undefined,
+				5000
+			);
 		});
 }
 export function declineFriendRequest(requestId: number) {
@@ -77,7 +86,11 @@ export function declineFriendRequest(requestId: number) {
 			showLocalInfo(`Friend request declined: ${data.message}`);
 		})
 		.catch((error) => {
-			showLocalError(`Error declining friend request: ${error}`);
+			showLocalError(
+				`Error declining friend request: ${error}`,
+				undefined,
+				5000
+			);
 		});
 }
 export function removeFriendRequest(friendId: number) {
@@ -94,7 +107,7 @@ export function removeFriendRequest(friendId: number) {
 			showLocalInfo(`Friend removed: ${data.message}`);
 		})
 		.catch((error) => {
-			showLocalError(`Error removing friend: ${error}`);
+			showLocalError(`Error removing friend: ${error}`, undefined, 5000);
 		});
 }
 

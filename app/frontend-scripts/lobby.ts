@@ -51,7 +51,11 @@ export async function kickPlayer(playerId: number) {
 
 	if (!res.ok) {
 		const data = await res.json();
-		showLocalError(`${data.error || 'Failed to kick player: Unknown error'}`);
+		showLocalError(
+			`${data.error || 'Failed to kick player: Unknown error'}`,
+			undefined,
+			5000
+		);
 		return;
 	}
 	const data = await res.json();

@@ -29,11 +29,11 @@ async function twofa_login() {
 			loadPartialView('profile');
 		} else {
 			const data = await response.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		showLocalError('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.', undefined, 5000);
 	}
 }
 
@@ -66,11 +66,11 @@ async function twofa_login_google() {
 			loadPartialView('profile');
 		} else {
 			const data = await response.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		showLocalError('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.', undefined, 5000);
 	}
 }
 

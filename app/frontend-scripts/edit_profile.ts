@@ -21,12 +21,10 @@ export function getFileAsDataURL(input: HTMLInputElement): Promise<string> {
 
 const initialValues = {
 	username: (document.getElementById('username') as HTMLInputElement).value,
-	displayName: (document.getElementById('displayName') as HTMLInputElement)
-		.value,
+	displayName: (document.getElementById('displayName') as HTMLInputElement).value,
 	bio: (document.getElementById('bio') as HTMLTextAreaElement).value,
-	profilePicture: (
-		document.getElementById('profilePicture') as HTMLImageElement
-	).src,
+	profilePicture: (document.getElementById('profilePicture') as HTMLImageElement)
+		.src,
 };
 
 let profilePictureResetClicked = false;
@@ -83,13 +81,21 @@ document
 			}
 		} catch (error: unknown) {
 			if (error instanceof Error) {
-				showLocalError(`Image conversion error: ${error.message}`);
+				showLocalError(
+					`Image conversion error: ${error.message}`,
+					undefined,
+					5000
+				);
 			} else {
 				showLocalError(
-					'An unknown error occurred during image conversion.'
+					'An unknown error occurred during image conversion.',
+					undefined,
+					5000
 				);
 				showLocalError(
-					'An unknown error occurred during image conversion.'
+					'An unknown error occurred during image conversion.',
+					undefined,
+					5000
 				);
 			}
 			return;
@@ -116,23 +122,22 @@ document
 					await loadPartialView('profile');
 				}
 			} else {
-				showLocalError(data.message || data.error);
+				showLocalError(data.message || data.error, undefined, 5000);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				'An error occurred while updating your profile. Please try again.'
+				'An error occurred while updating your profile. Please try again.',
+				undefined,
+				5000
 			);
 		}
 	});
 
 const initialTitleValues = {
-	firstTitle: (document.getElementById('firstTitle') as HTMLInputElement)
-		.value,
-	secondTitle: (document.getElementById('secondTitle') as HTMLInputElement)
-		.value,
-	thirdTitle: (document.getElementById('thirdTitle') as HTMLInputElement)
-		.value,
+	firstTitle: (document.getElementById('firstTitle') as HTMLInputElement).value,
+	secondTitle: (document.getElementById('secondTitle') as HTMLInputElement).value,
+	thirdTitle: (document.getElementById('thirdTitle') as HTMLInputElement).value,
 };
 
 document
@@ -179,12 +184,14 @@ document
 				showLocalLog('Title updated successfully! 🎉');
 				await loadPartialView('profile');
 			} else {
-				showLocalError(data.message || data.error);
+				showLocalError(data.message || data.error, undefined, 5000);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				'An error occurred while updating your title. Please try again.'
+				'An error occurred while updating your title. Please try again.',
+				undefined,
+				5000
 			);
 		}
 	});
@@ -207,7 +214,11 @@ document
 			formData.oldPassword = oldPasswordField.value;
 			formData.newPassword = newPasswordField.value;
 		} else {
-			showLocalError('Please fill in both fields to change password.');
+			showLocalError(
+				'Please fill in both fields to change password.',
+				undefined,
+				5000
+			);
 			return;
 		}
 
@@ -231,12 +242,14 @@ document
 				await loadPartialView('login', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(data.message || data.error);
+				showLocalError(data.message || data.error, undefined, 5000);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				'An error occurred while updating your password. Please try again.'
+				'An error occurred while updating your password. Please try again.',
+				undefined,
+				5000
 			);
 		}
 	});
@@ -275,12 +288,14 @@ document
 				await loadPartialView('register', true, null, true, true, true);
 				updateMenu();
 			} else {
-				showLocalError(data.message || data.error);
+				showLocalError(data.message || data.error, undefined, 5000);
 			}
 		} catch (error) {
 			console.error('Upload error:', error);
 			showLocalError(
-				'An error occurred while deleting your profile. Please try again.'
+				'An error occurred while deleting your profile. Please try again.',
+				undefined,
+				5000
 			);
 		}
 	});
@@ -294,8 +309,6 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 				(input as HTMLInputElement).value.length
 			}/${max}`;
 		});
-		counter.textContent = `${
-			(input as HTMLInputElement).value.length
-		}/${max}`;
+		counter.textContent = `${(input as HTMLInputElement).value.length}/${max}`;
 	}
 }

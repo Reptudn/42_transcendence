@@ -265,7 +265,7 @@ export function drawCircle(
 		ctx.fill();
 		ctx.restore();
 	} else {
-		showLocalError('Canvas context is null');
+		showLocalError('Canvas context is null', undefined, 5000);
 	}
 }
 export function drawPolygon(
@@ -295,7 +295,7 @@ export function drawPolygon(
 		ctx.stroke(path);
 		ctx.restore();
 	} else {
-		showLocalError('Canvas context is null');
+		showLocalError('Canvas context is null', undefined, 5000);
 	}
 }
 function drawPolyline(
