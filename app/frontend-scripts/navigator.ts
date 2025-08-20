@@ -158,7 +158,7 @@ export async function loadPartialView(
 				document.getElementById('content');
 			if (contentElement) {
 				contentElement.innerHTML = html;
-				await loadScripts(contentElement, abort);
+				await loadScripts(contentElement);
 			} else {
 				console.warn('Content element not found');
 			}
@@ -209,29 +209,28 @@ async function replaceEntireDocument(
 		document.body.setAttribute(attr.name, attr.value);
 	});
 
-	await loadScripts(document.body, abort);
+	await loadScripts(document.body);
 }
 
-async function loadScripts(container: HTMLElement, abort: boolean): Promise<void> {
+async function loadScripts(container: HTMLElement): Promise<void> {
+	// await scriptManager.unloadAll();
 	const scriptConfig = container.querySelector('script-config');
 	if (!scriptConfig) {
+		await scriptManager.unloadAll();
 		console.info(`[ScriptManager] No script config found... skipping!`);
 		return;
 	}
 
 	const scriptsToLoad = scriptConfig.getAttribute('data-scripts');
 	if (!scriptsToLoad) {
+		await scriptManager.unloadAll();
 		console.info(`[ScriptManager] No scripts to load...`);
 		return;
 	}
 
 	const scripts = scriptsToLoad.split(',').map((s) => s.trim());
-	if (abort) {
-		if (scripts.length) await scriptManager.load(scripts as string[]);
-		else await scriptManager.unloadAll();
-	} else {
-		for (const script of scripts) await scriptManager.loadScript(script);
-	}
+	if (scripts.length) await scriptManager.load(scripts as string[]);
+	else await scriptManager.unloadAll();
 }
 
 // history change event

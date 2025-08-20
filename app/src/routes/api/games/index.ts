@@ -864,6 +864,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					ownerName: game.admin.displayname,
 					gameSettings: game.config,
 					players: game.players,
+					isAdmin:
+						(player instanceof UserPlayer && player.user.id) ===
+						game.admin.id,
 				});
 			} else
 				return reply

@@ -92,7 +92,7 @@ async function load() {
 	window.kickPlayer = kickPlayer;
 }
 async function unload() {
-	await leaveGame();
+	// await leaveGame();
 
 	delete (window as any).updatePage;
 	delete (window as any).addLocalPlayer;

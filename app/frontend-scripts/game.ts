@@ -264,7 +264,7 @@ const game = new Script(
 
 		stopRendering();
 
-		await leaveWsGame();
+		// await leaveWsGame();
 
 		userInputData = {
 			leftPressed: false,

@@ -68,8 +68,13 @@ export class ScriptManager {
 		}
 	}
 
+	public get loadedScripts(): string[] {
+		return [...this.loaded];
+	}
+
 	// when going to a route load specific scripts
 	public async loadScript(name: string) {
+		alert('loading ' + name);
 		const scripts = this.scripts.get(name);
 		if (!scripts) {
 			console.info(
@@ -102,6 +107,7 @@ export class ScriptManager {
 
 	// when unloading a route
 	public async unloadScript(name: string) {
+		alert('unloading ' + name);
 		const scripts = this.scripts.get(name);
 		if (!scripts) return;
 
