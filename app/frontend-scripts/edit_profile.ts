@@ -181,7 +181,7 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				showLocalLog('Title updated successfully! 🎉');
+				showLocalLog('Title updated successfully! 🎉', undefined, 5000);
 				await loadPartialView('profile');
 			} else {
 				showLocalError(data.message || data.error, undefined, 5000);
