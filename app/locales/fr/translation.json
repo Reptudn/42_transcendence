@@ -52,7 +52,8 @@
 		"google_button": "S'inscrire avec Google"
 	},
 	"about": {
-		"title": "À propos"
+		"title": "À propos",
+		"info_text": "Des braises mourantes de la civilisation, un projet est né de 42, baptisé Transcendence. Dans un monde au bord de l'effondrement, une équipe a osé connecter les âmes en ligne, utilisant Fastify, peignant la beauté avec Tailwind CSS, et canalisant la magie en temps réel grâce à la puissance WebSocket de Fastify.\n\nLe jeu en lui-même n'était pas un simple passe-temps ; c'était un creuset d'amitiés et de rivalités, joué dans une arène 3D où chaque mouvement de raquette, chaque action stratégique, était transmis instantanément via Fastify. L'authentification était leur rite sacré, protégé par NextAuth.js, tandis que l'état était géré avec Context API, comme un langage secret compris par peu.\n\nLe déploiement était un rituel frénétique contre l'obscurité numérique imminente. Les images Docker, forgées dans des builds multi-étapes, constituaient la dernière ligne de défense.\n\nTranscendence n'était pas seulement du code ; c'était le dernier pari de l'humanité, une chance d'ascension numérique, un espoir contre la lumière déclinante. Cela allait-il nous sauver, ou ne serait-ce qu’un beau rêve ? Seul le temps le dirait, mais une chose était certaine : Transcendence resterait un témoignage de l'espoir humain face à l'oubli."
 	},
 	"profile": {
 		"edit_profile": "Editer votre profil",

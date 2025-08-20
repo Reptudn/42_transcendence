@@ -227,7 +227,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					const user = await checkAuth(req, true, fastify);
 					if (!user)
 						return reply.code(401).send({ error: 'Unauthorized' });
-					const existingGame = runningGames.find(
+					let existingGame = runningGames.find(
 						(g) => g.admin.id === user!.id
 					);
 					if (!existingGame)
@@ -235,11 +235,22 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					const admin = existingGame.players.find(
 						(p) => p instanceof UserPlayer && p.user.id == user.id
 					);
-					const players = [];
-					for (const player of existingGame.players) {
-						players.push(player.formatStateForClients());
+					if (!admin){
+						const index = runningGames.findIndex((g) => g === existingGame);
+						if (index !== -1) {
+							runningGames.splice(index, 1);
+						fastify.log.info({ adminId: user.id }, 'Removed game because admin is missing');
+						}
+						throw new Error('No Admin found! Game has been removed.');
 					}
-					if (!admin) throw new Error('No Admin found!');
+					fastify.log.info(`Admin ${admin}`);
+					const players = [];
+					if (existingGame){
+						for (const player of existingGame.players) {
+							players.push(player.formatStateForClients());
+						}
+					}
+					//if (!admin) throw new Error('No Admin found!');
 					(admin as UserPlayer).lang = req.t;
 					admin.joined = true;
 					variables['initial'] = true;

@@ -112,7 +112,7 @@ export function setupEventSource() {
 					console.warn(data.message);
 					break;
 				case 'error':
-					console.error(data.message);
+					console.error(`bla`);
 					break;
 				case 'popup':
 					if (popupContainer) {
