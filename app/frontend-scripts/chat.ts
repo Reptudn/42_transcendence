@@ -32,9 +32,9 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		});
 		const data = await res.json();
 		if (!res.ok) {
-			return showLocalInfo(data.error);
+			return showLocalInfo(data.error, undefined, 5000);
 		}
-		if (data.msg !== 'ok') showLocalInfo(data.msg);
+		if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
 	}
 });
 
@@ -50,7 +50,7 @@ searchUser?.addEventListener('input', async () => {
 	const res = await fetch('/api/chat/chats');
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalInfo(data.error);
+		return showLocalInfo(data.error, undefined, 5000);
 	}
 	const input = searchUser.value.trim().toLowerCase();
 	if (input === '') {
@@ -98,7 +98,8 @@ export function appendToChatBox(rawMessage: string) {
 		if (msg.blocked || msg.ownMsg) return;
 		showLocalInfo(
 			`You recived a new Msg from ${msg.fromUserName}`,
-			`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+			`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`,
+			5000
 		);
 	} catch (err) {
 		console.error('Error parsing event data:', err);
@@ -109,7 +110,7 @@ export async function getChats() {
 	const res = await fetch('/api/chat/chats');
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalInfo(data.error);
+		return showLocalInfo(data.error, undefined, 5000);
 	}
 	const userList = document.getElementById('userList');
 	if (userList) {

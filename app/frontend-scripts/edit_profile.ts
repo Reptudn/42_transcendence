@@ -115,7 +115,7 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				showLocalInfo('Profile updated successfully! 🎉');
+				showLocalInfo('Profile updated successfully! 🎉', undefined, 5000);
 				if (usernameField.value !== initialValues.username) {
 					await loadPartialView('profile');
 				} else {
@@ -236,7 +236,7 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				showLocalInfo('Password updated successfully! 🎉');
+				showLocalInfo('Password updated successfully! 🎉', undefined, 5000);
 				localStorage.removeItem('token');
 				localStorage.setItem('loggedIn', 'false');
 				await loadPartialView('login', true, null, true, true, true);
@@ -283,7 +283,7 @@ document
 
 			const data = await response.json();
 			if (response.ok) {
-				showLocalInfo('Profile deleted successfully! 🎉');
+				showLocalInfo('Profile deleted successfully! 🎉', undefined, 5000);
 				localStorage.setItem('loggedIn', 'false');
 				await loadPartialView('register', true, null, true, true, true);
 				updateMenu();

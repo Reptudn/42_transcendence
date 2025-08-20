@@ -29,7 +29,7 @@ export async function createGame() {
 		return;
 	}
 	const data = await res.json();
-	showLocalInfo(`${data.message} (${data.gameId})`);
+	showLocalInfo(`${data.message} (${data.gameId})`, undefined, 5000);
 	await loadPartialView('lobby_admin', true, null, true);
 }
 
@@ -92,7 +92,11 @@ async function logout(): Promise<void> {
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			closeAllPopups();
-			showLocalInfo('You have been logged out with impeccable style!');
+			showLocalInfo(
+				'You have been logged out with impeccable style!',
+				undefined,
+				5000
+			);
 		} else {
 			showLocalError('Failed to logout', undefined, 5000);
 		}

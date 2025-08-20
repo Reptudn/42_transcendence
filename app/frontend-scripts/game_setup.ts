@@ -116,7 +116,11 @@ export async function addAIPlayer() {
 	}
 	const data = await res.json();
 	console.log('AI player added:', data);
-	showLocalInfo(`${data.message || 'AI player added successfully!'}`);
+	showLocalInfo(
+		`${data.message || 'AI player added successfully!'}`,
+		undefined,
+		5000
+	);
 }
 
 export async function addUserPlayer(friendId: number) {
@@ -131,7 +135,7 @@ export async function addUserPlayer(friendId: number) {
 		throw new Error(`Failed to invite friend: ${error.error}`);
 	}
 	const data = (await response.json()) as { message: string };
-	showLocalInfo(`${data.message}`);
+	showLocalInfo(`${data.message}`, undefined, 5000);
 	console.log(`Friend ${friendId} invited successfully.`);
 }
 
@@ -151,7 +155,11 @@ export async function addLocalPlayer() {
 	}
 	const data = await res.json();
 	console.log('AI player added:', data);
-	showLocalInfo(`${data.message || 'Local player added successfully!'}`);
+	showLocalInfo(
+		`${data.message || 'Local player added successfully!'}`,
+		undefined,
+		5000
+	);
 }
 
 export async function kickPlayer(playerId: number) {
@@ -172,7 +180,11 @@ export async function kickPlayer(playerId: number) {
 	}
 	const data = await res.json();
 	console.log('Player kicked:', data);
-	showLocalInfo(`${data.message || 'Player kicked successfully!'}`);
+	showLocalInfo(
+		`${data.message || 'Player kicked successfully!'}`,
+		undefined,
+		5000
+	);
 }
 
 export async function leaveGame() {
@@ -181,11 +193,19 @@ export async function leaveGame() {
 	if (res.ok) {
 		const data = await res.json();
 		console.log('Left game:', data);
-		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+		showLocalInfo(
+			`${data.message || 'Left game successfully!'}`,
+			undefined,
+			5000
+		);
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+		showLocalInfo(
+			`${error.error || 'Failed to leave game: Unknown error'}`,
+			undefined,
+			5000
+		);
 	}
 	await loadPartialView('profile');
 }
@@ -204,7 +224,11 @@ export async function startGame() {
 	}
 	const data = await res.json();
 	console.log('Game started:', data);
-	showLocalInfo(`${data.message || 'Game started successfully!'}`);
+	showLocalInfo(
+		`${data.message || 'Game started successfully!'}`,
+		undefined,
+		5000
+	);
 }
 
 export function updatePage(html: string) {

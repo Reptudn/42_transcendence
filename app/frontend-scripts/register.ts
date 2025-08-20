@@ -18,7 +18,7 @@ const registerAction = async () => {
 		});
 		const data = await response.json();
 		if (response.ok) {
-			showLocalInfo('You have registered successfully');
+			showLocalInfo('You have registered successfully', undefined, 5000);
 			await loadPartialView('login');
 		} else {
 			showLocalError(data.message, undefined, 5000);

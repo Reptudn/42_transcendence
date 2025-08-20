@@ -25,7 +25,7 @@ async function twofa_login() {
 			updateMenu();
 			const data = await response.json();
 
-			showLocalInfo(data.message || data.error);
+			showLocalInfo(data.message || data.error, undefined, 5000);
 			loadPartialView('profile');
 		} else {
 			const data = await response.json();
@@ -62,7 +62,7 @@ async function twofa_login_google() {
 		if (response.ok) {
 			updateMenu();
 			const data = await response.json();
-			showLocalInfo(data.message);
+			showLocalInfo(data.message, undefined, 5000);
 			loadPartialView('profile');
 		} else {
 			const data = await response.json();

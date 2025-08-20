@@ -19,7 +19,7 @@ ws.onopen = () => {
 	console.log('WebSocket connection established');
 	initCanvas();
 	window.startRendering();
-	showLocalInfo('Connected to game server');
+	showLocalInfo('Connected to game server', undefined, 5000);
 };
 
 ws.onerror = async (error) => {
@@ -41,12 +41,12 @@ ws.onclose = async (event) => {
 			break;
 
 		case 1000: // Normal closure
-			showLocalInfo('Connection to game closed!');
+			showLocalInfo('Connection to game closed!', undefined, 5000);
 			await loadPartialView('profile');
 			break;
 
 		case 1001: // Going away
-			showLocalInfo('Server is shutting down!');
+			showLocalInfo('Server is shutting down!', undefined, 5000);
 			await loadPartialView('profile');
 			break;
 
@@ -106,7 +106,11 @@ ws.onmessage = (event) => {
 				settings.innerHTML = JSON.stringify(data.settings);
 			}
 		} else {
-			showLocalInfo(`Unknown data received from websocket: ${data}`);
+			showLocalInfo(
+				`Unknown data received from websocket: ${data}`,
+				undefined,
+				5000
+			);
 		}
 	} catch (e) {
 		showLocalError(`Error parsing chat message: ${e}`, undefined, 5000);

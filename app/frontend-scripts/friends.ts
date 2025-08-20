@@ -35,7 +35,7 @@ export function sendFriendRequest(
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			showLocalInfo(`Friend request sent: ${data.message}`);
+			showLocalInfo(`Friend request sent: ${data.message}`, undefined, 5000);
 		})
 		.catch((error) => {
 			showLocalError(
@@ -62,7 +62,11 @@ export function acceptFriendRequest(requestId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			showLocalInfo(`Friend request accepted: ${data.message}`);
+			showLocalInfo(
+				`Friend request accepted: ${data.message}`,
+				undefined,
+				5000
+			);
 		})
 		.catch((error) => {
 			showLocalError(
@@ -83,7 +87,11 @@ export function declineFriendRequest(requestId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			showLocalInfo(`Friend request declined: ${data.message}`);
+			showLocalInfo(
+				`Friend request declined: ${data.message}`,
+				undefined,
+				5000
+			);
 		})
 		.catch((error) => {
 			showLocalError(
@@ -104,7 +112,7 @@ export function removeFriendRequest(friendId: number) {
 	})
 		.then((response) => response.json())
 		.then((data) => {
-			showLocalInfo(`Friend removed: ${data.message}`);
+			showLocalInfo(`Friend removed: ${data.message}`, undefined, 5000);
 		})
 		.catch((error) => {
 			showLocalError(`Error removing friend: ${error}`, undefined, 5000);

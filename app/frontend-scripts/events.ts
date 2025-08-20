@@ -72,7 +72,7 @@ export function setupEventSource() {
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		updateConnectionStatus('DISCONNECTED');
-		showLocalInfo('Server connection closed');
+		showLocalInfo('Server connection closed', undefined, 5000);
 		setTimeout(() => {
 			if (window.localStorage.getItem('loggedIn') === 'true') {
 				setupEventSource();
@@ -126,7 +126,9 @@ export function setupEventSource() {
 				case 'game_invite':
 					console.log('👫 Game invite received:', data);
 					showLocalInfo(
-						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Accept</button><button onclick="declineInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Decline</button>`
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Accept</button><button onclick="declineInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Decline</button>`,
+						undefined,
+						5000
 					);
 					break;
 				case 'lobby_admin_settings_update':
@@ -155,7 +157,7 @@ export function setupEventSource() {
 					break;
 				case 'game_started': {
 					const gameId = data.message;
-					showLocalInfo(`Game started! (ID: ${gameId})`);
+					showLocalInfo(`Game started! (ID: ${gameId})`, undefined, 5000);
 					await loadPartialView(
 						'api',
 						true,
@@ -184,7 +186,7 @@ export function setupEventSource() {
 					break;
 				}
 				case 'game_closed':
-					showLocalInfo(data.message);
+					showLocalInfo(data.message, undefined, 5000);
 					await loadPartialView('profile', true, null, true);
 					break;
 				case 'chat': {
@@ -245,7 +247,7 @@ export async function sendPopup(
 		throw new Error(`Failed to send popup: ${error.error}`);
 	}
 
-	showLocalInfo('Popup sent successfully!');
+	showLocalInfo('Popup sent successfully!', undefined, 5000);
 }
 
 export async function acceptGameInvite(gameId: number) {
@@ -269,7 +271,7 @@ export async function declineGameInvite(gameId: number) {
 		throw new Error(`Failed to decline game invite: ${error.error}`);
 	}
 	const data = await res.json();
-	showLocalInfo(`${data.message}`);
+	showLocalInfo(`${data.message}`, undefined, 5000);
 	closeAllPopups();
 }
 

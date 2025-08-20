@@ -49,7 +49,6 @@ export function showLocalError(
 ) {
 	showLocalPopup({ title: 'Error', description, color: 'red', onclick }, timer);
 }
-
 export function showLocalInfo(
 	description: string,
 	onclick?: string,
@@ -64,10 +63,22 @@ export function showLocalLog(description: string, onclick?: string, timer?: numb
 
 declare global {
 	interface Window {
-		showLocalPopup: (data: LocalAlertData) => void;
-		showLocalError: (description: string, onclick?: string) => void;
-		showLocalInfo: (description: string, onclick?: string) => void;
-		showLocalLog: (description: string, onclick?: string) => void;
+		showLocalPopup: (data: LocalAlertData, timer?: number) => void;
+		showLocalError: (
+			description: string,
+			onclick?: string,
+			timer?: number
+		) => void;
+		showLocalInfo: (
+			description: string,
+			onclick?: string,
+			timer?: number
+		) => void;
+		showLocalLog: (
+			description: string,
+			onclick?: string,
+			timer?: number
+		) => void;
 	}
 }
 

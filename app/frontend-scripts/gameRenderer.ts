@@ -528,7 +528,9 @@ export function drawGameState(gameState: GameState): void {
 					drawCircle(posX, posY, radius, trailColor, alpha);
 				} else {
 					showLocalInfo(
-						`Ball object does not have a center or radius: ${obj}`
+						`Ball object does not have a center or radius: ${obj}`,
+						undefined,
+						5000
 					);
 				}
 				break;
@@ -548,7 +550,9 @@ export function drawGameState(gameState: GameState): void {
 					);
 				} else {
 					showLocalInfo(
-						`Ball object does not have a center or radius: ${obj}`
+						`Ball object does not have a center or radius: ${obj}`,
+						undefined,
+						5000
 					);
 				}
 				break;
@@ -568,7 +572,11 @@ export function drawGameState(gameState: GameState): void {
 						true,
 						alpha
 					);
-				} else showLocalInfo(`Paddle object does not have a shape: ${obj}`);
+				} else showLocalInfo(
+					`Paddle object does not have a shape: ${obj}`,
+					undefined,
+					5000
+				);
 				break;
 
 			case 'wall':

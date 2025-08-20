@@ -11,12 +11,18 @@ export async function addLocalPlayer() {
 	if (res.ok) {
 		const data = await res.json();
 		console.log('Local player added:', data);
-		showLocalInfo(`${data.message || 'Local player added successfully!'}`);
+		showLocalInfo(
+			`${data.message || 'Local player added successfully!'}`,
+			undefined,
+			5000
+		);
 	} else {
 		const error = await res.json();
 		console.error('Error adding local player:', error);
 		showLocalInfo(
-			`${error.error || 'Failed to add local player: Unknown error'}`
+			`${error.error || 'Failed to add local player: Unknown error'}`,
+			undefined,
+			5000
 		);
 	}
 }
@@ -34,11 +40,19 @@ export async function renameLocalPlayer(id: number) {
 	if (res.ok) {
 		const data = await res.json();
 		console.log('Local player renamed:', data);
-		showLocalInfo(`${data.message || 'Player renamed successfully!'}`);
+		showLocalInfo(
+			`${data.message || 'Player renamed successfully!'}`,
+			undefined,
+			5000
+		);
 	} else {
 		const error = await res.json();
 		console.error('Error renaming local player:', error);
-		showLocalInfo(`${error.error || 'Failed to rename player: Unknown error'}`);
+		showLocalInfo(
+			`${error.error || 'Failed to rename player: Unknown error'}`,
+			undefined,
+			5000
+		);
 	}
 }
 
@@ -60,7 +74,11 @@ export async function kickPlayer(playerId: number) {
 	}
 	const data = await res.json();
 	console.log('Player kicked:', data);
-	showLocalInfo(`${data.message || 'Player kicked successfully!'}`);
+	showLocalInfo(
+		`${data.message || 'Player kicked successfully!'}`,
+		undefined,
+		5000
+	);
 }
 
 export async function leaveGame() {
@@ -68,11 +86,19 @@ export async function leaveGame() {
 	if (res.ok) {
 		const data = await res.json();
 		console.log('Left game:', data);
-		showLocalInfo(`${data.message || 'Left game successfully!'}`);
+		showLocalInfo(
+			`${data.message || 'Left game successfully!'}`,
+			undefined,
+			5000
+		);
 	} else {
 		const error = await res.json();
 		console.error('Error leaving game:', error);
-		showLocalInfo(`${error.error || 'Failed to leave game: Unknown error'}`);
+		showLocalInfo(
+			`${error.error || 'Failed to leave game: Unknown error'}`,
+			undefined,
+			5000
+		);
 	}
 	await loadPartialView('profile');
 }
