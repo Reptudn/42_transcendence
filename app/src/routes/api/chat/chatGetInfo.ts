@@ -190,7 +190,10 @@ export async function getAllChats(fastify: FastifyInstance) {
 
 				for (const chat of userChats) {
 					htmlChats.push(
-						ejs.render(chatsTemplate, { chatName: chat.name })
+						ejs.render(chatsTemplate, {
+							chatName: chat.name,
+							chatId: chat.id,
+						})
 					);
 				}
 				return res.status(200).send({ chats: htmlChats });
@@ -471,7 +474,7 @@ const currChatTemplate: string = `<h2 class="text-xl bold text-center">
 </h2>
 `;
 
-const chatsTemplate: string = `<div class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+const chatsTemplate: string = `<button class="chat-button px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition text-center" data-chat="<%= chatId %>">
 	<span><%= chatName %></span>
-</div>
+</button>
 `;

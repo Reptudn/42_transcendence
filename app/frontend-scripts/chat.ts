@@ -144,7 +144,6 @@ export async function getMessages(chat_id: string | null) {
 
 	if (currChat) {
 		const chatName = msgs.at(-1)?.chatName;
-		console.log('chatName = ', chatName);
 		currChat.innerHTML = '';
 		if (chatName) currChat.innerHTML = chatName;
 	}

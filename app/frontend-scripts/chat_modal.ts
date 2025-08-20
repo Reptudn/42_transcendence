@@ -24,7 +24,25 @@ document.getElementById('chats')?.addEventListener('click', async () => {
 	const chatList = document.getElementById('chatList');
 	if (chatList) {
 		chatList.innerHTML = '';
-		chatList.innerHTML = data.chats.join(' ');
+		for (const chat of data.chats) {
+			console.log('chat html = ', chat);
+			chatList.insertAdjacentHTML('beforeend', chat);
+		}
+	}
+});
+
+document.getElementById('chatList')?.addEventListener('click', async (e) => {
+	const button = (e.target as HTMLElement).closest(
+		'.chat-button'
+	) as HTMLButtonElement;
+
+	if (button) {
+		console.log('chat id = ', button.dataset.chat);
+		if (button.dataset.chat) {
+			sessionStorage.setItem('chatId', button.dataset.chat);
+			document.getElementById('chatsModal')?.classList.add('hidden');
+			await getMessages(sessionStorage.getItem('chatId'));
+		}
 	}
 });
 
