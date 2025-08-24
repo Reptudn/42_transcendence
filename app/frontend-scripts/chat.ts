@@ -1,5 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
+import { initModal } from './chat_modal.js';
 
 export async function initChat() {
 	if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
@@ -104,6 +105,10 @@ export async function getMessages(chat_id: string | null) {
 	for (const msg of msgs) {
 		appendToChatBox(JSON.stringify(msg));
 	}
+}
+
+export async function updateChat() {
+	await initModal();
 }
 
 declare global {
