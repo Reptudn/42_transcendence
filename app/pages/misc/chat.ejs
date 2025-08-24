@@ -1,4 +1,4 @@
-<div class="bg-[#12121246] p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col">
+<div class="bg-[#12121246] p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col">
 	<div class="flex flex-col flex-grow overflow-hidden space-y-2">
 		<div id="currentChat"></div>
 		<div id="chatMessages" class="flex flex-col border border-gray-300 overflow-y-auto rounded flex-grow h-full min-h-0 space-y-2"></div>
@@ -17,7 +17,7 @@
 </div>
 
 <!-- Modal for Options -->
-<div id="optionModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border hidden flex flex-col justify-between">
+<div id="optionModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border hidden flex flex-col justify-between">
 	<div class="flex flex-col space-y-2">
 		<button id="blockUser" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.block_user') %></button>
 		<button id="unblockUser" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.unblock_user') %></button>
@@ -31,20 +31,32 @@
 </div>
 
 <!-- Modal for Chats -->
-<div id="chatsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
+<div id="chatsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
 	<h2 class="text-xl bold text-center">
 		<span>Chats</span> <!--TODO translation--> 
 	</h2>
-	<div class="flex flex-grow flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-0 space-y-2">	
-		<button id="createGroup" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.new_chat') %></button>
+	<button id="createGroup" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.new_chat') %></button>
+	<div class="flex flex-grow flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-0 space-y-2">
 		<div id="chatList">
 		</div>
 	</div>
 	<button id="closeChats" class="bottom-4 px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.close_options') %></button>
 </div>
 
+<!-- Modal for Friends -->
+<div id="friendsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
+	<h2 class="text-xl bold text-center">
+		<span>Friends</span> <!--TODO translation--> 
+	</h2>
+	<div class="flex flex-grow flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-0 space-y-2">
+		<div id="friendsList">
+		</div>
+	</div>
+	<button id="closeFriends" class="bottom-4 px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.close_options') %></button>
+</div>
+
 <!--Modal group creation -->
-<div id="groupWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
+<div id="groupWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
 	<h2 class="text-lg font-semibold"><%= t('chat.create_new_group') %></h2>
 
 	<input id="groupNameInput" type="text" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded" placeholder="<%= t('chat.placeholder_group_name') %>">
@@ -59,7 +71,7 @@
 </div>
 
 <!-- Modal für Block-User -->
-<div id="blockUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
+<div id="blockUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
 	<h2 class="text-lg font-semibold"><%= t('chat.block_user') %></h2>
 
 	<div id="searchResultsToBlock" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-0">
@@ -72,7 +84,7 @@
 </div>
 
 <!-- Modal für Unblock-User -->
-<div id="unblockUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
+<div id="unblockUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
 	<h2 class="text-lg font-semibold"><%= t('chat.unblock_user') %></h2>
 
 	<div id="searchResultsToUnblock" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-0">
@@ -85,7 +97,7 @@
 </div>
 
 <!-- Modal für invite-User -->
-<div id="inviteUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
+<div id="inviteUserWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50">
 	<h2 class="text-lg font-semibold"><%= t('chat.invite_to_chat') %></h2>
 
 	<div id="searchResultsToInvite" class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-0">
@@ -98,7 +110,7 @@
 </div>
 
 <!-- Modal chatInfo -->
-<div id="chatInfoWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-sm rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50 justify-between">
+<div id="chatInfoWindow" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border flex flex-col space-y-2 hidden z-50 justify-between">
 	<div id="chatInfoInput">
 	</div>
 	<div class="flex flex-col space-y-2 mt-40">

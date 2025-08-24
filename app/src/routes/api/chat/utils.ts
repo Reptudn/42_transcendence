@@ -100,24 +100,52 @@ export async function getMsgForGroup(
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
 			htmlMsgs.push(
-				await createHtmlMsg(null, null, msg.content, false, false)
+				await createHtmlMsg(
+					null,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
 			);
 			continue;
 		}
 		if (!blockedId.includes(user.id)) {
 			const check = fromUser === user.id;
 			htmlMsgs.push(
-				await createHtmlMsg(user, null, msg.content, false, check)
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					check,
+					msg.created_at
+				)
 			);
 		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) {
 				htmlMsgs.push(
-					await createHtmlMsg(user, null, 'Msg blocked', true, false)
+					await createHtmlMsg(
+						user,
+						null,
+						'Msg blocked',
+						true,
+						false,
+						msg.created_at
+					)
 				);
 			} else
 				htmlMsgs.push(
-					await createHtmlMsg(user, null, msg.content, false, false)
+					await createHtmlMsg(
+						user,
+						null,
+						msg.content,
+						false,
+						false,
+						msg.created_at
+					)
 				);
 		}
 	}
@@ -140,20 +168,41 @@ export async function getMsgForDm(
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
 			htmlMsgs.push(
-				await createHtmlMsg(null, null, msg.content, false, false)
+				await createHtmlMsg(
+					null,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
 			);
 			continue;
 		}
 		if (!blockedId.includes(user.id)) {
 			const check = fromUser === user.id;
 			htmlMsgs.push(
-				await createHtmlMsg(user, null, msg.content, false, check)
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					check,
+					msg.created_at
+				)
 			);
 		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
 			htmlMsgs.push(
-				await createHtmlMsg(user, null, msg.content, false, false)
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
 			);
 		}
 	}

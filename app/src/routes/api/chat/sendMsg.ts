@@ -210,7 +210,8 @@ export async function createHtmlMsg(
 	chatInfo: Chat | null,
 	msgContent: string,
 	msgBlocked: boolean,
-	ownMsg: boolean
+	ownMsg: boolean,
+	msgTimeStamp?: string
 ) {
 	const msg: htmlMsg = {
 		fromUserName: '',
@@ -226,13 +227,30 @@ export async function createHtmlMsg(
 
 	const useTem = ownMsg ? ownTempalte : template;
 
+	let time: string;
+	if (msgTimeStamp === undefined) {
+		const date = new Date();
+		time = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+			date.getDate()
+		)} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+			date.getSeconds()
+		)}`;
+	} else {
+		time = msgTimeStamp;
+	}
+
 	msg.htmlMsg = ejs.render(useTem, {
 		userId: fromUser ? fromUser.id : 0,
 		fromUser: fromUser ? escapeHTML(fromUser.username) : 'Deleted User',
 		displayName: fromUser ? escapeHTML(fromUser.displayname) : 'Deleted User',
 		msg: escapeHTML(msgContent),
+		timeStamp: time,
 	});
 	return msg;
+}
+
+function pad(n: number): string {
+	return n.toString().padStart(2, '0');
 }
 
 const template: string = `<div class="flex flex-row items-end self-start space-x-2 w-full">
@@ -244,14 +262,20 @@ const template: string = `<div class="flex flex-row items-end self-start space-x
 		/>
 	</a>
 	<div class="px-4 py-2 border border-green-600 bg-green-500 text-white rounded-xl flex flex-col max-w-[70%] break-words">
-		<span class="font-semibold border-b border-white/30 mb-1"><%= displayName %></span>
+		<span class="flex flex-row justify-between font-semibold border-b border-white/30 mb-1">
+			<%= displayName %>
+			<%= timeStamp %>
+		</span>
 		<span><%= msg %></span>
 	</div>
 </div>
 `;
 
 const ownTempalte: string = `
-	<div class="px-4 py-2 border border-blue-600 bg-blue-500 text-white rounded-xl self-end max-w-[70%] break-words mr-2">
+	<div class="flex flex-col px-4 py-2 border border-blue-600 bg-blue-500 text-white rounded-xl self-end max-w-[70%] break-words mr-2">
+		<span class="font-semibold border-b border-white/30 mb-1">
+			<%= timeStamp %>
+		</span>
 		<span><%= msg %></span>
 	</div>
 `;

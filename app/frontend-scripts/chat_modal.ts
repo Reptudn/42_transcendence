@@ -4,12 +4,6 @@ import { showLocalError, showLocalInfo } from './alert.js';
 let userIds: string[] = [];
 let userIdToBlock = '';
 
-interface Friend {
-	id: number;
-	username: string;
-	displayname: string;
-}
-
 // Chats Modal
 
 document.getElementById('chats')?.addEventListener('click', async () => {
@@ -48,53 +42,71 @@ document.getElementById('closeChats')?.addEventListener('click', async () => {
 	document.getElementById('chatsModal')?.classList.add('hidden');
 });
 
-document.getElementById('createGroup')?.addEventListener('click', async () => {
-	document.getElementById('groupWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/friends');
+// Friends Modal
+
+document.getElementById('friends')?.addEventListener('click', async () => {
+	document.getElementById('friendsModal')?.classList.remove('hidden');
+
+	const res = await fetch('/api/chat/friends?chat_id=1');
+	const data = await res.json();
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
-		return;
+		return showLocalInfo(data.error);
 	}
-	const friends = (await res.json()) as Friend[];
-	const userList = document.getElementById('searchResults');
-	if (userList) {
-		userList.innerHTML = '';
-		for (const friend of friends) {
-			const butt = document.createElement('button');
 
-			butt.textContent = friend.displayname;
-			butt.classList.add(
-				'px-4',
-				'py-2',
-				'w-full',
-				'border',
-				'border-gray-300',
-				'bg-transparent',
-				'rounded',
-				'hover:bg-green-500',
-				'hover:text-white',
-				'transition'
-			);
-
-			butt.addEventListener('click', () => {
-				const pos = userIds.indexOf(friend.id.toString());
-				if (pos === -1) {
-					userIds.push(friend.id.toString());
-					butt.classList.add('bg-green-500', 'text-white');
-					butt.classList.remove('bg-transparent');
-				} else {
-					userIds.splice(pos, 1);
-					butt.classList.remove('bg-green-500', 'text-white');
-					butt.classList.add('bg-transparent');
-				}
-			});
-
-			userList.appendChild(butt);
+	const friendList = document.getElementById('friendsList');
+	if (friendList) {
+		friendList.innerHTML = '';
+		for (const friend of data.friends) {
+			friendList.insertAdjacentHTML('beforeend', friend);
 		}
 	}
 });
 
+document.getElementById('closeFriends')?.addEventListener('click', async () => {
+	document.getElementById('friendsModal')?.classList.add('hidden');
+});
+
+// Create Group Modal
+
 let groupName = '';
+
+document.getElementById('createGroup')?.addEventListener('click', async () => {
+	document.getElementById('groupWindow')?.classList.remove('hidden');
+	const res = await fetch('/api/chat/friends?chat_id=2');
+	if (!res.ok) {
+		showLocalError('Failed to fetch friends');
+		return;
+	}
+	const data = await res.json();
+	const userList = document.getElementById('searchResults');
+	if (userList) {
+		userList.innerHTML = '';
+		for (const friend of data.friends) {
+			userList.insertAdjacentHTML('beforeend', friend);
+		}
+	}
+});
+
+document.getElementById('searchResults')?.addEventListener('click', async (e) => {
+	const button = (e.target as HTMLElement).closest(
+		'.friend-button'
+	) as HTMLButtonElement;
+
+	if (button) {
+		if (button.dataset.chat) {
+			const pos = userIds.indexOf(button.dataset.chat);
+			if (pos === -1) {
+				userIds.push(button.dataset.chat);
+				button.classList.add('bg-green-500', 'text-white');
+				button.classList.remove('bg-transparent');
+			} else {
+				userIds.splice(pos, 1);
+				button.classList.remove('bg-green-500', 'text-white');
+				button.classList.add('bg-transparent');
+			}
+		}
+	}
+});
 
 document
 	.getElementById('confirmCreateGroup')
@@ -125,7 +137,6 @@ document
 		const newId = data.chat_id as string;
 		sessionStorage.setItem('chat_id', newId);
 		await getMessages(newId);
-		// await getChats();
 		document.getElementById('closeGroupWindow')?.click();
 	});
 
@@ -139,57 +150,53 @@ document.getElementById('closeGroupWindow')?.addEventListener('click', async () 
 
 document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/friends');
+	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
-		showLocalError('Failed to load friends in block user modal');
+		showLocalError('Failed to fetch friends');
+		return;
 	}
-	const friends = (await res.json()) as Friend[];
+	const data = await res.json();
 	const userList = document.getElementById('searchResultsToBlock');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const friend of friends) {
-			const butt = document.createElement('button');
-			butt.id = friend.id.toString();
-			butt.textContent = friend.displayname;
-			butt.classList.add(
-				'px-4',
-				'py-2',
-				'w-full',
-				'border',
-				'border-gray-300',
-				'bg-transparent',
-				'rounded',
-				'hover:bg-green-500',
-				'hover:text-white',
-				'transition'
-			);
+		for (const friend of data.friends) {
+			userList.insertAdjacentHTML('beforeend', friend);
+		}
+	}
+});
 
-			butt.addEventListener('click', () => {
+document
+	.getElementById('searchResultsToBlock')
+	?.addEventListener('click', async (e) => {
+		const button = (e.target as HTMLElement).closest(
+			'.friend-button'
+		) as HTMLButtonElement;
+
+		if (button) {
+			if (button.dataset.chat) {
 				if (userIdToBlock === '') {
-					userIdToBlock = friend.id.toString();
-					butt.classList.add('bg-green-500', 'text-white');
-					butt.classList.remove('bg-transparent');
+					userIdToBlock = button.dataset.chat;
+					button.classList.add('bg-green-500', 'text-white');
+					button.classList.remove('bg-transparent');
 				} else {
-					if (userIdToBlock === friend.id.toString()) {
+					if (userIdToBlock === button.dataset.chat) {
 						userIdToBlock = '';
-						butt.classList.remove('bg-green-500', 'text-white');
-						butt.classList.add('bg-transparent');
+						button.classList.remove('bg-green-500', 'text-white');
+						button.classList.add('bg-transparent');
 					} else {
 						const oldbutt = document.getElementById(userIdToBlock);
 						if (oldbutt) {
 							oldbutt.classList.remove('bg-green-500', 'text-white');
 							oldbutt.classList.add('bg-transparent');
 						}
-						userIdToBlock = friend.id.toString();
-						butt.classList.add('bg-green-500', 'text-white');
-						butt.classList.remove('bg-transparent');
+						userIdToBlock = button.dataset.chat;
+						button.classList.add('bg-green-500', 'text-white');
+						button.classList.remove('bg-transparent');
 					}
 				}
-			});
-			userList.appendChild(butt);
+			}
 		}
-	}
-});
+	});
 
 document.getElementById('confirmBlockUser')?.addEventListener('click', async () => {
 	if (userIdToBlock === '') {
@@ -216,58 +223,53 @@ document.getElementById('closeBlockUser')?.addEventListener('click', async () =>
 
 document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/friends');
+	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
 		return;
 	}
-	const friends = (await res.json()) as Friend[];
+	const data = await res.json();
 	const userList = document.getElementById('searchResultsToUnblock');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const friend of friends) {
-			const butt = document.createElement('button');
-			butt.id = friend.id.toString();
-			butt.textContent = friend.displayname;
-			butt.classList.add(
-				'px-4',
-				'py-2',
-				'w-full',
-				'border',
-				'border-gray-300',
-				'bg-transparent',
-				'rounded',
-				'hover:bg-green-500',
-				'hover:text-white',
-				'transition'
-			);
+		for (const friend of data.friends) {
+			userList.insertAdjacentHTML('beforeend', friend);
+		}
+	}
+});
 
-			butt.addEventListener('click', () => {
+document
+	.getElementById('searchResultsToUnblock')
+	?.addEventListener('click', async (e) => {
+		const button = (e.target as HTMLElement).closest(
+			'.friend-button'
+		) as HTMLButtonElement;
+
+		if (button) {
+			if (button.dataset.chat) {
 				if (userIdToBlock === '') {
-					userIdToBlock = friend.id.toString();
-					butt.classList.add('bg-green-500', 'text-white');
-					butt.classList.remove('bg-transparent');
+					userIdToBlock = button.dataset.chat;
+					button.classList.add('bg-green-500', 'text-white');
+					button.classList.remove('bg-transparent');
 				} else {
-					if (userIdToBlock === friend.id.toString()) {
+					if (userIdToBlock === button.dataset.chat) {
 						userIdToBlock = '';
-						butt.classList.remove('bg-green-500', 'text-white');
-						butt.classList.add('bg-transparent');
+						button.classList.remove('bg-green-500', 'text-white');
+						button.classList.add('bg-transparent');
 					} else {
 						const oldbutt = document.getElementById(userIdToBlock);
 						if (oldbutt) {
 							oldbutt.classList.remove('bg-green-500', 'text-white');
 							oldbutt.classList.add('bg-transparent');
 						}
-						userIdToBlock = friend.id.toString();
-						butt.classList.add('bg-green-500', 'text-white');
-						butt.classList.remove('bg-transparent');
+						userIdToBlock = button.dataset.chat;
+						button.classList.add('bg-green-500', 'text-white');
+						button.classList.remove('bg-transparent');
 					}
 				}
-			});
-			userList.appendChild(butt);
+			}
 		}
-	}
-});
+	});
 
 document
 	.getElementById('confirmUnblockUser')
@@ -295,48 +297,43 @@ document.getElementById('closeUnblockUser')?.addEventListener('click', async () 
 
 document.getElementById('inviteUser')?.addEventListener('click', async () => {
 	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/friends');
+	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
 		showLocalError('Failed to fetch friends');
-		console.error('Failed to fetch friends:', res.status, res.statusText);
 		return;
 	}
-	const friends = (await res.json()) as Friend[];
+	const data = await res.json();
 	const userList = document.getElementById('searchResultsToInvite');
 	if (userList) {
 		userList.innerHTML = '';
-		for (const friend of friends) {
-			const butt = document.createElement('button');
-			butt.textContent = friend.displayname;
-			butt.classList.add(
-				'px-4',
-				'py-2',
-				'w-full',
-				'border',
-				'border-gray-300',
-				'bg-transparent',
-				'rounded',
-				'hover:bg-green-500',
-				'hover:text-white',
-				'transition'
-			);
-
-			butt.addEventListener('click', () => {
-				const pos = userIds.indexOf(friend.id.toString());
-				if (pos === -1) {
-					userIds.push(friend.id.toString());
-					butt.classList.add('bg-green-500', 'text-white');
-					butt.classList.remove('bg-transparent');
-				} else {
-					userIds.splice(pos, 1);
-					butt.classList.remove('bg-green-500', 'text-white');
-					butt.classList.add('bg-transparent');
-				}
-			});
-			userList.appendChild(butt);
+		for (const friend of data.friends) {
+			userList.insertAdjacentHTML('beforeend', friend);
 		}
 	}
 });
+
+document
+	.getElementById('searchResultsToInvite')
+	?.addEventListener('click', async (e) => {
+		const button = (e.target as HTMLElement).closest(
+			'.friend-button'
+		) as HTMLButtonElement;
+
+		if (button) {
+			if (button.dataset.chat) {
+				const pos = userIds.indexOf(button.dataset.chat);
+				if (pos === -1) {
+					userIds.push(button.dataset.chat);
+					button.classList.add('bg-green-500', 'text-white');
+					button.classList.remove('bg-transparent');
+				} else {
+					userIds.splice(pos, 1);
+					button.classList.remove('bg-green-500', 'text-white');
+					button.classList.add('bg-transparent');
+				}
+			}
+		}
+	});
 
 document.getElementById('confirmInviteUser')?.addEventListener('click', async () => {
 	if (userIds.length === 0) {
@@ -379,7 +376,6 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	showLocalInfo(data.msg);
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages('1');
-	// await getChats();
 });
 
 // ChatInfo Modal

@@ -187,7 +187,9 @@ export async function getMessagesFromSqlByChatId(
 	chat_id: number
 ): Promise<Msg[]> {
 	const msg = (await fastify.sqlite.all(
-		'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
+		`SELECT id, chat_id, user_id, content, created_at FROM (
+		SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at DESC LIMIT 100)
+		ORDER BY created_at ASC`,
 		[chat_id]
 	)) as Msg[] | null;
 	if (!msg) throw new HttpError(400, 'No messages found');

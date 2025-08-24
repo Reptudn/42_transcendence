@@ -24,6 +24,7 @@ import {
 import ejs from 'ejs';
 import escapeHTML from 'escape-html';
 import { sendSseHtmlByUserId } from '../../../services/sse/handler';
+import { getFriends } from '../../../services/database/friends';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -197,6 +198,54 @@ export async function getAllChats(fastify: FastifyInstance) {
 					);
 				}
 				return res.status(200).send({ chats: htmlChats });
+			} catch (err) {
+				const nError = normError(err);
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
+			}
+		}
+	);
+}
+
+export async function getAllFriends(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/friends',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
+
+				const userId = (req.user as { id: number }).id;
+
+				const blockedUser = await getAllBlockerUser(fastify, userId);
+				const blockedId = blockedUser.map((u) => u.blocked_id);
+
+				const friends = await getFriends(userId, fastify);
+
+				const friendHTML: string[] = [];
+
+				console.log('chat_id = ', chat_id);
+				const useTmp =
+					Number(chat_id) === 1 ? friendsTemplate : friendsTemplate2;
+				console.log('chat html =', useTmp);
+
+				for (const friend of friends) {
+					friendHTML.push(
+						ejs.render(useTmp, {
+							fromUser: friend.username,
+							userId: friend.id,
+							displayName: friend.displayname,
+							blockedInfo: blockedId.includes(friend.id)
+								? 'User blocked'
+								: '',
+						})
+					);
+				}
+				return res.status(200).send({ friends: friendHTML });
 			} catch (err) {
 				const nError = normError(err);
 				res.status(nError.errorCode).send({
@@ -430,7 +479,6 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const code = ejs.render(template, {
 					chatName: chat.name || '',
 					participants: users,
-					blocked: blockedUser,
 					t: req.t,
 				});
 				return res.status(200).send({ msg: code });
@@ -451,23 +499,27 @@ const template: string = `<div class="chat-info-container">
 
 	<div class="chat-participants">
 		<h3><%= t('chat.part') %></h3>
-		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-40 space-y-2">
 			<% participants.forEach(function(user) { %>
-				<li><%= user.displayname %></li>
+				<li>
+					<a href="/partial/pages/profile/<%= user.username %>">
+						<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+							<img
+								src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
+								alt="Profile Picture"
+								class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+							/>
+							<span class="font-semibold"><%= user.displayname %></span>
+							<% if (user.blocked) { %>
+								<span class="text-red-500 ml-auto">Blocked</span>
+							<% } %>
+						</div>
+					</a>
+				</li>
 			<% }) %>
 		</ul>
 	</div>
-
-	<div class="blocked-users">
-		<h3><%= t('chat.blocked') %></h3>
-		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
-			<% blocked.forEach(function(user) { %>
-				<li><%= user.displayname %></li>
-			<% }) %>
-		</ul>
-	</div>
-</div>
-`;
+</div>`;
 
 const currChatTemplate: string = `<h2 class="text-xl bold text-center">
 	<span><%= chatName %></span>
@@ -478,3 +530,22 @@ const chatsTemplate: string = `<button class="chat-button px-4 py-2 w-full borde
 	<span><%= chatName %></span>
 </button>
 `;
+
+const friendsTemplate: string = `<a href="/partial/pages/profile/<%= fromUser %>">
+	<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+		<img
+			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+			alt="Profile Picture"
+			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+		/>
+		<span class="font-semibold"><%= displayName %></span>
+		<span class="text-red-500 ml-auto"><%= blockedInfo %></span>
+	</div>
+</a>`;
+
+const friendsTemplate2: string = `<button
+	id="<%= userId %>"
+	class="friend-button px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	data-chat="<%= userId %>">
+	<%= displayName %>
+</button>`;

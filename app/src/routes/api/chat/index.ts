@@ -3,6 +3,7 @@ import { sendMsg } from './sendMsg';
 import {
 	getAllChats,
 	getAllMsg,
+	getAllFriends,
 	createNewChat,
 	blockUsers,
 	unblockUsers,
@@ -25,6 +26,7 @@ import {
 const chat: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	sendMsg(fastify);
 	getAllChats(fastify);
+	getAllFriends(fastify);
 	getAllMsg(fastify);
 	createNewChat(fastify);
 	blockUsers(fastify);
