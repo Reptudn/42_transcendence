@@ -284,4 +284,5 @@ declare global {
 closeAllPopups();
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
+window.declineGameInvite = declineGameInvite;
 window.setupEventSource = setupEventSource;
