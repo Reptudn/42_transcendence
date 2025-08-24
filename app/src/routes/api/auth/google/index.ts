@@ -8,6 +8,7 @@ import {
 import { getGoogleProfile } from '../../../../services/google/user';
 import { users_2fa_google } from '../index';
 import { getUser2faSecret } from '../../../../services/database/totp';
+import crypto from 'node:crypto';
 
 const google_callback: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/callback', async (req: any, reply: any) => {
