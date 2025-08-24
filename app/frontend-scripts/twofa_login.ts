@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { setupEventSource } from './events.js';
 import { updateMenu, loadPartialView } from './navigator.js';
 import { Script } from './script_manager.js';
 
@@ -27,7 +28,9 @@ async function twofa_login() {
 			const data = await response.json();
 
 			showLocalInfo(data.message || data.error, undefined, 5000);
-			loadPartialView('profile');
+			await loadPartialView('profile');
+			window.localStorage.setItem('loggedIn', 'true');
+			setupEventSource();
 		} else {
 			const data = await response.json();
 			showLocalError(data.error, undefined, 5000);
@@ -64,7 +67,9 @@ async function twofa_login_google() {
 			updateMenu();
 			const data = await response.json();
 			showLocalInfo(data.message, undefined, 5000);
-			loadPartialView('profile');
+			await loadPartialView('profile');
+			window.localStorage.setItem('loggedIn', 'true');
+			setupEventSource();
 		} else {
 			const data = await response.json();
 			showLocalError(data.error, undefined, 5000);
