@@ -25,7 +25,6 @@ document.getElementById('chats')?.addEventListener('click', async () => {
 	if (chatList) {
 		chatList.innerHTML = '';
 		for (const chat of data.chats) {
-			console.log('chat html = ', chat);
 			chatList.insertAdjacentHTML('beforeend', chat);
 		}
 	}
@@ -37,11 +36,10 @@ document.getElementById('chatList')?.addEventListener('click', async (e) => {
 	) as HTMLButtonElement;
 
 	if (button) {
-		console.log('chat id = ', button.dataset.chat);
 		if (button.dataset.chat) {
-			sessionStorage.setItem('chatId', button.dataset.chat);
+			sessionStorage.setItem('chat_id', button.dataset.chat);
 			document.getElementById('chatsModal')?.classList.add('hidden');
-			await getMessages(sessionStorage.getItem('chatId'));
+			await getMessages(sessionStorage.getItem('chat_id'));
 		}
 	}
 });
