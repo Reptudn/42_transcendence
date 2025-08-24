@@ -26,16 +26,16 @@ const loginAction = async () => {
 			}
 			updateMenu();
 			await loadPartialView('profile', true, null, true, true, true);
+			showLocalInfo('You have logged in successfully', undefined, 5000);
 			window.localStorage.setItem('loggedIn', 'true');
-			showLocalInfo('You have logged in successfully');
 			setupEventSource();
 		} else {
 			const data = await response.json();
-			showLocalError(`${data.message}`);
+			showLocalError(`${data.message}`, undefined, 5000);
 		}
 	} catch (error) {
 		console.error(error);
-		showLocalError('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.', undefined, 5000);
 	}
 };
 

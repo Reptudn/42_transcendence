@@ -15,17 +15,21 @@ declare global {
 
 export async function createGame() {
 	if (!notifyEventSource || notifyEventSource.readyState !== EventSource.OPEN) {
-		showLocalError('Cant create game when the Event source is not available');
+		showLocalError(
+			'Cant create game when the Event source is not available',
+			undefined,
+			5000
+		);
 		return;
 	}
 	const res = await fetch('/api/games/create', { method: 'POST' });
 	if (!res.ok) {
 		const data = await res.json();
-		showLocalError(`${data.error}`);
+		showLocalError(`${data.error}`, undefined, 5000);
 		return;
 	}
 	const data = await res.json();
-	showLocalInfo(`${data.message} (${data.gameId})`);
+	showLocalInfo(`${data.message} (${data.gameId})`, undefined, 5000);
 	await loadPartialView('lobby_admin', true, null, true);
 }
 
@@ -88,12 +92,20 @@ async function logout(): Promise<void> {
 			window.notifyEventSource?.close();
 			window.notifyEventSource = null;
 			closeAllPopups();
-			showLocalInfo('You have been logged out with impeccable style!');
+			showLocalInfo(
+				'You have been logged out with impeccable style!',
+				undefined,
+				5000
+			);
 		} else {
-			showLocalError('Failed to logout');
+			showLocalError('Failed to logout', undefined, 5000);
 		}
 	} catch {
-		showLocalError('An error occurred during logout. Do try again, old chap!');
+		showLocalError(
+			'An error occurred during logout. Do try again, old chap!',
+			undefined,
+			5000
+		);
 		await loadPartialView('index', true, null, true, true, true);
 	}
 }
