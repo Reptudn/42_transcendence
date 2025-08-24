@@ -1,5 +1,6 @@
 import { showLocalInfo, showLocalError } from './alert.js';
-import { loadPartialView, onUnloadPageAsync } from './navigator.js';
+import { loadPartialView } from './navigator.js';
+import { Script } from './script_manager.js';
 
 interface Friend {
 	id: number;
@@ -133,8 +134,6 @@ export function initLobbyButtons() {
 		await updateSettings({ gameType: selectedGameType.toLocaleLowerCase() });
 	});
 }
-
-initLobbyButtons();
 
 export async function addAIPlayer() {
 	console.log('Adding AI player...');
@@ -305,12 +304,6 @@ export async function setAiDifficulty(id: number, difficulty: string | number) {
 	});
 }
 
-await refreshOnlineFriends();
-
-onUnloadPageAsync(async () => {
-	await leaveGame();
-});
-
 declare global {
 	interface Window {
 		refreshOnlineFriends: () => Promise<void>;
@@ -329,16 +322,41 @@ declare global {
 	}
 }
 
-window.refreshOnlineFriends = refreshOnlineFriends;
-window.leaveGame = leaveGame;
-window.updatePage = updatePage;
-window.kickPlayer = kickPlayer;
-window.addLocalPlayer = addLocalPlayer;
-window.addUserPlayer = addUserPlayer;
-window.addAIPlayer = addAIPlayer;
-window.startGame = startGame;
-window.renameLocalPlayer = renameLocalPlayer;
-window.renameAiPlayer = renameAiPlayer;
-window.setAiDifficulty = setAiDifficulty;
-window.setAutoAdvance = setAutoAdvance;
-window.resetGameSettings = resetGameSettings;
+async function load() {
+	initLobbyButtons();
+	await refreshOnlineFriends();
+
+	window.refreshOnlineFriends = refreshOnlineFriends;
+	window.leaveGame = leaveGame;
+	window.updatePage = updatePage;
+	window.kickPlayer = kickPlayer;
+	window.addLocalPlayer = addLocalPlayer;
+	window.addUserPlayer = addUserPlayer;
+	window.addAIPlayer = addAIPlayer;
+	window.startGame = startGame;
+	window.renameLocalPlayer = renameLocalPlayer;
+	window.renameAiPlayer = renameAiPlayer;
+	window.setAiDifficulty = setAiDifficulty;
+	window.setAutoAdvance = setAutoAdvance;
+	window.resetGameSettings = resetGameSettings;
+}
+
+async function unload() {
+	await leaveGame();
+
+	delete (window as any).refreshOnlineFriends;
+	delete (window as any).leaveGame;
+	delete (window as any).updatePage;
+	delete (window as any).kickPlayer;
+	delete (window as any).addLocalPlayer;
+	delete (window as any).addUserPlayer;
+	delete (window as any).addAIPlayer;
+	delete (window as any).startGame;
+	delete (window as any).renameLocalPlayer;
+	delete (window as any).renameAiPlayer;
+	delete (window as any).setAiDifficulty;
+	delete (window as any).setAutoAdvance;
+	delete (window as any).resetGameSettings;
+}
+
+export const lobby_admin = new Script(load, unload);

@@ -1,5 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { loadPartialView, onUnloadPageAsync } from './navigator.js';
+import { loadPartialView } from './navigator.js';
+import { Script } from './script_manager.js';
 
 export function updatePage(html: string) {
 	const lobbyContainer = document.getElementById('lobby');
@@ -73,12 +74,6 @@ export async function leaveGame() {
 	await loadPartialView('profile');
 }
 
-setTimeout(() => {
-	onUnloadPageAsync(async () => {
-		await leaveGame();
-	});
-}, 0);
-
 declare global {
 	interface Window {
 		updatePage: (html: string) => void;
@@ -89,8 +84,21 @@ declare global {
 	}
 }
 
-window.updatePage = updatePage;
-window.addLocalPlayer = addLocalPlayer;
-window.leaveGame = leaveGame;
-window.renameLocalPlayer = renameLocalPlayer;
-window.kickPlayer = kickPlayer;
+async function load() {
+	window.updatePage = updatePage;
+	window.addLocalPlayer = addLocalPlayer;
+	window.leaveGame = leaveGame;
+	window.renameLocalPlayer = renameLocalPlayer;
+	window.kickPlayer = kickPlayer;
+}
+async function unload() {
+	await leaveGame();
+
+	delete (window as any).updatePage;
+	delete (window as any).addLocalPlayer;
+	delete (window as any).leaveGame;
+	delete (window as any).renameLocalPlayer;
+	delete (window as any).kickPlayer;
+}
+
+export const lobby = new Script(load, unload);
