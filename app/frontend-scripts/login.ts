@@ -26,7 +26,7 @@ const loginAction = async () => {
 			}
 			updateMenu();
 			await loadPartialView('profile', true, null, true, true, true);
-			showLocalInfo('You have logged in successfully');
+			showLocalInfo('You have logged in successfully', undefined, 5000);
 			window.localStorage.setItem('loggedIn', 'true');
 			setupEventSource();
 		} else {
@@ -46,3 +46,19 @@ declare global {
 		user_id: number;
 	}
 }
+
+async function load() {
+	loginButton = document.getElementById('loginButton');
+	if (loginButton) {
+		console.log('loginButton found');
+		loginButton.addEventListener('click', loginAction);
+	} else {
+		console.error('loginButton not found');
+	}
+}
+
+async function unload() {
+	loginButton = null;
+}
+
+export const login = new Script(load, unload);
