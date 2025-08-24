@@ -34,49 +34,76 @@ export async function createGame() {
 }
 
 // the Number
-let clientNumber = 42;
-let serverNumber = 42;
-let clientServerDiff = 0;
+
+let number = 42;
+let previousServerNumber = 42;
+let displayNumber = number;
+let displayNumberServerOffset = 0;
+let inflight = false;
+let pendingLocalDelta = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
 	const updateNumberDisplay = () => {
-		if (el) el.textContent = clientNumber.toString();
+		if (el) el.textContent = displayNumber.toString();
 	};
+	updateNumberDisplay();
+
 	el?.addEventListener('click', () => {
-		clientNumber++;
+		number++;
+		displayNumber++;
 		updateNumberDisplay();
 	});
+	// after: full replacement of syncNumber
 	const syncNumber = async () => {
+		if (inflight) return;
+		inflight = true;
+
+		const basePrev = previousServerNumber;
+		const localDelta = number - basePrev;
+		pendingLocalDelta = localDelta;
+
 		try {
 			const response = await fetch('/number', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ number: clientNumber - serverNumber }),
+				body: JSON.stringify({ number: localDelta }),
 			});
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Number updated successfully:', data);
-				serverNumber = data.number;
-				clientServerDiff = serverNumber - clientNumber;
-				updateNumberDisplay();
-			} else {
-				console.error('Error updating number:', response.statusText);
-			}
+
+			if (!response.ok) throw new Error(response.statusText);
+
+			const data = await response.json();
+
+			const serverDelta = data.number - basePrev;
+			const othersDelta = Math.max(0, serverDelta - pendingLocalDelta);
+
+			const extraLocalClicks = number - basePrev - pendingLocalDelta;
+
+			displayNumberServerOffset += othersDelta;
+
+			previousServerNumber = data.number;
+			number = data.number + extraLocalClicks;
+
+			pendingLocalDelta = 0;
+			updateNumberDisplay();
 		} catch (error) {
-			console.error('Error fetching number:', error);
+			console.error('Error updating number:', error);
+		} finally {
+			inflight = false;
 		}
 	};
 
-	void syncNumber();
-	setInterval(syncNumber, 3000);
-
-	setInterval(() => {
-		if (clientServerDiff > 0) {
-			clientServerDiff--;
-			clientNumber++;
+	const otherPlayerClick = async () => {
+		if (displayNumberServerOffset > 0) {
+			displayNumber++;
+			displayNumberServerOffset--;
+			updateNumberDisplay();
 		}
-	}, 100);
+	};
+	setInterval(otherPlayerClick, 100);
+
+	void syncNumber();
+	setInterval(syncNumber, 1000);
 });
 
 // Logout
