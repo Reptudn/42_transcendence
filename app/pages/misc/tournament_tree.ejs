@@ -38,8 +38,8 @@ if (Array.isArray(rounds) && rounds.length > 0) {
                 const top = TITLE_H + topCore;
             %>
             <div class="absolute w-[240px] border border-green-500/50 rounded px-3 py-2 backdrop-sepia hover:bg-cover hover:bg-center"
-                 style="top:<%= top %>px; height:<%= MATCH_H %>px;" onmouseover="this.style.backgroundImage='url(https://i.pinimg.com/736x/e5/b9/81/e5b98110fcd62d6ebe0e636262170175.jpg)';"
-     onmouseout="this.style.backgroundImage='none';">
+                 style="top:<%= top %>px; height:<%= MATCH_H %>px;" onmouseenter="const i=1+Math.floor(Math.random()*7); this.style.backgroundImage=`url(/static/assets/images/tournament_match_pics/${i}.jpg)`;"
+     onmouseleave="this.style.backgroundImage='none';">
                 <pre class="m-0 text-[11px] leading-snug whitespace-pre-wrap">
 P1: <span class="glow-green"><%= match.player1?.name || 'Waiting...' %></span>
     <span class="glow-green"><%= match.player1?.title || '' %></span>
