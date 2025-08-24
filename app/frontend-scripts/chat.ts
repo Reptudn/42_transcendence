@@ -1,47 +1,53 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
 
-if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
+export async function initChat() {
+	if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
-await getMessages(sessionStorage.getItem('chat_id'));
-
-document.getElementById('globalChat')?.addEventListener('click', async () => {
-	sessionStorage.setItem('chat_id', '1');
 	await getMessages(sessionStorage.getItem('chat_id'));
-	document.getElementById('optionModal')?.classList.add('hidden');
-});
 
-document.getElementById('sendChatButton')?.addEventListener('click', async () => {
-	const input = document.getElementById('chatInput') as HTMLInputElement;
-	if (input && input.value.trim() !== '') {
-		const msg = input.value.trim();
-		input.value = '';
-		const chat_id = sessionStorage.getItem('chat_id');
-		if (!chat_id) {
-			showLocalError('Chat ID not found', undefined, 5000);
-			return;
-		}
-		const res = await fetch('/api/chat', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				chat: Number.parseInt(chat_id),
-				message: msg,
-			}),
+	document.getElementById('globalChat')?.addEventListener('click', async () => {
+		sessionStorage.setItem('chat_id', '1');
+		await getMessages(sessionStorage.getItem('chat_id'));
+		document.getElementById('optionModal')?.classList.add('hidden');
+	});
+
+	document
+		.getElementById('sendChatButton')
+		?.addEventListener('click', async () => {
+			const input = document.getElementById('chatInput') as HTMLInputElement;
+			if (input && input.value.trim() !== '') {
+				const msg = input.value.trim();
+				input.value = '';
+				const chat_id = sessionStorage.getItem('chat_id');
+				if (!chat_id) {
+					showLocalError('Chat ID not found', undefined, 5000);
+					return;
+				}
+				const res = await fetch('/api/chat', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						chat: Number.parseInt(chat_id),
+						message: msg,
+					}),
+				});
+				const data = await res.json();
+				if (!res.ok) {
+					return showLocalInfo(data.error, undefined, 5000);
+				}
+				if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
+			}
 		});
-		const data = await res.json();
-		if (!res.ok) {
-			return showLocalInfo(data.error, undefined, 5000);
-		}
-		if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
-	}
-});
 
-document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-	if (e.key === 'Enter') {
-		document.getElementById('sendChatButton')?.click();
-	}
-});
+	document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+		if (e.key === 'Enter') {
+			document.getElementById('sendChatButton')?.click();
+		}
+	});
+}
+
+await initChat();
 
 export function appendToChatBox(rawMessage: string) {
 	try {

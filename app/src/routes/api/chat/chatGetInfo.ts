@@ -289,7 +289,9 @@ export async function createNewChat(fastify: FastifyInstance) {
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 				for (const id of userIdsInt) {
 					await inviteUserToChat(fastify, user.id, id, chat_id);
-					sendSseHtmlByUserId(id, 'chat_update', '');
+					try {
+						sendSseHtmlByUserId(id, 'chat_update', '');
+					} catch {}
 				}
 
 				return res.send({

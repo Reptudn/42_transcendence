@@ -33,7 +33,7 @@
 <!-- Modal for Chats -->
 <div id="chatsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
 	<h2 class="text-xl bold text-center">
-		<span>Chats</span> <!--TODO translation--> 
+		<span><%= t('chat.chat') %></span>
 	</h2>
 	<button id="createGroup" class="px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"><%= t('chat.new_chat') %></button>
 	<div class="flex flex-grow flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-0 space-y-2">
@@ -46,7 +46,7 @@
 <!-- Modal for Friends -->
 <div id="friendsModal" class="p-6 w-1/5 fixed h-[80vh] top-34 right-10 px-4 py-2 backdrop-blur-3xl rounded border-[#00ff00] border hidden flex flex-col space-y-2 justify-between">
 	<h2 class="text-xl bold text-center">
-		<span>Friends</span> <!--TODO translation--> 
+		<span><%= t('chat.friend') %></span>
 	</h2>
 	<div class="flex flex-grow flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-0 space-y-2">
 		<div id="friendsList">

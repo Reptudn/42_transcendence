@@ -175,6 +175,8 @@
 		"chatInfo": "Infos sur le chat",
 		"chat_name": "Nom du chat",
 		"part": "Participants au groupe",
-		"blocked": "Participants bloqués"
+		"blocked": "Participants bloqués",
+		"chat": "Chat",
+		"friend": "amis"
 	}
 }
