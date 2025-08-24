@@ -371,6 +371,7 @@ export class Game {
 				nextRecalcAt: Date.now(),
 			} as AIBrainData;
 			this.results = [];
+			this.activePowerups = [];
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
 
