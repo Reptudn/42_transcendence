@@ -1,6 +1,7 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import { notifyEventSource } from './events.js';
 import { loadPartialView } from './navigator.js';
+import { Script } from './script_manager.js';
 
 export async function enable2fa() {
 	if (!notifyEventSource || notifyEventSource.readyState !== EventSource.OPEN) {
@@ -22,6 +23,7 @@ export async function enable2fa() {
 			// 	qrcode: string;
 			// 	rescue: string;
 			// };
+			console.log('2fa good');
 		} else {
 			const data = await res.json();
 			showLocalError(data.error, undefined, 5000);
@@ -56,5 +58,14 @@ declare global {
 	}
 }
 
-window.disable2fa = disable2fa;
-window.enable2fa = enable2fa;
+async function load() {
+	window.disable2fa = disable2fa;
+	window.enable2fa = enable2fa;
+}
+
+async function unload() {
+	delete (window as any).disable2fa;
+	delete (window as any).enable2fa;
+}
+
+export const totp = new Script(load, unload);

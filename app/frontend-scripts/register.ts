@@ -1,6 +1,7 @@
 import { showLocalInfo, showLocalError } from './alert.js';
 import { loadPartialView } from './navigator.js';
 import './script.js';
+import { Script } from './script_manager.js';
 
 const registerAction = async () => {
 	const username = (document.querySelector('#username') as HTMLInputElement).value;
@@ -29,13 +30,7 @@ const registerAction = async () => {
 	}
 };
 
-const registerButton = document.getElementById('registerButton');
-if (registerButton) {
-	console.log('registerButton found');
-	registerButton.addEventListener('click', registerAction, {
-		// signal: window.abortController?.signal,
-	});
-} else console.error('registerButton not found');
+let registerButton: HTMLElement | null = null;
 
 export function updateCounter(inputId: string, counterId: string, max: number) {
 	const input = document.getElementById(inputId);
@@ -51,3 +46,18 @@ export function updateCounter(inputId: string, counterId: string, max: number) {
 }
 updateCounter('username', 'usernameCounter', 16);
 updateCounter('displayname', 'displaynameCounter', 32);
+
+async function load() {
+	console.log('[Register] Loading');
+	registerButton = document.getElementById('registerButton');
+	if (registerButton) {
+		console.log('registerButton found');
+		registerButton.addEventListener('click', registerAction);
+	} else console.error('registerButton not found');
+}
+async function unload() {
+	console.log('[Register] Unloading');
+	registerButton = null;
+}
+
+export const register = new Script(load, unload);

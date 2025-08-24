@@ -1,4 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+// import { Script } from './script_manager.js';
 
 export interface FriendUser {
 	id: number;
@@ -29,7 +30,6 @@ export function sendFriendRequest(
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -56,7 +56,6 @@ export function acceptFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -81,7 +80,6 @@ export function declineFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -106,7 +104,6 @@ export function removeFriendRequest(friendId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ friendId }),
 	})
@@ -119,7 +116,19 @@ export function removeFriendRequest(friendId: number) {
 		});
 }
 
+// async function load() {
 window.sendFriendRequest = sendFriendRequest;
 window.acceptFriendRequest = acceptFriendRequest;
 window.declineFriendRequest = declineFriendRequest;
 window.removeFriendRequest = removeFriendRequest;
+// }
+
+// async function unload() {
+// 	delete (window as any).sendFriendRequest;
+// 	delete (window as any).acceptFriendRequest;
+// 	delete (window as any).declineFriendRequest;
+// 	delete (window as any).removeFriendRequest;
+// }
+
+// const friends = new Script(load, unload);
+// export default friends;

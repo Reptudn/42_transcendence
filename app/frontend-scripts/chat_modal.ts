@@ -400,3 +400,8 @@ document.getElementById('optionButton')?.addEventListener('click', async () => {
 document.getElementById('closeOptions')?.addEventListener('click', async () => {
 	document.getElementById('optionModal')?.classList.add('hidden');
 });
+
+// TODO: apply new script approach here @lbohm
+// const chat_modal = new Script();
+
+// export default chat_modal;

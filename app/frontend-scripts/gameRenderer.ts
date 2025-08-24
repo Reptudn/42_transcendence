@@ -1,5 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { onUnloadPageAsync } from './navigator.js';
+import { Script } from './script_manager.js';
 
 let previousState: GameState | null = null;
 let currentState: GameState | null = null;
@@ -166,22 +166,19 @@ export function interpolateGameObject(
 	return interpolated;
 }
 
-let canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-let ctx = canvas.getContext('2d');
-if (!ctx) {
-	throw new Error('Failed to get 2D context from canvas');
-}
+let canvas: HTMLCanvasElement | null = null;
+let ctx: CanvasRenderingContext2D | null = null;
 
 let nauseaEffectEnabled = false;
 
 function setNauseaEffectEnabled(enabled: boolean) {
 	if (enabled && !nauseaEffectEnabled) {
-		canvas.classList.add('glow-rainbow-border', 'easter-egg');
-		canvas.classList.remove('game-canvas-background');
+		canvas!.classList.add('glow-rainbow-border', 'easter-egg');
+		canvas!.classList.remove('game-canvas-background');
 		nauseaEffectEnabled = true;
 	} else if (!enabled && nauseaEffectEnabled) {
-		canvas.classList.remove('glow-rainbow-border', 'easter-egg');
-		canvas.classList.add('game-canvas-background');
+		canvas!.classList.remove('glow-rainbow-border', 'easter-egg');
+		canvas!.classList.add('game-canvas-background');
 		nauseaEffectEnabled = false;
 	}
 }
@@ -238,12 +235,12 @@ export function initCanvas() {
 }
 
 export function isPointInsideCanvas(x: number, y: number): boolean {
-	return x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height;
+	return x >= 0 && x <= canvas!.width && y >= 0 && y <= canvas!.height;
 }
 
 export function clearCanvas(): void {
 	if (ctx) {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.clearRect(0, 0, canvas!.width, canvas!.height);
 	}
 }
 
@@ -509,8 +506,8 @@ export function drawBallTrail(scale: number, baseRadius: number): void {
 }
 
 export function drawGameState(gameState: GameState): void {
-	const scaleX = canvas.width / mapSizeX;
-	const scaleY = canvas.height / mapSizeY;
+	const scaleX = canvas!.width / mapSizeX;
+	const scaleY = canvas!.height / mapSizeY;
 	const scale = Math.min(scaleX, scaleY);
 
 	clearCanvas();
@@ -750,8 +747,8 @@ export function render(): void {
 			(obj) => obj.type === 'ball' && obj.radius
 		);
 		if (ballObj?.radius) {
-			const scaleX = canvas.width / (currentState?.mapWidth ?? mapSizeX);
-			const scaleY = canvas.height / (currentState?.mapHeight ?? mapSizeY);
+			const scaleX = canvas!.width / (currentState?.mapWidth ?? mapSizeX);
+			const scaleY = canvas!.height / (currentState?.mapHeight ?? mapSizeY);
 			const scale = Math.min(scaleX, scaleY);
 			drawBallTrail(scale, ballObj.radius);
 		}
@@ -767,8 +764,6 @@ export function startRendering(): void {
 	}
 }
 
-startRendering();
-
 export function stopRendering(): void {
 	isRendering = false;
 	if (animationId !== null) {
@@ -776,8 +771,6 @@ export function stopRendering(): void {
 		animationId = null;
 	}
 }
-
-startRendering();
 
 declare global {
 	interface Window {
@@ -787,10 +780,59 @@ declare global {
 	}
 }
 
-onUnloadPageAsync(async () => {
-	stopRendering();
-});
+async function load() {
+	console.log('[GameRenderer] Loading renderer script...');
 
-window.initCanvas = initCanvas;
-window.startRendering = startRendering;
-window.stopRendering = stopRendering;
+	// Initialize canvas and context
+	initCanvas();
+
+	// Reset rendering state
+	isRendering = false;
+	animationId = null;
+
+	// Clear any existing trail
+	ballTrail.length = 0;
+
+	// Reset state
+	previousState = null;
+	currentState = null;
+	lastUpdateTime = performance.now();
+
+	// Expose global functions
+	window.initCanvas = initCanvas;
+	window.startRendering = startRendering;
+	window.stopRendering = stopRendering;
+
+	startRendering();
+
+	console.log('[GameRenderer] Renderer script loaded successfully');
+}
+
+async function unload() {
+	console.log('[GameRenderer] Unloading renderer script...');
+
+	// Stop rendering
+	stopRendering();
+
+	// Clear canvas context and reference
+	ctx = null;
+	canvas = null;
+
+	// Clear trail
+	ballTrail.length = 0;
+
+	// Reset state
+	previousState = null;
+	currentState = null;
+	nauseaEffectEnabled = false;
+
+	// Clear global references
+	delete (window as any).initCanvas;
+	delete (window as any).startRendering;
+	delete (window as any).stopRendering;
+
+	console.log('[GameRenderer] Renderer script unloaded successfully');
+}
+
+const gameRenderer = new Script(load, unload);
+export default gameRenderer;
