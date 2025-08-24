@@ -30,41 +30,76 @@ export async function createGame() {
 }
 
 // the Number
+
 let number = 42;
 let previousServerNumber = 42;
+let displayNumber = number;
+let displayNumberServerOffset = 0;
+let inflight = false;
+let pendingLocalDelta = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
 	const updateNumberDisplay = () => {
-		if (el) el.textContent = number.toString();
+		if (el) el.textContent = displayNumber.toString();
 	};
+	updateNumberDisplay();
+
 	el?.addEventListener('click', () => {
 		number++;
+		displayNumber++;
 		updateNumberDisplay();
 	});
+	// after: full replacement of syncNumber
 	const syncNumber = async () => {
+		if (inflight) return;
+		inflight = true;
+
+		const basePrev = previousServerNumber;
+		const localDelta = number - basePrev;
+		pendingLocalDelta = localDelta;
+
 		try {
 			const response = await fetch('/number', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ number: number - previousServerNumber }),
+				body: JSON.stringify({ number: localDelta }),
 			});
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Number updated successfully:', data);
-				number = data.number;
-				previousServerNumber = data.number;
-				updateNumberDisplay();
-			} else {
-				console.error('Error updating number:', response.statusText);
-			}
+
+			if (!response.ok) throw new Error(response.statusText);
+
+			const data = await response.json();
+
+			const serverDelta = data.number - basePrev;
+			const othersDelta = Math.max(0, serverDelta - pendingLocalDelta);
+
+			const extraLocalClicks = number - basePrev - pendingLocalDelta;
+
+			displayNumberServerOffset += othersDelta;
+
+			previousServerNumber = data.number;
+			number = data.number + extraLocalClicks;
+
+			pendingLocalDelta = 0;
+			updateNumberDisplay();
 		} catch (error) {
-			console.error('Error fetching number:', error);
+			console.error('Error updating number:', error);
+		} finally {
+			inflight = false;
 		}
 	};
 
+	const otherPlayerClick = async () => {
+		if (displayNumberServerOffset > 0) {
+			displayNumber++;
+			displayNumberServerOffset--;
+			updateNumberDisplay();
+		}
+	};
+	setInterval(otherPlayerClick, 100);
+
 	void syncNumber();
-	setInterval(syncNumber, 3000);
+	setInterval(syncNumber, 1000);
 });
 
 // Logout
