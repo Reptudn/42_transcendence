@@ -4,6 +4,7 @@ import {
 	stopRendering,
 	updateGameState,
 	getPlayerColor,
+	startRendering,
 } from './gameRenderer.js';
 import { loadPartialView } from './navigator.js';
 import { Script } from './script_manager.js';
@@ -76,7 +77,7 @@ const game = new Script(
 		ws.onopen = () => {
 			console.log('WebSocket connection established');
 			initCanvas();
-			window.startRendering();
+			startRendering();
 			showLocalInfo('Connected to game server');
 		};
 
@@ -87,7 +88,7 @@ const game = new Script(
 		};
 
 		ws.onclose = async (event) => {
-			window.stopRendering();
+			stopRendering();
 			if (input_interval) {
 				clearInterval(input_interval);
 				input_interval = null;
