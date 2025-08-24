@@ -74,7 +74,7 @@ document.getElementById('createGroup')?.addEventListener('click', async () => {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError('Failed to fetch friends', undefined, 5000);
 		return;
 	}
 	const data = await res.json();
@@ -130,10 +130,10 @@ document
 		const res = await fetch(url);
 		const data = await res.json();
 		if (!res.ok) {
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 			return;
 		}
-		showLocalInfo(data.msg);
+		showLocalInfo(data.msg, undefined, 5000);
 		const newId = data.chat_id as string;
 		sessionStorage.setItem('chat_id', newId);
 		await getMessages(newId);
@@ -152,7 +152,11 @@ document.getElementById('blockUser')?.addEventListener('click', async () => {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError(
+			'Failed to fetch friends',
+			undefined,
+			5000
+		);
 		return;
 	}
 	const data = await res.json();
@@ -207,10 +211,10 @@ document.getElementById('confirmBlockUser')?.addEventListener('click', async () 
 	const res = await fetch(url);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
-	showLocalInfo(data.msg);
+	showLocalInfo(data.msg, undefined, 5000);
 	document.getElementById('closeBlockUser')?.click();
 });
 
@@ -225,7 +229,7 @@ document.getElementById('unblockUser')?.addEventListener('click', async () => {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
 	const res = await fetch('/api/chat/friends?chat_id=2');
 	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
+		showLocalError('Failed to fetch friends', undefined, 5000);
 		return;
 	}
 	const data = await res.json();
@@ -282,9 +286,9 @@ document
 		const res = await fetch(url);
 		const data = await res.json();
 		if (!res.ok) {
-			return showLocalError(data.error);
+			return showLocalError(data.error, undefined, 5000);
 		}
-		showLocalInfo(data.msg);
+		showLocalInfo(data.msg, undefined, 5000);
 		document.getElementById('closeUnblockUser')?.click();
 	});
 
@@ -350,10 +354,10 @@ document.getElementById('confirmInviteUser')?.addEventListener('click', async ()
 	const res = await fetch(url);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
-	showLocalInfo(data.msg);
+	showLocalInfo(data.msg, undefined, 5000);
 	document.getElementById('closeInviteUser')?.click();
 });
 
@@ -370,10 +374,10 @@ document.getElementById('leaveUser')?.addEventListener('click', async () => {
 	);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
-	showLocalInfo(data.msg);
+	showLocalInfo(data.msg, undefined, 5000);
 	sessionStorage.setItem('chat_id', '1');
 	await getMessages('1');
 });
@@ -387,7 +391,7 @@ document.getElementById('chatInfo')?.addEventListener('click', async () => {
 	);
 	const data = await res.json();
 	if (!res.ok) {
-		showLocalError(data.error);
+		showLocalError(data.error, undefined, 5000);
 		return;
 	}
 	const win = document.getElementById('chatInfoInput');

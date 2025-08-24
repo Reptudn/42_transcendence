@@ -3,7 +3,6 @@ import type { htmlMsg } from '../src/types/chat.js';
 
 if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
-// await getChats();
 await getMessages(sessionStorage.getItem('chat_id'));
 
 document.getElementById('globalChat')?.addEventListener('click', async () => {
@@ -19,7 +18,7 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		input.value = '';
 		const chat_id = sessionStorage.getItem('chat_id');
 		if (!chat_id) {
-			showLocalError('Chat ID not found');
+			showLocalError('Chat ID not found', undefined, 5000);
 			return;
 		}
 		const res = await fetch('/api/chat', {
@@ -32,9 +31,9 @@ document.getElementById('sendChatButton')?.addEventListener('click', async () =>
 		});
 		const data = await res.json();
 		if (!res.ok) {
-			return showLocalInfo(data.error);
+			return showLocalInfo(data.error, undefined, 5000);
 		}
-		if (data.msg !== 'ok') showLocalInfo(data.msg);
+		if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
 	}
 });
 
@@ -43,40 +42,6 @@ document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
 		document.getElementById('sendChatButton')?.click();
 	}
 });
-
-// const searchUser = document.getElementById('searchForFriend') as HTMLInputElement;
-
-// searchUser?.addEventListener('input', async () => {
-// 	const res = await fetch('/api/chat/chats');
-// 	const data = await res.json();
-// 	if (!res.ok) {
-// 		return showLocalInfo(data.error);
-// 	}
-// 	const input = searchUser.value.trim().toLowerCase();
-// 	if (input === '') {
-// 		return await getChats();
-// 	}
-// 	const userList = document.getElementById('userList');
-// 	if (!userList) {
-// 		showLocalError('User list element not found');
-// 		return;
-// 	}
-// 	userList.innerHTML = '';
-// 	const chats = data.chats as Chat[];
-// 	for (const chat of chats) {
-// 		if (chat.name?.substring(0, input.length).toLowerCase() === input) {
-// 			const butt = document.createElement('button');
-// 			butt.addEventListener('click', async () => {
-// 				sessionStorage.setItem('chat_id', chat.id.toString());
-// 				await getMessages(chat.id.toString());
-// 			});
-// 			butt.textContent = chat.name;
-// 			butt.className =
-// 				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
-// 			userList.appendChild(butt);
-// 		}
-// 	}
-// });
 
 export function appendToChatBox(rawMessage: string) {
 	try {
@@ -96,47 +61,23 @@ export function appendToChatBox(rawMessage: string) {
 		if (msg.blocked || msg.ownMsg) return;
 		showLocalInfo(
 			`You recived a new Msg from ${msg.fromUserName}`,
-			`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`
+			`sessionStorage.setItem('chat_id', '${msg.chatId}'); getMessages(${msg.chatId})`,
+			5000
 		);
 	} catch (err) {
 		console.error('Error parsing event data:', err);
 	}
 }
 
-// export async function getChats() {
-// 	const res = await fetch('/api/chat/chats');
-// 	const data = await res.json();
-// 	if (!res.ok) {
-// 		return showLocalInfo(data.error);
-// 	}
-// 	const userList = document.getElementById('userList');
-// 	if (userList) {
-// 		userList.innerHTML = '';
-// 		const chats = data.chats as Chat[];
-// 		for (const chat of chats) {
-// 			const butt = document.createElement('button');
-// 			butt.addEventListener('click', async () => {
-// 				sessionStorage.setItem('chat_id', chat.id.toString());
-// 				await getMessages(chat.id.toString());
-// 			});
-// 			if (chat.name === null) butt.textContent = chat.id.toString();
-// 			else butt.textContent = chat.name;
-// 			butt.className =
-// 				'px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition';
-// 			userList.appendChild(butt);
-// 		}
-// 	}
-// }
-
 export async function getMessages(chat_id: string | null) {
 	if (!chat_id || chat_id === '0') {
-		showLocalError('Invalid chat ID');
+		showLocalError('Invalid chat ID', undefined, 5000);
 		return;
 	}
 	const res = await fetch(`/api/chat/messages?chat_id=${chat_id}`);
 	const data = await res.json();
 	if (!res.ok) {
-		return showLocalError(data.error);
+		return showLocalError(data.error, undefined, 5000);
 	}
 	const msgs = data.msgs as htmlMsg[];
 
@@ -159,10 +100,6 @@ export async function getMessages(chat_id: string | null) {
 	}
 }
 
-// export async function updateChat() {
-// 	await getChats();
-// }
-
 declare global {
 	interface Window {
 		getMessages: (chat_id: string | null) => void;
@@ -170,8 +107,3 @@ declare global {
 }
 
 window.getMessages = getMessages;
-
-// TODO: apply new script approach here @lbohm
-// const chat = new Script();
-
-// export default chat;

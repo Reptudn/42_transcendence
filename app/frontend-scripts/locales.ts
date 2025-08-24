@@ -24,7 +24,14 @@ export async function setLanguageCookie(lang: string) {
 				60 * 60 * 24 * 30
 			}`;
 			console.log(`Language set to ${lang}`);
-			await loadPartialView(`profile?lng=${lang}`, false, null, true, true, true);
+			await loadPartialView(
+				`profile?lng=${lang}`,
+				false,
+				null,
+				true,
+				true,
+				true
+			);
 		} else {
 			console.log('Language change cancelled');
 		}
@@ -40,7 +47,7 @@ export async function setLanguageCookie(lang: string) {
 		loadPartialView(`index?lng=${lang}`, false, null, true, true, true);
 	}
 
-	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`);
+	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`, undefined, 5000);
 }
 
 window.setLanguageCookie = setLanguageCookie;

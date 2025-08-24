@@ -15,7 +15,11 @@ export function fetchFriendSearchResults() {
 			}
 		})
 		.catch((err) => {
-			showLocalError(`Failed to fetch friend search results: ${err}`);
+			showLocalError(
+				`Failed to fetch friend search results: ${err}`,
+				undefined,
+				5000
+			);
 		});
 }
 

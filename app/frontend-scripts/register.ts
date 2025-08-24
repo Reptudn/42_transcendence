@@ -19,14 +19,14 @@ const registerAction = async () => {
 		});
 		const data = await response.json();
 		if (response.ok) {
-			showLocalInfo('You have registered successfully');
+			showLocalInfo('You have registered successfully', undefined, 5000);
 			await loadPartialView('login');
 		} else {
-			showLocalError(data.message);
+			showLocalError(data.message, undefined, 5000);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		showLocalError('An error occurred. Please try again.');
+		showLocalError('An error occurred. Please try again.', undefined, 5000);
 	}
 };
 
