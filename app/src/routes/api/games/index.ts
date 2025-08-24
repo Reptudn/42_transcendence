@@ -230,6 +230,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 			}
 
+			if (game.config.gameType === GameType.TOURNAMENT && game.alreadyStarted)
+				return reply.code(404).send({
+					error: 'Game has already started, settings cannot be reset',
+				});
+
 			const oldGameType = game.config.gameType;
 			game.config = { ...defaultGameSettings, gameType: oldGameType };
 			await game.updateLobbyState();
