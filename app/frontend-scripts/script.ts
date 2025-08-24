@@ -30,17 +30,16 @@ export async function createGame() {
 }
 
 // the Number
-let clientNumber = 42;
-let serverNumber = 42;
-let clientServerDiff = 0;
+let number = 42;
+let previousServerNumber = 42;
 
 document.addEventListener('DOMContentLoaded', () => {
 	const el = document.getElementById('numberDisplay');
 	const updateNumberDisplay = () => {
-		if (el) el.textContent = clientNumber.toString();
+		if (el) el.textContent = number.toString();
 	};
 	el?.addEventListener('click', () => {
-		clientNumber++;
+		number++;
 		updateNumberDisplay();
 	});
 	const syncNumber = async () => {
@@ -48,13 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			const response = await fetch('/number', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ number: clientNumber - serverNumber }),
+				body: JSON.stringify({ number: number - previousServerNumber }),
 			});
 			if (response.ok) {
 				const data = await response.json();
 				console.log('Number updated successfully:', data);
-				serverNumber = data.number;
-				clientServerDiff = serverNumber - clientNumber;
+				number = data.number;
+				previousServerNumber = data.number;
 				updateNumberDisplay();
 			} else {
 				console.error('Error updating number:', response.statusText);
@@ -66,13 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	void syncNumber();
 	setInterval(syncNumber, 3000);
-
-	setInterval(() => {
-		if (clientServerDiff > 0) {
-			clientServerDiff--;
-			clientNumber++;
-		}
-	}, 100);
 });
 
 // Logout
