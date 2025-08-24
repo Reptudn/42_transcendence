@@ -44,7 +44,6 @@ if (connectedStatusElem) {
 let isConnecting = false;
 export function setupEventSource() {
 	if (window.localStorage.getItem('loggedIn') !== 'true') return;
-
 	if (
 		notifyEventSource &&
 		(notifyEventSource.readyState === EventSource.OPEN ||
@@ -52,12 +51,12 @@ export function setupEventSource() {
 	) {
 		return;
 	}
-
+	
 	if (isConnecting) {
 		console.log('Already attempting to connect...');
 		return;
 	}
-
+	
 	if (notifyEventSource) {
 		notifyEventSource.close();
 		notifyEventSource = null;
@@ -68,7 +67,7 @@ export function setupEventSource() {
 	notifyEventSource = new EventSource('/events');
 	notifyEventSource.addEventListener('close', (event) => {
 		console.info('notifyEventSource.close', event);
-		isConnecting = false; // Reset connecting flag
+		isConnecting = false;
 		notifyEventSource?.close();
 		notifyEventSource = null;
 		updateConnectionStatus('DISCONNECTED');
@@ -81,10 +80,10 @@ export function setupEventSource() {
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);
-		isConnecting = false; // Reset connecting flag
+		isConnecting = false;
 		notifyEventSource?.close();
 		notifyEventSource = null;
-		updateConnectionStatus('DISCONNECTED'); // Fixed: was 'CONNECTED'
+		updateConnectionStatus('DISCONNECTED');
 		setTimeout(() => {
 			if (
 				!notifyEventSource &&
@@ -286,6 +285,9 @@ declare global {
 }
 
 closeAllPopups();
+
+
+
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
 window.declineGameInvite = declineGameInvite;
