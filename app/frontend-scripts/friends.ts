@@ -1,5 +1,5 @@
 import { showLocalError, showLocalInfo } from './alert.js';
-import { Script } from './script_manager.js';
+// import { Script } from './script_manager.js';
 
 export interface FriendUser {
 	id: number;
