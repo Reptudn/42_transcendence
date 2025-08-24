@@ -350,5 +350,21 @@
 		"title_first": "Unphased",
 		"title_second": "Balls Lover",
 		"title_third": "⚽"
+	},
+	{
+		"key": "powerup-ballsplosion",
+		"name": "Ballsplosion Powerup",
+		"description": "Experience the effects of the Ballsplosion powerup",
+		"title_first": "Balls-lacking",
+		"title_second": "Balls Exploder",
+		"title_third": "🍆"
+	},
+	{
+		"key": "powerup-speedup",
+		"name": "Speedup Powerup",
+		"description": "Experience the effects of the speedup powerup",
+		"title_first": "Speedy",
+		"title_second": "Gonzales",
+		"title_third": "🐁"
 	}
 ]
