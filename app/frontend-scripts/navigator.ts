@@ -6,7 +6,7 @@ import { ScriptManager } from './script_manager.js';
 import { totp } from './totp.js';
 import { register } from './register.js';
 import add_friends from './add_friends.js';
-import friends from './friends.js';
+// import friends from './friends.js';
 import gameRenderer from './gameRenderer.js';
 import { lobby } from './lobby.js';
 import { lobby_admin } from './lobby_admin.js';
