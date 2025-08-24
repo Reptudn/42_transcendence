@@ -169,8 +169,9 @@ export async function loadPartialView(
 
 		last_page = url;
 	} catch (error) {
-		if (error instanceof Error) showLocalError(error.message);
-		else showLocalError(`Error fetching partial view: ${error}`);
+		if (error instanceof Error) showLocalError(error.message, undefined, 5000);
+		else
+			showLocalError(`Error fetching partial view: ${error}`, undefined, 5000);
 	}
 }
 
@@ -255,7 +256,7 @@ export async function updateMenu(): Promise<void> {
 			menuElement.innerHTML = html;
 		}
 	} catch (error) {
-		showLocalError(`Menu fetch failed: ${error}`);
+		showLocalError(`Menu fetch failed: ${error}`, undefined, 5000);
 	}
 }
 

@@ -5,7 +5,11 @@ import { Script } from './script_manager.js';
 
 export async function enable2fa() {
 	if (!notifyEventSource || notifyEventSource.readyState !== EventSource.OPEN) {
-		showLocalInfo('You cant enable 2fa when you are not connected with SSE');
+		showLocalInfo(
+			'You cant enable 2fa when you are not connected with SSE',
+			undefined,
+			5000
+		);
 		return;
 	}
 
@@ -22,11 +26,11 @@ export async function enable2fa() {
 			console.log('2fa good');
 		} else {
 			const data = await res.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 		loadPartialView('edit_profile');
 	} catch (error) {
-		showLocalError('Failed to enable 2fa!');
+		showLocalError('Failed to enable 2fa!', undefined, 5000);
 	}
 }
 
@@ -36,14 +40,14 @@ export async function disable2fa() {
 			method: 'POST',
 		});
 		if (res.ok) {
-			showLocalInfo('You have disabled 2fa successfully');
+			showLocalInfo('You have disabled 2fa successfully', undefined, 5000);
 		} else {
 			const data = await res.json();
-			showLocalError(data.error);
+			showLocalError(data.error, undefined, 5000);
 		}
 		loadPartialView('edit_profile');
 	} catch (error) {
-		window.showLocalError('Failed to disable 2fa!');
+		window.showLocalError('Failed to disable 2fa!', undefined, 5000);
 	}
 }
 
