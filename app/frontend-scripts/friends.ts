@@ -1,4 +1,5 @@
-import { showLocalError, showLocalInfo } from "./alert.js";
+import { showLocalError, showLocalInfo } from './alert.js';
+// import { Script } from './script_manager.js';
 
 export interface FriendUser {
 	id: number;
@@ -15,9 +16,11 @@ declare global {
 	}
 }
 
-export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | null = null) {
-	if (btn)
-	{
+export function sendFriendRequest(
+	requestId: number,
+	btn: HTMLButtonElement | null = null
+) {
+	if (btn) {
 		btn.textContent = 'Request sent';
 		btn.style.backgroundColor = 'green';
 		btn.disabled = true;
@@ -27,7 +30,6 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | nu
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -37,8 +39,7 @@ export function sendFriendRequest(requestId: number, btn: HTMLButtonElement | nu
 		})
 		.catch((error) => {
 			showLocalError(`Error sending friend request: ${error}`);
-			if (btn !== null)
-			{
+			if (btn !== null) {
 				btn.textContent = 'Send request';
 				btn.style.backgroundColor = '';
 				btn.disabled = false;
@@ -51,7 +52,6 @@ export function acceptFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -68,7 +68,6 @@ export function declineFriendRequest(requestId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ requestId }),
 	})
@@ -85,7 +84,6 @@ export function removeFriendRequest(friendId: number) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
 		},
 		body: JSON.stringify({ friendId }),
 	})
@@ -98,7 +96,19 @@ export function removeFriendRequest(friendId: number) {
 		});
 }
 
+// async function load() {
 window.sendFriendRequest = sendFriendRequest;
 window.acceptFriendRequest = acceptFriendRequest;
 window.declineFriendRequest = declineFriendRequest;
 window.removeFriendRequest = removeFriendRequest;
+// }
+
+// async function unload() {
+// 	delete (window as any).sendFriendRequest;
+// 	delete (window as any).acceptFriendRequest;
+// 	delete (window as any).declineFriendRequest;
+// 	delete (window as any).removeFriendRequest;
+// }
+
+// const friends = new Script(load, unload);
+// export default friends;

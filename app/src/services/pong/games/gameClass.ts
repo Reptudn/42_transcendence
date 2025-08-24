@@ -60,6 +60,7 @@ export class Game {
 	players: Player[] = [];
 	gameState: GameState;
 	config: GameSettings;
+	ended: boolean = false;
 
 	ballSpeed = 3;
 
@@ -299,7 +300,7 @@ export class Game {
 		try {
 			if (
 				playerToRemove instanceof UserPlayer &&
-				playerToRemove.user.id == this.admin.id
+				playerToRemove.user.id == this.admin.id && this.ended === false
 			)
 				this.endGame(
 					'Game admin left, game closed. (Game doesnt count)',
@@ -352,9 +353,12 @@ export class Game {
 		} else if (this.config.gameType === GameType.TOURNAMENT) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
-
-			if (this.players.length < 4)
-				throw new Error('Not enough players to start the game! (Min 4)');
+			if (this.players.length < 8){
+				this.status = GameStatus.WAITING;
+				this.ended = true;
+				this.endGame("Tournament closed because a Player left!");
+				throw new Error('Tournament closed!');
+			}
 
 			for (const player of this.players)
 				if (!player.joined)
@@ -371,6 +375,7 @@ export class Game {
 				nextRecalcAt: Date.now(),
 			} as AIBrainData;
 			this.results = [];
+			this.activePowerups = [];
 			this.alreadyStarted = true;
 			this.gameState = await getMapAsInitialGameState(this);
 
@@ -485,6 +490,21 @@ export class Game {
 			winner
 		) {
 			try {
+				if (
+					this.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === this.admin.id
+					) === undefined
+				)
+					throw new Error(
+						'Cannot advance tournament: Is not in the game anymore'
+					);
+				if (
+					this.players.find((p) => p.playerId === winner.playerId) ===
+					undefined
+				)
+					throw new Error(
+						'Cannot advance tournament: Winner is not a in the game'
+					);
 				this.tournament.advance(winner);
 			} catch (e) {
 				this.fastify.log.error(`Error advancing tournament: ${e}`);
@@ -497,6 +517,8 @@ export class Game {
 						end_message
 					);
 				}
+				removeGame(this.gameId);
+				return;
 			}
 
 			if (save_game) {
@@ -585,7 +607,7 @@ export class Game {
 					this.fastify,
 					player.user.id,
 					'Tournament advancing',
-					`Next match: ${p1?.displayName} vs ${p2?.displayName}`
+					`Next match: ${p1?.displayName ?? 'Left Player'} vs ${p2?.displayName ?? 'Left Player'}`
 				);
 				sendSseRawByUserId(
 					player.user.id,

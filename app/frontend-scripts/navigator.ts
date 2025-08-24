@@ -1,6 +1,18 @@
 import { showLocalError } from './alert.js';
 import { setupEventSource } from './events.js';
+import { login } from './login.js';
 import { initPopups } from './popup.js';
+import { ScriptManager } from './script_manager.js';
+import { totp } from './totp.js';
+import { register } from './register.js';
+import add_friends from './add_friends.js';
+// import friends from './friends.js';
+import gameRenderer from './gameRenderer.js';
+import { lobby } from './lobby.js';
+import { lobby_admin } from './lobby_admin.js';
+import game from './game.js';
+import twofa_login_script from './twofa_login.js';
+import edit_profile from './edit_profile.js';
 
 declare global {
 	interface Window {
@@ -93,10 +105,8 @@ export async function loadPartialView(
 	abort: boolean = true,
 	whole_page: boolean = false
 ): Promise<void> {
-	const token = localStorage.getItem('token');
 	const headers: Record<string, string> = { loadpartial: 'true' };
 	if (whole_page) headers.loadpartial = 'false';
-	if (token) headers.Authorization = `Bearer ${token}`;
 
 	let url: string;
 	if (isPartial)
@@ -116,11 +126,18 @@ export async function loadPartialView(
 			throw new Error(data.error);
 		}
 
-		// const skipReset =
-		// 	(last_page?.startsWith('/partial/pages/lobby') ||
-		// 		last_page?.startsWith('/partial/pages/lobby_admin') ||
-		// 		last_page?.startsWith('/api/games/join')) &&
-		// 	url.startsWith('/api/games/run');
+		if (pushState) {
+			console.info('pushing state: ', url);
+			history.pushState(
+				{
+					page: page,
+					pushState: false,
+					subroute: subroute ? subroute : null,
+				},
+				'',
+				url
+			);
+		}
 
 		if (abort) {
 			console.log('[Navigator] Resetting abort controller');
@@ -134,9 +151,7 @@ export async function loadPartialView(
 		const html: string = await response.text();
 
 		if (whole_page) {
-			// window.sessionStorage.setItem('tvAnimationPlayed', 'false');
-			// window.localStorage.setItem('LoadingAnimationPlayed', 'false');
-			replaceEntireDocument(html);
+			await replaceEntireDocument(html, abort);
 			initPopups();
 		} else {
 			const contentElement: HTMLElement | null =
@@ -152,19 +167,6 @@ export async function loadPartialView(
 
 		updateActiveMenu(page);
 
-		if (pushState) {
-			console.info('pushing state: ', url);
-			history.pushState(
-				{
-					page: page,
-					pushState: false,
-					subroute: subroute ? subroute : null,
-				},
-				'',
-				url
-			);
-		}
-
 		last_page = url;
 	} catch (error) {
 		if (error instanceof Error) showLocalError(error.message);
@@ -172,27 +174,24 @@ export async function loadPartialView(
 	}
 }
 
-function replaceEntireDocument(htmlContent: string): void {
-	// Parse the HTML to extract head and body content
+async function replaceEntireDocument(
+	htmlContent: string,
+	abort: boolean
+): Promise<void> {
 	const parser = new DOMParser();
 	const newDoc = parser.parseFromString(htmlContent, 'text/html');
 
-	// Replace the entire document head
 	const newHead = newDoc.head;
 	const currentHead = document.head;
 
-	// Clear current head (but preserve essential meta tags)
 	const essentialTags = currentHead.querySelectorAll(
 		'meta[charset], meta[name="viewport"]'
 	);
 	currentHead.innerHTML = '';
 
-	// Re-add essential tags first
 	essentialTags.forEach((tag) => currentHead.appendChild(tag.cloneNode(true)));
 
-	// Add all new head content
 	Array.from(newHead.children).forEach((child) => {
-		// Skip duplicating essential tags
 		if (
 			child.tagName === 'META' &&
 			(child.getAttribute('charset') ||
@@ -203,60 +202,35 @@ function replaceEntireDocument(htmlContent: string): void {
 		currentHead.appendChild(child.cloneNode(true));
 	});
 
-	// Replace the entire body
 	const newBody = newDoc.body;
 	document.body.innerHTML = newBody.innerHTML;
 
-	// Copy body attributes
 	Array.from(newBody.attributes).forEach((attr) => {
 		document.body.setAttribute(attr.name, attr.value);
 	});
 
-	// Load scripts in the new body
-	loadScripts(document.body);
+	await loadScripts(document.body);
 }
 
 async function loadScripts(container: HTMLElement): Promise<void> {
-	const scripts = container.querySelectorAll('script');
-	if (scripts && scripts.length > 0) {
-		for (const oldScript of scripts) {
-			const newScript = document.createElement('script');
-			newScript.noModule = false;
-			newScript.async = true;
-			newScript.defer = true;
-			newScript.type = oldScript.type || 'text/javascript';
-			console.log('Loading script:', oldScript);
-
-			if (oldScript.src) {
-				newScript.src = `${oldScript.src}?cb=${Date.now()}`;
-			} else {
-				newScript.text = oldScript.text;
-			}
-
-			container.appendChild(newScript);
-			oldScript.remove();
-
-			newScript.addEventListener(
-				'load',
-				() => {
-					console.log('Script loaded:', newScript.src);
-				},
-				{
-					signal: window.abortController?.signal,
-				}
-			);
-
-			newScript.addEventListener(
-				'error',
-				(event) => {
-					console.error('Script error:', newScript.src, event);
-				},
-				{
-					signal: window.abortController?.signal,
-				}
-			);
-		}
+	// await scriptManager.unloadAll();
+	const scriptConfig = container.querySelector('script-config');
+	if (!scriptConfig) {
+		await scriptManager.unloadAll();
+		console.info(`[ScriptManager] No script config found... skipping!`);
+		return;
 	}
+
+	const scriptsToLoad = scriptConfig.getAttribute('data-scripts');
+	if (!scriptsToLoad) {
+		await scriptManager.unloadAll();
+		console.info(`[ScriptManager] No scripts to load...`);
+		return;
+	}
+
+	const scripts = scriptsToLoad.split(',').map((s) => s.trim());
+	if (scripts.length) await scriptManager.load(scripts as string[]);
+	else await scriptManager.unloadAll();
 }
 
 // history change event
@@ -273,17 +247,7 @@ window.addEventListener('popstate', async (event: PopStateEvent) => {
 
 export async function updateMenu(): Promise<void> {
 	try {
-		let response: Response;
-		const token = localStorage.getItem('token');
-		if (token) {
-			response = await fetch('/partial/menu', {
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-				},
-			});
-		} else {
-			response = await fetch('/partial/menu');
-		}
+		let response: Response = await fetch('/partial/menu');
 
 		const html = await response.text();
 		const menuElement = document.getElementById('menu');
@@ -298,3 +262,16 @@ export async function updateMenu(): Promise<void> {
 window.updateActiveMenu = updateActiveMenu;
 window.loadPartialView = loadPartialView;
 window.updateMenu = updateMenu;
+
+const scriptManager = new ScriptManager();
+scriptManager.registerScript('twofa_login', twofa_login_script);
+scriptManager.registerScript('login', login);
+scriptManager.registerScript('register', register);
+scriptManager.registerScript('totp', totp);
+scriptManager.registerScript('lobby', lobby);
+scriptManager.registerScript('lobby_admin', lobby_admin);
+scriptManager.registerScript('game', game);
+scriptManager.registerScript('gameRenderer', gameRenderer);
+// scriptManager.registerScript('friends', friends);
+scriptManager.registerScript('add_friends', add_friends);
+scriptManager.registerScript('edit_profile', edit_profile);

@@ -1,9 +1,7 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { unlockAchievement } from '../../../services/database/achievements';
 import {
-	//getGoogleUser,
 	getUserById,
-	//loginGoogleUser,
 	loginUser,
 	registerUser,
 } from '../../../services/database/users';
@@ -15,6 +13,7 @@ import {
 } from '../../../services/database/totp';
 import { checkAuth } from '../../../services/auth/auth';
 import { forceCloseSseByUserId } from '../../../services/sse/handler';
+import crypto from 'node:crypto';
 
 const authSchema = {
 	type: 'object',
@@ -146,9 +145,15 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						userid: user.id,
 					});
 				}
+				const sessionId = crypto.randomUUID();
 				const token = fastify.jwt.sign(
-					{ username: user.username, id: user.id },
-					{ expiresIn: '10d' }
+					{
+						username: user.username,
+						id: user.id,
+						sessionId: sessionId,
+						iat: Math.floor(Date.now() / 1000),
+					},
+					{ expiresIn: '10d', jti: sessionId }
 				);
 				await unlockAchievement(user.id, 'login', fastify);
 				return reply
@@ -175,10 +180,10 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (user) forceCloseSseByUserId(user.id);
 
 			return reply
-			.code(200)
-			
+				.code(200)
+
 				.clearCookie('token', { path: '/' })
-			
+
 				.send({ message: 'Logged out successfully' });
 		} catch (e) {
 			if (e instanceof Error)
@@ -232,9 +237,15 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		if (rescue_token === (await getUser2faRescue(user, fastify))) {
 			await removeUser2fa(user, fastify);
 		}
+		const sessionId = crypto.randomUUID();
 		const token = fastify.jwt.sign(
-			{ username: user.username, id: user.id },
-			{ expiresIn: '10d' }
+			{
+				username: user.username,
+				id: user.id,
+				sessionId: sessionId,
+				iat: Math.floor(Date.now() / 1000),
+			},
+			{ expiresIn: '10d', jti: sessionId }
 		);
 		await unlockAchievement(user.id, 'login', fastify);
 		return reply
@@ -304,9 +315,15 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			if (rescue_token === (await getUser2faRescue(user, fastify))) {
 				await removeUser2fa(user, fastify);
 			}
+			const sessionId = crypto.randomUUID();
 			const token = fastify.jwt.sign(
-				{ username: user.username, id: user.id },
-				{ expiresIn: '10d' }
+				{
+					username: user.username,
+					id: user.id,
+					sessionId: sessionId,
+					iat: Math.floor(Date.now() / 1000),
+				},
+				{ expiresIn: '10d', jti: sessionId }
 			);
 			await unlockAchievement(user.id, 'login', fastify);
 			return reply

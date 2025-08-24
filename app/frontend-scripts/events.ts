@@ -112,7 +112,7 @@ export function setupEventSource() {
 					console.warn(data.message);
 					break;
 				case 'error':
-					console.error(data.message);
+					console.error(`bla`);
 					break;
 				case 'popup':
 					if (popupContainer) {
@@ -126,7 +126,7 @@ export function setupEventSource() {
 				case 'game_invite':
 					console.log('👫 Game invite received:', data);
 					showLocalInfo(
-						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Accept</button><button onclick="declineInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Decline</button>`
+						`You have been invited to a game! (ID: ${data.gameId})<br><button onclick="acceptGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Accept</button><button onclick="declineGameInvite(${data.gameId})"class="ml-4 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors">Decline</button>`
 					);
 					break;
 				case 'lobby_admin_settings_update':
@@ -181,6 +181,9 @@ export function setupEventSource() {
 						false,
 						false
 					);
+					import('./gameRenderer.js').then(({ stopRendering }) => {
+						stopRendering();
+					});
 					break;
 				}
 				case 'game_closed':
@@ -281,4 +284,5 @@ declare global {
 closeAllPopups();
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
+window.declineGameInvite = declineGameInvite;
 window.setupEventSource = setupEventSource;

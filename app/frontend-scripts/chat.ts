@@ -170,3 +170,8 @@ declare global {
 }
 
 window.getMessages = getMessages;
+
+// TODO: apply new script approach here @lbohm
+// const chat = new Script();
+
+// export default chat;
