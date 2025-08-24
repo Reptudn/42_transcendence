@@ -272,6 +272,6 @@ scriptManager.registerScript('lobby', lobby);
 scriptManager.registerScript('lobby_admin', lobby_admin);
 scriptManager.registerScript('game', game);
 scriptManager.registerScript('gameRenderer', gameRenderer);
-scriptManager.registerScript('friends', friends);
+// scriptManager.registerScript('friends', friends);
 scriptManager.registerScript('add_friends', add_friends);
 scriptManager.registerScript('edit_profile', edit_profile);

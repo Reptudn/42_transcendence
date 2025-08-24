@@ -96,19 +96,19 @@ export function removeFriendRequest(friendId: number) {
 		});
 }
 
-async function load() {
-	window.sendFriendRequest = sendFriendRequest;
-	window.acceptFriendRequest = acceptFriendRequest;
-	window.declineFriendRequest = declineFriendRequest;
-	window.removeFriendRequest = removeFriendRequest;
-}
+// async function load() {
+window.sendFriendRequest = sendFriendRequest;
+window.acceptFriendRequest = acceptFriendRequest;
+window.declineFriendRequest = declineFriendRequest;
+window.removeFriendRequest = removeFriendRequest;
+// }
 
-async function unload() {
-	delete (window as any).sendFriendRequest;
-	delete (window as any).acceptFriendRequest;
-	delete (window as any).declineFriendRequest;
-	delete (window as any).removeFriendRequest;
-}
+// async function unload() {
+// 	delete (window as any).sendFriendRequest;
+// 	delete (window as any).acceptFriendRequest;
+// 	delete (window as any).declineFriendRequest;
+// 	delete (window as any).removeFriendRequest;
+// }
 
-const friends = new Script(load, unload);
-export default friends;
+// const friends = new Script(load, unload);
+// export default friends;
