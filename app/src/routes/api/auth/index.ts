@@ -177,7 +177,16 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post('/logout', async (req: FastifyRequest, reply: FastifyReply) => {
 		try {
 			const user = await checkAuth(req, true, fastify);
-			if (user) forceCloseSseByUserId(user.id);
+			if (!user) {
+				return reply
+					.code(401)
+					.send({ error: 'Unauthorized. Please login again.' });
+			}
+			try {
+				if (user) forceCloseSseByUserId(user.id);
+			} catch (e) {
+				fastify.log.error(`Failed to close SSE for user ${user.id}:`, e);
+			}
 
 			return reply
 				.code(200)

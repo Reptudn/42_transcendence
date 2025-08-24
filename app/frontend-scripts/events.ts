@@ -285,7 +285,15 @@ declare global {
 
 closeAllPopups();
 
+function hasTokenCookie(): boolean {
+    return document.cookie.split(';').some(cookie => 
+        cookie.trim().startsWith('token=')
+    );
+}
 
+if (localStorage.getItem('loggedIn') === 'true' || hasTokenCookie()) {
+    setupEventSource();
+}
 
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;
