@@ -29,7 +29,7 @@ export async function getAllChatsFromSqlByUserId(
 	userId: number
 ): Promise<Chat[]> {
 	const chats = (await fastify.sqlite.all(
-		'SELECT c.id, c.name, c.is_group, c.created_at FROM chats AS c JOIN chat_participants AS cp ON c.id = cp.chat_id WHERE cp.user_id = ? AND c.id <> 1',
+		'SELECT c.id, c.name, c.is_group, c.created_at FROM chats AS c JOIN chat_participants AS cp ON c.id = cp.chat_id WHERE cp.user_id = ?',
 		[userId]
 	)) as Chat[] | null;
 	if (!chats) throw new HttpError(400, 'No Chatparticipants found');
@@ -98,9 +98,10 @@ export async function saveNewChatInfo(
 	is_group: boolean,
 	groupName: string | null
 ): Promise<number> {
+	const escName = groupName === null ? null : escapeHTML(groupName);
 	const chat = await fastify.sqlite.run(
 		'INSERT INTO chats (name, is_group) VALUES (?, ?)',
-		[escapeHTML(groupName), is_group]
+		[escName, is_group]
 	);
 	if (chat.changes !== 0 && typeof chat.lastID === 'number') return chat.lastID;
 	throw new HttpError(400, 'Failed to save the Chat');
@@ -186,7 +187,9 @@ export async function getMessagesFromSqlByChatId(
 	chat_id: number
 ): Promise<Msg[]> {
 	const msg = (await fastify.sqlite.all(
-		'SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at ASC',
+		`SELECT id, chat_id, user_id, content, created_at FROM (
+		SELECT id, chat_id, user_id, content, created_at FROM messages WHERE chat_id = ? ORDER BY created_at DESC LIMIT 100)
+		ORDER BY created_at ASC`,
 		[chat_id]
 	)) as Msg[] | null;
 	if (!msg) throw new HttpError(400, 'No messages found');

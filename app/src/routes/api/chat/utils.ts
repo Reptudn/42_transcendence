@@ -86,6 +86,7 @@ export async function leave(
 
 export async function getMsgForGroup(
 	fastify: FastifyInstance,
+	fromUser: number,
 	chatMsgs: Msg[],
 	blocked: Blocked[],
 	blockedId: number[]
@@ -98,17 +99,54 @@ export async function getMsgForGroup(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(
+					null,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
+			);
 			continue;
 		}
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
-		else {
+		if (!blockedId.includes(user.id)) {
+			const check = fromUser === user.id;
+			htmlMsgs.push(
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					check,
+					msg.created_at
+				)
+			);
+		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) {
-				htmlMsgs.push(await createHtmlMsg(user, null, 'Msg blocked', true));
+				htmlMsgs.push(
+					await createHtmlMsg(
+						user,
+						null,
+						'Msg blocked',
+						true,
+						false,
+						msg.created_at
+					)
+				);
 			} else
-				htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
+				htmlMsgs.push(
+					await createHtmlMsg(
+						user,
+						null,
+						msg.content,
+						false,
+						false,
+						msg.created_at
+					)
+				);
 		}
 	}
 	return htmlMsgs;
@@ -116,6 +154,7 @@ export async function getMsgForGroup(
 
 export async function getMsgForDm(
 	fastify: FastifyInstance,
+	fromUser: number,
 	chatMsgs: Msg[],
 	blocked: Blocked[],
 	blockedId: number[]
@@ -128,15 +167,43 @@ export async function getMsgForDm(
 	for (const msg of chatMsgs) {
 		const user = await getUserById(msg.user_id, fastify);
 		if (!user) {
-			htmlMsgs.push(await createHtmlMsg(null, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(
+					null,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
+			);
 			continue;
 		}
-		if (!blockedId.includes(user.id))
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
-		else {
+		if (!blockedId.includes(user.id)) {
+			const check = fromUser === user.id;
+			htmlMsgs.push(
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					check,
+					msg.created_at
+				)
+			);
+		} else {
 			const pos = blockedId.indexOf(user.id);
 			if (blocked[pos].created_at <= msg.created_at) return htmlMsgs;
-			htmlMsgs.push(await createHtmlMsg(user, null, msg.content, false));
+			htmlMsgs.push(
+				await createHtmlMsg(
+					user,
+					null,
+					msg.content,
+					false,
+					false,
+					msg.created_at
+				)
+			);
 		}
 	}
 	return htmlMsgs;
@@ -167,7 +234,6 @@ export async function getChatName(
 	userId: number
 ): Promise<Chat[]> {
 	const userChats = await getAllChatsFromSqlByUserId(fastify, userId);
-
 	for (const chat of userChats) {
 		if (Boolean(chat.is_group) === false) {
 			try {
@@ -177,7 +243,8 @@ export async function getChatName(
 			} catch {
 				chat.name = 'Deleted User';
 			}
-		}
+		} else if (Boolean(chat.is_group) === true && chat.name === null)
+			chat.name = 'Global Chat';
 	}
 	return userChats;
 }

@@ -203,7 +203,6 @@ export function setupEventSource() {
 				}
 				default:
 					console.error('❌ Unknown event type:', data.type);
-					// console.log(data);
 					break;
 			}
 		} catch (err) {

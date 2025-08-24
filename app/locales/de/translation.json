@@ -157,6 +157,8 @@
 		"chatInfo": "Plaudereie Info",
 		"chat_name": "Plaudereie Name:",
 		"part": "Plaudereie Teilnehmer",
-		"blocked": "Blockierte Teilnehmer"
+		"blocked": "Blockierte Teilnehmer",
+		"chat": "Plaudereie",
+		"friend": "Freunde"
 	}
 }

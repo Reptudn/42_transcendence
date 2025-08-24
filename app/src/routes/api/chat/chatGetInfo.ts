@@ -24,6 +24,7 @@ import {
 import ejs from 'ejs';
 import escapeHTML from 'escape-html';
 import { sendSseHtmlByUserId } from '../../../services/sse/handler';
+import { getFriends } from '../../../services/database/friends';
 
 interface MessageQueryChat {
 	chat_id: number;
@@ -134,6 +135,7 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				if (Boolean(chat.is_group) === false && chat.name === null) {
 					htmlMsgs = await getMsgForDm(
 						fastify,
+						userId,
 						chatMsgs,
 						blocked,
 						blockedId
@@ -141,25 +143,35 @@ export async function getAllMsg(fastify: FastifyInstance) {
 				} else {
 					htmlMsgs = await getMsgForGroup(
 						fastify,
+						userId,
 						chatMsgs,
 						blocked,
 						blockedId
 					);
 				}
 
-				htmlMsgs.push({
-					fromUserName: '',
-					chatName: found ? (found.name ? found.name : '') : '',
-					chatId: 0,
-					htmlMsg: '',
-					blocked: false,
-					ownMsg: true,
-				});
+				if (found) {
+					if (found.id === 1) {
+						found.name = 'Global Chat';
+					}
+					htmlMsgs.push({
+						fromUserName: '',
+						chatName: ejs.render(currChatTemplate, {
+							chatName: found.name,
+						}),
+						chatId: 0,
+						htmlMsg: '',
+						blocked: false,
+						ownMsg: true,
+					});
+				}
 
 				return res.status(200).send({ msgs: htmlMsgs });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -175,10 +187,70 @@ export async function getAllChats(fastify: FastifyInstance) {
 
 				const userChats = await getChatName(fastify, userId);
 
-				return res.status(200).send({ chats: userChats });
+				const htmlChats: string[] = [];
+
+				for (const chat of userChats) {
+					htmlChats.push(
+						ejs.render(chatsTemplate, {
+							chatName: chat.name,
+							chatId: chat.id,
+						})
+					);
+				}
+				return res.status(200).send({ chats: htmlChats });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
+			}
+		}
+	);
+}
+
+export async function getAllFriends(fastify: FastifyInstance) {
+	fastify.get<{ Querystring: MessageQueryChat }>(
+		'/friends',
+		{
+			preValidation: [fastify.authenticate],
+			schema: { querystring: chatMsgRequestSchema.querystring },
+		},
+		async (req: FastifyRequest, res: FastifyReply) => {
+			try {
+				const { chat_id } = req.query as MessageQueryChat;
+
+				const userId = (req.user as { id: number }).id;
+
+				const blockedUser = await getAllBlockerUser(fastify, userId);
+				const blockedId = blockedUser.map((u) => u.blocked_id);
+
+				const friends = await getFriends(userId, fastify);
+
+				const friendHTML: string[] = [];
+
+				console.log('chat_id = ', chat_id);
+				const useTmp =
+					Number(chat_id) === 1 ? friendsTemplate : friendsTemplate2;
+				console.log('chat html =', useTmp);
+
+				for (const friend of friends) {
+					friendHTML.push(
+						ejs.render(useTmp, {
+							fromUser: friend.username,
+							userId: friend.id,
+							displayName: friend.displayname,
+							blockedInfo: blockedId.includes(friend.id)
+								? 'User blocked'
+								: '',
+						})
+					);
+				}
+				return res.status(200).send({ friends: friendHTML });
+			} catch (err) {
+				const nError = normError(err);
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -217,7 +289,9 @@ export async function createNewChat(fastify: FastifyInstance) {
 				const chat_id = await saveNewChatInfo(fastify, true, group_name);
 				for (const id of userIdsInt) {
 					await inviteUserToChat(fastify, user.id, id, chat_id);
-					sendSseHtmlByUserId(id, 'chat_update', '');
+					try {
+						sendSseHtmlByUserId(id, 'chat_update', '');
+					} catch {}
 				}
 
 				return res.send({
@@ -226,7 +300,9 @@ export async function createNewChat(fastify: FastifyInstance) {
 				});
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -258,7 +334,9 @@ export async function blockUsers(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.block') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -289,7 +367,9 @@ export async function unblockUsers(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.unblock') });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -326,7 +406,9 @@ export async function inviteUser(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.invite') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -350,7 +432,9 @@ export async function leaveUserFromChat(fastify: FastifyInstance) {
 				return res.status(200).send({ msg: req.t('chat.leave') });
 			} catch (err) {
 				const nError = normError(err);
-				return res.status(nError.errorCode).send({ error: nError.errorMsg });
+				return res
+					.status(nError.errorCode)
+					.send({ error: escapeHTML(nError.errorMsg) });
 			}
 		}
 	);
@@ -374,12 +458,7 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const chat = await getChatFromSql(fastify, chat_id);
 				const allChats = await getChatName(fastify, userId);
 
-				console.log('chat group = ', chat.is_group);
-				console.log('chat name = ', chat.name);
-				console.log('chat group type =', typeof chat.is_group);
-				console.log('chat name type = ', typeof chat.name);
-
-				if (Boolean(chat.is_group) === true && chat.name === 'null') {
+				if (Boolean(chat.is_group) === true && chat.name === null) {
 					chat.name = 'Global Chat';
 				} else {
 					const found = allChats.find((c) => c.id === chat.id);
@@ -402,7 +481,6 @@ export async function chatInfo(fastify: FastifyInstance) {
 				const code = ejs.render(template, {
 					chatName: chat.name || '',
 					participants: users,
-					blocked: blockedUser,
 					t: req.t,
 				});
 				return res.status(200).send({ msg: code });
@@ -423,20 +501,53 @@ const template: string = `<div class="chat-info-container">
 
 	<div class="chat-participants">
 		<h3><%= t('chat.part') %></h3>
-		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
+		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-40 space-y-2">
 			<% participants.forEach(function(user) { %>
-				<li><%= user.displayname %></li>
+				<li>
+					<a href="/partial/pages/profile/<%= user.username %>">
+						<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+							<img
+								src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
+								alt="Profile Picture"
+								class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+							/>
+							<span class="font-semibold"><%= user.displayname %></span>
+							<% if (user.blocked) { %>
+								<span class="text-red-500 ml-auto">Blocked</span>
+							<% } %>
+						</div>
+					</a>
+				</li>
 			<% }) %>
 		</ul>
 	</div>
+</div>`;
 
-	<div class="blocked-users">
-		<h3><%= t('chat.blocked') %></h3>
-		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto h-40 min-h-40">
-			<% blocked.forEach(function(user) { %>
-				<li><%= user.displayname %></li>
-			<% }) %>
-		</ul>
-	</div>
-</div>
+const currChatTemplate: string = `<h2 class="text-xl bold text-center">
+	<span><%= chatName %></span>
+</h2>
 `;
+
+const chatsTemplate: string = `<button class="chat-button px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition text-center" data-chat="<%= chatId %>">
+	<span><%= chatName %></span>
+</button>
+`;
+
+const friendsTemplate: string = `<a href="/partial/pages/profile/<%= fromUser %>">
+	<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
+		<img
+			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+			alt="Profile Picture"
+			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+		/>
+		<span class="font-semibold"><%= displayName %></span>
+		<span class="text-red-500 ml-auto"><%= blockedInfo %></span>
+	</div>
+</a>`;
+
+const friendsTemplate2: string = `<button
+	id="<%= userId %>"
+	class="friend-button px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	data-chat="<%= userId %>">
+	<%= displayName %>
+</button>`;

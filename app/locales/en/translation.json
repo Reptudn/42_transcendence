@@ -54,7 +54,6 @@
 	"about": {
 		"title": "About",
 		"info_text": "From the dying embers of civilization, a project emerged from 42, christened Transcendence. In a world poised to crumble, a team dared to connect souls online, wielding Fastify, painting beauty with Tailwind CSS, and channeling real-time magic through Fastify's WebSocket prowess.\n\nThe game within wasn't mere pastime; it was a crucible of friendships and rivalries, played in a 3D arena where every paddle movement, every strategic play, was instantly relayed through Fastify. Authentication was their sacred rite, guarded by NextAuth.js, while state was managed with Context API, like a secret language understood by few.\n\nDeployment was a frantic ritual against the encroaching digital dark. Docker images, forged in multi-stage builds, became the final defense.\n\nTranscendence wasn't just code; it was humanity's last gamble, a chance for digital ascension, a hope against the fading light. Would it save us, or would it be just a beautiful dream? Only time would tell, but one thing was certain: Transcendence would stand as a testament to human hope in the face of oblivion."
-
 	},
 	"profile": {
 		"edit_profile": "Edit Profile",
@@ -158,6 +157,8 @@
 		"chat_info": "Chat Info",
 		"chat_name": "Chat Name:",
 		"part": "Group members",
-		"blocked": "Blocked participants"
+		"blocked": "Blocked participants",
+		"chat": "Chat",
+		"friend": "friends"
 	}
 }

@@ -14,7 +14,7 @@ import { checkCmd } from './commands';
 import { HttpError } from '../../../services/database/chat';
 import { normError } from './utils';
 import ejs from 'ejs';
-import escapeHtml from 'escape-html';
+import escapeHTML from 'escape-html';
 
 const chatMsgRequestSchema = {
 	body: {
@@ -110,7 +110,9 @@ export async function sendMsg(fastify: FastifyInstance) {
 				res.status(200).send({ msg: 'ok' });
 			} catch (err) {
 				const nError = normError(err);
-				res.status(nError.errorCode).send({ error: nError.errorMsg });
+				res.status(nError.errorCode).send({
+					error: escapeHTML(nError.errorMsg),
+				});
 			}
 		}
 	);
@@ -127,13 +129,27 @@ async function sendMsgGroup(
 	// wenn formuser von der Peron blockiert wurde sende ich Msg blocket
 	for (const user of toUsers) {
 		if (connectedClients.has(user.user_id)) {
-			let msg: htmlMsg;
-			if (blockerId.includes(user.user_id)) {
-				msg = await createHtmlMsg(fromUser, chatInfo, 'Msg blocked', true);
-			} else msg = await createHtmlMsg(fromUser, chatInfo, content, false);
 			const toUser = connectedClients.get(user.user_id);
 			if (toUser) {
-				if (user.user_id === fromUser.id) msg.ownMsg = true;
+				let msg: htmlMsg;
+				if (blockerId.includes(user.user_id)) {
+					msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						'Msg blocked',
+						true,
+						false
+					);
+				} else {
+					const check = user.user_id === fromUser.id;
+					msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						content,
+						false,
+						check
+					);
+				}
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -155,11 +171,17 @@ export async function sendMsgDm(
 	if (user.length === 0) throw new HttpError(400, 'User is deleted');
 
 	if (!blockedId.includes(user[0].user_id)) {
-		const msg = await createHtmlMsg(fromUser, chatInfo, content, false);
 		if (!blockerId.includes(user[0].user_id)) {
 			if (connectedClients.has(user[0].user_id)) {
 				const toUser = connectedClients.get(user[0].user_id);
 				if (toUser) {
+					const msg = await createHtmlMsg(
+						fromUser,
+						chatInfo,
+						content,
+						false,
+						false
+					);
 					sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 				}
 			}
@@ -167,7 +189,13 @@ export async function sendMsgDm(
 		if (connectedClients.has(fromUser.id)) {
 			const toUser = connectedClients.get(fromUser.id);
 			if (toUser) {
-				msg.ownMsg = true;
+				const msg = await createHtmlMsg(
+					fromUser,
+					chatInfo,
+					content,
+					false,
+					true
+				);
 				sendSseMessage(toUser, 'chat', JSON.stringify(msg));
 			}
 		}
@@ -181,7 +209,9 @@ export async function createHtmlMsg(
 	fromUser: User | null,
 	chatInfo: Chat | null,
 	msgContent: string,
-	msgBlocked: boolean
+	msgBlocked: boolean,
+	ownMsg: boolean,
+	msgTimeStamp?: string
 ) {
 	const msg: htmlMsg = {
 		fromUserName: '',
@@ -189,19 +219,63 @@ export async function createHtmlMsg(
 		chatId: 0,
 		htmlMsg: '',
 		blocked: msgBlocked,
-		ownMsg: false,
+		ownMsg: ownMsg,
 	};
 	msg.fromUserName = fromUser ? fromUser.displayname : 'Unknown User';
 	msg.chatName = chatInfo ? chatInfo.name ?? '' : '';
 	msg.chatId = chatInfo ? chatInfo.id : 0;
-	msg.htmlMsg = ejs.render(`
-		<div>
-			<p><a href='/partial/pages/profile/${
-				fromUser ? escapeHtml(fromUser.username) : 'Deleted User'
-			}'>${
-		fromUser ? escapeHtml(fromUser.displayname) : 'Deleted User'
-	}:</a>${escapeHtml(msgContent)}</p>
-		</div>
-		`);
+
+	const useTem = ownMsg ? ownTempalte : template;
+
+	let time: string;
+	if (msgTimeStamp === undefined) {
+		const date = new Date();
+		time = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+			date.getDate()
+		)} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+			date.getSeconds()
+		)}`;
+	} else {
+		time = msgTimeStamp;
+	}
+
+	msg.htmlMsg = ejs.render(useTem, {
+		userId: fromUser ? fromUser.id : 0,
+		fromUser: fromUser ? escapeHTML(fromUser.username) : 'Deleted User',
+		displayName: fromUser ? escapeHTML(fromUser.displayname) : 'Deleted User',
+		msg: escapeHTML(msgContent),
+		timeStamp: time,
+	});
 	return msg;
 }
+
+function pad(n: number): string {
+	return n.toString().padStart(2, '0');
+}
+
+const template: string = `<div class="flex flex-row items-end self-start space-x-2 w-full">
+	<a href="/partial/pages/profile/<%= fromUser %>">
+		<img
+			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+			alt="Profile Picture"
+			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+		/>
+	</a>
+	<div class="px-4 py-2 border border-green-600 bg-green-500 text-white rounded-xl flex flex-col max-w-[70%] break-words">
+		<span class="flex flex-row justify-between font-semibold border-b border-white/30 mb-1">
+			<%= displayName %>
+			<%= timeStamp %>
+		</span>
+		<span><%= msg %></span>
+	</div>
+</div>
+`;
+
+const ownTempalte: string = `
+	<div class="flex flex-col px-4 py-2 border border-blue-600 bg-blue-500 text-white rounded-xl self-end max-w-[70%] break-words mr-2">
+		<span class="font-semibold border-b border-white/30 mb-1">
+			<%= timeStamp %>
+		</span>
+		<span><%= msg %></span>
+	</div>
+`;
