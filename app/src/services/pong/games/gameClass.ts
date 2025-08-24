@@ -485,6 +485,21 @@ export class Game {
 			winner
 		) {
 			try {
+				if (
+					this.players.find(
+						(p) => p instanceof UserPlayer && p.user.id === this.admin.id
+					) === undefined
+				)
+					throw new Error(
+						'Cannot advance tournament: Is not in the game anymore'
+					);
+				if (
+					this.players.find((p) => p.playerId === winner.playerId) ===
+					undefined
+				)
+					throw new Error(
+						'Cannot advance tournament: Winner is not a in the game'
+					);
 				this.tournament.advance(winner);
 			} catch (e) {
 				this.fastify.log.error(`Error advancing tournament: ${e}`);
@@ -497,6 +512,8 @@ export class Game {
 						end_message
 					);
 				}
+				removeGame(this.gameId);
+				return;
 			}
 
 			if (save_game) {

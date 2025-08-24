@@ -9,10 +9,7 @@ import { getGoogleProfile } from '../../../../services/google/user';
 import { users_2fa_google } from '../index';
 import { getUser2faSecret } from '../../../../services/database/totp';
 
-const google_callback: FastifyPluginAsync = async (
-	fastify,
-	opts
-): Promise<void> => {
+const google_callback: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/callback', async (req: any, reply: any) => {
 		try {
 			const { token } =
@@ -21,9 +18,7 @@ const google_callback: FastifyPluginAsync = async (
 				);
 			let user: GoogleUserInfo;
 			try {
-				fastify.log.info(
-					'Trying to get google profile from google token'
-				);
+				fastify.log.info('Trying to get google profile from google token');
 				user = await getGoogleProfile(token.access_token);
 			} catch (error) {
 				fastify.log.error('Error getting Google Profile', error);
@@ -50,23 +45,28 @@ const google_callback: FastifyPluginAsync = async (
 
 			try {
 				fastify.log.info('Trying to login google user');
-				const loggedGoogleUser = await loginGoogleUser(
-					user.id,
+				const loggedGoogleUser = await loginGoogleUser(user.id, fastify);
+
+				const twofaSecret = await getUser2faSecret(
+					loggedGoogleUser,
 					fastify
 				);
-
-				const twofaSecret = await getUser2faSecret(loggedGoogleUser, fastify);
-                if (twofaSecret !== '') {
+				if (twofaSecret !== '') {
 					users_2fa_google.push(loggedGoogleUser.id);
-                    return reply.redirect(`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`);
-                }
+					return reply.redirect(
+						`/partial/pages/2fa_code?google=1&userid=${loggedGoogleUser.id}`
+					);
+				}
 
+				const sessionId = crypto.randomUUID();
 				const jwt = fastify.jwt.sign(
 					{
 						username: loggedGoogleUser.username,
 						id: loggedGoogleUser.id,
+						sessionId: sessionId,
+						iat: Math.floor(Date.now() / 1000),
 					},
-					{ expiresIn: '10d' }
+					{ expiresIn: '10d', jti: sessionId }
 				);
 				fastify.log.info('Trying to unlock login achievement');
 				await unlockAchievement(loggedGoogleUser.id, 'login', fastify);
