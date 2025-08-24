@@ -1,9 +1,7 @@
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { unlockAchievement } from '../../../services/database/achievements';
 import {
-	//getGoogleUser,
 	getUserById,
-	//loginGoogleUser,
 	loginUser,
 	registerUser,
 } from '../../../services/database/users';
@@ -15,6 +13,7 @@ import {
 } from '../../../services/database/totp';
 import { checkAuth } from '../../../services/auth/auth';
 import { forceCloseSseByUserId } from '../../../services/sse/handler';
+import crypto from 'node:crypto';
 
 const authSchema = {
 	type: 'object',
