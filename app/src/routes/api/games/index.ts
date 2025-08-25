@@ -1069,7 +1069,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fastify.log.info(
 					`Player ${player.playerId} disconnected from game ${parsedGameId}.`
 				);
-				player.disconnect("Socket closed lol amogus");
+				// player.disconnect("Socket closed lol amogus");
 
 				try {
 					if (game.config.gameType !== GameType.TOURNAMENT)

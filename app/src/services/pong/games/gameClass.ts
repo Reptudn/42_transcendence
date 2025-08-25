@@ -594,7 +594,7 @@ export class Game {
 				if (!(player instanceof UserPlayer)) continue;
 				player.disconnect(this.admin.id === player.user.id
 								? 'lobby_admin'
-								: 'admin', 4242);
+								: 'lobby', 4242);
 				sendPopupToClient(
 					this.fastify,
 					player.user.id,

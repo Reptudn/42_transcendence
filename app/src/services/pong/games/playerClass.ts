@@ -87,7 +87,7 @@ export class UserPlayer extends Player {
 	}
 
 	disconnect(message: string, code?: number) {
-		this.wsocket?.close(code ? code : 1000, message);
+		this.wsocket?.close(code !== undefined ? code : 1000, message);
 		this.wsocket = null;
 	}
 }

@@ -56,8 +56,8 @@ const game = new Script(
 		console.log('[Game] Loading game script...');
 		isClosing = false;
 
-		console.log('[Game] Current URL:', window.location.href);
-		console.log('[Game] Search params:', window.location.search);
+		// console.log('[Game] Current URL:', window.location.href);
+		// console.log('[Game] Search params:', window.location.search);
 
 		const urlParams = new URLSearchParams(window.location.search);
 		const gameId = urlParams.get('gameId');
@@ -272,7 +272,7 @@ const game = new Script(
 
 		stopRendering();
 
-		await leaveWsGame(false);
+		// await leaveWsGame(false);
 
 		userInputData = {
 			leftPressed: false,

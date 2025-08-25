@@ -125,6 +125,7 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				});
 				return reply
 					.code(401)
+					.redirect('/partial/pages/index')
 					.send({ error: 'Unauthorized' });
 			}
 			return reply.code(200).send({ message: 'Ok' });
