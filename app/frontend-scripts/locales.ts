@@ -1,4 +1,5 @@
 import { showLocalInfo } from './alert.js';
+import { setupEventSource } from './events.js';
 import { loadPartialView, last_page } from './navigator.js';
 
 declare global {
@@ -44,8 +45,10 @@ export async function setLanguageCookie(lang: string) {
 		document.cookie = `i18next=${lang}; path=/; max-age=${
 			60 * 60 * 24 * 30
 		}; samesite=lax`;
-		loadPartialView(`index?lng=${lang}`, false, null, true, true, true);
+		await loadPartialView(`index?lng=${lang}`, false, null, true, true, true);
 	}
+
+	setupEventSource();
 
 	showLocalInfo(`Changed language to:  ${lang.toUpperCase()}`, undefined, 5000);
 }

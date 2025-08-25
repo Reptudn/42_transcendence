@@ -124,8 +124,12 @@ export async function loadPartialView(
 		});
 
 		if (!response.ok) {
-			const data = await response.json();
-			throw new Error(data.error);
+			try {
+				const data = await response.json();
+				throw new Error(data.error);
+			} catch (e) {
+				return;
+			}
 		}
 
 		if (pushState) {

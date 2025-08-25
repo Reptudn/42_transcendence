@@ -1,11 +1,16 @@
 import fp from 'fastify-plugin';
 import oauthPlugin from '@fastify/oauth2';
+import { getUserById } from '../services/database/users';
 
 export default fp(
 	async (fastify) => {
 		fastify.decorate('authenticate', async function (request: any, reply: any) {
 			try {
-				await request.jwtVerify();
+				const decoded = await request.jwtVerify();
+				const user = await getUserById(decoded.id, fastify);
+				if (!user) throw new Error('No such user!');
+				if (user.username !== decoded.username)
+					throw new Error('JWT doesnt match user');
 			} catch (err) {
 				reply.clearCookie('token', {
 					path: '/',
