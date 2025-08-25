@@ -1,54 +1,54 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
-import { initModal } from './chat_modal.js';
+import { renderChat, renderChatInfo, renderFriends, renderFriendsButtonsBlock, renderFriendsButtonsCreate, renderFriendsButtonsInvite, renderFriendsUnblock } from './chat_modal.js';
+
+await initChat();
 
 export async function initChat() {
 	if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
 
 	await getMessages(sessionStorage.getItem('chat_id'));
 
-	document.getElementById('globalChat')?.addEventListener('click', async () => {
-		sessionStorage.setItem('chat_id', '1');
-		await getMessages(sessionStorage.getItem('chat_id'));
-		document.getElementById('optionModal')?.classList.add('hidden');
-	});
+	let button = document.getElementById('sendChatButton');
+	button?.removeEventListener('click', sendChatButton);
+	button?.addEventListener('click', sendChatButton);
 
-	document
-		.getElementById('sendChatButton')
-		?.addEventListener('click', async () => {
-			const input = document.getElementById('chatInput') as HTMLInputElement;
-			if (input && input.value.trim() !== '') {
-				const msg = input.value.trim();
-				input.value = '';
-				const chat_id = sessionStorage.getItem('chat_id');
-				if (!chat_id) {
-					showLocalError('Chat ID not found', undefined, 5000);
-					return;
-				}
-				const res = await fetch('/api/chat', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						chat: Number.parseInt(chat_id),
-						message: msg,
-					}),
-				});
-				const data = await res.json();
-				if (!res.ok) {
-					return showLocalInfo(data.error, undefined, 5000);
-				}
-				if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
-			}
-		});
-
-	document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-		if (e.key === 'Enter') {
-			document.getElementById('sendChatButton')?.click();
-		}
-	});
+	button = document.getElementById('chatInput');
+	button?.removeEventListener('keypress', sendChatButtonEnter);
+	button?.addEventListener('keypress', sendChatButtonEnter);
 }
 
-await initChat();
+async function sendChatButton() {
+	const input = document.getElementById('chatInput') as HTMLInputElement;
+	if (input && input.value.trim() !== '') {
+		const msg = input.value.trim();
+		input.value = '';
+		const chat_id = sessionStorage.getItem('chat_id');
+		if (!chat_id) {
+			showLocalError('Chat ID not found', undefined, 5000);
+			return;
+		}
+		const res = await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				chat: Number.parseInt(chat_id),
+				message: msg,
+			}),
+		});
+		const data = await res.json();
+		if (!res.ok) {
+			return showLocalInfo(data.error, undefined, 5000);
+		}
+		if (data.msg !== 'ok') showLocalInfo(data.msg, undefined, 5000);
+	}
+}
+
+function sendChatButtonEnter(e: KeyboardEvent) {
+	if (e.key === 'Enter') {
+		document.getElementById('sendChatButton')?.click();
+	}
+}
 
 export function appendToChatBox(rawMessage: string) {
 	try {
@@ -108,7 +108,19 @@ export async function getMessages(chat_id: string | null) {
 }
 
 export async function updateChat() {
-	await initModal();
+	await renderChat();
+
+	await renderFriends();
+
+	await renderFriendsButtonsCreate();
+
+	await renderFriendsButtonsBlock();
+
+	await renderFriendsUnblock();
+
+	await renderFriendsButtonsInvite();
+
+	await renderChatInfo();
 }
 
 declare global {
