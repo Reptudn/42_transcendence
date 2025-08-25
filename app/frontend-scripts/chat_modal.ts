@@ -182,7 +182,7 @@ async function mainFrindsButton() {
 export async function renderFriends() {
 	const friendList = document.getElementById('friendsList');
 	if (friendList) {
-		const res = await fetch('/api/chat/friends?chat_id=1');
+		const res = await fetch('/api/chat/friends?chat_id=0');
 		const data = await res.json();
 		if (!res.ok) {
 			return showLocalInfo(data.error);
@@ -208,7 +208,7 @@ async function openCreateModal() {
 export async function renderFriendsButtonsCreate() {
 	const userList = document.getElementById('searchResults');
 	if (userList) {
-		const res = await fetch('/api/chat/friends?chat_id=2');
+		const res = await fetch('/api/chat/friends?chat_id=1');
 		if (!res.ok) {
 			showLocalError('Failed to fetch friends', undefined, 5000);
 			return;
@@ -223,7 +223,7 @@ export async function renderFriendsButtonsCreate() {
 
 function friendsButtonsCreate(e: MouseEvent) {
 	const button = (e.target as HTMLElement).closest(
-		'.friend-button'
+		'.friend-button-create'
 	) as HTMLButtonElement;
 
 	if (button) {
@@ -307,7 +307,7 @@ export async function renderFriendsButtonsBlock() {
 
 function friendsButtonsBlock(e: MouseEvent) {
 	const button = (e.target as HTMLElement).closest(
-		'.friend-button'
+		'.friend-button-block'
 	) as HTMLButtonElement;
 
 	if (button) {
@@ -322,7 +322,9 @@ function friendsButtonsBlock(e: MouseEvent) {
 					button.classList.remove('bg-green-500', 'text-white');
 					button.classList.add('bg-transparent');
 				} else {
-					const oldbutt = document.getElementById(userIdToBlock);
+					const oldbutt = document.querySelector(
+                        `.friend-button-block[data-chat="${userIdToBlock}"]`
+                    ) as HTMLButtonElement;
 					if (oldbutt) {
 						oldbutt.classList.remove('bg-green-500', 'text-white');
 						oldbutt.classList.add('bg-transparent');
@@ -367,7 +369,7 @@ async function openUnblockModal() {
 export async function renderFriendsUnblock() {
 	const userList = document.getElementById('searchResultsToUnblock');
 	if (userList) {
-		const res = await fetch('/api/chat/friends?chat_id=2');
+		const res = await fetch('/api/chat/friends?chat_id=3');
 		if (!res.ok) {
 			showLocalError('Failed to fetch friends', undefined, 5000);
 			return;
@@ -382,7 +384,7 @@ export async function renderFriendsUnblock() {
 
 function friendsButtonsUnblock(e: MouseEvent) {
 	const button = (e.target as HTMLElement).closest(
-		'.friend-button'
+		'.friend-button-unblock'
 	) as HTMLButtonElement;
 
 	if (button) {
@@ -397,7 +399,9 @@ function friendsButtonsUnblock(e: MouseEvent) {
 					button.classList.remove('bg-green-500', 'text-white');
 					button.classList.add('bg-transparent');
 				} else {
-					const oldbutt = document.getElementById(userIdToBlock);
+					const oldbutt = document.querySelector(
+                        `.friend-button-unblock[data-chat="${userIdToBlock}"]`
+                    ) as HTMLButtonElement;
 					if (oldbutt) {
 						oldbutt.classList.remove('bg-green-500', 'text-white');
 						oldbutt.classList.add('bg-transparent');
@@ -441,7 +445,7 @@ async function openInviteModal() {
 export async function renderFriendsButtonsInvite() {
 	const userList = document.getElementById('searchResultsToInvite');
 	if (userList) {
-		const res = await fetch('/api/chat/friends?chat_id=2');
+		const res = await fetch('/api/chat/friends?chat_id=4');
 		if (!res.ok) {
 			showLocalError('Failed to fetch friends');
 			return;
@@ -456,7 +460,7 @@ export async function renderFriendsButtonsInvite() {
 
 function friendsButtonsInvite(e: MouseEvent) {
 	const button = (e.target as HTMLElement).closest(
-		'.friend-button'
+		'.friend-button-invite'
 	) as HTMLButtonElement;
 
 	if (button) {

@@ -227,15 +227,16 @@ export async function getAllFriends(fastify: FastifyInstance) {
 				const friends = await getFriends(userId, fastify);
 
 				const friendHTML: string[] = [];
-
-				console.log('chat_id = ', chat_id);
-				const useTmp =
-					Number(chat_id) === 1 ? friendsTemplate : friendsTemplate2;
-				console.log('chat html =', useTmp);
+				const useTmp: string[] = [];
+				useTmp.push(friendsTemplate);
+				useTmp.push(friendsTemplateCreate);
+				useTmp.push(friendsTemplateBlock);
+				useTmp.push(friendsTemplateUnblock);
+				useTmp.push(friendsTemplateInvite);
 
 				for (const friend of friends) {
 					friendHTML.push(
-						ejs.render(useTmp, {
+						ejs.render(useTmp[Number(chat_id)], {
 							fromUser: friend.username,
 							userId: friend.id,
 							displayName: friend.displayname,
@@ -549,9 +550,30 @@ const friendsTemplate: string = `<a href="/partial/pages/profile/<%= fromUser %>
 	</div>
 </a>`;
 
-const friendsTemplate2: string = `<button
+const friendsTemplateUnblock: string = `<button
 	id="<%= userId %>"
-	class="friend-button px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	class="friend-button-unblock px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	data-chat="<%= userId %>">
+	<%= displayName %>
+</button>`;
+
+const friendsTemplateBlock: string = `<button
+	id="<%= userId %>"
+	class="friend-button-block px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	data-chat="<%= userId %>">
+	<%= displayName %>
+</button>`;
+
+const friendsTemplateCreate: string = `<button
+	id="<%= userId %>"
+	class="friend-button-create px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
+	data-chat="<%= userId %>">
+	<%= displayName %>
+</button>`;
+
+const friendsTemplateInvite: string = `<button
+	id="<%= userId %>"
+	class="friend-button-invite px-4 py-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition" 
 	data-chat="<%= userId %>">
 	<%= displayName %>
 </button>`;

@@ -9,6 +9,8 @@ import {
 	verifyUserPassword,
 	deleteUser,
 } from '../../../services/database/users';
+import { sendSseHtmlByUserId } from '../../../services/sse/handler';
+import { getFriends } from '../../../services/database/friends';
 
 function containsLetter(str: string): boolean {
 	return /[a-zA-Z]/.test(str);
@@ -349,7 +351,20 @@ const profile: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (!(await verifyUserPassword(currentUser.id, password, fastify))) {
 					return reply.code(400).send({ message: 'Incorrect password' });
 				}
+				const friends = await getFriends(currentUser.id, fastify);
 				await deleteUser(currentUser.id, fastify);
+
+				for (const friend of friends) {
+					try {
+						sendSseHtmlByUserId(friend.id, 'chat_update', '');
+					} catch {}
+				}
+				reply.clearCookie('token', {
+					path: '/',
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+				});
 				return reply.code(200).send({ message: 'Profile deleted' });
 			} catch (error) {
 				if (error instanceof Error) {
