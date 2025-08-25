@@ -154,7 +154,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		if (
@@ -186,7 +186,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const aiPlayer = new AiPlayer(
@@ -210,7 +210,7 @@ export class Game {
 				'Cant add a user when the first tournament round has been played already'
 			);
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length >= this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const localPlayer = new LocalPlayer(
@@ -334,6 +334,10 @@ export class Game {
 
 			if (this.players.length < 2)
 				throw new Error('Not enough players to start the game! (Min 2)');
+
+			if (this.players.length > 4){
+				throw new Error('Too much players! (Max 4)');
+			}
 
 			for (const player of this.players)
 				if (!player.joined)
