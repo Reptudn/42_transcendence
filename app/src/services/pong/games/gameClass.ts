@@ -2,7 +2,6 @@ import {
 	connectedClients,
 	sendSeeMessageByUserId,
 	sendSseHtmlByUserId,
-	sendSseRawByUserId,
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -78,6 +77,7 @@ export class Game {
 
 	// private nextPlayerId: number = 0;
 	public alreadyStarted = false;
+	public lastLobbyUpdate: number = Date.now();
 
 	// TODO: include start time to close the game after some time when it has started and no websocket connected
 
@@ -259,7 +259,8 @@ export class Game {
 			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
-			playerToRemove.disconnect();
+			playerToRemove.disconnect("Player removed");
+			playerToRemove.joined = false;
 
 			this.players = this.players.filter(
 				(player) =>
@@ -300,7 +301,8 @@ export class Game {
 		try {
 			if (
 				playerToRemove instanceof UserPlayer &&
-				playerToRemove.user.id == this.admin.id && this.ended === false
+				playerToRemove.user.id == this.admin.id &&
+				this.ended === false
 			)
 				this.endGame(
 					'Game admin left, game closed. (Game doesnt count)',
@@ -353,10 +355,10 @@ export class Game {
 		} else if (this.config.gameType === GameType.TOURNAMENT) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
-			if (this.players.length < 8){
+			if (this.players.length < 8) {
 				this.status = GameStatus.WAITING;
 				this.ended = true;
-				this.endGame("Tournament closed because a Player left!");
+				this.endGame('Tournament closed because a Player left!');
 				throw new Error('Tournament closed!');
 			}
 
@@ -398,6 +400,8 @@ export class Game {
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
 		if (this.status !== GameStatus.WAITING) return;
+		
+		this.lastLobbyUpdate = Date.now();
 
 		const players = this.players.map((player) => player.formatStateForClients());
 
@@ -434,6 +438,7 @@ export class Game {
 				? this.tournament.getBracketJSON()
 				: null,
 			availableMaps: this.availableMaps,
+			alreadyStarted: this.alreadyStarted,
 		});
 
 		for (const player of this.players) {
@@ -510,7 +515,7 @@ export class Game {
 				this.fastify.log.error(`Error advancing tournament: ${e}`);
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
-					player.disconnect();
+					player.disconnect("Error advancing tournament");
 					sendSeeMessageByUserId(
 						player.user.id,
 						'game_closed',
@@ -533,22 +538,6 @@ export class Game {
 
 			let match = this.tournament.getCurrentMatch();
 
-			if (
-				this.config.autoAdvance &&
-				!this.tournament.isFinished() &&
-				match &&
-				match.player1 instanceof AiPlayer &&
-				match.player2 instanceof AiPlayer
-			) {
-				for (const player of this.players) {
-					if (player instanceof UserPlayer)
-						sendSeeMessageByUserId(
-							player.user.id,
-							'message',
-							'AI players are advancing... (higher AI diff wins)'
-						);
-				}
-			}
 			while (
 				this.config.autoAdvance &&
 				!this.tournament.isFinished() &&
@@ -578,7 +567,7 @@ export class Game {
 				// this occurs when the game ends because its actually over because someone won or the admin left as of now
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
-					player.disconnect();
+					player.disconnect("Tournament over");
 					sendSeeMessageByUserId(
 						player.user.id,
 						'game_closed',
@@ -603,12 +592,18 @@ export class Game {
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
+				player.disconnect(this.admin.id === player.user.id
+								? 'lobby_admin'
+								: 'admin', 4242);
 				sendPopupToClient(
 					this.fastify,
 					player.user.id,
 					'Tournament advancing',
-					`Next match: ${p1?.displayName ?? 'Left Player'} vs ${p2?.displayName ?? 'Left Player'}`
+					`Next match: ${p1?.displayName ?? 'Left Player'} vs ${
+						p2?.displayName ?? 'Left Player'
+					}`
 				);
+				/*
 				sendSseRawByUserId(
 					player.user.id,
 					`data: ${JSON.stringify({
@@ -619,6 +614,7 @@ export class Game {
 						gameId: this.gameId,
 					})}\n\n`
 				);
+				*/
 			}
 		} else {
 			console.log('end game classic non tournament');
@@ -635,7 +631,7 @@ export class Game {
 			// this occurs when the game ends because its actually over because someone won or the admin left as of now
 			for (const player of this.players) {
 				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect();
+				player.disconnect("Game over");
 				sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
 			}
 

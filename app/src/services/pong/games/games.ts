@@ -16,7 +16,11 @@ export function removeGame(gameId: number) {
 export const ticksPerSecond = 20;
 setInterval(async () => {
 	for (const game of runningGames) {
-		if (game.status === GameStatus.WAITING) continue;
+		if (game.status === GameStatus.WAITING) {
+			if (Date.now() - game.lastLobbyUpdate > 10000)
+				game.updateLobbyState();
+			continue
+		};
 
 		if (!game.isReady()) continue;
 

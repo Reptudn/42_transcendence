@@ -14,6 +14,7 @@ import {
 import { checkAuth } from '../../../services/auth/auth';
 import { forceCloseSseByUserId } from '../../../services/sse/handler';
 import crypto from 'node:crypto';
+import { createRateLimit } from '../../../plugins/rate-limit';
 
 const authSchema = {
 	type: 'object',
@@ -122,7 +123,9 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					secure: process.env.NODE_ENV === 'production',
 					sameSite: 'strict',
 				});
-				return reply.code(401).send({ error: 'Unauthorized' });
+				return reply
+					.code(401)
+					.send({ error: 'Unauthorized' });
 			}
 			return reply.code(200).send({ message: 'Ok' });
 		}
@@ -203,7 +206,10 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/register',
-		{ schema: { body: registerSchema } },
+		{
+			schema: { body: registerSchema },
+			config: { rateLimit: createRateLimit(5, '1 minute') },
+		},
 		async (req: FastifyRequest, reply: FastifyReply) => {
 			const { username, password, displayname } = req.body as {
 				username: string;
@@ -223,49 +229,53 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		}
 	);
 
-	fastify.post('/2fa', async (req: FastifyRequest, reply: FastifyReply) => {
-		const { userid, fa_token, rescue_token } = req.body as {
-			userid: number;
-			fa_token: string;
-			rescue_token: string;
-		};
+	fastify.post(
+		'/2fa',
+		{ config: { rateLimit: createRateLimit(3, '30 seconds') } },
+		async (req: FastifyRequest, reply: FastifyReply) => {
+			const { userid, fa_token, rescue_token } = req.body as {
+				userid: number;
+				fa_token: string;
+				rescue_token: string;
+			};
 
-		const user = await getUserById(userid, fastify);
-		if (!user) return reply.code(401).send({ error: 'Invalid 2fa code!' });
-		if (rescue_token !== (await getUser2faRescue(user, fastify))) {
-			if (!userid || !fa_token)
-				return reply.code(401).send({ error: 'Invalid 2fa code!' });
-			const index = users_2fa.findIndex((id) => id === Number(userid));
-			if (index === -1)
-				return reply.code(401).send({ error: 'Invalid 2fa code!' });
-			if ((await verify2fa(user, fa_token, fastify)) === false) {
-				return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			const user = await getUserById(userid, fastify);
+			if (!user) return reply.code(401).send({ error: 'Invalid 2fa code!' });
+			if (rescue_token !== (await getUser2faRescue(user, fastify))) {
+				if (!userid || !fa_token)
+					return reply.code(401).send({ error: 'Invalid 2fa code!' });
+				const index = users_2fa.findIndex((id) => id === Number(userid));
+				if (index === -1)
+					return reply.code(401).send({ error: 'Invalid 2fa code!' });
+				if ((await verify2fa(user, fa_token, fastify)) === false) {
+					return reply.code(401).send({ error: 'Invalid 2fa code!' });
+				}
 			}
+			users_2fa = users_2fa.filter((id) => id !== user.id);
+			if (rescue_token === (await getUser2faRescue(user, fastify))) {
+				await removeUser2fa(user, fastify);
+			}
+			const sessionId = crypto.randomUUID();
+			const token = fastify.jwt.sign(
+				{
+					username: user.username,
+					id: user.id,
+					sessionId: sessionId,
+					iat: Math.floor(Date.now() / 1000),
+				},
+				{ expiresIn: '10d', jti: sessionId }
+			);
+			await unlockAchievement(user.id, 'login', fastify);
+			return reply
+				.setCookie('token', token, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/',
+				})
+				.send({ message: 'Login successful with 2fa!' });
 		}
-		users_2fa = users_2fa.filter((id) => id !== user.id);
-		if (rescue_token === (await getUser2faRescue(user, fastify))) {
-			await removeUser2fa(user, fastify);
-		}
-		const sessionId = crypto.randomUUID();
-		const token = fastify.jwt.sign(
-			{
-				username: user.username,
-				id: user.id,
-				sessionId: sessionId,
-				iat: Math.floor(Date.now() / 1000),
-			},
-			{ expiresIn: '10d', jti: sessionId }
-		);
-		await unlockAchievement(user.id, 'login', fastify);
-		return reply
-			.setCookie('token', token, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'strict',
-				path: '/',
-			})
-			.send({ message: 'Login successful with 2fa!' });
-	});
+	);
 	fastify.post(
 		'/2fa_google',
 		{
@@ -295,6 +305,13 @@ const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						},
 					},
 				},
+			},
+			config: {
+				rateLimit: createRateLimit(
+					3,
+					'30 seconds',
+					'Maybe type the code correctly xD'
+				),
 			},
 		},
 		async (req: FastifyRequest, reply: FastifyReply) => {

@@ -15,6 +15,7 @@ import { HttpError } from '../../../services/database/chat';
 import { normError } from './utils';
 import ejs from 'ejs';
 import escapeHTML from 'escape-html';
+import { createRateLimit } from '../../../plugins/rate-limit';
 
 const chatMsgRequestSchema = {
 	body: {
@@ -36,7 +37,17 @@ const chatMsgRequestSchema = {
 export async function sendMsg(fastify: FastifyInstance) {
 	fastify.post(
 		'/',
-		{ preValidation: [fastify.authenticate], schema: chatMsgRequestSchema },
+		{
+			preValidation: [fastify.authenticate],
+			schema: chatMsgRequestSchema,
+			config: {
+				rateLimit: createRateLimit(
+					10,
+					'1 second',
+					'No spammers allowed here >:-('
+				),
+			},
+		},
 		async (req: FastifyRequest, res: FastifyReply) => {
 			try {
 				const body = req.body as {

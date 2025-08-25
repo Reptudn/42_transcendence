@@ -51,12 +51,12 @@ export function setupEventSource() {
 	) {
 		return;
 	}
-	
+
 	if (isConnecting) {
 		console.log('Already attempting to connect...');
 		return;
 	}
-	
+
 	if (notifyEventSource) {
 		notifyEventSource.close();
 		notifyEventSource = null;
@@ -170,6 +170,9 @@ export function setupEventSource() {
 				case 'game_tournament_admin_lobby_warp': {
 					console.log('Game tournament admin lobby warp:', data);
 					await loadPartialView('lobby_admin', false, null, true, false);
+					import('./gameRenderer.js').then(({ stopRendering }) => {
+						stopRendering();
+					});
 					break;
 				}
 				case 'game_tournament_lobby_warp': {
@@ -285,15 +288,24 @@ declare global {
 
 closeAllPopups();
 
-function hasTokenCookie(): boolean {
-    return document.cookie.split(';').some(cookie => 
-        cookie.trim().startsWith('token=')
-    );
+async function checkLogged() {
+	const res = await fetch('/api/auth/check');
+
+	if (!res.ok) {
+		localStorage.setItem('loggedIn', 'false');
+		notifyEventSource?.close();
+		notifyEventSource = null;
+		updateConnectionStatus('DISCONNECTED');
+		showLocalInfo('User not logged anymore!');
+		await loadPartialView("index", true, null, true, true, true);
+	} else {
+		localStorage.setItem('loggedIn', 'true');
+		setupEventSource();
+		// showLocalInfo('User logged in!');
+	}
 }
 
-if (localStorage.getItem('loggedIn') === 'true' || hasTokenCookie()) {
-    setupEventSource();
-}
+checkLogged();
 
 window.notifyEventSource = notifyEventSource;
 window.acceptGameInvite = acceptGameInvite;

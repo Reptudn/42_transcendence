@@ -97,28 +97,33 @@ const game = new Script(
 
 			switch (event.code) {
 				case 1008:
-					showLocalError(`Connection rejected: ${event.reason}`);
+					showLocalError(`1008 Connection rejected: ${event.reason}`);
 					await loadPartialView('profile');
 					break;
 
 				case 1000:
-					showLocalInfo('Connection to game closed!');
-					await loadPartialView('profile');
+					showLocalInfo(`1000 Connection to game closed: ${event.reason}`);
+					// await loadPartialView('profile');
+					break;
+
+				case 4242:
+					await loadPartialView(event.reason);
 					break;
 
 				case 1001:
-					showLocalInfo('Server is shutting down!');
+					showLocalInfo('1008 Server is shutting down!');
 					await loadPartialView('profile');
 					break;
 
-		case 1005: // Invalid message format
-			showLocalError(
-				'Connection closed due to invalid message format or cloudflare issue',
-				undefined,
-				5000
-			);
-			await loadPartialView('profile');
-			break;
+				case 1005: // Invalid message format
+				showLocalInfo(`1005 Connection to game closed: ${event.reason}`);
+					showLocalError(
+						'Connection closed due to invalid message format or cloudflare issue',
+						undefined,
+						5000
+					);
+					await loadPartialView('profile');
+					break;
 
 				default:
 					await loadPartialView('profile');
@@ -267,7 +272,7 @@ const game = new Script(
 
 		stopRendering();
 
-		// await leaveWsGame();
+		await leaveWsGame(false);
 
 		userInputData = {
 			leftPressed: false,

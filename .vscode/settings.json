@@ -1,5 +1,6 @@
 {
 	"idf.pythonInstallPath": "/usr/bin/python",
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"editor.defaultFormatter": "esbenp.prettier-vscode"
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"notebook.defaultFormatter": "esbenp.prettier-vscode"
 }

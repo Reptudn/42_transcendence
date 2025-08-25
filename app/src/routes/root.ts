@@ -2,6 +2,7 @@ import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import { checkAuth } from '../services/auth/auth';
 import { incrementUserClickCount } from '../services/database/users';
 import { unlockAchievement } from '../services/database/achievements';
+import { createRateLimit } from '../plugins/rate-limit';
 
 const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get(
@@ -30,6 +31,15 @@ const root: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	let theNumber = 42;
 	fastify.post(
 		'/number',
+		{
+			config: {
+				rateLimit: createRateLimit(
+					50,
+					'1 second',
+					"Be honest.. you can't legitimately click that fast."
+				),
+			},
+		},
 		async (
 			req: FastifyRequest<{ Body: { number: number } }>,
 			reply: FastifyReply
