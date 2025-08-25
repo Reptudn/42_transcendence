@@ -103,11 +103,12 @@ const game = new Script(
 
 				case 1000:
 					showLocalInfo(`1000 Connection to game closed: ${event.reason}`);
-					// await loadPartialView('profile');
+					await loadPartialView('profile');
 					break;
 
 				case 4242:
-					await loadPartialView(event.reason);
+					showLocalInfo(`Redirecting to ${event.reason}`);
+					await loadPartialView(event.reason, false, null, true, false, false);
 					break;
 
 				case 1001:

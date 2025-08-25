@@ -77,6 +77,7 @@ export function setupEventSource() {
 				setupEventSource();
 			}
 		}, 1000);
+		alert('event source close');
 	});
 	notifyEventSource.onerror = (event) => {
 		console.info('notifyEventSource.onerror', event);

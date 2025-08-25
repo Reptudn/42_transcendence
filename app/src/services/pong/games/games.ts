@@ -35,7 +35,7 @@ setInterval(async () => {
 				connectedClients.get(player.user.id) === undefined
 			) {
 				player.lives = 0;
-				game.removePlayer(player.playerId, false, false);
+				await game.removePlayer(player.playerId, false, false);
 			}
 		}
 

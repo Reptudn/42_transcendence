@@ -844,7 +844,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
-				return reply.code(401).send({ error: 'Unauthorized' });
+				return reply.redirect('/partial/pages/index').send({ error: 'Unauthorized' });
 			}
 			const { gameId } = request.query as { gameId: string };
 			const parsedGameId = Number.parseInt(gameId, 10);
@@ -857,10 +857,8 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					request.headers['x-requested-with'] === 'XMLHttpRequest';
 
 				if (isApiRequest) {
-					// Send JSON error for API requests
 					return reply.code(404).send({ error: 'Game not found' });
 				} else {
-					// Redirect for direct URL access
 					return reply.redirect('/partial/pages/index');
 				}
 			}
@@ -1032,7 +1030,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				socket.pong();
 			});
 
-			socket.on('error', (error) => {
+			socket.on('error', async (error) => {
 				fastify.log.error(
 					`WebSocket error for player ${player.playerId} in game ${parsedGameId}:`,
 					error
@@ -1040,7 +1038,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 				player.disconnect("Socket error");
 				try {
-					game.removePlayer(player.playerId, false, false, true);
+					await game.removePlayer(player.playerId, false, false, true);
 				} catch (err) {
 					console.log('player not there anymore');
 				}
@@ -1065,15 +1063,14 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				}
 			});
 
-			socket.on('close', () => {
+			socket.on('close', async () => {
 				fastify.log.info(
 					`Player ${player.playerId} disconnected from game ${parsedGameId}.`
 				);
-				// player.disconnect("Socket closed lol amogus");
-
+				player.disconnect("Socket closed lol amogus");
 				try {
 					if (game.config.gameType !== GameType.TOURNAMENT)
-						game.removePlayer(player.playerId, false, false, true);
+						await game.removePlayer(player.playerId, false, false, true);
 				} catch (err) {
 					fastify.log.error(
 						`Error removing player ${player.playerId} after WebSocket close:`,
