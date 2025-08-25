@@ -11,7 +11,10 @@ import {
 import { getNameForUser } from '../../../services/database/users';
 import { sendPopupToClient } from '../../../services/sse/popup';
 import { checkAuth } from '../../../services/auth/auth';
-import { connectedClients, sendSseHtmlByUserId } from '../../../services/sse/handler';
+import {
+	connectedClients,
+	sendSseHtmlByUserId,
+} from '../../../services/sse/handler';
 import {
 	removeChat,
 	searchForChatId,
@@ -19,93 +22,94 @@ import {
 	addToParticipants,
 } from '../../../services/database/chat';
 import { checkIfDmChatAlreadyExist, normError } from '../chat/utils';
+import { createRateLimit } from '../../../plugins/rate-limit';
 
 const friendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { 
+		requestId: {
 			type: 'number',
 			minimum: 1,
 			errorMessage: {
 				type: 'Request ID must be a number',
-				minimum: 'Request ID must be a positive number'
-			}
+				minimum: 'Request ID must be a positive number',
+			},
 		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
 	errorMessage: {
 		required: {
-			requestId: 'Request ID is required'
+			requestId: 'Request ID is required',
 		},
-		additionalProperties: 'Unknown field provided. Only requestId is allowed'
-	}
+		additionalProperties: 'Unknown field provided. Only requestId is allowed',
+	},
 };
 
 const removeFriendshipSchema = {
 	type: 'object',
 	properties: {
-		friendId: { 
+		friendId: {
 			type: 'number',
 			minimum: 1,
 			errorMessage: {
 				type: 'Friend ID must be a number',
-				minimum: 'Friend ID must be a positive number'
-			}
+				minimum: 'Friend ID must be a positive number',
+			},
 		},
 	},
 	required: ['friendId'],
 	additionalProperties: false,
 	errorMessage: {
 		required: {
-			friendId: 'Friend ID is required'
+			friendId: 'Friend ID is required',
 		},
-		additionalProperties: 'Unknown field provided. Only friendId is allowed'
-	}
+		additionalProperties: 'Unknown field provided. Only friendId is allowed',
+	},
 };
 
 const acceptFriendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { 
+		requestId: {
 			type: 'number',
 			minimum: 1,
 			errorMessage: {
 				type: 'Request ID must be a number',
-				minimum: 'Request ID must be a positive number'
-			}
+				minimum: 'Request ID must be a positive number',
+			},
 		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
 	errorMessage: {
 		required: {
-			requestId: 'Request ID is required to accept the friend request'
+			requestId: 'Request ID is required to accept the friend request',
 		},
-		additionalProperties: 'Unknown field provided. Only requestId is allowed'
-	}
+		additionalProperties: 'Unknown field provided. Only requestId is allowed',
+	},
 };
 
 const declineFriendRequestSchema = {
 	type: 'object',
 	properties: {
-		requestId: { 
+		requestId: {
 			type: 'number',
 			minimum: 1,
 			errorMessage: {
 				type: 'Request ID must be a number',
-				minimum: 'Request ID must be a positive number'
-			}
+				minimum: 'Request ID must be a positive number',
+			},
 		},
 	},
 	required: ['requestId'],
 	additionalProperties: false,
 	errorMessage: {
 		required: {
-			requestId: 'Request ID is required to decline the friend request'
+			requestId: 'Request ID is required to decline the friend request',
 		},
-		additionalProperties: 'Unknown field provided. Only requestId is allowed'
-	}
+		additionalProperties: 'Unknown field provided. Only requestId is allowed',
+	},
 };
 
 const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
@@ -145,6 +149,7 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			preValidation: [fastify.authenticate],
 			schema: { body: friendRequestSchema },
+			config: { rateLimit: createRateLimit(10, '10 seconds') },
 		},
 		async (req: any, reply: any) => {
 			const requesterId: number = Number(req.user.id);
@@ -165,13 +170,39 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (pendingRequest.requested_id === requesterId) {
 					await acceptFriendRequest(pendingRequest.id, fastify);
 					try {
-						if (!await checkIfDmChatAlreadyExist(fastify, pendingRequest.requester_id, pendingRequest.requested_id)) {
-							const chat_id = await saveNewChatInfo(fastify, false, null);
+						if (
+							!(await checkIfDmChatAlreadyExist(
+								fastify,
+								pendingRequest.requester_id,
+								pendingRequest.requested_id
+							))
+						) {
+							const chat_id = await saveNewChatInfo(
+								fastify,
+								false,
+								null
+							);
 
-							await addToParticipants(fastify, pendingRequest.requester_id, chat_id);
-							await addToParticipants(fastify, pendingRequest.requested_id, chat_id);
-							sendSseHtmlByUserId(pendingRequest.requested_id, 'chat_update', '');
-							sendSseHtmlByUserId(pendingRequest.requester_id, 'chat_update', '');
+							await addToParticipants(
+								fastify,
+								pendingRequest.requester_id,
+								chat_id
+							);
+							await addToParticipants(
+								fastify,
+								pendingRequest.requested_id,
+								chat_id
+							);
+							sendSseHtmlByUserId(
+								pendingRequest.requested_id,
+								'chat_update',
+								''
+							);
+							sendSseHtmlByUserId(
+								pendingRequest.requester_id,
+								'chat_update',
+								''
+							);
 						}
 					} catch (err) {
 						const nError = normError(err);
@@ -182,7 +213,9 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					reply.send({ message: 'Friend request accepted' });
 					return reply.code(200);
 				}
-				return reply.code(400).send({ message: 'Friend request already sent' });
+				return reply
+					.code(400)
+					.send({ message: 'Friend request already sent' });
 			}
 
 			try {
@@ -252,11 +285,25 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 						}</a>!`,
 						'blue'
 					);
-					if (!await checkIfDmChatAlreadyExist(fastify, request.requester_id, request.requested_id)) {
+					if (
+						!(await checkIfDmChatAlreadyExist(
+							fastify,
+							request.requester_id,
+							request.requested_id
+						))
+					) {
 						const chat_id = await saveNewChatInfo(fastify, false, null);
 
-						await addToParticipants(fastify, request.requester_id, chat_id);
-						await addToParticipants(fastify, request.requested_id, chat_id);
+						await addToParticipants(
+							fastify,
+							request.requester_id,
+							chat_id
+						);
+						await addToParticipants(
+							fastify,
+							request.requested_id,
+							chat_id
+						);
 						sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
 						sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
 					}

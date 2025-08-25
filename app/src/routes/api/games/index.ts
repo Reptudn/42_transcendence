@@ -16,6 +16,7 @@ import {
 	UserPlayer,
 } from '../../../services/pong/games/playerClass';
 import { Tournament } from '../../../services/pong/games/tournamentClass';
+import { createRateLimit } from '../../../plugins/rate-limit';
 
 const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.post(
@@ -211,6 +212,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
 	fastify.post(
 		'/settings/reset',
+		{ config: { rateLimit: createRateLimit(200, '1 minute') } },
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
@@ -251,6 +253,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 			schema: {
 				body: gameSettingsSchema,
 			},
+			config: { rateLimit: createRateLimit(200, '1 minute') },
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const {
@@ -461,6 +464,13 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		'/invite/:userId',
 		{
 			preValidation: [fastify.authenticate],
+			config: {
+				rateLimit: createRateLimit(
+					5,
+					'10 seconds',
+					'Chill.. maybe they are busy!'
+				),
+			},
 		},
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
@@ -956,6 +966,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		{
 			websocket: true,
 			preValidation: [fastify.authenticate],
+			config: { rateLimit: false },
 			schema: {
 				querystring: {
 					type: 'object',
