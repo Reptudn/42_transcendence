@@ -193,16 +193,18 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 								pendingRequest.requested_id,
 								chat_id
 							);
-							sendSseHtmlByUserId(
-								pendingRequest.requested_id,
-								'chat_update',
-								''
-							);
-							sendSseHtmlByUserId(
-								pendingRequest.requester_id,
-								'chat_update',
-								''
-							);
+							try {
+								sendSseHtmlByUserId(
+									pendingRequest.requested_id,
+									'chat_update',
+									''
+								);
+								sendSseHtmlByUserId(
+									pendingRequest.requester_id,
+									'chat_update',
+									''
+								);
+							} catch {}
 						}
 					} catch (err) {
 						const nError = normError(err);
@@ -304,8 +306,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 							request.requested_id,
 							chat_id
 						);
-						sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
-						sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+						try {
+							sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
+							sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+						} catch {}
 					}
 				}
 				return reply.send({ message: 'Friend request accepted' });
@@ -368,8 +372,10 @@ const friends: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				if (chat_id) {
 					removeChat(fastify, chat_id);
 				}
-				sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
-				sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+				try {
+					sendSseHtmlByUserId(request.requested_id, 'chat_update', '');
+					sendSseHtmlByUserId(request.requester_id, 'chat_update', '');
+				} catch {}
 				return reply.send({ message: 'Friendship removed' });
 			} catch (err: any) {
 				// reply.code(400).send({ message: err.message });

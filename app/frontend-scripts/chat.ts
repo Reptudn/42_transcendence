@@ -2,7 +2,8 @@ import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
 import { renderChat, renderChatInfo, renderFriends, renderFriendsButtonsBlock, renderFriendsButtonsCreate, renderFriendsButtonsInvite, renderFriendsUnblock } from './chat_modal.js';
 
-await initChat();
+if (localStorage.getItem('loggedIn') === 'true')
+	await initChat();
 
 export async function initChat() {
 	if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');

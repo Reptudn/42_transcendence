@@ -2,6 +2,7 @@ import {
 	connectedClients,
 	sendSeeMessageByUserId,
 	sendSseHtmlByUserId,
+	sendSseRawByUserId,
 } from '../../sse/handler';
 import { getUserTitleString } from '../../database/users';
 import { FastifyInstance } from 'fastify';
@@ -334,6 +335,10 @@ export class Game {
 			if (this.players.length < 2)
 				throw new Error('Not enough players to start the game! (Min 2)');
 
+			if (this.players.length > 4) {
+				throw new Error('Too much players! (Max 4)');
+			}
+
 			for (const player of this.players)
 				if (!player.joined)
 					throw new Error('All players must be joined to start the game!');
@@ -592,10 +597,7 @@ export class Game {
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect(
-					this.admin.id === player.user.id ? 'lobby_admin' : 'lobby',
-					4242
-				);
+				player.disconnect('', 4242);
 				sendPopupToClient(
 					this.fastify,
 					player.user.id,
@@ -604,7 +606,7 @@ export class Game {
 						p2?.displayName ?? 'Left Player'
 					}`
 				);
-				/*
+
 				sendSseRawByUserId(
 					player.user.id,
 					`data: ${JSON.stringify({
@@ -615,7 +617,6 @@ export class Game {
 						gameId: this.gameId,
 					})}\n\n`
 				);
-				*/
 			}
 		} else {
 			console.log('end game classic non tournament');
