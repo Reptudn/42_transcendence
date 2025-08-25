@@ -155,8 +155,10 @@ export async function loadPartialView(
 		if (whole_page) {
 			await replaceEntireDocument(html, abort);
 			initPopups();
-			await initChat();
-			await initModal();
+			if (localStorage.getItem('loggedIn') === 'true') {
+				await initChat();
+				await initModal();
+			}
 		} else {
 			const contentElement: HTMLElement | null =
 				document.getElementById('content');

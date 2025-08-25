@@ -5,7 +5,8 @@ let userIds: string[] = [];
 let userIdToBlock = '';
 let groupName = '';
 
-await initModal();
+if (localStorage.getItem('loggedIn') === 'true')
+	await initModal();
 
 export async function initModal() {
 	// Chats Modal
