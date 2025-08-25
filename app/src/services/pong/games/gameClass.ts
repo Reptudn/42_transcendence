@@ -153,7 +153,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length + 1 > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		if (
@@ -185,7 +185,7 @@ export class Game {
 		if (this.status !== GameStatus.WAITING)
 			throw new Error('Game already running!');
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length + 1 > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const aiPlayer = new AiPlayer(
@@ -209,7 +209,7 @@ export class Game {
 				'Cant add a user when the first tournament round has been played already'
 			);
 
-		if (this.players.length > this.config.maxPlayers)
+		if (this.players.length + 1 > this.config.maxPlayers)
 			throw new Error('Game max player amount already reached!');
 
 		const localPlayer = new LocalPlayer(
@@ -259,7 +259,7 @@ export class Game {
 			}
 		}
 		if (playerToRemove instanceof UserPlayer) {
-			playerToRemove.disconnect("Player removed");
+			playerToRemove.disconnect('Player removed');
 			playerToRemove.joined = false;
 
 			this.players = this.players.filter(
@@ -400,7 +400,7 @@ export class Game {
 	// this updates the lobby state for everyone
 	async updateLobbyState() {
 		if (this.status !== GameStatus.WAITING) return;
-		
+
 		this.lastLobbyUpdate = Date.now();
 
 		const players = this.players.map((player) => player.formatStateForClients());
@@ -515,7 +515,7 @@ export class Game {
 				this.fastify.log.error(`Error advancing tournament: ${e}`);
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
-					player.disconnect("Error advancing tournament");
+					player.disconnect('Error advancing tournament');
 					sendSeeMessageByUserId(
 						player.user.id,
 						'game_closed',
@@ -567,7 +567,7 @@ export class Game {
 				// this occurs when the game ends because its actually over because someone won or the admin left as of now
 				for (const player of this.players) {
 					if (!(player instanceof UserPlayer)) continue;
-					player.disconnect("Tournament over");
+					player.disconnect('Tournament over');
 					sendSeeMessageByUserId(
 						player.user.id,
 						'game_closed',
@@ -592,9 +592,10 @@ export class Game {
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect(this.admin.id === player.user.id
-								? 'lobby_admin'
-								: 'lobby', 4242);
+				player.disconnect(
+					this.admin.id === player.user.id ? 'lobby_admin' : 'lobby',
+					4242
+				);
 				sendPopupToClient(
 					this.fastify,
 					player.user.id,
@@ -618,20 +619,18 @@ export class Game {
 			}
 		} else {
 			console.log('end game classic non tournament');
-			if (save_game) {
-				(async () => {
-					try {
-						await saveCompletedGame(this, this.fastify);
-					} catch (_e) {
-						// already logged inside saveCompletedGame
-					}
-				})();
-			}
+			(async () => {
+				try {
+					await saveCompletedGame(this, this.fastify);
+				} catch (_e) {
+					// already logged inside saveCompletedGame
+				}
+			})();
 
 			// this occurs when the game ends because its actually over because someone won or the admin left as of now
 			for (const player of this.players) {
 				if (!(player instanceof UserPlayer)) continue;
-				player.disconnect("Game over");
+				player.disconnect('Game over');
 				sendSeeMessageByUserId(player.user.id, 'game_closed', end_message);
 			}
 

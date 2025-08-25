@@ -73,7 +73,10 @@ export async function saveCompletedGame(
 	}
 }
 
-export async function saveCompletedTournamentGame(game: Game, fastify: FastifyInstance): Promise<void> {
+export async function saveCompletedTournamentGame(
+	game: Game,
+	fastify: FastifyInstance
+): Promise<void> {
 	fastify.log.info(`save tournament game`);
 	// const db = fastify.sqlite as Database;
 	// const settingsJson = JSON.stringify(game.config);
@@ -214,30 +217,90 @@ async function awardGameAchievements(
 	const placeById = new Map<number, number>();
 	for (const r of game.results) placeById.set(r.playerId, r.place);
 
+	const isUserPlayer = (p: unknown): p is UserPlayer =>
+		!!p &&
+		typeof p === 'object' &&
+		'user' in (p as any) &&
+		(p as any).user &&
+		'id' in (p as any).user;
+
+	const isLocalPlayer = (p: unknown): p is LocalPlayer =>
+		!!p &&
+		typeof p === 'object' &&
+		'owner' in (p as any) &&
+		(p as any).owner &&
+		'user' in (p as any).owner &&
+		(p as any).owner.user &&
+		'id' in (p as any).owner.user;
+
+	const isAiPlayer = (p: unknown): p is AiPlayer =>
+		!!p &&
+		typeof p === 'object' &&
+		('aiMoveCoolDown' in (p as any) || 'aiDifficulty' in (p as any));
+
 	const participants = game.players.map((p) => {
-		if (p instanceof UserPlayer) {
+		if (isUserPlayer(p)) {
 			return {
 				userId: p.user.id,
 				type: 'User' as const,
 				lives: p.lives,
 				place: placeById.get(p.playerId) ?? 999,
 			};
-		} else if (p instanceof LocalPlayer) {
+		} else if (isLocalPlayer(p)) {
 			return {
 				userId: p.owner.user.id,
 				type: 'Local' as const,
 				lives: p.lives,
 				place: placeById.get(p.playerId) ?? 999,
 			};
-		} else {
+		} else if (isAiPlayer(p)) {
 			return {
 				userId: null as number | null,
 				type: 'AI' as const,
 				lives: p.lives,
 				place: placeById.get(p.playerId) ?? 999,
 			};
+		} else {
+			return {
+				userId: null as number | null,
+				type: 'Unknown' as const,
+				lives: p.lives,
+				place: placeById.get(p.playerId) ?? 999,
+			};
 		}
 	});
+
+	const adminId = game?.admin?.id ?? null;
+	if (adminId != null) {
+		const owned = game.players.filter(
+			(p) =>
+				(isUserPlayer(p) && p.user.id === adminId) ||
+				(isLocalPlayer(p) && p.owner.user.id === adminId)
+		);
+
+		if (owned.length > 0) {
+			const best = owned
+				.map((p) => ({
+					lives: p.lives,
+					place: placeById.get(p.playerId) ?? 999,
+				}))
+				.sort((a, b) => a.place - b.place)[0];
+
+			participants.push({
+				userId: adminId,
+				type: 'User',
+				lives: best.lives,
+				place: best.place,
+			});
+		} else {
+			participants.push({
+				userId: adminId,
+				type: 'User',
+				lives: 0,
+				place: 999,
+			});
+		}
+	}
 
 	const people = participants.filter(
 		(p) => p.userId !== null && (p.type === 'User' || p.type === 'Local')
