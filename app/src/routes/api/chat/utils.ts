@@ -14,6 +14,7 @@ import {
 	getAllChatsFromSqlByUserId,
 } from '../../../services/database/chat';
 import { sendPopupToClient } from '../../../services/sse/popup';
+import { sendSseHtmlByUserId } from '../../../services/sse/handler';
 
 export async function inviteUserToChat(
 	fastify: FastifyInstance,
@@ -79,6 +80,9 @@ export async function leave(
 	deleteUserFromChatParticipants(fastify, fromUser, chat_id);
 
 	const check = await getAllParticipantsFromSql(fastify, chat_id);
+	for (const user of check) {
+		sendSseHtmlByUserId(user.user_id, 'chat_update', '');
+	}
 	if (check && check.length === 0) {
 		removeChat(fastify, chat_id);
 	}
