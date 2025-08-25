@@ -50,7 +50,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				const id: number = runningGames.length + 1;
 				const game = new Game(id, user, fastify, { ...defaultGameSettings });
 				runningGames.push(game);
-				game.players.splice(0, game.players.length);
+				game.players = [];
 				await game.addUserPlayer(user, false);
 
 				fastify.log.info(`Game created with ID: ${id}`);
@@ -844,7 +844,9 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			const user = await checkAuth(request, false, fastify);
 			if (!user) {
-				return reply.redirect('/partial/pages/index').send({ error: 'Unauthorized' });
+				return reply
+					.redirect('/partial/pages/index')
+					.send({ error: 'Unauthorized' });
 			}
 			const { gameId } = request.query as { gameId: string };
 			const parsedGameId = Number.parseInt(gameId, 10);
@@ -1036,7 +1038,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error
 				);
 
-				player.disconnect("Socket error");
+				player.disconnect('Socket error');
 				try {
 					await game.removePlayer(player.playerId, false, false, true);
 				} catch (err) {
@@ -1067,7 +1069,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fastify.log.info(
 					`Player ${player.playerId} disconnected from game ${parsedGameId}.`
 				);
-				player.disconnect("Socket closed lol amogus");
+				player.disconnect('Socket closed lol amogus');
 				try {
 					if (game.config.gameType !== GameType.TOURNAMENT)
 						await game.removePlayer(player.playerId, false, false, true);
