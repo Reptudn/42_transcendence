@@ -265,13 +265,13 @@ function pad(n: number): string {
 }
 
 const template: string = `<div class="flex flex-row items-end self-start space-x-2 w-full">
-	<a href="/partial/pages/profile/<%= fromUser %>">
+	<button onclick="loadPartialView('profile', true, '<%= fromUser %>', true, true, false)">
 		<img
 			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
 			alt="Profile Picture"
 			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
 		/>
-	</a>
+	</button>
 	<div class="px-4 py-2 border border-green-600 bg-green-500 text-white rounded-xl flex flex-col max-w-[70%] break-words">
 		<span class="flex flex-row justify-between font-semibold border-b border-white/30 mb-1">
 			<%= displayName %>

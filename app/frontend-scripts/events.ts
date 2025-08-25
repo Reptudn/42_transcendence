@@ -1,4 +1,6 @@
 import { showLocalError, showLocalInfo } from './alert.js';
+import { initChat } from './chat.js';
+import { initModal } from './chat_modal.js';
 import { loadPartialView } from './navigator.js';
 import {
 	closeAllPopups,
@@ -217,6 +219,8 @@ export function setupEventSource() {
 
 if (localStorage.getItem('loggedIn') === 'true') {
 	setupEventSource();
+	initChat();
+	initModal();
 }
 
 export async function sendPopup(
@@ -298,10 +302,12 @@ async function checkLogged() {
 		notifyEventSource = null;
 		updateConnectionStatus('DISCONNECTED');
 		showLocalInfo('User not logged anymore!');
-		await loadPartialView("index", true, null, true, true, true);
+		await loadPartialView('index', true, null, true, true, true);
 	} else {
 		localStorage.setItem('loggedIn', 'true');
 		setupEventSource();
+		initChat();
+		initModal();
 		// showLocalInfo('User logged in!');
 	}
 }
