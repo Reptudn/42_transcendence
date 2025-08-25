@@ -260,6 +260,7 @@ export class Game {
 		}
 		if (playerToRemove instanceof UserPlayer) {
 			playerToRemove.disconnect();
+			playerToRemove.joined = false;
 
 			this.players = this.players.filter(
 				(player) =>
@@ -300,7 +301,8 @@ export class Game {
 		try {
 			if (
 				playerToRemove instanceof UserPlayer &&
-				playerToRemove.user.id == this.admin.id && this.ended === false
+				playerToRemove.user.id == this.admin.id &&
+				this.ended === false
 			)
 				this.endGame(
 					'Game admin left, game closed. (Game doesnt count)',
@@ -353,10 +355,10 @@ export class Game {
 		} else if (this.config.gameType === GameType.TOURNAMENT) {
 			if (this.status !== GameStatus.WAITING)
 				throw new Error('Game already running!');
-			if (this.players.length < 8){
+			if (this.players.length < 8) {
 				this.status = GameStatus.WAITING;
 				this.ended = true;
-				this.endGame("Tournament closed because a Player left!");
+				this.endGame('Tournament closed because a Player left!');
 				throw new Error('Tournament closed!');
 			}
 
@@ -434,6 +436,7 @@ export class Game {
 				? this.tournament.getBracketJSON()
 				: null,
 			availableMaps: this.availableMaps,
+			alreadyStarted: this.alreadyStarted,
 		});
 
 		for (const player of this.players) {
@@ -533,22 +536,6 @@ export class Game {
 
 			let match = this.tournament.getCurrentMatch();
 
-			if (
-				this.config.autoAdvance &&
-				!this.tournament.isFinished() &&
-				match &&
-				match.player1 instanceof AiPlayer &&
-				match.player2 instanceof AiPlayer
-			) {
-				for (const player of this.players) {
-					if (player instanceof UserPlayer)
-						sendSeeMessageByUserId(
-							player.user.id,
-							'message',
-							'AI players are advancing... (higher AI diff wins)'
-						);
-				}
-			}
 			while (
 				this.config.autoAdvance &&
 				!this.tournament.isFinished() &&
@@ -603,11 +590,14 @@ export class Game {
 			for (const player of this.players) {
 				player.lives = this.config.playerLives;
 				if (!(player instanceof UserPlayer)) continue;
+				// player.disconnect();
 				sendPopupToClient(
 					this.fastify,
 					player.user.id,
 					'Tournament advancing',
-					`Next match: ${p1?.displayName ?? 'Left Player'} vs ${p2?.displayName ?? 'Left Player'}`
+					`Next match: ${p1?.displayName ?? 'Left Player'} vs ${
+						p2?.displayName ?? 'Left Player'
+					}`
 				);
 				sendSseRawByUserId(
 					player.user.id,

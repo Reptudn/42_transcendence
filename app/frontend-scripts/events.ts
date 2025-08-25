@@ -170,6 +170,9 @@ export function setupEventSource() {
 				case 'game_tournament_admin_lobby_warp': {
 					console.log('Game tournament admin lobby warp:', data);
 					await loadPartialView('lobby_admin', false, null, true, false);
+					import('./gameRenderer.js').then(({ stopRendering }) => {
+						stopRendering();
+					});
 					break;
 				}
 				case 'game_tournament_lobby_warp': {

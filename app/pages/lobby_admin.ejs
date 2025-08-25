@@ -2,12 +2,12 @@
 	<!-- Initial Page things that only get loaded when the page is first loaded -->
 	<div class="flex-row">
 		<h1 class="text-4xl"><%= ownerName %>'s <%= t('lobby_admin.game') %></h1>
-		<button onclick="addAIPlayer()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_ai') %></button>
-		<button onclick="addLocalPlayer()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_local_player') %></button>
+		<button onclick="addAIPlayer()" <%= alreadyStarted ? 'disabled' : '' %> class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_ai') %></button>
+		<button onclick="addLocalPlayer()" <%= alreadyStarted ? 'disabled' : '' %> class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.add_local_player') %></button>
 		<button onclick="startGame()" class="mt-3 mb-3 invite-btn bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.start_game') %></button>
-		<button onclick="resetGameSettings()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.reset_game_settings') %></button>
+		<button onclick="resetGameSettings()" <%= alreadyStarted ? 'disabled' : '' %> class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.reset_game_settings') %></button>
 		<label for="game-type-select" ><%= t('lobby_admin.game_type') %></label>
-		<select name="Game Type" id="game-type-select">
+		<select name="Game Type" id="game-type-select" <%= alreadyStarted ? 'disabled' : '' %>>
 			<option value="classic"><%= t('lobby_admin.modes.classic') %></option>
 			<option value="tournament"><%= t('lobby_admin.modes.tournament') %></option>
 		</select>
@@ -15,7 +15,7 @@
 		<br>
 		<div>
 			<h2><%= t('lobby_admin.online_friends') %></h2>
-			<button onclick="refreshOnlineFriends()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.refresh') %></button>
+			<button <%= alreadyStarted ? 'disabled' : '' %> onclick="refreshOnlineFriends()" class="mt-3 mb-3 invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"><%= t('lobby_admin.refresh') %></button>
 			<p><%= t('lobby_admin.invite_description') %></p>
 			<div id="onlineFriendsList" class="flex mt-3">
 				<!--Online friends will be inserted here-->
@@ -25,7 +25,7 @@
 		<div id="lobby">
 <% } %>
 		<label for="map-select">Map:</label>
-		<select name="Map" id="map-select">
+		<select name="Map" id="map-select" <%= alreadyStarted ? 'disabled' : '' %>>
 			<% if (availableMaps && availableMaps.length > 0) { %>
 				<% const currentMap = (gameSettings.map || '').toLowerCase(); %>
 				<% for (const map of availableMaps) { %>
@@ -35,8 +35,8 @@
 				<option value="">No maps available</option>
 			<% } %>
 		</select>
-		<input type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> ><%= t('lobby_admin.power_enabled_check') %></input>
-		<input type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.gameDifficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
+		<input <%= alreadyStarted ? 'disabled' : '' %> type="checkbox" name="Power-Ups enabled?" id="powerups-toggle" <%= gameSettings.powerupsEnabled ? 'checked' : '' %> ><%= t('lobby_admin.power_enabled_check') %></input>
+		<input <%= alreadyStarted ? 'disabled' : '' %> type="number" name="Difficulty" id="difficulty-input" min="1" max="10" value="<%= gameSettings.gameDifficulty %>"><%= t('lobby_admin.game_difficulty') %></input>
 		<p><%= t('lobby_admin.player_count') %>: <%= players.length %> / <span class="glow-red"><%= gameSettings.maxPlayers %></span></p>
 		<div class="settings">
 			<h2 class="text-3xl"><%= t('lobby_admin.lobby_settings') %></h2>
@@ -49,7 +49,7 @@
 				<% } %>
 				<% if (gameSettings.gameType === 'tournament') { %>
 					<h3 class="text-3xl">Tournament Specific Settings</h3>
-					<input type="checkbox" name="autoAdvance" id="autoAdvance" <%= gameSettings.autoAdvance ? 'checked' : '' %> onchange="setAutoAdvance(this.checked)">
+					<input <%= alreadyStarted ? 'disabled' : '' %> type="checkbox" name="autoAdvance" id="autoAdvance" <%= gameSettings.autoAdvance ? 'checked' : '' %> onchange="setAutoAdvance(this.checked)">
 					<label for="autoAdvance">Auto Advance AI's</label>
 				<% } %>
 			</div>
@@ -84,7 +84,7 @@
 							<% } %>
 							<h3 class="glow-purple">Type: <%= player.type || 'Unknown' %></h3>
 							<% if (player.playerId !== 0) { %> <!-- 0 is the admin -->
-								<button onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
+								<button <%= alreadyStarted ? 'disabled' : '' %> onclick="kickPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Remove</button>
 							<% } %>
 							<% if (player.type === 'AI') { %>
 								<label for="ai-diff-range-<%= player.playerId %>">Difficulty:</label>
@@ -92,15 +92,16 @@
 									name="AI Difficulty" 
 									id="ai-diff-range-<%= player.playerId || 3%>" 
 									min="1" 
-									max="10" 
+									max="10"
+									<%= alreadyStarted ? 'disabled' : '' %>
 									value="<%= player.aiDifficulty %>"
 									onchange="setAiDifficulty(<%= player.playerId %>, this.value)">
 							<% } %>
 							<% if (localPlayerId && player.playerId === localPlayerId) { %>
 								<h3>Controls: A - Left | D - Right</h3>
-								<button onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+								<button <%= alreadyStarted ? 'disabled' : '' %> onclick="renameLocalPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
 							<% } else if (player.type === 'AI') { %>
-								<button onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
+								<button <%= alreadyStarted ? 'disabled' : '' %> onclick="renameAiPlayer(<%= player.playerId %>)" class="invite-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Rename</button>
 							<% } %>
 						</div>
 					<% } %>

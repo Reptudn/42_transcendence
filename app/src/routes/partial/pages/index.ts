@@ -235,17 +235,22 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					const admin = existingGame.players.find(
 						(p) => p instanceof UserPlayer && p.user.id == user.id
 					);
-					if (!admin){
-						const index = runningGames.findIndex((g) => g === existingGame);
+					if (!admin) {
+						const index = runningGames.findIndex(
+							(g) => g === existingGame
+						);
 						if (index !== -1) {
 							runningGames.splice(index, 1);
-						fastify.log.info({ adminId: user.id }, 'Removed game because admin is missing');
+							fastify.log.info(
+								{ adminId: user.id },
+								'Removed game because admin is missing'
+							);
 						}
 						throw new Error('No Admin found! Game has been removed.');
 					}
 					fastify.log.info(`Admin ${admin}`);
 					const players = [];
-					if (existingGame){
+					if (existingGame) {
 						for (const player of existingGame.players) {
 							players.push(player.formatStateForClients());
 						}
@@ -253,6 +258,7 @@ const pages: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					//if (!admin) throw new Error('No Admin found!');
 					(admin as UserPlayer).lang = req.t;
 					admin.joined = true;
+					variables['alreadyStarted'] = existingGame.alreadyStarted;
 					variables['initial'] = true;
 					variables['ownerName'] = user!.displayname;
 					variables['players'] = players;

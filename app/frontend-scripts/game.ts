@@ -103,7 +103,7 @@ const game = new Script(
 
 				case 1000:
 					showLocalInfo('Connection to game closed!');
-					await loadPartialView('profile');
+					// await loadPartialView('profile');
 					break;
 
 				case 1001:
@@ -111,14 +111,14 @@ const game = new Script(
 					await loadPartialView('profile');
 					break;
 
-		case 1005: // Invalid message format
-			showLocalError(
-				'Connection closed due to invalid message format or cloudflare issue',
-				undefined,
-				5000
-			);
-			await loadPartialView('profile');
-			break;
+				case 1005: // Invalid message format
+					showLocalError(
+						'Connection closed due to invalid message format or cloudflare issue',
+						undefined,
+						5000
+					);
+					await loadPartialView('profile');
+					break;
 
 				default:
 					await loadPartialView('profile');
