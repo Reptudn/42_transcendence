@@ -40,7 +40,7 @@ services:
         networks:
             - transcendence_net
         ports:
-            - '443:443'
+            - '8080:443'
         command: |
             bash -c "if [ ! -f /etc/ssl/nginx.key ] || [ ! -f /etc/ssl/nginx.crt ]; then \
                 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx.key -out /etc/ssl/nginx.crt -subj '/CN=localhost'; \

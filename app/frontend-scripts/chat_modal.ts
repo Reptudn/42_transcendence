@@ -5,6 +5,8 @@ let userIds: string[] = [];
 let userIdToBlock = '';
 let groupName = '';
 
+await initModal();
+
 export async function initModal() {
 	// Chats Modal
 
@@ -133,15 +135,17 @@ export async function initModal() {
 
 async function mainChatButton() {
 	document.getElementById('chatsModal')?.classList.remove('hidden');
+	await renderChat();
+}
 
-	const res = await fetch('/api/chat/chats');
-	const data = await res.json();
-	if (!res.ok) {
-		return showLocalInfo(data.error);
-	}
-
+export async function renderChat() {
 	const chatList = document.getElementById('chatList');
 	if (chatList) {
+		const res = await fetch('/api/chat/chats');
+		const data = await res.json();
+		if (!res.ok) {
+			return showLocalInfo(data.error);
+		}
 		chatList.innerHTML = '';
 		for (const chat of data.chats) {
 			chatList.insertAdjacentHTML('beforeend', chat);
@@ -171,15 +175,17 @@ function closeChat() {
 
 async function mainFrindsButton() {
 	document.getElementById('friendsModal')?.classList.remove('hidden');
+	await renderFriends();
+}
 
-	const res = await fetch('/api/chat/friends?chat_id=1');
-	const data = await res.json();
-	if (!res.ok) {
-		return showLocalInfo(data.error);
-	}
-
+export async function renderFriends() {
 	const friendList = document.getElementById('friendsList');
 	if (friendList) {
+		const res = await fetch('/api/chat/friends?chat_id=1');
+		const data = await res.json();
+		if (!res.ok) {
+			return showLocalInfo(data.error);
+		}
 		friendList.innerHTML = '';
 		for (const friend of data.friends) {
 			friendList.insertAdjacentHTML('beforeend', friend);
@@ -195,14 +201,18 @@ function closeFriends() {
 
 async function openCreateModal() {
 	document.getElementById('groupWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends?chat_id=2');
-	if (!res.ok) {
-		showLocalError('Failed to fetch friends', undefined, 5000);
-		return;
-	}
-	const data = await res.json();
+	await renderFriendsButtonsCreate();
+}
+
+export async function renderFriendsButtonsCreate() {
 	const userList = document.getElementById('searchResults');
 	if (userList) {
+		const res = await fetch('/api/chat/friends?chat_id=2');
+		if (!res.ok) {
+			showLocalError('Failed to fetch friends', undefined, 5000);
+			return;
+		}
+		const data = await res.json();
 		userList.innerHTML = '';
 		for (const friend of data.friends) {
 			userList.insertAdjacentHTML('beforeend', friend);
@@ -275,14 +285,18 @@ function closeCreate() {
 
 async function openBlockModal() {
 	document.getElementById('blockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends?chat_id=2');
-	if (!res.ok) {
-		showLocalError('Failed to fetch friends', undefined, 5000);
-		return;
-	}
-	const data = await res.json();
+	await renderFriendsButtonsBlock();
+}
+
+export async function renderFriendsButtonsBlock() {
 	const userList = document.getElementById('searchResultsToBlock');
 	if (userList) {
+		const res = await fetch('/api/chat/friends?chat_id=2');
+		if (!res.ok) {
+			showLocalError('Failed to fetch friends', undefined, 5000);
+			return;
+		}
+		const data = await res.json();
 		userList.innerHTML = '';
 		for (const friend of data.friends) {
 			userList.insertAdjacentHTML('beforeend', friend);
@@ -346,14 +360,18 @@ function closeBlockUser() {
 
 async function openUnblockModal() {
 	document.getElementById('unblockUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends?chat_id=2');
-	if (!res.ok) {
-		showLocalError('Failed to fetch friends', undefined, 5000);
-		return;
-	}
-	const data = await res.json();
+	await renderFriendsUnblock();
+}
+
+export async function renderFriendsUnblock() {
 	const userList = document.getElementById('searchResultsToUnblock');
 	if (userList) {
+		const res = await fetch('/api/chat/friends?chat_id=2');
+		if (!res.ok) {
+			showLocalError('Failed to fetch friends', undefined, 5000);
+			return;
+		}
+		const data = await res.json();
 		userList.innerHTML = '';
 		for (const friend of data.friends) {
 			userList.insertAdjacentHTML('beforeend', friend);
@@ -416,14 +434,18 @@ function closeUnblockUser() {
 
 async function openInviteModal() {
 	document.getElementById('inviteUserWindow')?.classList.remove('hidden');
-	const res = await fetch('/api/chat/friends?chat_id=2');
-	if (!res.ok) {
-		showLocalError('Failed to fetch friends');
-		return;
-	}
-	const data = await res.json();
+	await renderFriendsButtonsInvite();
+}
+
+export async function renderFriendsButtonsInvite() {
 	const userList = document.getElementById('searchResultsToInvite');
 	if (userList) {
+		const res = await fetch('/api/chat/friends?chat_id=2');
+		if (!res.ok) {
+			showLocalError('Failed to fetch friends');
+			return;
+		}
+		const data = await res.json();
 		userList.innerHTML = '';
 		for (const friend of data.friends) {
 			userList.insertAdjacentHTML('beforeend', friend);
@@ -499,16 +521,20 @@ async function leaveUser() {
 
 async function openChatInfo() {
 	document.getElementById('chatInfoWindow')?.classList.remove('hidden');
-	const res = await fetch(
-		`/api/chat/getInfo?chat_id=${sessionStorage.getItem('chat_id')}`
-	);
-	const data = await res.json();
-	if (!res.ok) {
-		showLocalError(data.error, undefined, 5000);
-		return;
-	}
+	renderChatInfo();
+}
+
+export async function renderChatInfo() {
 	const win = document.getElementById('chatInfoInput');
 	if (win) {
+		const res = await fetch(
+			`/api/chat/getInfo?chat_id=${sessionStorage.getItem('chat_id')}`
+		);
+		const data = await res.json();
+		if (!res.ok) {
+			showLocalError(data.error, undefined, 5000);
+			return;
+		}
 		win.innerHTML = '';
 		win.innerHTML = data.msg;
 	}

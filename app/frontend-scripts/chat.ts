@@ -1,5 +1,8 @@
 import { showLocalError, showLocalInfo } from './alert.js';
 import type { htmlMsg } from '../src/types/chat.js';
+import { renderChat, renderChatInfo, renderFriends, renderFriendsButtonsBlock, renderFriendsButtonsCreate, renderFriendsButtonsInvite, renderFriendsUnblock } from './chat_modal.js';
+
+await initChat();
 
 export async function initChat() {
 	if (!sessionStorage.getItem('chat_id')) sessionStorage.setItem('chat_id', '1');
@@ -105,47 +108,19 @@ export async function getMessages(chat_id: string | null) {
 }
 
 export async function updateChat() {
-	let res = await fetch('/api/chat/chats');
-	let data = await res.json();
-	if (!res.ok) {
-		return showLocalInfo(data.error);
-	}
+	await renderChat();
 
-	const chatList = document.getElementById('chatList');
-	if (chatList) {
-		chatList.innerHTML = '';
-		for (const chat of data.chats) {
-			chatList.insertAdjacentHTML('beforeend', chat);
-		}
-	}
+	await renderFriends();
 
-	res = await fetch('/api/chat/friends?chat_id=1');
-	data = await res.json();
-	if (!res.ok) {
-		return showLocalInfo(data.error);
-	}
+	await renderFriendsButtonsCreate();
 
-	const friendList = document.getElementById('friendsList');
-	if (friendList) {
-		friendList.innerHTML = '';
-		for (const friend of data.friends) {
-			friendList.insertAdjacentHTML('beforeend', friend);
-		}
-	}
+	await renderFriendsButtonsBlock();
 
-	res = await fetch(
-		`/api/chat/getInfo?chat_id=${sessionStorage.getItem('chat_id')}`
-	);
-	data = await res.json();
-	if (!res.ok) {
-		showLocalError(data.error, undefined, 5000);
-		return;
-	}
-	const win = document.getElementById('chatInfoInput');
-	if (win) {
-		win.innerHTML = '';
-		win.innerHTML = data.msg;
-	}
+	await renderFriendsUnblock();
+
+	await renderFriendsButtonsInvite();
+
+	await renderChatInfo();
 }
 
 declare global {

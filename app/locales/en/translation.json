@@ -159,6 +159,7 @@
 		"part": "Group members",
 		"blocked": "Blocked participants",
 		"chat": "Chat",
-		"friend": "friends"
+		"friend": "friends",
+		"chats": "Chats"
 	}
 }
