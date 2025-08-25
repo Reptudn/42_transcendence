@@ -107,8 +107,9 @@ const game = new Script(
 					break;
 
 				case 4242:
-					showLocalInfo(`Redirecting to ${event.reason}`);
-					await loadPartialView(event.reason, false, null, true, false, false);
+					console.log('game ended ok');
+					// showLocalInfo(`Redirecting to ${event.reason}`);
+					// await loadPartialView(event.reason, false, null, true, false, false);
 					break;
 
 				case 1001:
