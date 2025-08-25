@@ -25,7 +25,7 @@ export interface AppOptions
 	extends FastifyServerOptions,
 		Partial<AutoloadPluginOptions> {}
 // Pass --options via CLI arguments in command to enable these options.
-const options: AppOptions = {};
+const options: AppOptions = { trustProxy: process.env.NODE_ENV === 'production' ? 1 : true  };
 
 const app: FastifyPluginAsync<AppOptions> = async (
 	fastify,

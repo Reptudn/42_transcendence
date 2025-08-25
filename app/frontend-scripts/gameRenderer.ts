@@ -255,8 +255,10 @@ export function drawCircle(
 		ctx.save();
 		ctx.globalAlpha = alpha;
 		ctx.beginPath();
+		/*
 		if (!isPointInsideCanvas(x, y))
 			console.log('Point is outside canvas:', x, y);
+		*/
 		ctx.arc(x, y, radius, 0, Math.PI * 2);
 		ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
 		ctx.fill();
@@ -278,8 +280,10 @@ export function drawPolygon(
 	path.moveTo(points[0].x, points[0].y);
 	for (let i = 1; i < points.length; i++) {
 		path.lineTo(points[i].x, points[i].y);
+		/*
 		if (!isPointInsideCanvas(points[i].x, points[i].y))
 			console.log('Point is outside canvas:', points[i]);
+		*/
 	}
 	if (closePath) path.closePath();
 	if (ctx) {

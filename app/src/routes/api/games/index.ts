@@ -1038,7 +1038,7 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 					error
 				);
 
-				player.disconnect();
+				player.disconnect("Socket error");
 				try {
 					game.removePlayer(player.playerId, false, false, true);
 				} catch (err) {
@@ -1069,11 +1069,11 @@ const games: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 				fastify.log.info(
 					`Player ${player.playerId} disconnected from game ${parsedGameId}.`
 				);
-				player.disconnect();
+				player.disconnect("Socket closed lol amogus");
 
-				// Immediately remove player when WebSocket closes
 				try {
-					game.removePlayer(player.playerId, false, false, true);
+					if (game.config.gameType !== GameType.TOURNAMENT)
+						game.removePlayer(player.playerId, false, false, true);
 				} catch (err) {
 					fastify.log.error(
 						`Error removing player ${player.playerId} after WebSocket close:`,

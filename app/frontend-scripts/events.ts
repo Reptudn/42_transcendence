@@ -297,6 +297,7 @@ async function checkLogged() {
 		notifyEventSource = null;
 		updateConnectionStatus('DISCONNECTED');
 		showLocalInfo('User not logged anymore!');
+		await loadPartialView("index", true, null, true, true, true);
 	} else {
 		localStorage.setItem('loggedIn', 'true');
 		setupEventSource();

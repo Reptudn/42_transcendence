@@ -3,6 +3,7 @@ networks:
 
 volumes:
     transcendence_vol:
+        driver: local
     nginx-ssl:
 
 services:
@@ -11,10 +12,6 @@ services:
         build: .
         environment:
             - NODE_ENV=production
-            # - GOOGLE_OAUTH_CLIENT_ID=
-            # - GOOGLE_OAUTH_CLIENT_SECRET=
-            # - JWT_SECRET=
-            # - HOST_URI=
         env_file:
             - .env
         networks:
@@ -40,7 +37,7 @@ services:
         networks:
             - transcendence_net
         ports:
-            - '443:443'
+            - '8080:443' # 443 (default HTTPS) on Mac and something >= 1024 on Linux due to no sudo
         command: |
             bash -c "if [ ! -f /etc/ssl/nginx.key ] || [ ! -f /etc/ssl/nginx.crt ]; then \
                 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx.key -out /etc/ssl/nginx.crt -subj '/CN=localhost'; \

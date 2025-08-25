@@ -3,7 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 
 export default fp(async (fastify) => {
 	fastify.register(rateLimit, {
-		max: 200,
+		max: 500,
 		timeWindow: '1 minute',
 		keyGenerator: (req) => {
 			return req.cookies.token || req.ip;
