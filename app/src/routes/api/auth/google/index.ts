@@ -9,6 +9,7 @@ import { getGoogleProfile } from '../../../../services/google/user';
 import { users_2fa_google } from '../index';
 import { getUser2faSecret } from '../../../../services/database/totp';
 import crypto from 'node:crypto';
+import { inviteUserToChat } from '../../chat/utils';
 
 const google_callback: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	fastify.get('/callback', async (req: any, reply: any) => {
@@ -38,6 +39,9 @@ const google_callback: FastifyPluginAsync = async (fastify, opts): Promise<void>
 				try {
 					fastify.log.info('Trying to register google user into db');
 					await registerGoogleUser(user, fastify);
+					const google_user = await getGoogleUser(user.id, fastify);
+					if (!google_user) throw new Error("No such google user");
+					await inviteUserToChat(fastify, google_user.id, google_user.id, 1);
 				} catch (error) {
 					fastify.log.error('Error Google Register', error);
 					return reply.code(400).send(error);

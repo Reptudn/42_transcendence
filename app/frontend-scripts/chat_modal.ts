@@ -1,5 +1,6 @@
 import { getMessages } from './chat.js';
 import { showLocalError, showLocalInfo } from './alert.js';
+import { loadPartialView } from './navigator.js';
 
 let userIds: string[] = [];
 let userIdToBlock = '';
@@ -28,6 +29,10 @@ export async function initModal() {
 	button = document.getElementById('friends');
 	button?.removeEventListener('click', mainFrindsButton);
 	button?.addEventListener('click', mainFrindsButton);
+
+	button = document.getElementById('friendsList');
+	button?.removeEventListener('click', friendsButtonsFriends);
+	button?.addEventListener('click', friendsButtonsFriends);
 
 	button = document.getElementById('closeFriends');
 	button?.removeEventListener('click', closeFriends);
@@ -117,6 +122,10 @@ export async function initModal() {
 	button?.removeEventListener('click', openChatInfo);
 	button?.addEventListener('click', openChatInfo);
 
+	button = document.getElementById('chatInfoInput');
+	button?.removeEventListener('click', friendsButtonsChatInfo);
+	button?.addEventListener('click', friendsButtonsChatInfo);
+
 	button = document.getElementById('closeChatInfo');
 	button?.removeEventListener('click', closeChatInfo);
 	button?.addEventListener('click', closeChatInfo);
@@ -190,6 +199,18 @@ export async function renderFriends() {
 		friendList.innerHTML = '';
 		for (const friend of data.friends) {
 			friendList.insertAdjacentHTML('beforeend', friend);
+		}
+	}
+}
+
+async function friendsButtonsFriends(e: MouseEvent) {
+	const button = (e.target as HTMLElement).closest(
+		'.friend-button'
+	) as HTMLButtonElement;
+
+	if (button) {
+		if (button.dataset.chat) {
+			await loadPartialView('profile', true, button.dataset.chat);
 		}
 	}
 }
@@ -544,6 +565,19 @@ export async function renderChatInfo() {
 		win.innerHTML = data.msg;
 	}
 }
+
+async function friendsButtonsChatInfo(e: MouseEvent) {
+	const button = (e.target as HTMLElement).closest(
+		'.friend-button-chatInfo'
+	) as HTMLButtonElement;
+
+	if (button) {
+		if (button.dataset.chat) {
+			await loadPartialView('profile', true, button.dataset.chat);
+		}
+	}
+}
+
 
 function closeChatInfo() {
 	document.getElementById('chatInfoWindow')?.classList.add('hidden');

@@ -509,19 +509,19 @@ const template: string = `<div class="chat-info-container">
 		<ul class="flex flex-col border border-gray-200 rounded px-2 py-1 overflow-y-auto min-h-40 space-y-2">
 			<% participants.forEach(function(user) { %>
 				<li>
-					<a href="/partial/pages/profile/<%= user.username %>">
-						<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
-							<img
-								src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
-								alt="Profile Picture"
-								class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
-							/>
-							<span class="font-semibold"><%= user.displayname %></span>
-							<% if (user.blocked) { %>
-								<span class="text-red-500 ml-auto">Blocked</span>
-							<% } %>
-						</div>
-					</a>
+					<button
+					class="friend-button-chatInfo flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"
+					data-chat="<%= user.username %>">
+						<img
+							src="/api/profile/<%= user.id %>/picture?v=<%= Date.now() %>"
+							alt="Profile Picture"
+							class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+						/>
+						<span class="font-semibold"><%= user.displayname %></span>
+						<% if (user.blocked) { %>
+							<span class="text-red-500 ml-auto">Blocked</span>
+						<% } %>
+					</button>
 				</li>
 			<% }) %>
 		</ul>
@@ -538,17 +538,17 @@ const chatsTemplate: string = `<button class="chat-button px-4 py-2 w-full borde
 </button>
 `;
 
-const friendsTemplate: string = `<a href="/partial/pages/profile/<%= fromUser %>">
-	<div class="flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition">
-		<img
-			src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
-			alt="Profile Picture"
-			class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
-		/>
-		<span class="font-semibold"><%= displayName %></span>
-		<span class="text-red-500 ml-auto"><%= blockedInfo %></span>
-	</div>
-</a>`;
+const friendsTemplate: string = `<button 
+	class="friend-button flex flex-row px-4 py-2 space-x-2 w-full border border-gray-300 bg-transparent rounded hover:bg-green-500 hover:text-white transition"
+	data-chat="<%= fromUser %>">
+	<img
+		src="/api/profile/<%= userId %>/picture?v=<%= Date.now() %>"
+		alt="Profile Picture"
+		class="w-8 h-8 rounded-full object-cover ring-2 ring-blue-500 ml-2"
+	/>
+	<span class="font-semibold"><%= displayName %></span>
+	<span class="text-red-500 ml-auto"><%= blockedInfo %></span>
+</button>`;
 
 const friendsTemplateUnblock: string = `<button
 	id="<%= userId %>"
