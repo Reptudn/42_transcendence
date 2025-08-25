@@ -81,7 +81,9 @@ export async function leave(
 
 	const check = await getAllParticipantsFromSql(fastify, chat_id);
 	for (const user of check) {
-		sendSseHtmlByUserId(user.user_id, 'chat_update', '');
+		try {
+			sendSseHtmlByUserId(user.user_id, 'chat_update', '');
+		} catch {}
 	}
 	if (check && check.length === 0) {
 		removeChat(fastify, chat_id);

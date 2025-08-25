@@ -400,7 +400,11 @@ export async function inviteUser(fastify: FastifyInstance) {
 				await invite(fastify, chat_id, myId, userIdsInt);
 
 				for (const id of userIdsInt) {
-					sendSseHtmlByUserId(id, 'chat_update', '');
+					try {
+						sendSseHtmlByUserId(id, 'chat_update', '');
+					} catch {
+						
+					}
 				}
 
 				return res.status(200).send({ msg: req.t('chat.invite') });
