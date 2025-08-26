@@ -3,7 +3,6 @@ networks:
 
 volumes:
     transcendence_vol:
-        driver: local
     nginx-ssl:
 
 services:
@@ -17,7 +16,7 @@ services:
         networks:
             - transcendence_net
         volumes:
-            - transcendence_vol:/app/db
+            - transcendence_vol:/app/app/db
         restart: on-failure
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
