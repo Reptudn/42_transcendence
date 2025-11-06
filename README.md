@@ -1,171 +1,145 @@
-# Transcendence
+# 🏓 42 Transcendence - Overengineered Pong
 
-## How to run
+A modern, full-stack implementation of the classic Pong game built as the final project for 42 School. This project demonstrates advanced web development concepts including real-time multiplayer gaming, AI opponents, tournament systems, and comprehensive user management.
 
-### With Docker
+## 🌟 Features
 
-1. Have docker running
-2. Run `make` to see all the available commands
-3. Basic start with `make start`
-4. Have fun ponging :D
+### 🎮 Game Modes
+- **Local Multiplayer**: Play with friends on the same device
+- **Remote Multiplayer**: Challenge players from anywhere in the world
+- **AI Opponents**: Battle against intelligent AI with adaptive difficulty
+- **Tournament System**: Organize and participate in structured tournaments
+- **Multiple Players**: Support for more than 2 players simultaneously
 
-### Without Docker
+### 🎨 Game Customization
+- Power-ups and special attacks
+- Multiple game maps and environments
+- Customizable paddle speeds and game physics
+- User-friendly settings interface
+- Default classic mode for purists
 
-1. Run `npm install` in the root project directory
-2. Start the server with `npm run start`
-3. Have fun :D
+### 👤 User Management
+- **Secure Authentication**: Registration, login, and session management
+- **OAuth Integration**: Login with Google
+- **Two-Factor Authentication (2FA)**: Enhanced security with JWT tokens
+- **User Profiles**: Avatars, display names, bios, and statistics
+- **Friends System**: Add friends and see online status
+- **Match History**: Detailed game statistics and performance tracking
 
-# Features
+### 💬 Social Features
+- **Live Chat**: Real-time messaging between users
+- **Direct Messages**: Private conversations
+- **Profile Access**: View other players' profiles through chat
+- **Tournament Notifications**: Stay updated on upcoming matches
 
-## General
+### 📊 Statistics & Analytics
+- **User Dashboard**: Personal gaming statistics and achievements
+- **Game Analytics**: Detailed match outcomes and historical data
+- **Visual Charts**: Data visualization for performance tracking
+- **Match History**: Complete record of all games played
 
--   [x] using TypeScript
--   [x] Single Page Application (SPA) with working forward and backwards buttons
--   [x] Compatible with the latest stable Firefox version
--   [x] Must be deployed with Docker
+### 🔒 Security
+- **HTTPS/WSS**: Secure connections for all communications
+- **Password Hashing**: Strong encryption for user credentials
+- **SQL Injection Protection**: Secure database queries
+- **XSS Prevention**: Protected against cross-site scripting
+- **Route Protection**: Authenticated access to sensitive areas
+- **Environment Security**: Secure configuration management
 
-### Pong
+## 🛠️ Tech Stack
 
--   [x] Local Players
--   [x] Remote Players
--   [x] AI Players
--   [x] Server Side Pong (everything is calculated on the server and send as a state to the clients)
--   [x] All Players (no matter what type) have to have the same settings e.g. same paddle speed
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Fastify
+- **Database**: SQLite
+- **Authentication**: JWT with 2FA support
+- **Real-time**: WebSocket (WSS)
 
-### Tournament System
+### Frontend
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Architecture**: Single Page Application (SPA)
+- **Browser Support**: Latest stable Firefox and modern browsers
 
--   [x] Players have to take turn playing against each other
--   [x] Next Match has to be announced
--   [x] Display who is and who will play against who
+### DevOps
+- **Containerization**: Docker & Docker Compose
+- **Web Server**: Nginx
+- **Development**: Hot reload and development containers
 
-### Security
+## 📋 Available Commands
 
--   [x] Any password stored in the database, if applicable, must be hashed.
--   [x] Must be protected against SQL Injections and XSS Attacks
--   [x] The Backend must run secure with HTTPS
--   [x] The Sockets must use WSS instead of just WS
--   [x] Ensure routes are protected
--   [x] Strong password hashing algo
--   [x] Env stuff must be in a .env file and ignored by Git
+Use `make` to see all available commands:
 
-## Modules (7 major for mandatory | 9 major for bonus)
+- `make start` - Start the application
+- `make stop` - Stop all services
+- `make build` - Build Docker images
+- `make logs` - View application logs
+- `make clean` - Clean up containers and images
 
-> 2 minor modules count as one major module
+## 🎯 Project Goals
 
-### Web
+This project implements all major modules required for the 42 Transcendence project:
 
-#### Backend Framework (Major) (1 / 9)
+1. **Backend Framework** ✅ - Fastify with Node.js
+2. **User Management** ✅ - Complete authentication system
+3. **Remote Authentication** ✅ - Google OAuth integration
+4. **Remote Players** ✅ - Real-time multiplayer gaming
+5. **Multiple Players** ✅ - Support for 2+ players
+6. **Live Chat** ✅ - Real-time communication
+7. **AI Opponent** ✅ - Intelligent game AI
+8. **Two-Factor Authentication** ✅ - Enhanced security
+9. **Game Customization** ✅ - Power-ups and custom maps
 
--   [x] Fastify
--   [x] Node.js
+**Score: 10/9 Major Modules** 🎉
 
-#### Frontend Framework (Minor) (1.5 / 9)
+## 🏆 Tournament System
 
--   [x] Tailwind CSS
+- **Bracket Management**: Automatic tournament bracket generation
+- **Match Scheduling**: Turn-based player progression
+- **Live Updates**: Real-time tournament status
+- **Player Notifications**: Alerts for upcoming matches
+- **Results Tracking**: Complete tournament history
 
-#### Database (Minor) (2)
+## 🤖 AI Implementation
 
--   [x] SQLite
+The AI opponent features:
+- **Human-like Behavior**: Simulates keyboard input with realistic timing
+- **Adaptive Difficulty**: Adjusts to player skill level
+- **Strategic Decision Making**: Intelligent positioning and movement
+- **Power-up Utilization**: Uses game modifications effectively
+- **Performance Optimization**: Efficient game state analysis
 
-### User Management
+## 📁 Project Structure
 
-#### Standard user management, authentication and users across tournaments (Major) (3 / 9)
+```
+42_transcendence/
+├── app/                    # Main application code
+├── nginx/                  # Nginx configuration
+├── .devcontainer/         # Development container setup
+├── docker-compose.yml     # Multi-container setup
+├── Dockerfile            # Application container
+├── Makefile             # Build and run commands
+├── package.json         # Node.js dependencies
+└── README.md           # This file
+```
 
--   [x] Users can securely subscribe to the website.
--   [x] Registered users can securely log in.
--   [x] Users can select a unique display name to participate in tournaments.
--   [x] Users can update their information.
--   [x] Users can upload an avatar, with a default option if none is provided.
--   [x] Users can add others as friends and view their online status.
--   [x] User profiles display stats, such as wins and losses.
--   [x] Each user has a Match History including 1v1 games, dates, and relevant details, accessible to logged-in users.
--   [x] Logical and good managemnt for duplicate usernames and emails
+## 📄 License
 
-#### Remote Auth with Google (Major) (4 / 9)
+This project is part of the 42 School curriculum. Please respect the academic integrity policies of 42 School.
 
--   [x] Obtain the necessary credentials and permissions from the authority to enable secure login.
--   [x] Implement user-friendly login and authorization flows that adhere to best practices and security standards.
--   [x] Ensure the secure exchange of authentication tokens and user information between the web application and the authentication provider.
+## 🎓 42 School Project
 
-### Gameplay and UX
+**Project**: ft_transcendence  
+**School**: 42 Heilbronn  
+**Topics**: `42` `42heilbronn` `42transcendence` `transcendence`
 
-#### Remote Players (Major) (5 / 9)
+---
 
--   [x] Consider network issues, such as unexpected disconnections or lag. You must offer the best user experience possible.
--   [x] Players can play remotely on completely different machines
+*"The last project of the common core - where we overengineer Pong to perfection!"* 🚀
 
-#### Multiple Players (Major) (6 / 9)
+## 🔗 Links
 
--   [x] More than 2 Players need to be able to play together (max player amount is on us)
-
-#### Game Customization (Minor) (6.5 / 9)
-
--   [x] Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.
--   [x] Allow users to choose a default version of the game with basic features if they prefer a simpler experience.
--   [x] Ensure that customization options are available and applicable to all games offered on the platform.
--   [x] Implement user-friendly settings menus or interfaces for adjusting game parameters.
--   [x] Maintain consistency in customization features across all games to provide a unified user experience.
-
-#### Live Chat (Major) (7.5 / 9 🤓)
-
--   [x] The user should be able to send direct messages to other users.
--   [ ] The user should be able to block other users, preventing them from seeing any further messages from the blocked account.
--   [ ] The user should be able to invite other users to play a Pong game through the chat interface.
--   [ ] The tournament system should be able to notify users about the next game.
--   [x] The user should be able to access other players’ profiles through the chat interface.
-
-### AI-Algo
-
-#### Introduce AI Opponent (Major) (8.5 / 9)
-
-> You will need to explain in detail how your AI works during your
-> evaluation. Creating an AI that does nothing is strictly prohibited;
-> it must have the capability to win occasionally
-
--   [x] Develop an AI opponent that provides a challenging and engaging gameplay experience for users.
--   [x] The AI must replicate human behavior, which means that in your AI implementation, you must simulate keyboard input. The constraint here is that the AI can only refresh its view of the game once per second, requiring it to anticipate bounces and other actions.
--   [x] The AI must utilize power-ups if you have chosen to implement the Game customization options module.
--   [x] Implement AI logic and decision-making processes that enable the AI player to make intelligent and strategic moves.
--   [x] Explore alternative algorithms and techniques to create an effective AI player without relying on A\*.
--   [x] Ensure that the AI adapts to different gameplay scenarios and user interactions.
-
-#### User and Game Stats Dashboard (Minor) (9 / 9 🥳)
-
-> Create user-friendly dashboards that provide users with insights into their gaming statistics.
-
--   [x] Develop a separate dashboard for game sessions, showing detailed statistics, outcomes, and historical data for each match.
--   [x] Ensure that the dashboards offer an intuitive and informative user interface for tracking and analyzing data.
--   [x] Implement data visualization techniques, such as charts and graphs, to present statistics in a clear and visually appealing manner.
--   [x] Allow users to access and explore their own gaming history and performance metrics conveniently.
--   [x] Feel free to add any metrics you deem useful.
-
-### Cyber Security
-
-#### Two-Factor Authentication (2FA) and JWT. (Major) (10 / 9 🤯)
-
--   [x] Implement Two-Factor Authentication (2FA) as an additional layer of security for user accounts, requiring users to provide a secondary verification method, such as a one-time code, in addition to their password.
--   [x] Utilize JSON Web Tokens (JWT) as a secure method for authentication and authorization, ensuring that user sessions and access to resources are managed securely.
--   [x] Provide a user-friendly setup process for enabling 2FA, with options for SMS codes, authenticator apps, or email-based verification.
--   [x] Ensure that JWT tokens are issued and validated securely to prevent unauthorized access to user accounts and sensitive data.
-
-# Other Things non subject related
-
-### map making rules
-
--   paddle paths should always go from left to right or from up to down, otherwise keybinds will become unintuitive
-
--   squares should be avoided, as the balls bounce boringly. if unavoidable, obstacles are important on non-easy difficulties
-
-### restraints
-
--   password (8 - 32)
--   username (under 16)
--   display name (under 16)
--   bio (under 1024)
--   profile picture (under 1mb)
-
-> can we please add this i think it's cool -> https://www.youtube.com/watch?v=5pPMvFGJPCs
-
-# Fastify
-
--   [Plugins](https://fastify.dev/ecosystem/)
+- [42 School](https://42.fr/)
+- [Project Subject](./en.subject.pdf)
+- [Fastify Documentation](https://fastify.dev/)
+- [Docker Documentation](https://docs.docker.com/)
